@@ -1,33 +1,35 @@
-# Drift detection
+# Drift Detection
 
 ## TL;DR
-Core ML system design pattern for production.
+Detect when model's assumptions break: input distribution shifts (covariate drift), output distribution shifts (label drift), or P(Y|X) changes (concept drift). Alert for retraining.
 
 ## Core Intuition
-[Intuitive explanation]
+Model trained on past data. World changes. Model assumptions break. Detect this and retrain.
 
 ## How It Works
-[Technical details]
+**Covariate drift:** P(X) changed but P(Y|X) same
+- Example: more mobile users than before
+- Detection: compare feature distributions (KS test, Wasserstein)
 
-## Key Properties / Trade-offs
-- Property 1
-- Property 2
+**Label shift:** P(Y) changed but P(X|Y) same
+- Example: more fraud attempts
+- Detection: monitor label distribution
+
+**Concept drift:** P(Y|X) changed
+- Example: user preferences shifted
+- Detection: model accuracy drops
 
 ## Common Mistakes / Gotchas
-- Mistake 1
-- Mistake 2
-
-## Best Practices
-- Practice 1
-- Practice 2
+- **No baseline:** can't tell if drift significant without baseline
+- **Alert fatigue:** too-sensitive thresholds → false positives
+- **Not acting:** detect drift but don't retrain → still broken
 
 ## Interview Quick-Reference
-| Question | What to say |
-|---|---|
-| "Explain?" | [Answer] |
+**Drift types?** Covariate (X changed), label (Y changed), concept (relationship changed).
 
 ## Related Topics
-- [Related](other.md)
+- [Monitoring & Observability](monitoring-and-observability.md)
+- [Model Versioning](model-versioning.md) — rolling back when drift detected
 
 ## Resources
-- [Reference](url)
+- [Learning Under Concept Drift](https://arxiv.org/abs/1010.6241)

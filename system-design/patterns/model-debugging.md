@@ -1,33 +1,36 @@
-# Model debugging
+# Model Debugging
 
 ## TL;DR
-Core ML system design pattern for production.
+Model performs poorly: analyze predictions, feature distributions, edge cases. Tools: confusion matrix, feature importance, SHAP values, error analysis.
 
 ## Core Intuition
-[Intuitive explanation]
+Model black box. Debug by: inspect what it learned, what it's confused about, why it fails.
 
 ## How It Works
-[Technical details]
+**Steps:**
+1. Confusion matrix: which classes confused?
+2. Feature importance: which features drive predictions?
+3. Error analysis: why does it fail on these examples?
+4. SHAP values: contribution of each feature per prediction
+5. Subgroup analysis: does it fail for specific groups?
 
-## Key Properties / Trade-offs
-- Property 1
-- Property 2
+**Example:**
+- Model: 90% accuracy, but 40% error on ~elderly users
+- Root cause: few elderly examples in training
+- Fix: collect more elderly data, oversample, or retrain
 
 ## Common Mistakes / Gotchas
-- Mistake 1
-- Mistake 2
-
-## Best Practices
-- Practice 1
-- Practice 2
+- **Reporting only overall metrics:** 90% accuracy but 20% on minority class hidden
+- **No slicing:** bugs in subgroups invisible if you only look at aggregate
+- **Not acting:** identify issue but don't fix it
 
 ## Interview Quick-Reference
-| Question | What to say |
-|---|---|
-| "Explain?" | [Answer] |
+**Debug model?** Confusion matrix, feature importance, error analysis, SHAP. Slice by subgroups.
 
 ## Related Topics
-- [Related](other.md)
+- [Model Explainability](model-explainability.md)
+- [Interpretability](interpretability.md)
 
 ## Resources
-- [Reference](url)
+- [SHAP](https://github.com/slundberg/shap)
+- [Error Analysis](https://www.microsoft.com/en-us/research/publication/towards-accountable-ai-systems-mechanisms-for-supporting-verifiable-claims/)

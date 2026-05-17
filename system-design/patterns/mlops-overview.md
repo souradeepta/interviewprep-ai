@@ -1,33 +1,40 @@
-# Mlops overview
+# MLOps Overview
 
 ## TL;DR
-Core ML system design pattern for production.
+ML engineering: not just training. Covers data pipelines, model serving, monitoring, retraining, versioning. Enables reliable, scalable production ML.
 
 ## Core Intuition
-[Intuitive explanation]
+ML systems are fragile. Code, data, models all evolve. MLOps manages this: CI/CD for ML, automated retraining, monitoring.
 
 ## How It Works
-[Technical details]
+```
+Data → Pipeline → Training → Evaluation → Serving → Monitoring
+                                              ↓
+                                        Drift detected?
+                                              ↓
+                                          Retrain
+```
 
-## Key Properties / Trade-offs
-- Property 1
-- Property 2
+**Key components:**
+- Data pipeline (ETL)
+- Feature store
+- Model registry
+- Experiment tracking
+- Automated retraining
+- Monitoring + alerting
+- Deployment orchestration
 
 ## Common Mistakes / Gotchas
-- Mistake 1
-- Mistake 2
-
-## Best Practices
-- Practice 1
-- Practice 2
+- **Manual processes:** retraining by hand is error-prone. Automate.
+- **No versioning:** can't rollback. Version code, data, models.
+- **Missing monitoring:** find issues in production too late.
 
 ## Interview Quick-Reference
-| Question | What to say |
-|---|---|
-| "Explain?" | [Answer] |
+**MLOps?** Entire ML system: pipelines, training, serving, monitoring, retraining. Automation is key.
 
 ## Related Topics
-- [Related](other.md)
+- [Data Pipelines](data-pipelines.md) — ETL part
+- [Monitoring & Observability](monitoring-and-observability.md) — detection
 
 ## Resources
-- [Reference](url)
+- [Hidden Technical Debt in Machine Learning](https://arxiv.org/abs/1503.04811)

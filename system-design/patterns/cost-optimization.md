@@ -1,33 +1,38 @@
-# Cost optimization
+# Cost Optimization
 
 ## TL;DR
-Core ML system design pattern for production.
+Reduce ML system costs: model size (quantization, pruning), serving (batch, caching), compute (right-size infrastructure), data (reduce volume). Common 3-5x reductions.
 
 ## Core Intuition
-[Intuitive explanation]
+ML is expensive: training, serving, data storage. Optimize where money goes.
 
 ## How It Works
-[Technical details]
+**Model costs:**
+- Quantization: 4x smaller, 2-3x faster, ~1-2% accuracy loss
+- Pruning: remove unimportant parameters
+- Distillation: small student model mimics large teacher
 
-## Key Properties / Trade-offs
-- Property 1
-- Property 2
+**Serving costs:**
+- Caching: avoid recomputation
+- Batch inference: cheaper per prediction
+- Right-size: don't over-provision GPUs
+
+**Data costs:**
+- Retention: don't keep indefinitely
+- Compression: reduce storage
+- Sampling: train on sample, not full data
 
 ## Common Mistakes / Gotchas
-- Mistake 1
-- Mistake 2
-
-## Best Practices
-- Practice 1
-- Practice 2
+- **Optimizing wrong thing:** cheap model, expensive serving. Look holistically.
+- **Premature optimization:** optimize before measuring. Profile first.
+- **Quality sacrificed:** cut costs too much → broken models. Measure impact.
 
 ## Interview Quick-Reference
-| Question | What to say |
-|---|---|
-| "Explain?" | [Answer] |
+**Cost optimization?** Model size, serving efficiency, right-size infrastructure, data reduction.
 
 ## Related Topics
-- [Related](other.md)
+- [Model Compression](../ml/concepts/model-compression.md)
+- [Quantization](../llm/concepts/quantization.md)
 
 ## Resources
-- [Reference](url)
+- [Cost-Effective ML](https://www.oreilly.com/library/view/cost-effective-machine-learning/9781491990797/)
