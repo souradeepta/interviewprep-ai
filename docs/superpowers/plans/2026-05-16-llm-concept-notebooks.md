@@ -1,19 +1,32 @@
 # LLM Concept Notebooks Implementation Plan
 
 > **For agentic workers:** REQUIRED SUB-SKILL: Use superpowers:subagent-driven-development (recommended) or superpowers:executing-plans to implement this plan task-by-task. Steps use checkbox (`- [ ]`) syntax for tracking.
+>
+> **UPDATE (2026-05-16):** All 32 concepts now have notebooks with production implementations using HuggingFace libraries. Design principles and lessons learned have been captured in:
+> - **CLAUDE.md** — Design principles, content checklist, testing approach, common patterns
+> - **Memory files** — Detailed learnings about implementation patterns, educational design, content best practices
+> - **Updated generator script** — `scripts/generate_realworld_notebooks.py` creates complete notebooks with 3-level implementations (basic, advanced, real-world examples)
 
-**Goal:** Create 33 interactive Jupyter notebooks for LLM concepts with executable code, workflow/relationship flowcharts, and interview Q&A sections.
+**Goal:** Create 33 interactive Jupyter notebooks for LLM concepts with production-grade implementations, educational content, and interview preparation materials.
 
 **Architecture:** 
-- Programmatic notebook generation from existing markdown files + relationship mapping
-- Python helper script using `nbformat` library to create notebooks with standardized structure
-- JSON mapping file defining concept relationships (prerequisites, alternatives, dependencies)
-- Batch generation with validation tests ensuring consistency
+- **Dual-source design:** Theory in markdown (llm/concepts/), implementations in notebooks (llm/notebooks/)
+- **3-level implementation:** Basic (20-40 lines) → Advanced (60-100 lines) → Real-world examples (3x 40-60 lines each)
+- **Production focus:** All code uses real HuggingFace/PEFT imports, device management, error handling
+- **Generator-driven:** `scripts/generate_realworld_notebooks.py` creates notebooks from markdown + implementation dictionary
+- **Batch validation:** 290 tests verify structure, syntax, content completeness
+
+**Key learnings applied:**
+1. **Code > Theory:** Notebooks are 70% code, 30% explanation (not vice versa)
+2. **Real libraries only:** No pseudo-code; all imports are functional (transformers, peft, sentence-transformers, torch)
+3. **Mermaid in markdown:** Flowcharts don't render in .ipynb on GitHub; moved to markdown files
+4. **Interview Q&A in markdown:** Conceptual questions and answers live in markdown, not notebooks
+5. **Production patterns:** Device placement, batch processing, mixed precision, error handling included throughout
 
 **Tech Stack:** 
-- Python 3.8+, nbformat, jsonschema, pytest
-- Jupyter notebook format (.ipynb)
-- Mermaid for flowcharts (embedded in markdown cells)
+- Python 3.8+, nbformat, transformers, peft, sentence-transformers, torch
+- Jupyter notebook format (.ipynb) with executable code
+- Mermaid for flowcharts (in markdown files for GitHub rendering)
 
 ---
 
