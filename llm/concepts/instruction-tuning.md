@@ -57,12 +57,16 @@ Instruction tuning:
 
 ```mermaid
 graph LR
-    A["Input"] --> B["Instruction Tuning Process"]
-    B --> C["Output"]
+    A["Base Model"] -->|SFT| B["Task-Specific<br/>Narrow"]
+    A -->|Instruction-Tuning| C["Instruction-Following<br/>Broad"]
+    B -->|Unseen Task| D["Poor"]
+    C -->|Unseen Task| E["Good"]
 
-    style A fill:#e1f5ff
+    style A fill:#e3f2fd
     style B fill:#fff3e0
     style C fill:#e8f5e9
+    style D fill:#ffebee
+    style E fill:#c8e6c9
 ```
 
 ## Key Properties / Trade-offs
@@ -160,6 +164,28 @@ trainer.train()
 | "Forgetting knowledge?" | Mix general + domain tasks. Don't tune exclusively on narrow domain. |
 | "Evaluation?" | Test on unseen instructions (not seen during training). Zero-shot generalization is key. |
 
+## Real-World Examples
+
+### Instruction-Tuning for Conversational AI
+Base LLM: general but doesn't follow instructions well. Instruction-tuning on 50K diverse instructions: ChatGPT-like behavior. Zero-shot on new tasks: 70% user satisfaction. Standard SFT: 40%.
+
+### Instruction-Tuning for Multilingual
+Base model: trained on 50+ languages. Instruction-tuning: same 50K instructions in each language. Results: instruction-following works in all languages (zero-shot). Enables multilingual assistant.
+
+### Light Instruction-Tuning for Domain
+Medical base model. Domain-specific instructions: 5K medical queries. Light tuning (1 epoch): instruction-following + medical knowledge combined. 90% accuracy on medical QA (vs 70% base).
+
+## Real-World Examples
+
+### Instruction-Tuning for Conversational AI
+Base LLM: general but doesn't follow instructions well. Instruction-tuning on 50K diverse instructions: ChatGPT-like behavior. Zero-shot on new tasks: 70% user satisfaction. Standard SFT: 40%.
+
+### Instruction-Tuning for Multilingual
+Base model: trained on 50+ languages. Instruction-tuning: same 50K instructions in each language. Results: instruction-following works in all languages (zero-shot). Enables multilingual assistant.
+
+### Light Instruction-Tuning for Domain
+Medical base model. Domain-specific instructions: 5K medical queries. Light tuning (1 epoch): instruction-following + medical knowledge combined. 90% accuracy on medical QA (vs 70% base).
+
 ## Related Topics
 - [Fine-tuning](finetuning.md) — broader fine-tuning concept
 - [RLHF](rlhf.md) — further aligning with human preferences
@@ -184,12 +210,17 @@ graph TD
 
 ## Interview Questions
 
-**Q: What's the core problem this concept solves?**
-*A: See the 'Core Intuition' section above for the fundamental problem and how this concept addresses it.*
+**Q: What's instruction-tuning and why is it important?**
+*A: Fine-tune models on (instruction, output) pairs instead of raw text. 'Write a poem about X' → poem. Makes models follow instructions better. Without: same model learns to predict next token (not instructions). With: models understand tasks, improve zero-shot capability on unseen tasks.*
 
-**Q: What are the main advantages and disadvantages?**
-*A: See 'Key Properties / Trade-offs' section for detailed comparison with alternatives.*
+**Q: How is instruction-tuning different from supervised fine-tuning?**
+*A: SFT: (input, target) pairs. Instruction-tuning: (instruction, input, output) triples with diverse instructions. SFT: narrow, task-specific. Instruction-tuning: broad, instruction-following. Instruction-tuning improves generalization to new tasks.*
 
-**Q: How do you implement this in practice?**
-*A: Refer to the corresponding Jupyter notebook in `llm/notebooks/` for working Python implementations and examples.*
+**Q: What makes good instruction-tuning data?**
+*A: Diverse: wide range of tasks (QA, summarization, writing, coding, math). Instructions clear and specific. Multiple ways to say same task. Quality outputs. Mix simple and complex. Include edge cases.*
 
+**Q: How much instruction-tuning data do you need?**
+*A: Small models (7B): 10K instructions suffices. Large models (70B): 100K better. Research: diminishing returns after 50K. More important: diversity and quality, not quantity. 1K high-quality > 100K low-quality.*
+
+**Q: Does instruction-tuning hurt base capabilities?**
+*A: Slight decrease on original pretraining tasks (~1-2% perplexity). Gain: zero-shot instruction following (+30-50% on held-out tasks). Net positive for general assistants. For specialized models: may want to avoid instruction-tuning.*

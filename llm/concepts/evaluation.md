@@ -59,13 +59,17 @@ Typically: 100-500 examples, 2-3 annotators per example, inter-annotator agreeme
 ### Workflow Flowchart
 
 ```mermaid
-graph LR
-    A["Input"] --> B["Evaluation Process"]
-    B --> C["Output"]
+graph TD
+    A["Model"] -->|Automatic<br/>BLEU, ROUGE| B["Score: 85"]
+    A -->|Human<br/>Preference| C["Score: 72"]
+    A -->|Benchmark<br/>MMLU| D["Score: 88"]
+    B -->|Real Deployment| E["User Satisfaction"]
+    C -->|Real Deployment| E
+    D -->|Real Deployment| E
 
-    style A fill:#e1f5ff
     style B fill:#fff3e0
     style C fill:#e8f5e9
+    style D fill:#e0f2f1
 ```
 
 ## Key Properties / Trade-offs
@@ -184,6 +188,28 @@ print(f"LLM-as-Judge: {avg_judge:.1f}/10")
 | "How many annotators?" | 2-3 per example for inter-annotator agreement. Kappa ≥ 0.7 is acceptable; <0.6 means guidelines unclear. |
 | "LLM-as-Judge?" | Tempting but untested. Validate that it correlates with human judgments before relying on it. |
 
+## Real-World Examples
+
+### Evaluation in Production LLM API
+Benchmark: MMLU 78%. Production eval: real customer queries. Problem: MMLU accuracy doesn't translate to user satisfaction. Added human eval: 100 random queries per week. Discovered: model good at benchmarks but verbose in practice.
+
+### Multilingual Evaluation Challenges
+English model: 90% accuracy. Same model + light multilingual tuning: 45% on non-English (not measured!). Added language-specific evals. Now: 85% across 10 languages (vs false impression of 90%).
+
+### Domain Evaluation
+General model on medical domain. MMLU-Medicine: 60%. Real doctor evaluation: accuracy clinically acceptable 92% (very critical tasks missed, needs review). Lesson: domain experts should evaluate.
+
+## Real-World Examples
+
+### Evaluation in Production LLM API
+Benchmark: MMLU 78%. Production eval: real customer queries. Problem: MMLU accuracy doesn't translate to user satisfaction. Added human eval: 100 random queries per week. Discovered: model good at benchmarks but verbose in practice.
+
+### Multilingual Evaluation Challenges
+English model: 90% accuracy. Same model + light multilingual tuning: 45% on non-English (not measured!). Added language-specific evals. Now: 85% across 10 languages (vs false impression of 90%).
+
+### Domain Evaluation
+General model on medical domain. MMLU-Medicine: 60%. Real doctor evaluation: accuracy clinically acceptable 92% (very critical tasks missed, needs review). Lesson: domain experts should evaluate.
+
 ## Related Topics
 - [Prompt Optimization](prompt-optimization.md) — evaluating changes to prompts
 - [Instruction Tuning](instruction-tuning.md) — training requires eval metrics
@@ -209,12 +235,17 @@ graph TD
 
 ## Interview Questions
 
-**Q: What's the core problem this concept solves?**
-*A: See the 'Core Intuition' section above for the fundamental problem and how this concept addresses it.*
+**Q: What are the main evaluation metrics for LLMs?**
+*A: Task-specific: accuracy, F1, BLEU (translation), ROUGE (summarization). General: perplexity, HellaSwag, MMLU benchmarks. Human: preference rating, satisfaction, specific criteria. Choose based on task. Perplexity ≠ quality (low perplexity but poor outputs possible).*
 
-**Q: What are the main advantages and disadvantages?**
-*A: See 'Key Properties / Trade-offs' section for detailed comparison with alternatives.*
+**Q: Why is human evaluation necessary?**
+*A: Automatic metrics miss quality nuances. Example: 'The quick brown fox' vs 'A fast auburn fox' same BLEU (metric) but different readability. Human eval catches: coherence, factuality, tone, usefulness. Best: combine automatic + human.*
 
-**Q: How do you implement this in practice?**
-*A: Refer to the corresponding Jupyter notebook in `llm/notebooks/` for working Python implementations and examples.*
+**Q: What's the difference between intrinsic and extrinsic evaluation?**
+*A: Intrinsic: model performance on benchmark (MMLU 75%). Extrinsic: how well it helps in real application (customer satisfaction 80%). Best practice: measure both. A model scoring well on benchmarks might underperform in production.*
 
+**Q: How do you avoid benchmark overfitting?**
+*A: Test on out-of-distribution data. Track new vs held-out vs old benchmarks. Different evaluation protocols. Domain-specific evals alongside general benchmarks. Regular human spot-checks.*
+
+**Q: What's the right evaluation sample size?**
+*A: Rule of thumb: 1000+ examples for statistical significance. Small: 100 (high variance). Medium: 500 (reasonable). Large: 5000+ (more cost). For human eval: 50-500 (expensive per example).*

@@ -9,7 +9,15 @@ Enhance all LLM concept markdown files with:
 
 import os
 import re
+import sys
 from pathlib import Path
+
+# Try to import additional enhancements if available
+try:
+    from all_concept_enhancements import ALL_CONCEPT_ENHANCEMENTS
+    ADDITIONAL_ENHANCEMENTS = ALL_CONCEPT_ENHANCEMENTS
+except ImportError:
+    ADDITIONAL_ENHANCEMENTS = {}
 
 CONCEPTS_DIR = Path("llm/concepts")
 
@@ -436,18 +444,24 @@ def main():
     """Enhance all concept files."""
     print("Starting concept enhancement...\n")
 
-    concept_files = list(CONCEPTS_DIR.glob("*.md"))
-    print(f"Found {len(concept_files)} concept files\n")
+    # Merge all enhancements
+    all_enhancements = {**CONCEPT_ENHANCEMENTS, **ADDITIONAL_ENHANCEMENTS}
 
+    concept_files = list(CONCEPTS_DIR.glob("*.md"))
+    print(f"Found {len(concept_files)} concept files")
+    print(f"Enhancements available for {len(all_enhancements)} concepts\n")
+
+    enhanced_count = 0
     for concept_file in sorted(concept_files):
         # Check if we have enhancements for this file
-        if concept_file.name in CONCEPT_ENHANCEMENTS:
-            enhancements = CONCEPT_ENHANCEMENTS[concept_file.name]
+        if concept_file.name in all_enhancements:
+            enhancements = all_enhancements[concept_file.name]
             enhance_concept_file(concept_file, enhancements)
+            enhanced_count += 1
         else:
             print(f"⊘ {concept_file.name} (no enhancements defined yet)")
 
-    print("\n✓ Concept enhancement complete!")
+    print(f"\n✓ Enhanced {enhanced_count} concepts out of {len(concept_files)} total")
 
 if __name__ == "__main__":
     main()

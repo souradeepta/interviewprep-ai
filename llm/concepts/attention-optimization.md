@@ -245,6 +245,28 @@ Model: Llama 2 7B. Standard: 14GB memory (KV cache overhead). GQA variant: 8GB m
 ### Multi-User Serving with PagedAttention
 vLLM server: 10 concurrent users, variable output lengths. Without paging: batch size fixed at 4, 40% idle. With PagedAttention: dynamic batching, batch size 4-8 depending on freed pages. Throughput: 10 req/sec (vs 4 req/sec). 2.5x improvement from paging alone.
 
+## Real-World Examples
+
+### FlashAttention in Production RAG
+Retrieval returns 100 context chunks (100K tokens). Standard attention: 10B operations. FlashAttention: 1B operations. Latency: 2s → 0.2s. Implementation: drop-in replacement for HuggingFace transformers (no model changes). Deployment: Llama 2 70B on A100, 20 req/sec (vs 3 req/sec without).
+
+### GQA for Edge Deployment
+Model: Llama 2 7B. Standard: 14GB memory (KV cache overhead). GQA variant: 8GB memory. Deployed on consumer GPU (RTX 4090 24GB). Batch size: 2 vs 1 before. Accuracy on MMLU: 54.3% (standard) vs 53.8% (GQA). Worth the trade-off for mobile/edge.
+
+### Multi-User Serving with PagedAttention
+vLLM server: 10 concurrent users, variable output lengths. Without paging: batch size fixed at 4, 40% idle. With PagedAttention: dynamic batching, batch size 4-8 depending on freed pages. Throughput: 10 req/sec (vs 4 req/sec). 2.5x improvement from paging alone.
+
+## Real-World Examples
+
+### FlashAttention in Production RAG
+Retrieval returns 100 context chunks (100K tokens). Standard attention: 10B operations. FlashAttention: 1B operations. Latency: 2s → 0.2s. Implementation: drop-in replacement for HuggingFace transformers (no model changes). Deployment: Llama 2 70B on A100, 20 req/sec (vs 3 req/sec without).
+
+### GQA for Edge Deployment
+Model: Llama 2 7B. Standard: 14GB memory (KV cache overhead). GQA variant: 8GB memory. Deployed on consumer GPU (RTX 4090 24GB). Batch size: 2 vs 1 before. Accuracy on MMLU: 54.3% (standard) vs 53.8% (GQA). Worth the trade-off for mobile/edge.
+
+### Multi-User Serving with PagedAttention
+vLLM server: 10 concurrent users, variable output lengths. Without paging: batch size fixed at 4, 40% idle. With PagedAttention: dynamic batching, batch size 4-8 depending on freed pages. Throughput: 10 req/sec (vs 4 req/sec). 2.5x improvement from paging alone.
+
 ## Related Topics
 - [[transformers]] — core architecture with attention
 - [[kv-cache]] — KV cache reduction with GQA

@@ -38,13 +38,17 @@ Sentiment:
 ### Workflow Flowchart
 
 ```mermaid
-graph LR
-    A["Input"] --> B["Few-Shot Learning Process"]
-    B --> C["Output"]
+graph TD
+    A["Zero-Shot<br/>No Examples"] -->|Low Accuracy| B["30-50%"]
+    C["Few-Shot<br/>3-5 Examples"] -->|Good Accuracy| D["70-80%"]
+    E["Fine-Tune<br/>1000s Examples"] -->|High Accuracy| F["90%+"]
+    B -.->|Cost: None| G["Cost"]
+    D -.->|Cost: Minimal| G
+    F -.->|Cost: High| G
 
-    style A fill:#e1f5ff
-    style B fill:#fff3e0
-    style C fill:#e8f5e9
+    style A fill:#ffebee
+    style C fill:#fff3e0
+    style E fill:#e8f5e9
 ```
 
 ## Key Properties / Trade-offs
@@ -100,6 +104,28 @@ print(response.content[0].text)
 | "How many examples?" | 3-5 for most tasks. More helps complex tasks; diminishing returns >10. |
 | "Bad performance?" | Check example quality and diversity. Adjust format, add instructions. |
 
+## Real-World Examples
+
+### Few-Shot for Customer Intent Classification
+Chatbot: classify support tickets. Examples: 'Refund request' → returns, 'Can't login' → technical, 'Feedback' → general. Zero-shot: 45% accuracy. Few-shot (3 examples): 72% accuracy. Deployed in Zendesk integration.
+
+### Few-Shot Semantic Matching
+Task: match product descriptions to categories. Descriptions vary (informal, typos, abbreviations). Few-shot with diverse examples: 88% accuracy. Cost: <$0.01 per classification vs. $0.50 with fine-tuning.
+
+### Multi-Language Few-Shot
+Translate task instructions to 10 languages. Few-shot examples in each language. Model generalizes zero-shot to other languages through few-shot anchoring. Accuracy: 75% (vs 40% direct translation).
+
+## Real-World Examples
+
+### Few-Shot for Customer Intent Classification
+Chatbot: classify support tickets. Examples: 'Refund request' → returns, 'Can't login' → technical, 'Feedback' → general. Zero-shot: 45% accuracy. Few-shot (3 examples): 72% accuracy. Deployed in Zendesk integration.
+
+### Few-Shot Semantic Matching
+Task: match product descriptions to categories. Descriptions vary (informal, typos, abbreviations). Few-shot with diverse examples: 88% accuracy. Cost: <$0.01 per classification vs. $0.50 with fine-tuning.
+
+### Multi-Language Few-Shot
+Translate task instructions to 10 languages. Few-shot examples in each language. Model generalizes zero-shot to other languages through few-shot anchoring. Accuracy: 75% (vs 40% direct translation).
+
 ## Related Topics
 - [In-Context Learning](in-context-learning.md) — broader ICL concept
 - [Zero-Shot Learning](zero-shot-learning.md) — no examples, just instructions
@@ -122,12 +148,17 @@ graph TD
 
 ## Interview Questions
 
-**Q: What's the core problem this concept solves?**
-*A: See the 'Core Intuition' section above for the fundamental problem and how this concept addresses it.*
+**Q: What's few-shot learning and how does it differ from zero-shot?**
+*A: Zero-shot: 'Classify sentiment: positive/negative'. Few-shot: '"Good product" → positive. "Bad product" → negative. "Good quality" → positive. Now classify: "Great service"'. Few-shot dramatically improves accuracy (sometimes 30-50% gain).*
 
-**Q: What are the main advantages and disadvantages?**
-*A: See 'Key Properties / Trade-offs' section for detailed comparison with alternatives.*
+**Q: How many examples do you need for effective few-shot?**
+*A: Task-dependent: simple classification = 1-2 examples sufficient. Complex reasoning = 5-10 needed. Diminishing returns beyond 10 (20+ shows minimal improvement). Rule of thumb: start with 3, increase if accuracy low. Quality > quantity (good examples matter more than many).*
 
-**Q: How do you implement this in practice?**
-*A: Refer to the corresponding Jupyter notebook in `llm/notebooks/` for working Python implementations and examples.*
+**Q: What makes a good few-shot example?**
+*A: Diverse: cover range of inputs (easy + hard cases). Representative: similar to test distribution. Explained: include reasoning if helpful. Consistent: same format for all. Bad: unrepresentative or noisy examples confuse model.*
 
+**Q: How do you select few-shot examples programmatically?**
+*A: Random: simple, sometimes okay. Similarity-based: choose examples most similar to test input (use embeddings). Uncertainty sampling: examples model uncertain on. Diversity-based: examples covering feature space. Best: combination of similarity + diversity.*
+
+**Q: When is few-shot insufficient and you need fine-tuning?**
+*A: Few-shot works: general tasks, simple patterns, prompt-able behaviors. Fails: task requires significant internal model change, distribution shift, style transfer. Example: sentiment classification (few-shot fine) vs. writing style adaptation (needs fine-tuning).*

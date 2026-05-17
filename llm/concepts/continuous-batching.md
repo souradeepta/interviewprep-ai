@@ -95,12 +95,15 @@ Memory: 150 × 128 × 2 × 4 bytes = 154 KB (much smaller!)
 
 ```mermaid
 graph LR
-    A["Input"] --> B["Continuous Batching Process"]
-    B --> C["Output"]
+    A["Request 1"] -->|Queue| B["Batch Builder"]
+    C["Request 2"] -->|Queue| B
+    D["Request 3"] -->|Queue| B
+    B -->|Size or Timeout| E["Execute Batch"]
+    E -->|Outputs| F["Send Responses"]
 
-    style A fill:#e1f5ff
+    style A fill:#e3f2fd
     style B fill:#fff3e0
-    style C fill:#e8f5e9
+    style E fill:#e8f5e9
 ```
 
 ## Key Properties / Trade-offs
@@ -269,6 +272,28 @@ class SimpleBatchScheduler:
 | "Memory impact?" | Continuous uses less peak memory (smaller active batch). Fragmentation risk; use memory pool. |
 | "Overhead?" | Scheduler loop, index management add ~1-2ms. Batching gain (5-10x) usually dominates. Profile on your model/hardware. |
 
+## Real-World Examples
+
+### Static vs Continuous Batching Benchmark
+Model: Llama 2 7B, 1-10 req/sec. Static batch-32: p99 latency 32s. Continuous batch-32: p99 latency 0.5s. Throughput: same (100 tok/s). Cost: same. Winner: continuous for interactive, static for batch processing jobs.
+
+### vLLM in Production API
+Flask API: accept requests, queue via vLLM. 5 concurrent users: static batching would serve 1-2/sec total. vLLM: 20/sec. p99 latency: 2-5s (vs 30-60s static). Deployed at Anyscale: handles 1000s req/sec.
+
+### Timeout Tuning
+Timeout 1ms: latency under 10ms (good for interactive). Timeout 100ms: latency up to 100ms (better throughput). Data center: adapt based on load. High load: longer timeout (more batching). Low load: shorter timeout (lower latency).
+
+## Real-World Examples
+
+### Static vs Continuous Batching Benchmark
+Model: Llama 2 7B, 1-10 req/sec. Static batch-32: p99 latency 32s. Continuous batch-32: p99 latency 0.5s. Throughput: same (100 tok/s). Cost: same. Winner: continuous for interactive, static for batch processing jobs.
+
+### vLLM in Production API
+Flask API: accept requests, queue via vLLM. 5 concurrent users: static batching would serve 1-2/sec total. vLLM: 20/sec. p99 latency: 2-5s (vs 30-60s static). Deployed at Anyscale: handles 1000s req/sec.
+
+### Timeout Tuning
+Timeout 1ms: latency under 10ms (good for interactive). Timeout 100ms: latency up to 100ms (better throughput). Data center: adapt based on load. High load: longer timeout (more batching). Low load: shorter timeout (lower latency).
+
 ## Related Topics
 - [[kv-cache]] — KV cache grows with request count
 - [[inference-optimization]] — part of broader serving optimization
@@ -292,12 +317,17 @@ graph TD
 
 ## Interview Questions
 
-**Q: What's the core problem this concept solves?**
-*A: See the 'Core Intuition' section above for the fundamental problem and how this concept addresses it.*
+**Q: What's continuous batching and why is it better than static batching?**
+*A: Static batching: wait for N requests → batch → process. Continuous: accept requests one-by-one, add to batch as available, execute when full or timeout reached. Advantage: latency for early requests drops (don't wait for 32 requests). For 1 req/sec: static batch-32 = 32s latency. Continuous = 0.1s latency. Throughput same, latency better.*
 
-**Q: What are the main advantages and disadvantages?**
-*A: See 'Key Properties / Trade-offs' section for detailed comparison with alternatives.*
+**Q: How does scheduling work in continuous batching?**
+*A: 1) Queue incoming requests 2) When batch size reached OR timeout expired, execute. Timeout typically 5-100ms to balance latency/throughput. Scheduling policy: FIFO (fair), priority (VIP requests first), adaptive (vary timeout).*
 
-**Q: How do you implement this in practice?**
-*A: Refer to the corresponding Jupyter notebook in `llm/notebooks/` for working Python implementations and examples.*
+**Q: What are the challenges with continuous batching?**
+*A: Variable batch size: harder to optimize GPU utilization. Batching overhead per batch (kernel launch ~1-5ms). Very large batches (1000s): worse latency for unlucky requests (last in queue). Solution: max batch size + dynamic adaptation.*
 
+**Q: When would you use vLLM vs standard Hugging Face for batching?**
+*A: HF: static batching, simple but high latency. vLLM: continuous batching + paging, 10-50x throughput improvement, lower latency. Trade-off: vLLM complexity. Use HF for offline batch processing; vLLM for online serving.*
+
+**Q: How do you handle requests with different output lengths in batching?**
+*A: Problem: one request needs 10 tokens, another needs 100. Can't batch (different lengths). Solution: PagedAttention (vLLM) - don't wait, process different lengths independently. Alternative: pad all to max (wasteful) or reject early batches (unfair).*

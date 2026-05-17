@@ -41,12 +41,14 @@ Model: Sees pattern (positive words → positive, negative words → negative)
 
 ```mermaid
 graph LR
-    A["Input"] --> B["In-Context Learning Process"]
-    B --> C["Output"]
+    A["Context Examples"] -->|Prompt| B["LLM Attention"]
+    C["Test Input"] -->|Prompt| B
+    B -->|Pattern Matching| D["Output"]
+    D -->|No Training| E["Instant Adaptation"]
 
-    style A fill:#e1f5ff
+    style A fill:#e3f2fd
     style B fill:#fff3e0
-    style C fill:#e8f5e9
+    style E fill:#e8f5e9
 ```
 
 ## Key Properties / Trade-offs
@@ -155,6 +157,28 @@ print(response['choices'][0]['message']['content'])
 | "Improve few-shot accuracy?" | Better examples (diverse, high-quality), clearer instructions, consistent formatting, temperature=0 for structured tasks. |
 | "When few-shot fails?" | Complex tasks, domain-specific jargon, or inconsistent examples. Fine-tune instead. |
 
+## Real-World Examples
+
+### ICL for Few-Shot Classification
+Task: sentiment analysis on tweets. Zero-shot: 45% accuracy. 3-example ICL: 72% accuracy. 10-example: 78%. Cost: $0.001 per example per query. No training needed. Deployed in real-time sentiment pipeline.
+
+### ICL for Code Generation
+Problem: generate Python function. Zero-shot: syntactically correct 40%. With 2 code examples: 65%. With 5 examples: 75%. Prompt size: 1-2K tokens. Used in Copilot-style suggestions.
+
+### Cross-Lingual ICL
+English → Spanish translation. Zero-shot: 50% BLEU. 3 example translations: 70% BLEU. Model transfers knowledge across languages through in-context examples. No language-specific training.
+
+## Real-World Examples
+
+### ICL for Few-Shot Classification
+Task: sentiment analysis on tweets. Zero-shot: 45% accuracy. 3-example ICL: 72% accuracy. 10-example: 78%. Cost: $0.001 per example per query. No training needed. Deployed in real-time sentiment pipeline.
+
+### ICL for Code Generation
+Problem: generate Python function. Zero-shot: syntactically correct 40%. With 2 code examples: 65%. With 5 examples: 75%. Prompt size: 1-2K tokens. Used in Copilot-style suggestions.
+
+### Cross-Lingual ICL
+English → Spanish translation. Zero-shot: 50% BLEU. 3 example translations: 70% BLEU. Model transfers knowledge across languages through in-context examples. No language-specific training.
+
 ## Related Topics
 - [Few-Shot Learning](few-shot-learning.md) — similar concept, more formal definition
 - [Zero-Shot Learning](zero-shot-learning.md) — no examples, model must infer task
@@ -181,12 +205,17 @@ graph TD
 
 ## Interview Questions
 
-**Q: What's the core problem this concept solves?**
-*A: See the 'Core Intuition' section above for the fundamental problem and how this concept addresses it.*
+**Q: What's in-context learning (ICL) and how does it work?**
+*A: LLMs can learn from examples in the prompt without weight updates. 'These are positive reviews...now classify: "Great product!"' → model recognizes pattern from context. Mechanism: attention weights focus on similar examples. Why: no retraining needed, instant task adaptation.*
 
-**Q: What are the main advantages and disadvantages?**
-*A: See 'Key Properties / Trade-offs' section for detailed comparison with alternatives.*
+**Q: How much does ICL improve over zero-shot?**
+*A: Task-dependent: simple tasks (+5-10%), complex reasoning (+20-50%). Math: 30% → 80% with CoT+few-shot. Language: 45% → 70% with examples. Not all models: large models (100B+) better at ICL than small (7B).*
 
-**Q: How do you implement this in practice?**
-*A: Refer to the corresponding Jupyter notebook in `llm/notebooks/` for working Python implementations and examples.*
+**Q: What's the ICL surface hypothesis?**
+*A: Common belief: ICL learns labels from examples. Reality: ICL may learn input-label format/style instead of actual patterns. Research: sometimes ICL equivalent to label randomization. Lesson: ICL is more mysterious than expected, still useful but not guaranteed.*
 
+**Q: How do you optimize ICL prompt design?**
+*A: Example order: easier examples first (warm-up). Example diversity: represent different cases. Label distribution: match test distribution. Format consistency: same template for all. CoT: add reasoning steps for complex tasks.*
+
+**Q: When does ICL fail?**
+*A: Misleading examples: model memorizes wrong pattern. Distribution mismatch: training data very different from examples. Task requires learned knowledge: unseen phenomena, facts model doesn't know. No text solution: image classification needs vision model.*

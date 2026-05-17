@@ -38,13 +38,15 @@ Input: [user text]
 ### Workflow Flowchart
 
 ```mermaid
-graph LR
-    A["Input"] --> B["Prompting Process"]
-    B --> C["Output"]
-
-    style A fill:#e1f5ff
-    style B fill:#fff3e0
-    style C fill:#e8f5e9
+graph TD
+    A["Model Capabilities<br/>100% as-is"] -->|Prompting| B["Access 70-90%<br/>via good prompts"]
+    A -->|Bad Prompts| C["Access 20-30%<br/>via poor prompts"]
+    D["Fine-Tuning"] -->|Reshape| E["Access 95%<br/>on specific task"]
+    B -->|Cost| F["None per query"]
+    E -->|Cost| G["High upfront"]
+    style B fill:#e8f5e9
+    style C fill:#ffebee
+    style E fill:#c8e6c9
 ```
 
 ## Key Properties / Trade-offs
@@ -120,6 +122,17 @@ print("Good:", response_good.content[0].text)
 | "Bad performance?" | Improve prompt: be specific, add examples, add constraints, clarify intent. |
 | "Role-play helps?" | Yes. "You are expert in X" guides LLM behavior, improves quality 10-20%. |
 
+## Real-World Examples
+
+### Email Classification Prompts
+Generic: 'Classify email' (50% accuracy). With examples: 'Similar emails are classified as [examples shown]' (75%). With role: 'You are email expert' (78%). Final: +28% improvement.
+
+### Multi-Language Prompting
+Single English prompt: works in English (90%), fails in Spanish (40%). Language-aware prompt: includes language name, examples in that language, cultural context. 90% in both.
+
+### Adversarial Prompt Injection Defense
+Naive prompt: vulnerable to 'Ignore previous instructions'. Defended prompt: explicit rules, constraints, separation of data. Improves robustness against injection attacks by 95%.
+
 ## Related Topics
 - [Prompt Optimization](prompt-optimization.md) — iterative improvement
 - [In-Context Learning](in-context-learning.md) — how prompts teach
@@ -143,12 +156,17 @@ graph TD
 
 ## Interview Questions
 
-**Q: What's the core problem this concept solves?**
-*A: See the 'Core Intuition' section above for the fundamental problem and how this concept addresses it.*
+**Q: What's the difference between prompting and fine-tuning?**
+*A: Prompting: shape behavior via text, no training, instant. Fine-tuning: update weights, slower, stronger control. Prompting for one-off tasks; fine-tuning for repeated. Prompting cost: per query. Fine-tuning cost: upfront.*
 
-**Q: What are the main advantages and disadvantages?**
-*A: See 'Key Properties / Trade-offs' section for detailed comparison with alternatives.*
+**Q: What are prompt patterns that work?**
+*A: Role-play ('You are X'), examples (few-shot), structure (JSON/XML), constraints (length/format), reasoning (steps). Combine 2-3 patterns for best results. No silver bullet; task-dependent.*
 
-**Q: How do you implement this in practice?**
-*A: Refer to the corresponding Jupyter notebook in `llm/notebooks/` for working Python implementations and examples.*
+**Q: How do you debug a failing prompt?**
+*A: Start: simplest possible. Gradually add clarity/examples. Test each change. Monitor: does accuracy improve? Common issues: ambiguous instructions, inconsistent examples, conflicting constraints.*
 
+**Q: What's the limitation of prompting?**
+*A: Can't teach new facts (needs training data). Can't change fundamental model biases. Can't do tasks model fundamentally can't do (e.g., perfect arithmetic). Role: shape existing capabilities, not add new ones.*
+
+**Q: Why do longer prompts sometimes fail?**
+*A: Information overload: too many instructions confuse model. Contradictions: conflicting guidance. Dilution: signal lost in noise. Best: concise, clear, specific. More is not always better.*

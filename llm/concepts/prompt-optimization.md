@@ -87,12 +87,15 @@ Text: "This is just fantastic"
 
 ```mermaid
 graph LR
-    A["Input"] --> B["Prompt Optimization Process"]
-    B --> C["Output"]
-
-    style A fill:#e1f5ff
-    style B fill:#fff3e0
-    style C fill:#e8f5e9
+    A["Vague Prompt"] -->|70% Quality| B["Basic Output"]
+    A -->|Optimized| C["Clear Instructions<br/>Structured<br/>Examples"]
+    C -->|90% Quality| D["High Quality Output"]
+    E["Cost"] -->|Same| B
+    E -->|Same Tokens| D
+    style A fill:#ffebee
+    style C fill:#fff3e0
+    style B fill:#ffebee
+    style D fill:#e8f5e9
 ```
 
 ## Key Properties / Trade-offs
@@ -271,6 +274,17 @@ print(f"Final accuracy: {accuracy:.2%}")
 | "When stop optimizing?" | When gains drop below 2% or ROI not worth effort. Most gains in first 2-3 iterations. |
 | "One-shot vs few-shot?" | One shot: 1 example, 10% gain typical. Few-shot (3-5): 15-25% gain. More is diminishing. |
 
+## Real-World Examples
+
+### Customer Support Chatbot Optimization
+Baseline: generic response template. Optimized: clear categorization + relevant examples + structured output (JSON). Accuracy: 70% → 85%. User satisfaction: 60% → 88%.
+
+### Content Moderation Prompt
+Task: detect toxic content. V1: 'Is this toxic?' (45% recall). V2: 'Identify toxic content: slurs, threats, harassment, ...' (72% recall). V3: Add examples (85%). Cost: same tokens.
+
+### Code Generation Improvement
+Prompt v1: 'Write Python function' (40% correct). Prompt v2: Add type hints, docstring requirements (60%). Prompt v3: Add example functions (78%). Final prompt: 2K tokens vs 100 for basic.
+
 ## Related Topics
 - [[prompting]] — general prompting principles and frameworks
 - [[few-shot-learning]] — in-context examples as optimization technique
@@ -298,12 +312,17 @@ graph TD
 
 ## Interview Questions
 
-**Q: What's the core problem this concept solves?**
-*A: See the 'Core Intuition' section above for the fundamental problem and how this concept addresses it.*
+**Q: What problem does prompt engineering solve?**
+*A: Raw prompts: vague, inconsistent, low quality outputs. Optimized prompts: clear, structured, high quality. Example: 'Classify this' (50% accuracy) vs 'Classify as positive/negative, considering sarcasm' (85%). Optimization compounds small improvements.*
 
-**Q: What are the main advantages and disadvantages?**
-*A: See 'Key Properties / Trade-offs' section for detailed comparison with alternatives.*
+**Q: What are the main prompt optimization techniques?**
+*A: Clarity (be specific), structure (use templates), examples (few-shot), constraints (limit output), reasoning (CoT), role (set context). Typical stack: clear instruction + 3 examples + structure + constraints. Each adds 2-5% accuracy.*
 
-**Q: How do you implement this in practice?**
-*A: Refer to the corresponding Jupyter notebook in `llm/notebooks/` for working Python implementations and examples.*
+**Q: How do you measure prompt effectiveness?**
+*A: Test on validation set before deployment. Metrics: accuracy, latency (some prompts slower), cost (tokens used), user satisfaction. A/B test: old vs new prompt on sample of traffic.*
 
+**Q: When does prompt optimization hit diminishing returns?**
+*A: First 2-3 techniques: 5-15% gains. Next 3-4: 2-5% each. Beyond 7: <1% gains, not worth effort. Most gains front-loaded.*
+
+**Q: Should you use prompt templates or dynamic generation?**
+*A: Templates: simpler, consistent, faster. Dynamic: adapts to input (harder). Start with templates, use dynamic for complex tasks.*

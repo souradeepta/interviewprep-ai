@@ -40,13 +40,18 @@ Result: LLM that summarizes well
 ### Workflow Flowchart
 
 ```mermaid
-graph LR
-    A["Input"] --> B["Fine-tuning Process"]
-    B --> C["Output"]
+graph TD
+    A["Pre-Trained Model"] -->|No Training| B["General Knowledge<br/>70% on Task"]
+    A -->|Fine-Tune| C["Task-Specific<br/>90% on Task"]
+    A -->|Few-Shot| D["Prompt Engineering<br/>60% on Task"]
 
-    style A fill:#e1f5ff
-    style B fill:#fff3e0
+    C -->|Cost| E["High Upfront<br/>Low Per-Query"]
+    B -->|Cost| F["None<br/>Low Quality"]
+    D -->|Cost| G["None<br/>Medium Quality"]
+
+    style A fill:#e3f2fd
     style C fill:#e8f5e9
+    style E fill:#fff3e0
 ```
 
 ## Key Properties / Trade-offs
@@ -144,6 +149,28 @@ reloaded = AutoModelForCausalLM.from_pretrained("./fine_tuned_model")
 | "Full vs LoRA?" | Full: all params updated, highest accuracy, expensive. LoRA: 1-5% params, cheaper, comparable accuracy. |
 | "Compute cost?" | LLaMA 7B: 1-2 days on A100 for 10k examples. Scales with model size and data. |
 
+## Real-World Examples
+
+### LoRA Fine-Tuning for Domain Adaptation
+General LLM → Legal domain. Fine-tune on 5K legal documents + contracts. LoRA rank-8: 2 hours training. Result: 42% → 68% accuracy on legal tasks. Cost: $100 (vs $10K full fine-tune). Deployed as legal assistant.
+
+### Full Fine-Tuning for Company Chat
+Goal: make model understand company context (products, policies, customers). Fine-tune on 100K internal documents. Full fine-tuning (smaller model, 3B). Result: 95% accuracy on internal queries. Deployment: on-premise (compliance).
+
+### Multi-Task Fine-Tuning
+One model for: classification, NER, summarization. Fine-tune on all three mixed. Shared representations improve transfer. Accuracy: 85% across all tasks (vs 88% individual models, but single model advantage).
+
+## Real-World Examples
+
+### LoRA Fine-Tuning for Domain Adaptation
+General LLM → Legal domain. Fine-tune on 5K legal documents + contracts. LoRA rank-8: 2 hours training. Result: 42% → 68% accuracy on legal tasks. Cost: $100 (vs $10K full fine-tune). Deployed as legal assistant.
+
+### Full Fine-Tuning for Company Chat
+Goal: make model understand company context (products, policies, customers). Fine-tune on 100K internal documents. Full fine-tuning (smaller model, 3B). Result: 95% accuracy on internal queries. Deployment: on-premise (compliance).
+
+### Multi-Task Fine-Tuning
+One model for: classification, NER, summarization. Fine-tune on all three mixed. Shared representations improve transfer. Accuracy: 85% across all tasks (vs 88% individual models, but single model advantage).
+
 ## Related Topics
 - [LoRA](lora.md) — parameter-efficient fine-tuning (cheaper alternative)
 - [Parameter-Efficient Fine-tuning](parameter-efficient-finetuning.md) — broader PEFT methods
@@ -174,12 +201,17 @@ graph TD
 
 ## Interview Questions
 
-**Q: What's the core problem this concept solves?**
-*A: See the 'Core Intuition' section above for the fundamental problem and how this concept addresses it.*
+**Q: When should you fine-tune vs use prompting/few-shot?**
+*A: Prompting: works for general tasks, no data needed, zero-shot. Few-shot: 1-100 examples, cost per inference. Fine-tune: 100-10K examples, cost upfront, fast inference. Choice: prompting for one-off, fine-tune for repeated queries or distribution shift.*
 
-**Q: What are the main advantages and disadvantages?**
-*A: See 'Key Properties / Trade-offs' section for detailed comparison with alternatives.*
+**Q: What's the difference between full fine-tuning and parameter-efficient methods?**
+*A: Full: update all weights, best accuracy, slow training, expensive compute. Parameter-efficient (LoRA/adapters): update 0.1-1% of weights, 90% of accuracy, fast, cheap. Trade-off: accuracy ceiling. Use LoRA for most cases, full fine-tune if precision critical.*
 
-**Q: How do you implement this in practice?**
-*A: Refer to the corresponding Jupyter notebook in `llm/notebooks/` for working Python implementations and examples.*
+**Q: How do you avoid overfitting during fine-tuning?**
+*A: Small dataset: use early stopping, regularization (weight decay), smaller learning rate. Monitor validation loss. Dropout. Data augmentation. With <1K examples: aggressive regularization necessary. With >10K: overfitting less likely.*
 
+**Q: What's catastrophic forgetting and how do you prevent it?**
+*A: Fine-tuning can harm performance on original task. E.g., fine-tune for medical domain, lose general knowledge. Prevention: mix original data (50% original, 50% new). Use lower learning rate. Use adapter instead of full fine-tune.*
+
+**Q: How do you measure fine-tuning success?**
+*A: On validation set: accuracy, F1, perplexity (task-dependent). Compare to baseline: how much improvement? Cost analysis: training cost vs improvement. Ablation: which data/technique helped most?*

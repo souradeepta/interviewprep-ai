@@ -57,12 +57,14 @@ Speedup: O(seq_len) improvement! For seq_len=2048, ~2000x faster
 
 ```mermaid
 graph LR
-    A["Input"] --> B["KV Cache Process"]
-    B --> C["Output"]
+    A["Token t"] -->|New Attention| B["Compute Q<br/>Reuse K,V"]
+    B -->|Store| C["KV Cache<br/>[0:t]"]
+    C -->|Next Token| D["Token t+1"]
+    D -->|Add to Cache| E["Updated Cache<br/>[0:t+1]"]
 
-    style A fill:#e1f5ff
-    style B fill:#fff3e0
-    style C fill:#e8f5e9
+    style A fill:#e3f2fd
+    style C fill:#e0f2f1
+    style E fill:#e8f5e9
 ```
 
 ## Key Properties / Trade-offs
@@ -179,6 +181,28 @@ print(f"Speedup: {time_no_cache / time_cached:.1f}x")
 | "Incompatible with?" | Some optimizations (certain quantization, non-standard attention) may not support KV caching. Check docs. |
 | "Multi-batch vs single?" | Single long sequence vs multiple short sequences: cache hurts throughput but helps per-token latency. |
 
+## Real-World Examples
+
+### KV Cache in Multi-Turn Chat
+Conversation: 10 turns, each turn 100 tokens input. Without cache: recompute 1000s of attention operations per turn. With cache: reuse 900 from previous turns, compute only 100 new. Latency: 5s → 0.5s per turn.
+
+### Batch Inference with Limited Memory
+GPU: 40GB memory. Batch=64, context=4K, FP32 without GQA: 64GB needed (exceeds memory!). With GQA: 8GB KV cache. Can now run batch=64. Throughput: 100 tok/s (vs impossible without optimization).
+
+### Long-Context RAG with Cache Optimization
+Retrieval: 100 context chunks (100K tokens). Naive: KV cache 25GB. GQA + INT8: 1.5GB. Within inference budget. Latency: 500ms (reasonable). Without optimization: impossible.
+
+## Real-World Examples
+
+### KV Cache in Multi-Turn Chat
+Conversation: 10 turns, each turn 100 tokens input. Without cache: recompute 1000s of attention operations per turn. With cache: reuse 900 from previous turns, compute only 100 new. Latency: 5s → 0.5s per turn.
+
+### Batch Inference with Limited Memory
+GPU: 40GB memory. Batch=64, context=4K, FP32 without GQA: 64GB needed (exceeds memory!). With GQA: 8GB KV cache. Can now run batch=64. Throughput: 100 tok/s (vs impossible without optimization).
+
+### Long-Context RAG with Cache Optimization
+Retrieval: 100 context chunks (100K tokens). Naive: KV cache 25GB. GQA + INT8: 1.5GB. Within inference budget. Latency: 500ms (reasonable). Without optimization: impossible.
+
 ## Related Topics
 - [Inference Optimization](inference-optimization.md) — KV cache is one technique among many
 - [Speculative Decoding](speculative-decoding.md) — uses KV cache for parallelization
@@ -203,12 +227,17 @@ graph TD
 
 ## Interview Questions
 
-**Q: What's the core problem this concept solves?**
-*A: See the 'Core Intuition' section above for the fundamental problem and how this concept addresses it.*
+**Q: What's KV cache and why does it matter?**
+*A: During inference: generate token-by-token. For each token, compute attention over full context. Without cache: recompute keys/values every step = O(n²) for n-token output. With cache: store computed K,V, reuse = O(n). For 1000-token generation: 1000x speed difference.*
 
-**Q: What are the main advantages and disadvantages?**
-*A: See 'Key Properties / Trade-offs' section for detailed comparison with alternatives.*
+**Q: How much memory does KV cache use?**
+*A: KV cache size = batch_size × context_length × 2 × hidden_dim × precision. Example: batch=1, context=4K, hidden=4096, FP32 = 1 × 4K × 2 × 4096 × 4 bytes = 128MB per layer × 32 layers = 4GB. For batch=16: 64GB. Dominates memory in inference.*
 
-**Q: How do you implement this in practice?**
-*A: Refer to the corresponding Jupyter notebook in `llm/notebooks/` for working Python implementations and examples.*
+**Q: What's grouped-query attention (GQA) and how does it reduce KV cache?**
+*A: Standard multi-head: each head has separate K,V (32 heads = 32 K,V heads). GQA: share K,V across multiple query heads (e.g., 8 groups = 4 K,V heads). Reduces KV cache 8x. Trade-off: 0.5-1% accuracy loss. Used in Llama 2, Mistral.*
 
+**Q: How do you optimize KV cache for long contexts?**
+*A: Options: 1) GQA (reduce K,V). 2) Sparse attention (not all positions needed). 3) Pruning (discard irrelevant history). 4) Compression (quantize K,V). Combinations: GQA + INT8 KV = 32x reduction. For 32K context: 4GB → 128MB.*
+
+**Q: When would you clear KV cache?**
+*A: Per-request: always clear (fresh context). Multi-turn conversation: keep cache (reuse context from previous turns). Problem: cache grows unbounded. Solution: sliding window (keep last 2K tokens) or explicit reset.*

@@ -35,12 +35,15 @@ Sentiment:
 
 ```mermaid
 graph LR
-    A["Input"] --> B["Zero-Shot Learning Process"]
-    B --> C["Output"]
-
-    style A fill:#e1f5ff
-    style B fill:#fff3e0
-    style C fill:#e8f5e9
+    A["Task Description<br/>No Examples"] -->|Zero-Shot| B["Model Output<br/>Accuracy: 40-70%"]
+    A -->|Add 3-5 Examples| C["Few-Shot<br/>Accuracy: 70-90%"]
+    A -->|Fine-Tune| D["Task-Specific<br/>Accuracy: 85-95%"]
+    E["Cost/Speed"] -->|Fastest| B
+    E -->|Medium| C
+    E -->|Slowest| D
+    style B fill:#ffebee
+    style C fill:#fff3e0
+    style D fill:#e8f5e9
 ```
 
 ## Key Properties / Trade-offs
@@ -103,6 +106,17 @@ print("Few-shot:", response.content[0].text)  # Also "German" but more confident
 | "When use zero-shot?" | Simple tasks, fast iteration, or when examples hard to get. Otherwise use few-shot. |
 | "Failure modes?" | Domain-specific tasks, rare categories, complex reasoning. Add examples if failing. |
 
+## Real-World Examples
+
+### Zero-Shot Language Detection
+Model: multilingual. Task: detect language from text. No examples provided. Accuracy: 95% (works because language is distinct). vs few-shot: 98% (marginal gain, examples not needed).
+
+### Zero-Shot Domain Transfer
+Task: medical text classification. Model trained on general domain. Zero-shot: 45% accuracy (struggles with medical jargon). Few-shot (3 medical examples): 70%. Full fine-tune: 90%.
+
+### Zero-Shot Generalization Test
+Test model on completely unseen task (no fine-tuning, no examples). Success indicates good instruction following. Failure suggests task too specialized or model too narrow.
+
 ## Related Topics
 - [In-Context Learning](in-context-learning.md) — ICL includes both zero and few-shot
 - [Few-Shot Learning](few-shot-learning.md) — adding examples to zero-shot
@@ -124,12 +138,17 @@ graph TD
 
 ## Interview Questions
 
-**Q: What's the core problem this concept solves?**
-*A: See the 'Core Intuition' section above for the fundamental problem and how this concept addresses it.*
+**Q: What's zero-shot learning and when does it work?**
+*A: No examples provided; model uses instructions only. 'Classify sentiment: positive/negative' (no examples). Works: simple, general tasks. Fails: complex reasoning, nuanced tasks. Baseline for few-shot comparison.*
 
-**Q: What are the main advantages and disadvantages?**
-*A: See 'Key Properties / Trade-offs' section for detailed comparison with alternatives.*
+**Q: Why is zero-shot accuracy often low?**
+*A: Model never saw examples of task structure. Must infer from language alone. Without grounding, prone to misinterpretation. Few-shot adds grounding (examples show format/expectations).*
 
-**Q: How do you implement this in practice?**
-*A: Refer to the corresponding Jupyter notebook in `llm/notebooks/` for working Python implementations and examples.*
+**Q: What model capabilities enable zero-shot?**
+*A: Instruction following (understands task). Generalization (applies knowledge to new tasks). Reasoning (multi-step logic). Not all models strong at all three. Large models (100B+) better zero-shot.*
 
+**Q: When would you use zero-shot vs few-shot?**
+*A: Zero-shot: unknown task, can't afford annotation, exploring. Few-shot: better accuracy acceptable, data available, consistent task. Zero-shot faster (fewer tokens), few-shot more accurate.*
+
+**Q: How do you prompt for effective zero-shot?**
+*A: Be specific: 'Classify as positive/negative/neutral' (not just 'analyze'). Set format: 'Output: [label]'. Add context if helpful: 'Customer reviews: classify'. Still less effective than examples.*
