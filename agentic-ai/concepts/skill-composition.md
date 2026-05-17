@@ -1,34 +1,41 @@
-# Skill composition
+# Skill Composition
 
 ## TL;DR
-Essential for building production AI agents.
+Build complex agent behaviors by composing simple skills. Skills: search, summarize, analyze, plan. Combine via orchestration: sequence, conditional, loops.
 
 ## Core Intuition
-[Intuitive explanation]
+Skills are building blocks. Compose them to build complex behaviors without rewriting everything.
 
 ## How It Works
-[Technical details]
+**Skills:**
+- Search: query information
+- Summarize: condense text
+- Analyze: extract insights
+- Plan: break into steps
+- Execute: perform action
 
-## Key Properties / Trade-offs
-- Property 1
-- Property 2
-
-## Common Mistakes / Gotchas
-- Mistake 1
-- Mistake 2
-
-## Code Example
-```python
-# Example
+**Composition:**
+```
+Task: "Analyze trend and recommend action"
+  ↓
+Step 1: Skill.search("trend data")
+Step 2: Skill.analyze(results)
+Step 3: Skill.summarize(analysis)
+Step 4: Skill.plan("recommendation")
+Step 5: Skill.execute(recommendation)
 ```
 
+**Types:**
+- Sequential: one after another
+- Conditional: if-then-else
+- Loop: repeat until condition
+
 ## Interview Quick-Reference
-| Question | What to say |
-|---|---|
-| "Explain?" | [Answer] |
+**Skill composition?** Build complex behaviors by combining simple skills via orchestration.
 
 ## Related Topics
-- [Related](other.md)
+- [Tool Use](tool-use.md) — skills use tools
+- [Planning & Reasoning](planning-reasoning.md) — orchestration strategies
 
 ## Resources
-- [Reference](url)
+- [LangChain](https://python.langchain.com/) — skill composition framework
