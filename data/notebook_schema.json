@@ -1,0 +1,33 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "title": "LLM Concept Notebook Schema",
+  "description": "Validates structure of generated LLM concept notebooks",
+  "type": "object",
+  "properties": {
+    "cells": {
+      "type": "array",
+      "minItems": 9,
+      "items": {
+        "type": "object",
+        "properties": {
+          "cell_type": {"type": "string", "enum": ["markdown", "code"]},
+          "source": {"type": ["array", "string"]}
+        }
+      }
+    }
+  },
+  "required": ["cells"],
+  "definitions": {
+    "required_sections": {
+      "metadata": "Cell 1: Metadata with tags, prerequisites, related concepts",
+      "tl_dr": "Cell 2: TL;DR section",
+      "intuition": "Cell 3: Core intuition with diagram",
+      "workflow": "Cell 4: How it works + workflow flowchart",
+      "properties": "Cell 5: Key properties and trade-offs",
+      "code": "Cell 6: Code implementation (Python)",
+      "relationships": "Cell 7: Related concepts flowchart",
+      "qa": "Cell 8: Interview Q&A",
+      "references": "Cell 9: References"
+    }
+  }
+}

@@ -1,0 +1,420 @@
+{
+  "concepts": {
+    "adapters": {
+      "order": 1,
+      "title": "Adapters",
+      "tags": ["parameter-efficient", "finetuning"],
+      "prerequisites": ["finetuning"],
+      "related": {
+        "enhances": ["parameter-efficient-finetuning"],
+        "alternative_to": [],
+        "used_with": ["lora", "prefix-tuning"],
+        "prerequisite_for": []
+      },
+      "source_file": "llm/concepts/adapters.md"
+    },
+    "attention-optimization": {
+      "order": 2,
+      "title": "Attention Optimization",
+      "tags": ["optimization", "efficiency", "attention"],
+      "prerequisites": [],
+      "related": {
+        "enhances": ["inference-optimization"],
+        "alternative_to": [],
+        "used_with": ["kv-cache", "speculative-decoding"],
+        "prerequisite_for": []
+      },
+      "source_file": "llm/concepts/attention-optimization.md"
+    },
+    "chain-of-thought": {
+      "order": 3,
+      "title": "Chain-of-Thought",
+      "tags": ["prompting", "reasoning"],
+      "prerequisites": ["prompting"],
+      "related": {
+        "enhances": ["in-context-learning"],
+        "alternative_to": [],
+        "used_with": ["few-shot-learning", "instruction-tuning"],
+        "prerequisite_for": []
+      },
+      "source_file": "llm/concepts/chain-of-thought.md"
+    },
+    "context-window": {
+      "order": 4,
+      "title": "Context Window",
+      "tags": ["model-architecture", "capacity"],
+      "prerequisites": [],
+      "related": {
+        "enhances": ["rag", "in-context-learning"],
+        "alternative_to": [],
+        "used_with": ["token-optimization"],
+        "prerequisite_for": []
+      },
+      "source_file": "llm/concepts/context-window.md"
+    },
+    "continuous-batching": {
+      "order": 5,
+      "title": "Continuous Batching",
+      "tags": ["inference", "optimization"],
+      "prerequisites": [],
+      "related": {
+        "enhances": ["inference-optimization"],
+        "alternative_to": [],
+        "used_with": ["token-optimization"],
+        "prerequisite_for": []
+      },
+      "source_file": "llm/concepts/continuous-batching.md"
+    },
+    "dpo": {
+      "order": 6,
+      "title": "DPO (Direct Preference Optimization)",
+      "tags": ["finetuning", "alignment"],
+      "prerequisites": ["rlhf"],
+      "related": {
+        "enhances": ["instruction-tuning"],
+        "alternative_to": ["rlhf"],
+        "used_with": [],
+        "prerequisite_for": []
+      },
+      "source_file": "llm/concepts/dpo.md"
+    },
+    "embeddings": {
+      "order": 7,
+      "title": "Embeddings",
+      "tags": ["representation", "search"],
+      "prerequisites": [],
+      "related": {
+        "enhances": ["rag", "semantic-search"],
+        "alternative_to": [],
+        "used_with": ["vector-databases"],
+        "prerequisite_for": ["semantic-search"]
+      },
+      "source_file": "llm/concepts/embeddings.md"
+    },
+    "evaluation": {
+      "order": 8,
+      "title": "Evaluation",
+      "tags": ["assessment", "metrics"],
+      "prerequisites": [],
+      "related": {
+        "enhances": [],
+        "alternative_to": [],
+        "used_with": ["finetuning", "instruction-tuning"],
+        "prerequisite_for": []
+      },
+      "source_file": "llm/concepts/evaluation.md"
+    },
+    "few-shot-learning": {
+      "order": 9,
+      "title": "Few-Shot Learning",
+      "tags": ["prompting", "in-context"],
+      "prerequisites": ["in-context-learning"],
+      "related": {
+        "enhances": ["prompt-optimization"],
+        "alternative_to": ["finetuning"],
+        "used_with": ["chain-of-thought"],
+        "prerequisite_for": []
+      },
+      "source_file": "llm/concepts/few-shot-learning.md"
+    },
+    "finetuning": {
+      "order": 10,
+      "title": "Fine-tuning",
+      "tags": ["training", "adaptation"],
+      "prerequisites": ["pretraining"],
+      "related": {
+        "enhances": [],
+        "alternative_to": ["rag", "few-shot-learning"],
+        "used_with": ["instruction-tuning", "rlhf"],
+        "prerequisite_for": ["parameter-efficient-finetuning", "lora", "adapters"]
+      },
+      "source_file": "llm/concepts/finetuning.md"
+    },
+    "in-context-learning": {
+      "order": 11,
+      "title": "In-Context Learning",
+      "tags": ["prompting", "learning"],
+      "prerequisites": [],
+      "related": {
+        "enhances": ["prompt-optimization"],
+        "alternative_to": ["finetuning"],
+        "used_with": ["few-shot-learning", "chain-of-thought"],
+        "prerequisite_for": []
+      },
+      "source_file": "llm/concepts/in-context-learning.md"
+    },
+    "inference-optimization": {
+      "order": 12,
+      "title": "Inference Optimization",
+      "tags": ["optimization", "speed"],
+      "prerequisites": [],
+      "related": {
+        "enhances": [],
+        "alternative_to": [],
+        "used_with": ["quantization", "kv-cache", "attention-optimization"],
+        "prerequisite_for": []
+      },
+      "source_file": "llm/concepts/inference-optimization.md"
+    },
+    "instruction-tuning": {
+      "order": 13,
+      "title": "Instruction Tuning",
+      "tags": ["finetuning", "alignment"],
+      "prerequisites": ["finetuning"],
+      "related": {
+        "enhances": [],
+        "alternative_to": [],
+        "used_with": ["rlhf", "dpo"],
+        "prerequisite_for": []
+      },
+      "source_file": "llm/concepts/instruction-tuning.md"
+    },
+    "kv-cache": {
+      "order": 14,
+      "title": "KV Cache",
+      "tags": ["optimization", "memory"],
+      "prerequisites": [],
+      "related": {
+        "enhances": ["inference-optimization"],
+        "alternative_to": [],
+        "used_with": ["attention-optimization"],
+        "prerequisite_for": []
+      },
+      "source_file": "llm/concepts/kv-cache.md"
+    },
+    "lora": {
+      "order": 15,
+      "title": "LoRA (Low-Rank Adaptation)",
+      "tags": ["parameter-efficient", "finetuning"],
+      "prerequisites": ["finetuning"],
+      "related": {
+        "enhances": ["parameter-efficient-finetuning"],
+        "alternative_to": ["finetuning"],
+        "used_with": ["adapters", "prefix-tuning"],
+        "prerequisite_for": []
+      },
+      "source_file": "llm/concepts/lora.md"
+    },
+    "multimodal": {
+      "order": 16,
+      "title": "Multimodal",
+      "tags": ["architecture", "vision"],
+      "prerequisites": [],
+      "related": {
+        "enhances": [],
+        "alternative_to": [],
+        "used_with": ["embeddings", "tokenization"],
+        "prerequisite_for": []
+      },
+      "source_file": "llm/concepts/multimodal.md"
+    },
+    "parameter-efficient-finetuning": {
+      "order": 17,
+      "title": "Parameter-Efficient Fine-tuning",
+      "tags": ["finetuning", "efficiency"],
+      "prerequisites": ["finetuning"],
+      "related": {
+        "enhances": [],
+        "alternative_to": ["finetuning"],
+        "used_with": ["lora", "adapters", "prefix-tuning"],
+        "prerequisite_for": []
+      },
+      "source_file": "llm/concepts/parameter-efficient-finetuning.md"
+    },
+    "prefix-tuning": {
+      "order": 18,
+      "title": "Prefix Tuning",
+      "tags": ["parameter-efficient", "finetuning"],
+      "prerequisites": ["finetuning"],
+      "related": {
+        "enhances": ["parameter-efficient-finetuning"],
+        "alternative_to": ["finetuning"],
+        "used_with": ["lora", "adapters"],
+        "prerequisite_for": []
+      },
+      "source_file": "llm/concepts/prefix-tuning.md"
+    },
+    "pretraining": {
+      "order": 19,
+      "title": "Pretraining",
+      "tags": ["training", "foundation"],
+      "prerequisites": [],
+      "related": {
+        "enhances": [],
+        "alternative_to": [],
+        "used_with": ["tokenization", "finetuning"],
+        "prerequisite_for": ["finetuning", "instruction-tuning"]
+      },
+      "source_file": "llm/concepts/pretraining.md"
+    },
+    "prompt-optimization": {
+      "order": 20,
+      "title": "Prompt Optimization",
+      "tags": ["prompting", "engineering"],
+      "prerequisites": ["prompting"],
+      "related": {
+        "enhances": ["in-context-learning"],
+        "alternative_to": [],
+        "used_with": ["few-shot-learning"],
+        "prerequisite_for": []
+      },
+      "source_file": "llm/concepts/prompt-optimization.md"
+    },
+    "prompting": {
+      "order": 21,
+      "title": "Prompting",
+      "tags": ["usage", "interaction"],
+      "prerequisites": [],
+      "related": {
+        "enhances": [],
+        "alternative_to": [],
+        "used_with": ["in-context-learning", "chain-of-thought"],
+        "prerequisite_for": ["prompt-optimization"]
+      },
+      "source_file": "llm/concepts/prompting.md"
+    },
+    "quantization": {
+      "order": 22,
+      "title": "Quantization",
+      "tags": ["compression", "efficiency"],
+      "prerequisites": [],
+      "related": {
+        "enhances": ["inference-optimization"],
+        "alternative_to": [],
+        "used_with": ["kv-cache", "attention-optimization"],
+        "prerequisite_for": []
+      },
+      "source_file": "llm/concepts/quantization.md"
+    },
+    "rag": {
+      "order": 23,
+      "title": "RAG (Retrieval-Augmented Generation)",
+      "tags": ["retrieval", "generation", "knowledge"],
+      "prerequisites": ["embeddings", "in-context-learning"],
+      "related": {
+        "enhances": [],
+        "alternative_to": ["finetuning"],
+        "used_with": ["vector-databases", "semantic-search"],
+        "prerequisite_for": []
+      },
+      "source_file": "llm/concepts/rag.md"
+    },
+    "retrieval-augmented-generation": {
+      "order": 24,
+      "title": "Retrieval-Augmented Generation",
+      "tags": ["retrieval", "generation"],
+      "prerequisites": [],
+      "related": {
+        "enhances": [],
+        "alternative_to": [],
+        "used_with": ["rag"],
+        "prerequisite_for": []
+      },
+      "source_file": "llm/concepts/retrieval-augmented-generation.md"
+    },
+    "rlhf": {
+      "order": 25,
+      "title": "RLHF (Reinforcement Learning from Human Feedback)",
+      "tags": ["finetuning", "alignment"],
+      "prerequisites": ["finetuning"],
+      "related": {
+        "enhances": ["instruction-tuning"],
+        "alternative_to": [],
+        "used_with": ["instruction-tuning", "dpo"],
+        "prerequisite_for": []
+      },
+      "source_file": "llm/concepts/rlhf.md"
+    },
+    "semantic-caching": {
+      "order": 26,
+      "title": "Semantic Caching",
+      "tags": ["optimization", "caching"],
+      "prerequisites": ["embeddings"],
+      "related": {
+        "enhances": ["inference-optimization"],
+        "alternative_to": [],
+        "used_with": ["vector-databases"],
+        "prerequisite_for": []
+      },
+      "source_file": "llm/concepts/semantic-caching.md"
+    },
+    "semantic-search": {
+      "order": 27,
+      "title": "Semantic Search",
+      "tags": ["search", "retrieval"],
+      "prerequisites": ["embeddings"],
+      "related": {
+        "enhances": ["rag"],
+        "alternative_to": [],
+        "used_with": ["vector-databases"],
+        "prerequisite_for": []
+      },
+      "source_file": "llm/concepts/semantic-search.md"
+    },
+    "speculative-decoding": {
+      "order": 28,
+      "title": "Speculative Decoding",
+      "tags": ["optimization", "inference"],
+      "prerequisites": [],
+      "related": {
+        "enhances": ["inference-optimization"],
+        "alternative_to": [],
+        "used_with": ["attention-optimization"],
+        "prerequisite_for": []
+      },
+      "source_file": "llm/concepts/speculative-decoding.md"
+    },
+    "token-optimization": {
+      "order": 29,
+      "title": "Token Optimization",
+      "tags": ["optimization", "efficiency"],
+      "prerequisites": [],
+      "related": {
+        "enhances": ["inference-optimization"],
+        "alternative_to": [],
+        "used_with": ["context-window"],
+        "prerequisite_for": []
+      },
+      "source_file": "llm/concepts/token-optimization.md"
+    },
+    "tokenization": {
+      "order": 30,
+      "title": "Tokenization",
+      "tags": ["preprocessing", "encoding"],
+      "prerequisites": [],
+      "related": {
+        "enhances": [],
+        "alternative_to": [],
+        "used_with": ["pretraining", "in-context-learning"],
+        "prerequisite_for": []
+      },
+      "source_file": "llm/concepts/tokenization.md"
+    },
+    "vector-databases": {
+      "order": 31,
+      "title": "Vector Databases",
+      "tags": ["storage", "retrieval"],
+      "prerequisites": ["embeddings"],
+      "related": {
+        "enhances": ["rag", "semantic-search"],
+        "alternative_to": [],
+        "used_with": ["semantic-caching"],
+        "prerequisite_for": []
+      },
+      "source_file": "llm/concepts/vector-databases.md"
+    },
+    "zero-shot-learning": {
+      "order": 32,
+      "title": "Zero-Shot Learning",
+      "tags": ["prompting", "generalization"],
+      "prerequisites": ["prompting"],
+      "related": {
+        "enhances": [],
+        "alternative_to": ["few-shot-learning"],
+        "used_with": ["in-context-learning"],
+        "prerequisite_for": []
+      },
+      "source_file": "llm/concepts/zero-shot-learning.md"
+    }
+  }
+}
