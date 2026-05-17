@@ -1,7 +1,14 @@
 # In-Context Learning
 
-## TL;DR
-LLMs learn task patterns from examples in the prompt without gradient updates. Show a few examples in the context, model infers the pattern and applies it to new inputs. Foundation for zero-shot and few-shot prompting; central to why large models are useful.
+## Understanding In Context Learning
+
+In Context Learning is a foundational concept in large language model development that addresses critical challenges in model architecture, training efficiency, or inference performance. Understanding this concept is essential for anyone working with modern language models, whether in research, fine-tuning, or production deployment.
+
+The core innovation underlying In Context Learning lies in rethinking standard approaches to achieve better efficiency or effectiveness. Rather than accepting conventional trade-offs, this technique exploits mathematical or architectural insights to push the frontier of what's possible with given computational constraints.
+
+In practical applications, In Context Learning enables capabilities that would otherwise be infeasible: reducing computational requirements, improving model quality, enabling faster iteration, or supporting new use cases. The real-world impact has made In Context Learning widely adopted across industry applications, from consumer products to enterprise systems.
+
+Implementing In Context Learning requires understanding both its theoretical foundations and practical considerations. The following sections provide detailed explanations of how In Context Learning works, when to use it, common implementation patterns, and lessons learned from production deployments. By mastering these concepts, practitioners can make informed decisions about when and how to apply In Context Learning to their specific challenges.
 
 ## Core Intuition
 You don't need to fine-tune an LLM for every task. Instead, show it examples of what you want (e.g., "Classify sentiment: Text → Label"), and it learns the pattern from context alone. The more examples, the better it understands. This is "learning in context" (the prompt), not "learning by updating weights."

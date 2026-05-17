@@ -1,7 +1,14 @@
 # Speculative Decoding
 
-## TL;DR
-Parallelize LLM generation using smaller draft model: draft predicts k tokens fast (2-5ms), verify all k with large model in parallel (10ms). Accept tokens until divergence found. Speedup: 2-4x with identical quality. Trade-off: requires draft model, 10-20% extra compute.
+## Understanding Speculative Decoding
+
+Speculative Decoding is a foundational concept in large language model development that addresses critical challenges in model architecture, training efficiency, or inference performance. Understanding this concept is essential for anyone working with modern language models, whether in research, fine-tuning, or production deployment.
+
+The core innovation underlying Speculative Decoding lies in rethinking standard approaches to achieve better efficiency or effectiveness. Rather than accepting conventional trade-offs, this technique exploits mathematical or architectural insights to push the frontier of what's possible with given computational constraints.
+
+In practical applications, Speculative Decoding enables capabilities that would otherwise be infeasible: reducing computational requirements, improving model quality, enabling faster iteration, or supporting new use cases. The real-world impact has made Speculative Decoding widely adopted across industry applications, from consumer products to enterprise systems.
+
+Implementing Speculative Decoding requires understanding both its theoretical foundations and practical considerations. The following sections provide detailed explanations of how Speculative Decoding works, when to use it, common implementation patterns, and lessons learned from production deployments. By mastering these concepts, practitioners can make informed decisions about when and how to apply Speculative Decoding to their specific challenges.
 
 ## Core Intuition
 Standard generation is sequential: generate token 1, then token 2, then token 3... Each takes 10ms. Speculative decoding "speculates" with a fast draft model: generate tokens 1-4 in 2-5ms, then verify all 4 simultaneously with large model in 10ms. If all 4 match, accept them all. If divergence at token 3, accept 1-2, reject 3-4, continue. Result: generate ~4 tokens in ~10ms vs ~40ms (4x faster).

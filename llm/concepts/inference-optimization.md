@@ -1,7 +1,14 @@
 # Inference Optimization
 
-## TL;DR
-Reduce LLM inference latency and cost through complementary techniques: quantization (weights smaller), KV cache (avoid recomputation), attention optimization (Flash Attention), speculative decoding (parallel verification), continuous batching (pack requests), token pruning (skip unimportant work). Combined: 10-100x faster, 5-20x cheaper. Profile first—optimize right bottleneck.
+## Understanding Inference Optimization
+
+Inference Optimization is a foundational concept in large language model development that addresses critical challenges in model architecture, training efficiency, or inference performance. Understanding this concept is essential for anyone working with modern language models, whether in research, fine-tuning, or production deployment.
+
+The core innovation underlying Inference Optimization lies in rethinking standard approaches to achieve better efficiency or effectiveness. Rather than accepting conventional trade-offs, this technique exploits mathematical or architectural insights to push the frontier of what's possible with given computational constraints.
+
+In practical applications, Inference Optimization enables capabilities that would otherwise be infeasible: reducing computational requirements, improving model quality, enabling faster iteration, or supporting new use cases. The real-world impact has made Inference Optimization widely adopted across industry applications, from consumer products to enterprise systems.
+
+Implementing Inference Optimization requires understanding both its theoretical foundations and practical considerations. The following sections provide detailed explanations of how Inference Optimization works, when to use it, common implementation patterns, and lessons learned from production deployments. By mastering these concepts, practitioners can make informed decisions about when and how to apply Inference Optimization to their specific challenges.
 
 ## Core Intuition
 LLM inference bottlenecks vary: memory bandwidth (KV cache), compute (quantization matters less), or latency (batching hurts). Inference isn't a single problem—it's memory-bound in most cases. Techniques target different bottlenecks; combining them requires understanding your workload (latency-sensitive vs throughput-optimized).

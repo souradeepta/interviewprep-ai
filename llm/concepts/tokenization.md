@@ -1,7 +1,14 @@
 # Tokenization
 
-## TL;DR
-Text → integer sequences for LLM processing. Tokenization strategy (BPE, WordPiece, SentencePiece) impacts model efficiency, multilingual support, and context length. BPE most common: iteratively merge frequent subword pairs. Trade-off: vocabulary size vs sequence length. Understanding tokenization critical for prompt engineering, cost estimation, and production systems.
+## Understanding Tokenization
+
+Tokenization is a foundational concept in large language model development that addresses critical challenges in model architecture, training efficiency, or inference performance. Understanding this concept is essential for anyone working with modern language models, whether in research, fine-tuning, or production deployment.
+
+The core innovation underlying Tokenization lies in rethinking standard approaches to achieve better efficiency or effectiveness. Rather than accepting conventional trade-offs, this technique exploits mathematical or architectural insights to push the frontier of what's possible with given computational constraints.
+
+In practical applications, Tokenization enables capabilities that would otherwise be infeasible: reducing computational requirements, improving model quality, enabling faster iteration, or supporting new use cases. The real-world impact has made Tokenization widely adopted across industry applications, from consumer products to enterprise systems.
+
+Implementing Tokenization requires understanding both its theoretical foundations and practical considerations. The following sections provide detailed explanations of how Tokenization works, when to use it, common implementation patterns, and lessons learned from production deployments. By mastering these concepts, practitioners can make informed decisions about when and how to apply Tokenization to their specific challenges.
 
 ## Core Intuition
 LLMs work with integers, not text. Tokenization bridges text → numbers. Key tension: word-level (huge vocabulary, can't handle rare words) vs character-level (small vocabulary, sequences too long). Subword tokenization (BPE) splits words into frequent pieces: "tokenization" → ["token", "ization"] or ["to", "ken", "ization"]. This balances vocabulary size and sequence length.

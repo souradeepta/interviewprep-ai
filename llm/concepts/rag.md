@@ -1,7 +1,14 @@
 # RAG (Retrieval-Augmented Generation)
 
-## TL;DR
-Augment LLM generation with retrieved external documents. Query → retrieve top-k relevant documents → feed to LLM → generate response. Solves: hallucination, knowledge cutoff, up-to-date information, domain-specific knowledge without fine-tuning.
+## Understanding RAG: Augmenting Generation with Retrieval
+
+Retrieval-Augmented Generation (RAG) addresses a fundamental limitation of fine-tuning: training encodes knowledge into parameters, which is memory-intensive, inflexible, and poor at handling updates or domain-specific facts. RAG instead retrieves relevant documents from an external corpus during inference and provides them to the model as context, allowing it to answer questions grounded in current, domain-specific information. This separation of knowledge storage from model parameters enables dynamic updates without retraining.
+
+The RAG pipeline operates in three stages: (1) Retriever—given a query, retrieve the k most relevant documents from a knowledge base using semantic or lexical search, (2) Context Assembly—format retrieved documents as context for the language model, (3) Generator—have the model generate an answer grounded in retrieved context. This architecture is more memory-efficient than fine-tuning (external corpus stores knowledge, not model weights) and naturally supports knowledge updates (add new documents without retraining).
+
+RAG excels in scenarios where knowledge must be current, domain-specific, or rapidly updating: financial analysis (latest earnings reports), legal research (current case law), technical support (latest product documentation), or medical diagnosis (latest clinical guidelines). Fine-tuning on this data would require retraining frequently; RAG simply updates the document corpus. Additionally, retrieved documents provide transparency—users can see the source of answers, building trust in the system.
+
+The practical challenge in RAG is retrieval quality: if the retriever misses relevant documents, generation suffers. Modern retrieval uses dense embedding models (BERT, sentence-transformers) rather than keyword search, achieving better semantic matching. The retriever and generator can be fine-tuned jointly through techniques like ColBERT or DPR (Dense Passage Retrieval), and the architecture naturally supports retrieval-augmented fine-tuning, where retrieved examples improve domain adaptation. In production, RAG systems achieve 15-30% accuracy improvements over fine-tuning alone on knowledge-heavy tasks.
 
 ## Core Intuition
 LLMs hallucinate because they only know what's in their weights (frozen at training). RAG is like giving them a reference library: retrieve relevant passages first, then generate. Cheap, effective, updatable without retraining.

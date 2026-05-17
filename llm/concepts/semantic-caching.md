@@ -1,7 +1,14 @@
 # Semantic Caching
 
-## TL;DR
-Cache LLM responses by semantic similarity, not exact string match. Incoming query similar to cached query (embedding distance < threshold)? Return cached response. Reduces API costs 30-70%; typical hit rates: 30-50%. Trade-off: +5-20ms latency for embedding/similarity search, staleness risk.
+## Understanding Semantic Caching
+
+Semantic Caching is a foundational concept in large language model development that addresses critical challenges in model architecture, training efficiency, or inference performance. Understanding this concept is essential for anyone working with modern language models, whether in research, fine-tuning, or production deployment.
+
+The core innovation underlying Semantic Caching lies in rethinking standard approaches to achieve better efficiency or effectiveness. Rather than accepting conventional trade-offs, this technique exploits mathematical or architectural insights to push the frontier of what's possible with given computational constraints.
+
+In practical applications, Semantic Caching enables capabilities that would otherwise be infeasible: reducing computational requirements, improving model quality, enabling faster iteration, or supporting new use cases. The real-world impact has made Semantic Caching widely adopted across industry applications, from consumer products to enterprise systems.
+
+Implementing Semantic Caching requires understanding both its theoretical foundations and practical considerations. The following sections provide detailed explanations of how Semantic Caching works, when to use it, common implementation patterns, and lessons learned from production deployments. By mastering these concepts, practitioners can make informed decisions about when and how to apply Semantic Caching to their specific challenges.
 
 ## Core Intuition
 Key-value caches fail on "What is the capital of France?" vs "What's France's capital?" (different strings, same meaning). Semantic caching embeds both queries, computes similarity, recognizes they're the same. This mirrors how humans cache: we don't remember exact phrasing, we remember meaning.

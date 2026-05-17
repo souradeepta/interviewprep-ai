@@ -1,7 +1,14 @@
 # Attention Optimization
 
-## TL;DR
-Optimize attention (O(T²) bottleneck): Flash Attention (I/O aware, 2-4x faster, same quality), sparse attention (attend only to relevant tokens, 2-4x faster, <1% quality loss), grouped-query attention (share KV across Q heads, 50% KV cache reduction). Choose based on hardware and latency requirements.
+## Understanding Attention Optimization: Scaling Efficient Inference
+
+Standard attention computes QK^T (an O(T²) operation), creating a T×T matrix that must be stored and processed. For a 4K context (4096 tokens), this is 16M attention values; for a 32K context, 1B values. This quadratic scaling dominates inference latency and memory usage, making long-context applications challenging. Attention optimization techniques—Flash Attention, sparse attention, and grouped-query attention—reduce this bottleneck through algorithmic innovation, sparsity, and parameter sharing.
+
+Flash Attention reorganizes computation to be I/O-efficient: instead of materializing the full QK^T matrix in GPU memory, it tiles the computation and keeps intermediate results on-chip (SRAM), reducing memory transfers by 10x. The result: 2-4x speedup on long contexts with identical mathematical output. Sparse attention (attending only to local or strided tokens) assumes not all tokens need full attention and achieves 2-4x speedup with <1% accuracy loss on many tasks. Grouped-Query Attention (GQA) shares key-value caches across multiple query heads, reducing KV cache size by 50-90% with minimal impact.
+
+In production, combining these techniques is common: Flash Attention (2x) + GQA (4x) + INT8 quantization (4x) compounds to 32x memory reduction and speedup, enabling inference on 70B+ models on consumer GPUs. Flash Attention v2/v3 is now standard in transformers (HuggingFace, vLLM), making it a free efficiency gain. Sparse attention requires careful implementation but excels for very long contexts (>32K tokens). GQA is especially effective for multi-batch inference where sharing KV caches reduces memory per request.
+
+The trade-offs are minimal: Flash Attention has zero accuracy loss and positive latency impact; sparse attention trades <1% accuracy for 2-4x speedup; GQA trades <1% accuracy for 4-8x memory reduction in KV cache. Together, these techniques make long-context inference (100K+ tokens) practical on commodity hardware, enabling applications like document analysis, book summarization, and long-document search that were previously infeasible.
 
 ## Core Intuition
 Standard attention computes QK^T (a T×T matrix), which requires O(T²) memory and transfers tons of data between slow HBM (GPU RAM) and fast SRAM. This is the LLM inference bottleneck. Flash Attention reorganizes computation to keep data on-chip. Sparse attention realizes you don't need T² comparisons—local + strided patterns suffice. GQA reuses KV across multiple Q heads to reduce cache size.

@@ -1,7 +1,14 @@
 # Multimodal
 
-## TL;DR
-LLMs that understand multiple input modalities: text, images, audio, video. Encode each modality separately, project to shared embedding space, concatenate sequences. Feed to language model. Enables vision+language reasoning. Key challenge: token efficiency (images = 500+ tokens) and modality alignment.
+## Understanding Multimodal
+
+Multimodal is a foundational concept in large language model development that addresses critical challenges in model architecture, training efficiency, or inference performance. Understanding this concept is essential for anyone working with modern language models, whether in research, fine-tuning, or production deployment.
+
+The core innovation underlying Multimodal lies in rethinking standard approaches to achieve better efficiency or effectiveness. Rather than accepting conventional trade-offs, this technique exploits mathematical or architectural insights to push the frontier of what's possible with given computational constraints.
+
+In practical applications, Multimodal enables capabilities that would otherwise be infeasible: reducing computational requirements, improving model quality, enabling faster iteration, or supporting new use cases. The real-world impact has made Multimodal widely adopted across industry applications, from consumer products to enterprise systems.
+
+Implementing Multimodal requires understanding both its theoretical foundations and practical considerations. The following sections provide detailed explanations of how Multimodal works, when to use it, common implementation patterns, and lessons learned from production deployments. By mastering these concepts, practitioners can make informed decisions about when and how to apply Multimodal to their specific challenges.
 
 ## Core Intuition
 Humans understand images and text together. Multimodal LLMs bridge this: convert images to embeddings (vectors), concatenate with text tokens, feed to LLM. Key insight: vision encoders (ViT, CLIP) compress images to ~100-500 embedding tokens—same token format as text. This lets standard LLMs process both.

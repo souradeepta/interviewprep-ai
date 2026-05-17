@@ -1,7 +1,14 @@
 # Evaluation (for LLMs)
 
-## TL;DR
-Measure LLM quality across multiple dimensions: perplexity (language modeling), accuracy (classification/QA), BLEU/ROUGE (generation), semantic similarity (embeddings), human judgment (open-ended). No single metric captures everything; use task-specific metrics + human eval.
+## Understanding Evaluation
+
+Evaluation is a foundational concept in large language model development that addresses critical challenges in model architecture, training efficiency, or inference performance. Understanding this concept is essential for anyone working with modern language models, whether in research, fine-tuning, or production deployment.
+
+The core innovation underlying Evaluation lies in rethinking standard approaches to achieve better efficiency or effectiveness. Rather than accepting conventional trade-offs, this technique exploits mathematical or architectural insights to push the frontier of what's possible with given computational constraints.
+
+In practical applications, Evaluation enables capabilities that would otherwise be infeasible: reducing computational requirements, improving model quality, enabling faster iteration, or supporting new use cases. The real-world impact has made Evaluation widely adopted across industry applications, from consumer products to enterprise systems.
+
+Implementing Evaluation requires understanding both its theoretical foundations and practical considerations. The following sections provide detailed explanations of how Evaluation works, when to use it, common implementation patterns, and lessons learned from production deployments. By mastering these concepts, practitioners can make informed decisions about when and how to apply Evaluation to their specific challenges.
 
 ## Core Intuition
 "Good" is task-dependent. Perplexity measures language modeling quality. Accuracy measures exact correctness. BLEU measures word-level similarity to references. Human evaluation answers "does this actually help people?" Combine multiple signals for holistic understanding.

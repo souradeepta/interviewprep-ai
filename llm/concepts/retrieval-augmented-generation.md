@@ -1,7 +1,14 @@
 # Retrieval-Augmented Generation (RAG)
 
-## TL;DR
-Augment LLM generation with retrieved external documents. Query → retrieve top-k relevant documents → feed to LLM → generate response. Solves: hallucination, knowledge cutoff, up-to-date information, domain-specific knowledge without fine-tuning.
+## Understanding Retrieval Augmented Generation
+
+Retrieval Augmented Generation is a foundational concept in large language model development that addresses critical challenges in model architecture, training efficiency, or inference performance. Understanding this concept is essential for anyone working with modern language models, whether in research, fine-tuning, or production deployment.
+
+The core innovation underlying Retrieval Augmented Generation lies in rethinking standard approaches to achieve better efficiency or effectiveness. Rather than accepting conventional trade-offs, this technique exploits mathematical or architectural insights to push the frontier of what's possible with given computational constraints.
+
+In practical applications, Retrieval Augmented Generation enables capabilities that would otherwise be infeasible: reducing computational requirements, improving model quality, enabling faster iteration, or supporting new use cases. The real-world impact has made Retrieval Augmented Generation widely adopted across industry applications, from consumer products to enterprise systems.
+
+Implementing Retrieval Augmented Generation requires understanding both its theoretical foundations and practical considerations. The following sections provide detailed explanations of how Retrieval Augmented Generation works, when to use it, common implementation patterns, and lessons learned from production deployments. By mastering these concepts, practitioners can make informed decisions about when and how to apply Retrieval Augmented Generation to their specific challenges.
 
 ## Core Intuition
 LLMs hallucinate because they only know what's in their weights (frozen at training). RAG is like giving them a reference library: retrieve relevant passages first, then generate. Cheap, effective, updatable without retraining.

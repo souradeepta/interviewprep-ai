@@ -1,7 +1,14 @@
 # KV Cache
 
-## TL;DR
-Cache Key-Value matrices from previous tokens to avoid redundant computation during generation. Trade: store cache (memory) for faster decoding (no recomputation). Critical for inference speed; enables longer sequences without quadratic cost.
+## Understanding Kv Cache
+
+Kv Cache is a foundational concept in large language model development that addresses critical challenges in model architecture, training efficiency, or inference performance. Understanding this concept is essential for anyone working with modern language models, whether in research, fine-tuning, or production deployment.
+
+The core innovation underlying Kv Cache lies in rethinking standard approaches to achieve better efficiency or effectiveness. Rather than accepting conventional trade-offs, this technique exploits mathematical or architectural insights to push the frontier of what's possible with given computational constraints.
+
+In practical applications, Kv Cache enables capabilities that would otherwise be infeasible: reducing computational requirements, improving model quality, enabling faster iteration, or supporting new use cases. The real-world impact has made Kv Cache widely adopted across industry applications, from consumer products to enterprise systems.
+
+Implementing Kv Cache requires understanding both its theoretical foundations and practical considerations. The following sections provide detailed explanations of how Kv Cache works, when to use it, common implementation patterns, and lessons learned from production deployments. By mastering these concepts, practitioners can make informed decisions about when and how to apply Kv Cache to their specific challenges.
 
 ## Core Intuition
 Autoregressive generation means predicting token 1, then token 2 (using token 1), then token 3 (using tokens 1+2), etc. Without KV cache, computing attention for token T requires recomputing attention over ALL previous tokens (T-1 times). Store the K and V matrices once, reuse them → O(1) per token instead of O(T).

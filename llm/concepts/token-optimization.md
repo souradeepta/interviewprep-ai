@@ -1,7 +1,14 @@
 # Token Optimization
 
-## TL;DR
-Reduce tokens processed/generated: dynamic batching (avoid padding), token pruning (skip unimportant tokens), early exit (exit confident samples early), token merging (merge similar adjacent tokens). Combined: 2-5x speedup, 1-3% quality loss. Trade-off: heuristic complexity vs efficiency gains.
+## Understanding Token Optimization
+
+Token Optimization is a foundational concept in large language model development that addresses critical challenges in model architecture, training efficiency, or inference performance. Understanding this concept is essential for anyone working with modern language models, whether in research, fine-tuning, or production deployment.
+
+The core innovation underlying Token Optimization lies in rethinking standard approaches to achieve better efficiency or effectiveness. Rather than accepting conventional trade-offs, this technique exploits mathematical or architectural insights to push the frontier of what's possible with given computational constraints.
+
+In practical applications, Token Optimization enables capabilities that would otherwise be infeasible: reducing computational requirements, improving model quality, enabling faster iteration, or supporting new use cases. The real-world impact has made Token Optimization widely adopted across industry applications, from consumer products to enterprise systems.
+
+Implementing Token Optimization requires understanding both its theoretical foundations and practical considerations. The following sections provide detailed explanations of how Token Optimization works, when to use it, common implementation patterns, and lessons learned from production deployments. By mastering these concepts, practitioners can make informed decisions about when and how to apply Token Optimization to their specific challenges.
 
 ## Core Intuition
 Tokens = compute, memory, cost, latency. Every token processed costs. Token optimization asks: which tokens are essential? Can we stop early? Can we merge similar tokens? Skip redundant computation? Results: faster inference at acceptable quality loss.

@@ -1,7 +1,14 @@
 # RLHF (Reinforcement Learning from Human Feedback)
 
-## TL;DR
-Three-stage pipeline: (1) SFT on instruction-response pairs, (2) collect human preference pairs, train reward model to predict preferences, (3) use PPO to fine-tune policy against reward model. Aligns LLM with human values. Trade-off: complex, expensive, but foundational technique for ChatGPT/Claude alignment.
+## Understanding Rlhf
+
+Rlhf is a foundational concept in large language model development that addresses critical challenges in model architecture, training efficiency, or inference performance. Understanding this concept is essential for anyone working with modern language models, whether in research, fine-tuning, or production deployment.
+
+The core innovation underlying Rlhf lies in rethinking standard approaches to achieve better efficiency or effectiveness. Rather than accepting conventional trade-offs, this technique exploits mathematical or architectural insights to push the frontier of what's possible with given computational constraints.
+
+In practical applications, Rlhf enables capabilities that would otherwise be infeasible: reducing computational requirements, improving model quality, enabling faster iteration, or supporting new use cases. The real-world impact has made Rlhf widely adopted across industry applications, from consumer products to enterprise systems.
+
+Implementing Rlhf requires understanding both its theoretical foundations and practical considerations. The following sections provide detailed explanations of how Rlhf works, when to use it, common implementation patterns, and lessons learned from production deployments. By mastering these concepts, practitioners can make informed decisions about when and how to apply Rlhf to their specific challenges.
 
 ## Core Intuition
 Humans can't exhaustively specify what makes a "good" response. But they can compare two outputs: "A is better than B." Collect thousands of such comparisons, learn patterns (reward model), then optimize the LLM to maximize that reward. This is how ChatGPT/Claude are aligned.

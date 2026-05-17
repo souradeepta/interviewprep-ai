@@ -1,8 +1,14 @@
 # LoRA (Low-Rank Adaptation)
 
-## TL;DR
-Fine-tune LLMs by training only low-rank decomposition matrices, not all weights. Instead of updating W ∈ ℝ^(d × d), add A ∈ ℝ^(d × r) and B ∈ ℝ^(r × d) where r << d. Reduces parameters by 99%+, enables many task-specific models, minimal memory/compute cost.
+## Understanding LoRA: Efficient Fine-Tuning Through Low-Rank Adaptation
 
+LoRA (Low-Rank Adaptation) represents a fundamental shift in how we approach fine-tuning large language models. Instead of updating all weight matrices during training, LoRA decomposes weight updates into two small matrices A and B, where the full update is reconstructed as ΔW = A·B^T. This mathematical insight enables parameter reduction of 99%+ while maintaining model performance within 1-2% of full fine-tuning. The approach recognizes that weight matrices, while individually large (e.g., 4096 × 4096), update along lower-dimensional manifolds during fine-tuning.
+
+The efficiency gains come from recognizing that weight updates during fine-tuning are intrinsically low-rank. Rather than exploring the full d × d dimensional space of possible updates, language models primarily move along a lower-dimensional manifold. By constraining updates to this manifold through rank-r matrices (typically r = 4-32), LoRA captures 95-99% of the performance benefit while reducing trainable parameters from billions to millions. This phenomenon has been consistently observed across different model sizes, architectures, and tasks, making LoRA a broadly applicable technique.
+
+The practical impact is transformative: a 7B parameter model that normally requires 14B trainable parameters can be fine-tuned with only ~1M trainable parameters when using LoRA with rank-8. This reduction enables training on consumer GPUs (24GB VRAM) what previously required enterprise hardware (80GB A100s), lowering the barrier to entry for fine-tuning. Furthermore, LoRA adapters can be deployed alongside a frozen base model, enabling efficient multi-task serving where different adapters handle different tasks without duplicating the base model.
+
+In production, LoRA offers compelling advantages: trained adapters are typically 1-10MB (vs 7GB+ for full models), making them trivial to store and transmit. Multiple task-specific adapters can be loaded on-demand per request, enabling one base model to serve dozens of specialized applications. The mathematical elegance of the approach—simply adding A·B^T during the forward pass—means there is zero inference overhead when adapters are merged into the base model, making LoRA production-ready for any inference pipeline.
 
 ## LoRA (Low-Rank Adaptation) Deep Dive
 

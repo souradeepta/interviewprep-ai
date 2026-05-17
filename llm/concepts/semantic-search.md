@@ -1,7 +1,14 @@
 # Semantic Search
 
-## TL;DR
-Find documents by meaning, not keywords. Convert query + documents to embeddings, find nearest neighbors (cosine similarity). Returns semantically relevant docs even if keywords don't match. Enables RAG systems, modern search engines, and zero-shot retrieval.
+## Understanding Semantic Search: Finding Meaning Beyond Keywords
+
+Traditional keyword search matches exact terms but misses semantic relationships: searching for 'vehicle' won't find documents about 'car' unless explicitly set up with synonyms. Semantic search addresses this by embedding both queries and documents into a continuous vector space where semantically similar items are close together. A query about 'how cars work' can match documents explaining 'automobile mechanics' because both express similar meaning, despite different wording.
+
+The semantic search pipeline uses three components: (1) Embedding Model—encode queries and documents as dense vectors (e.g., 768-dim vectors from sentence-transformers), (2) Vector Database—store and search document embeddings efficiently using approximate nearest neighbor algorithms (HNSW, FAISS, Pinecone), (3) Ranking—optionally re-rank retrieved results using cross-encoders for final accuracy. This separation makes semantic search scalable: embedding and indexing happen once; search is a fast vector operation.
+
+Compared to keyword search, semantic search achieves 20-40% higher recall (finding relevant documents users actually want) and better precision when documents use paraphrased language. The trade-off is computational cost: keyword search is essentially free (hash tables), while semantic search requires neural embedding (milliseconds per query) and vector similarity computation (scales with document count but remains sublinear with good indexing). Modern vector databases (Qdrant, Weaviate, Pinecone) handle scaling automatically.
+
+In production, semantic search powers recommendation systems ("show similar products"), customer support ("match inquiries to previous solutions"), and information retrieval ("find relevant training data for fine-tuning"). Combined with RAG, semantic search retrieves documents contextually relevant to queries, enabling knowledge-grounded generation. Fine-tuning retrieval models (DPR, ColBERT) for domain-specific tasks adds 10-20% accuracy on top-k metrics, making semantic search both powerful and customizable.
 
 ## Core Intuition
 Keyword search: "python" returns docs with word "python." Misses "serpent" (synonym) and returns docs about Python programming when you want pythons the snake. Semantic search understands meaning: query embedding + doc embeddings capture intent, regardless of exact words.

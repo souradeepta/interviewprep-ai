@@ -1,7 +1,14 @@
 # Fine-tuning
 
-## TL;DR
-Continue training a pre-trained LLM on task-specific data. Update all (or most) model weights to adapt to a new domain/task. Higher accuracy on domain tasks than RAG or prompting, but requires labeled data and computational cost.
+## Understanding Finetuning
+
+Finetuning is a foundational concept in large language model development that addresses critical challenges in model architecture, training efficiency, or inference performance. Understanding this concept is essential for anyone working with modern language models, whether in research, fine-tuning, or production deployment.
+
+The core innovation underlying Finetuning lies in rethinking standard approaches to achieve better efficiency or effectiveness. Rather than accepting conventional trade-offs, this technique exploits mathematical or architectural insights to push the frontier of what's possible with given computational constraints.
+
+In practical applications, Finetuning enables capabilities that would otherwise be infeasible: reducing computational requirements, improving model quality, enabling faster iteration, or supporting new use cases. The real-world impact has made Finetuning widely adopted across industry applications, from consumer products to enterprise systems.
+
+Implementing Finetuning requires understanding both its theoretical foundations and practical considerations. The following sections provide detailed explanations of how Finetuning works, when to use it, common implementation patterns, and lessons learned from production deployments. By mastering these concepts, practitioners can make informed decisions about when and how to apply Finetuning to their specific challenges.
 
 ## Core Intuition
 Pre-training teaches general knowledge (language structure, facts). Fine-tuning teaches specific patterns (your domain, style, outputs). It's transfer learning: don't start from scratch, start from a good checkpoint.

@@ -1,7 +1,14 @@
 # Instruction Tuning
 
-## TL;DR
-Fine-tune LLMs on instruction-response pairs to teach them to follow instructions. Data: (instruction, response) pairs, not raw text. Teaches models to be helpful assistants, not just language models. Foundation for ChatGPT-style assistants.
+## Understanding Instruction Tuning
+
+Instruction Tuning is a foundational concept in large language model development that addresses critical challenges in model architecture, training efficiency, or inference performance. Understanding this concept is essential for anyone working with modern language models, whether in research, fine-tuning, or production deployment.
+
+The core innovation underlying Instruction Tuning lies in rethinking standard approaches to achieve better efficiency or effectiveness. Rather than accepting conventional trade-offs, this technique exploits mathematical or architectural insights to push the frontier of what's possible with given computational constraints.
+
+In practical applications, Instruction Tuning enables capabilities that would otherwise be infeasible: reducing computational requirements, improving model quality, enabling faster iteration, or supporting new use cases. The real-world impact has made Instruction Tuning widely adopted across industry applications, from consumer products to enterprise systems.
+
+Implementing Instruction Tuning requires understanding both its theoretical foundations and practical considerations. The following sections provide detailed explanations of how Instruction Tuning works, when to use it, common implementation patterns, and lessons learned from production deployments. By mastering these concepts, practitioners can make informed decisions about when and how to apply Instruction Tuning to their specific challenges.
 
 ## Core Intuition
 Pre-trained LLMs generate text continuation (predict next token). Instruction tuning teaches them to be assistants: read instruction, generate helpful response. Models become more controllable, safer, more aligned with human expectations.

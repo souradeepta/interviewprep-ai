@@ -1,7 +1,14 @@
 # Prefix Tuning
 
-## TL;DR
-Learn task-specific prefix tokens prepended to input, affecting all transformer layers. Only prefix trainable (~1-2% params). Better than LoRA for sequence-to-sequence tasks; worse for multi-task (prefix conflicts). Trade-off: simplicity vs flexibility.
+## Understanding Prefix Tuning
+
+Prefix Tuning is a foundational concept in large language model development that addresses critical challenges in model architecture, training efficiency, or inference performance. Understanding this concept is essential for anyone working with modern language models, whether in research, fine-tuning, or production deployment.
+
+The core innovation underlying Prefix Tuning lies in rethinking standard approaches to achieve better efficiency or effectiveness. Rather than accepting conventional trade-offs, this technique exploits mathematical or architectural insights to push the frontier of what's possible with given computational constraints.
+
+In practical applications, Prefix Tuning enables capabilities that would otherwise be infeasible: reducing computational requirements, improving model quality, enabling faster iteration, or supporting new use cases. The real-world impact has made Prefix Tuning widely adopted across industry applications, from consumer products to enterprise systems.
+
+Implementing Prefix Tuning requires understanding both its theoretical foundations and practical considerations. The following sections provide detailed explanations of how Prefix Tuning works, when to use it, common implementation patterns, and lessons learned from production deployments. By mastering these concepts, practitioners can make informed decisions about when and how to apply Prefix Tuning to their specific challenges.
 
 ## Core Intuition
 Instead of training LoRA matrices or adapter layers, prefix tuning learns "soft prompt" tokens. Prepend ~50-100 learnable vectors to every input. Model learns what these vectors mean in latent space (like instruction embeddings). They attend to input, influencing all layers. Simple but less flexible than adapters.

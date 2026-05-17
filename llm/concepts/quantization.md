@@ -1,8 +1,14 @@
 # Quantization (for LLMs)
 
-## TL;DR
-Reduce model precision (float32 → int8, int4, or lower) to shrink memory and accelerate inference. Trade: memory/speed gain for small accuracy loss. Critical for deploying large models. Methods: Post-Training Quantization (PTQ), Quantization-Aware Training (QAT), mixed precision.
+## Understanding Quantization: Trading Precision for Efficiency
 
+Quantization reduces model size and inference latency by representing weights and activations using fewer bits (e.g., INT8 instead of FP32). A 7B parameter model in FP32 requires 28GB VRAM; quantized to INT8, it requires 7GB. The key insight: neural networks remain robust to reduced precision because not all bits carry information equally. By carefully choosing quantization schemes (symmetric, asymmetric, dynamic, static), we can achieve 2-4x memory reduction with minimal accuracy loss (<1% for most tasks).
+
+Different quantization approaches offer distinct trade-offs: Post-Quantization (quantize after training) is simplest but sacrifices 1-2% accuracy. Quantization-Aware Training (QAT) accounts for quantization during training, achieving <0.5% accuracy loss. Dynamic quantization computes scale factors per batch (more compute, better accuracy). Static quantization pre-computes scales (faster inference, slightly lower accuracy). For production deployment, the choice depends on whether latency or accuracy is the harder constraint.
+
+In practice, INT8 quantization is industry standard: it provides 4x memory reduction, requires minimal retraining, and is supported by hardware accelerators (GPUs, TPUs, mobile chips). INT4 quantization pushes further (8x reduction) but introduces 2-3% accuracy loss for some tasks. Modern techniques like Dynamic Quantization and Mixed Precision quantization (quantize weights, keep activations in FP32) balance extreme compression with maintained performance.
+
+Quantization unlocks mobile and edge deployment: a 7B model quantized to INT4 fits on a smartphone (~2GB), enabling on-device inference with zero latency and privacy. For cloud inference, quantization reduces costs significantly—a quantized model runs faster, uses less memory, and requires cheaper hardware. This combination of reduced memory, faster latency, and maintained accuracy makes quantization essential for any production LLM system.
 
 ## Model Quantization: Compression and Efficiency
 

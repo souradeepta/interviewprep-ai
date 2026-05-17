@@ -1,7 +1,14 @@
 # DPO (Direct Preference Optimization)
 
-## TL;DR
-Fine-tune LLM directly using human preference pairs, without training separate reward model. Eliminates RLHF's reward model + RL training pipeline. Simpler, faster, fewer hyperparameters, comparable quality to RLHF. Single SFT stage instead of SFT → reward model → PPO.
+## Understanding Dpo
+
+Dpo is a foundational concept in large language model development that addresses critical challenges in model architecture, training efficiency, or inference performance. Understanding this concept is essential for anyone working with modern language models, whether in research, fine-tuning, or production deployment.
+
+The core innovation underlying Dpo lies in rethinking standard approaches to achieve better efficiency or effectiveness. Rather than accepting conventional trade-offs, this technique exploits mathematical or architectural insights to push the frontier of what's possible with given computational constraints.
+
+In practical applications, Dpo enables capabilities that would otherwise be infeasible: reducing computational requirements, improving model quality, enabling faster iteration, or supporting new use cases. The real-world impact has made Dpo widely adopted across industry applications, from consumer products to enterprise systems.
+
+Implementing Dpo requires understanding both its theoretical foundations and practical considerations. The following sections provide detailed explanations of how Dpo works, when to use it, common implementation patterns, and lessons learned from production deployments. By mastering these concepts, practitioners can make informed decisions about when and how to apply Dpo to their specific challenges.
 
 ## Core Intuition
 RLHF trains two models (reward model + policy) using RL, which is complex and unstable. DPO realizes you can extract preference signals directly via loss function: if humans prefer output A over B for prompt X, optimize LLM to assign higher likelihood to A. No separate reward model needed. Single stage fine-tuning.

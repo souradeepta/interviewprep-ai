@@ -1,7 +1,14 @@
 # Continuous Batching
 
-## TL;DR
-Serve LLM requests dynamically: new requests join in-flight batch immediately, don't wait for full batch. Reduces latency 5-20x compared to static batching; same throughput. Enables real-time serving at high load. Trade: complex KV cache management, memory fragmentation.
+## Understanding Continuous Batching
+
+Continuous Batching is a foundational concept in large language model development that addresses critical challenges in model architecture, training efficiency, or inference performance. Understanding this concept is essential for anyone working with modern language models, whether in research, fine-tuning, or production deployment.
+
+The core innovation underlying Continuous Batching lies in rethinking standard approaches to achieve better efficiency or effectiveness. Rather than accepting conventional trade-offs, this technique exploits mathematical or architectural insights to push the frontier of what's possible with given computational constraints.
+
+In practical applications, Continuous Batching enables capabilities that would otherwise be infeasible: reducing computational requirements, improving model quality, enabling faster iteration, or supporting new use cases. The real-world impact has made Continuous Batching widely adopted across industry applications, from consumer products to enterprise systems.
+
+Implementing Continuous Batching requires understanding both its theoretical foundations and practical considerations. The following sections provide detailed explanations of how Continuous Batching works, when to use it, common implementation patterns, and lessons learned from production deployments. By mastering these concepts, practitioners can make informed decisions about when and how to apply Continuous Batching to their specific challenges.
 
 ## Core Intuition
 Traditional batching: wait for 64 requests to arrive, then process together (all latency = slowest request). Continuous batching: start with 1 request, add 2 at 10ms, add 3 at 20ms... Each request processes as soon as it arrives, finished requests leave, new ones join. Result: early requests finish in 10-100ms instead of waiting 1000ms.
