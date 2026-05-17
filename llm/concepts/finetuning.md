@@ -1,34 +1,146 @@
-# Finetuning
+# Fine-tuning
 
 ## TL;DR
-Core LLM concept for production systems and interviews.
+Continue training a pre-trained LLM on task-specific data. Update all (or most) model weights to adapt to a new domain/task. Higher accuracy on domain tasks than RAG or prompting, but requires labeled data and computational cost.
 
 ## Core Intuition
-[Intuitive explanation]
+Pre-training teaches general knowledge (language structure, facts). Fine-tuning teaches specific patterns (your domain, style, outputs). It's transfer learning: don't start from scratch, start from a good checkpoint.
 
 ## How It Works
-[Technical details]
+
+**Full Fine-tuning:**
+- Load pre-trained weights (e.g., LLaMA 7B)
+- Keep architecture, replace head (if needed) or use entire model
+- Train on task data with learning rate usually 1e-5 to 1e-4 (lower than pretraining)
+- Update all parameters
+
+**Sequence-to-Sequence Example (Summarization):**
+```
+Pre-trained: LLaMA (general knowledge)
+Task data: (document, summary) pairs
+Loss: compute likelihood of summary given document
+Update: all weights via backprop
+Result: LLM that summarizes well
+```
+
+**Cost Structure:**
+- Compute: proportional to params × tokens × epochs
+- LLaMA 7B: 1 epoch on 10k examples ≈ 1-2 GPU-days (A100)
+- LLaMA 70B: 1 epoch on 10k examples ≈ 10+ GPU-days
+- Data: requires labeled examples (100s-10ks)
+
+**Typical Process:**
+1. Prepare data: (input, target) pairs in jsonl format
+2. Split: 80/10/10 train/val/test
+3. Configure: learning rate, batch size, num_epochs, warmup
+4. Train: forward pass → loss → backward → update weights
+5. Evaluate: perplexity, task-specific metrics on test set
+6. Deploy: load fine-tuned weights, run inference
 
 ## Key Properties / Trade-offs
-- Property 1
-- Property 2
+
+| Aspect | RAG | Fine-Tuning | Prompt Engineering |
+|--------|-----|------------|------------------|
+| Data needed | Docs only | Labeled pairs | None |
+| Cost (compute) | Low | High | None |
+| Accuracy ceiling | Medium | High | Low-Medium |
+| Latency | Slower (retrieval) | Fast | Fast |
+| Customization | Easy (swap docs) | Slow (retrain) | Easy (change prompt) |
+| Knowledge cutoff | Can be current | Frozen at training | Frozen at training |
+
+**Fine-tuning vs Other Methods:**
+- vs RAG: FT higher accuracy, harder to update; RAG updatable, needs good retriever
+- vs Prompt Engineering: FT more powerful, requires data and compute; prompting zero-shot, limited
+- vs LoRA: FT full parameters, expensive; LoRA efficient, slightly lower accuracy
+
+**Data Size Tradeoffs:**
+- 100-1000 examples: helpful, easy overfitting risk
+- 5k-50k examples: sweet spot for good generalization
+- 100k+ examples: diminishing returns, long training
 
 ## Common Mistakes / Gotchas
-- Mistake 1
-- Mistake 2
+
+- **Overfitting on small data:** With <1k examples, model memorizes. Use regularization (dropout, early stopping), data augmentation, or LoRA instead.
+- **Wrong learning rate:** Too high → divergence, too low → slow convergence. Start with 1e-5 for large models, tune from there.
+- **Including test set in training:** Data leakage. Always separate train/val/test before touching data.
+- **Not monitoring validation loss:** Train loss ≠ generalization. Watch val loss; stop when it plateaus.
+- **Fine-tuning on too few epochs:** Model converges quickly on task data. Monitor early stopping; don't just set fixed epochs.
+- **Catastrophic forgetting:** If fine-tuning on narrow task, may lose general knowledge. Mitigate with mixed task training or regularization.
+- **Not versioning model checkpoints:** Hard to revert if bad fine-tune. Save best checkpoint (best val loss).
+- **Ignoring class imbalance:** If dataset has 90% class A, model biased toward A. Use stratified sampling or weighted loss.
 
 ## Code Example
+
 ```python
-# Example
+import torch
+from transformers import AutoTokenizer, AutoModelForCausalLM, Trainer, TrainingArguments
+from datasets import Dataset
+
+# 1. Prepare data
+train_data = [
+    {"text": "Write a poem about winter:\n\nFrosty mornings bring..."},
+    {"text": "Write a poem about summer:\n\nSunlit days of joy..."},
+]
+train_dataset = Dataset.from_dict({"text": train_data})
+
+# 2. Load model and tokenizer
+model_name = "gpt2"  # or "meta-llama/Llama-2-7b-hf"
+tokenizer = AutoTokenizer.from_pretrained(model_name)
+model = AutoModelForCausalLM.from_pretrained(model_name)
+
+# 3. Tokenize
+def tokenize_fn(examples):
+    return tokenizer(examples["text"], max_length=512, truncation=True)
+
+tokenized = train_dataset.map(tokenize_fn, batched=True)
+
+# 4. Set up training arguments
+training_args = TrainingArguments(
+    output_dir="./fine_tuned_model",
+    learning_rate=5e-5,
+    num_train_epochs=3,
+    per_device_train_batch_size=8,
+    warmup_steps=100,
+    weight_decay=0.01,
+    save_total_limit=1,  # Keep only best checkpoint
+    evaluation_strategy="steps",
+    eval_steps=100,
+    load_best_model_at_end=True,
+)
+
+# 5. Train
+trainer = Trainer(
+    model=model,
+    args=training_args,
+    train_dataset=tokenized,
+)
+trainer.train()
+
+# 6. Save and reload
+model.save_pretrained("./fine_tuned_model")
+reloaded = AutoModelForCausalLM.from_pretrained("./fine_tuned_model")
 ```
 
 ## Interview Quick-Reference
+
 | Question | What to say |
 |---|---|
-| "Explain [topic]?" | [Answer] |
+| "Fine-tuning vs RAG?" | FT: higher accuracy, requires data + compute, hard to update. RAG: zero-shot, updatable, needs good retriever. |
+| "How much data?" | 5k-50k labeled examples ideal. <1k risks overfitting; >100k diminishing returns. |
+| "Learning rate?" | Start with 1e-5 for large models, 5e-5 for medium. Tune based on val loss trajectory. |
+| "Overfitting?" | Monitor val loss separately. Use early stopping, LoRA, or mixed task training. |
+| "Full vs LoRA?" | Full: all params updated, highest accuracy, expensive. LoRA: 1-5% params, cheaper, comparable accuracy. |
+| "Compute cost?" | LLaMA 7B: 1-2 days on A100 for 10k examples. Scales with model size and data. |
 
 ## Related Topics
-- [Related](other.md)
+- [LoRA](lora.md) — parameter-efficient fine-tuning (cheaper alternative)
+- [Parameter-Efficient Fine-tuning](parameter-efficient-finetuning.md) — broader PEFT methods
+- [Instruction Tuning](instruction-tuning.md) — fine-tuning on instruction-following
+- [RLHF](rlhf.md) — fine-tuning with human feedback
+- [Transfer Learning](../ml/concepts/transfer-learning.md) — fine-tuning from scratch perspective
 
 ## Resources
-- [Reference](url)
+- [HuggingFace Fine-tuning Guide](https://huggingface.co/docs/transformers/training)
+- [Fine-Tuning Language Models from Human Preferences](https://arxiv.org/abs/1909.08383)
+- [QLoRA: Efficient Finetuning of Quantized LLMs](https://arxiv.org/abs/2305.14314)
+- [Hugging Face Transformers Trainer](https://huggingface.co/docs/transformers/main_classes/trainer)
