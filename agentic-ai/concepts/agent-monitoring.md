@@ -1,34 +1,35 @@
-# Agent monitoring
+# Agent Monitoring
 
 ## TL;DR
-Essential for building production AI agents.
+Monitor agents in production: success rate, tool accuracy, latency, cost. Metrics: task completion, hallucinations, error rates. Alert on degradation.
 
 ## Core Intuition
-[Intuitive explanation]
+Agents are fragile. Monitor closely for failures, degradation, unexpected behavior.
 
 ## How It Works
-[Technical details]
+**Metrics:**
+- Success rate: % of tasks completed
+- Tool accuracy: % of valid tool calls
+- Latency: time per task
+- Cost: $ per task
+- Hallucination rate: invalid claims
 
-## Key Properties / Trade-offs
-- Property 1
-- Property 2
+**Alerting:**
+- Success < 90%? Alert
+- Latency > 5s? Alert
+- Tool errors > 10%? Alert
 
 ## Common Mistakes / Gotchas
-- Mistake 1
-- Mistake 2
-
-## Code Example
-```python
-# Example
-```
+- **Only success/fail:** doesn't catch partial failures
+- **No cost tracking:** agent expensive but success high
+- **Ignoring hallucinations:** success but claims are false
 
 ## Interview Quick-Reference
-| Question | What to say |
-|---|---|
-| "Explain?" | [Answer] |
+**Monitor agents?** Success rate, tool accuracy, latency, cost, hallucination rate.
 
 ## Related Topics
-- [Related](other.md)
+- [Agent Evals](agent-evals.md) — testing agents
+- [Monitoring & Observability](../system-design/patterns/monitoring-and-observability.md)
 
 ## Resources
-- [Reference](url)
+- [MLOps for Agents](https://arxiv.org/abs/2309.14090)

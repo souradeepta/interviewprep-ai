@@ -1,34 +1,39 @@
-# Agent debugging
+# Agent Debugging
 
 ## TL;DR
-Essential for building production AI agents.
+Agents fail: trace steps, inspect tool calls, validate outputs. Tools: logging, stepping through execution, replaying sessions.
 
 ## Core Intuition
-[Intuitive explanation]
+Agent is black box. Debug by: trace execution, see what happened, why it failed.
 
 ## How It Works
-[Technical details]
+**Tools:**
+- **Logging:** log every step, tool call, result
+- **Replay:** given same input, same random seed, can replay
+- **Inspection:** step through execution
+- **Traces:** visualize agent loop
 
-## Key Properties / Trade-offs
-- Property 1
-- Property 2
-
-## Common Mistakes / Gotchas
-- Mistake 1
-- Mistake 2
-
-## Code Example
-```python
-# Example
+**Example:**
+```
+Session ID: xyz
+Step 1: Tool="search", Params={...}, Result=...
+Step 2: Tool="analyze", Params={...}, Result=ERROR
+Step 3: Agent retried with different params
+...
+Session failed: Tool 2 always failed
 ```
 
+## Common Mistakes / Gotchas
+- **No logs:** can't debug without history
+- **Non-deterministic:** random sampling → can't replay
+- **PII in logs:** log carefully, don't expose sensitive data
+
 ## Interview Quick-Reference
-| Question | What to say |
-|---|---|
-| "Explain?" | [Answer] |
+**Debug agent?** Log steps, replay execution, inspect tool calls, trace decisions.
 
 ## Related Topics
-- [Related](other.md)
+- [Error Recovery](error-recovery.md)
+- [Agent Testing](agent-testing.md)
 
 ## Resources
-- [Reference](url)
+- [Debugging ML Systems](https://arxiv.org/abs/2202.02771)

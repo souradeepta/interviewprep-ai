@@ -1,34 +1,37 @@
-# Semantic caching
+# Semantic Caching
 
 ## TL;DR
-Core LLM concept for production systems and interviews.
+Cache LLM responses by semantic similarity, not exact key match. Query similar to cached query? Return cached response. Reduces API costs 5-10x.
 
 ## Core Intuition
-[Intuitive explanation]
+Users ask similar things: "What is the capital of France?" and "What's the capital city of France?" are the same. Cache both under one response.
 
 ## How It Works
-[Technical details]
-
-## Key Properties / Trade-offs
-- Property 1
-- Property 2
-
-## Common Mistakes / Gotchas
-- Mistake 1
-- Mistake 2
-
-## Code Example
-```python
-# Example
+```
+Query: "What is Paris known for?"
+  ↓ [embed]
+  ↓ [search cached embeddings]
+  → Hit: "information about Paris cached" 
+    → return cached response
+  → Miss: Call LLM, cache response
 ```
 
+**Cost savings:**
+- Cache hit rate: 30-50% typical
+- Cost reduction: 3-10x
+
+## Trade-offs
+- Cost reduction: major
+- Latency: slightly longer (similarity search)
+- Staleness: cached responses may be outdated
+
 ## Interview Quick-Reference
-| Question | What to say |
-|---|---|
-| "Explain [topic]?" | [Answer] |
+**Semantic caching?** Cache by embedding similarity, not exact key. Reduce cost 5-10x.
 
 ## Related Topics
-- [Related](other.md)
+- [Embeddings](embeddings.md)
+- [RAG](rag.md)
+- [Inference Caching](../system-design/patterns/inference-caching.md)
 
 ## Resources
-- [Reference](url)
+- [Redis + Semantic Caching](https://redis.com/blog/cache-semantic-queries-for-faster-inference/)

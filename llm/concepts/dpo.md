@@ -1,34 +1,38 @@
-# Dpo
+# DPO (Direct Preference Optimization)
 
 ## TL;DR
-Core LLM concept for production systems and interviews.
+Simpler alternative to RLHF: directly optimize for human preferences without training separate reward model. Fewer hyperparameters, faster training, comparable results.
 
 ## Core Intuition
-[Intuitive explanation]
+RLHF is complex: train reward model, then RL. DPO directly uses preferences to fine-tune.
 
 ## How It Works
-[Technical details]
+```
+Traditional:
+  Collect comparisons → Train reward model → PPO fine-tune
 
-## Key Properties / Trade-offs
-- Property 1
-- Property 2
-
-## Common Mistakes / Gotchas
-- Mistake 1
-- Mistake 2
-
-## Code Example
-```python
-# Example
+DPO:
+  Collect comparisons → Directly optimize LLM preference objective
 ```
 
+**Loss:**
+```
+Optimize: log(P(preferred) / P(dispreferred))
+Simpler, direct, no separate reward model needed
+```
+
+## Trade-offs
+- Simpler: fewer moving parts
+- Faster: no reward model training
+- Comparable accuracy to RLHF
+- Less tested at scale
+
 ## Interview Quick-Reference
-| Question | What to say |
-|---|---|
-| "Explain [topic]?" | [Answer] |
+**DPO?** Direct preference optimization. Simpler than RLHF, no separate reward model.
 
 ## Related Topics
-- [Related](other.md)
+- [RLHF](rlhf.md)
+- [Fine-tuning](finetuning.md)
 
 ## Resources
-- [Reference](url)
+- [Direct Preference Optimization](https://arxiv.org/abs/2305.18290)

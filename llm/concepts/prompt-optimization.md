@@ -1,34 +1,40 @@
-# Prompt optimization
+# Prompt Optimization
 
 ## TL;DR
-Core LLM concept for production systems and interviews.
+Improve LLM outputs by refining prompts: clarify instructions, add examples, structure format. Iterative process: test → measure → refine.
 
 ## Core Intuition
-[Intuitive explanation]
+Prompts matter hugely. "Classify" vs "Classify accurately into A/B/C" yield different results. Optimize iteratively.
 
 ## How It Works
-[Technical details]
+```
+Initial prompt: "Classify sentiment"
+Measure accuracy: 70%
 
-## Key Properties / Trade-offs
-- Property 1
-- Property 2
+Refined: "Classify sentiment (positive/negative/neutral). Be careful with sarcasm."
+Measure: 75%
 
-## Common Mistakes / Gotchas
-- Mistake 1
-- Mistake 2
+Further: Add examples of sarcasm
+Measure: 82%
 
-## Code Example
-```python
-# Example
+Further: Add output format constraint
+Measure: 85%
 ```
 
+**Techniques:**
+- Clarity: be specific
+- Structure: use formats (JSON, XML)
+- Examples: few-shot
+- Constraints: "output only label"
+- Tone: "be helpful", "think step-by-step"
+
 ## Interview Quick-Reference
-| Question | What to say |
-|---|---|
-| "Explain [topic]?" | [Answer] |
+**Prompt optimization?** Iteratively improve: clarify, add examples, structure, constrain output.
 
 ## Related Topics
-- [Related](other.md)
+- [Prompting](prompting.md)
+- [Chain-of-Thought](chain-of-thought.md)
+- [In-Context Learning](in-context-learning.md)
 
 ## Resources
-- [Reference](url)
+- [OpenAI Prompt Engineering](https://platform.openai.com/docs/guides/prompt-engineering)
