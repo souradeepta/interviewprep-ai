@@ -1,34 +1,185 @@
-# Evaluation
+# Evaluation (for LLMs)
 
 ## TL;DR
-Core LLM concept for production systems and interviews.
+Measure LLM quality across multiple dimensions: perplexity (language modeling), accuracy (classification/QA), BLEU/ROUGE (generation), semantic similarity (embeddings), human judgment (open-ended). No single metric captures everything; use task-specific metrics + human eval.
 
 ## Core Intuition
-[Intuitive explanation]
+"Good" is task-dependent. Perplexity measures language modeling quality. Accuracy measures exact correctness. BLEU measures word-level similarity to references. Human evaluation answers "does this actually help people?" Combine multiple signals for holistic understanding.
 
 ## How It Works
-[Technical details]
+
+**Automatic Metrics (Cheap, Fast):**
+
+1. **Perplexity** — language modeling quality
+   ```
+   PPL = exp(-(1/N) * Σ log P(token_i))
+   ```
+   Lower is better. Perplexity on test set shows generalization.
+
+2. **Accuracy** — classification/QA
+   ```
+   Accuracy = (correct predictions) / (total)
+   Also: Precision, Recall, F1 (for imbalanced tasks)
+   ```
+
+3. **BLEU** — machine translation, generation similarity to reference
+   ```
+   BLEU = (1/4) * Σ(1 to 4-gram) precision
+   Range: 0-100. ~20-30 for bad, ~40+ for good MT
+   ```
+
+4. **ROUGE** — summarization, generation quality
+   ```
+   ROUGE-L = longest common subsequence based
+   ROUGE-N = N-gram recall
+   Range: 0-1. Higher is better.
+   ```
+
+5. **BERTScore** — semantic similarity
+   ```
+   Compare embeddings of generated vs reference
+   More robust to paraphrasing than BLEU/ROUGE
+   ```
+
+6. **Task-specific metrics:**
+   - Question Answering: Exact Match (EM), F1 score
+   - Dialogue: BLEU, METEOR, human fluency
+   - Sentiment: Accuracy (if labeled), agreement with humans
+   - Code Generation: Pass@k (percentage passing k-NN samples)
+
+**Human Evaluation (Expensive, Reliable):**
+- Fluency: Is the output natural English?
+- Coherence: Does it make logical sense?
+- Relevance: Does it answer the question?
+- Factuality: Are claims accurate (fact-checking)?
+- Overall quality: Would you use this in production?
+
+Typically: 100-500 examples, 2-3 annotators per example, inter-annotator agreement (Kappa) ≥ 0.7.
 
 ## Key Properties / Trade-offs
-- Property 1
-- Property 2
+
+| Metric | Cost | Reliability | Coverage |
+|--------|------|-------------|----------|
+| Perplexity | Free | High (for LM) | Only language modeling |
+| Accuracy | Free | High | Only closed-ended tasks |
+| BLEU/ROUGE | Free | Medium | Generation only |
+| BERTScore | Free | Medium | Semantic similarity |
+| Human Eval | High | Highest | Any task (but slow) |
+| LLM-as-Judge | Medium | Medium | Any task |
+
+**Metric Selection by Task:**
+
+| Task | Primary Metric | Secondary |
+|------|----------------|-----------|
+| Machine Translation | BLEU, ChrF, human eval | TER |
+| Summarization | ROUGE, human fluency | BERTScore |
+| QA (closed-ended) | Exact Match, F1 | BLEU for reference matching |
+| QA (open-ended) | Human rating | ROUGE, BERTScore |
+| Dialogue | Human fluency, coherence | BLEU (weak) |
+| Code Gen | Pass@k, human review | Coverage of test cases |
+| Classification | Accuracy, F1, confusion matrix | Precision/Recall per class |
 
 ## Common Mistakes / Gotchas
-- Mistake 1
-- Mistake 2
+
+- **Over-optimizing single metric:** BLEU can be gamed (match reference exactly). Real quality requires human eval.
+- **Ignoring human baseline:** Your 50 BLEU is only good if human baseline is ~30. Compare to reference and human performance.
+- **Automatic metrics don't measure hallucination:** BLEU/ROUGE measure similarity to reference, not factuality. Model can hallucinate perfectly. Need fact-checking.
+- **Human eval without guidelines:** Annotators need clear instructions (rubric). Without guidelines, inter-annotator agreement is low (Kappa < 0.6).
+- **Small test set:** Metrics are noisy on small sets (<100 examples). Results may not be significant. Larger set (1000+) is safer for conclusions.
+- **Distribution shift:** Metrics on training domain ≠ generalization to production. Evaluate on diverse, representative test sets.
+- **Assuming ROUGE for summaries:** ROUGE-L is standard but limited (lexical overlap only). Combine with BERTScore and human judgment.
+- **Ignoring class imbalance:** For imbalanced classification, accuracy is misleading. Use F1 or balanced accuracy instead.
+- **LLM-as-Judge without validation:** Using GPT-4 to score outputs is tempting but requires validation (does it align with human ratings?). Validate first.
 
 ## Code Example
+
 ```python
-# Example
+import numpy as np
+from datasets import load_dataset
+from transformers import AutoTokenizer, AutoModelForCausalLM
+from rouge_score import rouge_scorer
+import sacrebleu
+
+# Example: Evaluate summarization model
+dataset = load_dataset("cnn_dailymail", "3.0.0")
+test_set = dataset["test"][:100]  # Use first 100 for quick eval
+
+model_name = "facebook/bart-large-cnn"  # Pre-trained summarizer
+tokenizer = AutoTokenizer.from_pretrained(model_name)
+model = AutoModelForCausalLM.from_pretrained(model_name)
+
+# 1. Generate summaries
+generated_summaries = []
+for article in test_set["article"][:10]:
+    inputs = tokenizer(article, return_tensors="pt", max_length=1024, truncation=True)
+    summary_ids = model.generate(inputs["input_ids"], max_length=100)
+    summary = tokenizer.decode(summary_ids[0], skip_special_tokens=True)
+    generated_summaries.append(summary)
+
+references = test_set["highlights"][:10]
+
+# 2. Compute ROUGE scores
+scorer = rouge_scorer.RougeScorer(["rouge1", "rougeL"], use_stemmer=True)
+rouge_scores = []
+for gen, ref in zip(generated_summaries, references):
+    score = scorer.score(ref, gen)
+    rouge_scores.append({
+        "rouge1": score["rouge1"].fmeasure,
+        "rougeL": score["rougeL"].fmeasure,
+    })
+
+avg_rouge1 = np.mean([s["rouge1"] for s in rouge_scores])
+avg_rougeL = np.mean([s["rougeL"] for s in rouge_scores])
+print(f"ROUGE-1: {avg_rouge1:.3f}")
+print(f"ROUGE-L: {avg_rougeL:.3f}")
+
+# 3. Compute BLEU (if you have multiple references)
+bleu_scores = []
+for gen, ref in zip(generated_summaries, references):
+    bleu = sacrebleu.sentence_bleu(gen, [ref])
+    bleu_scores.append(bleu.score)
+avg_bleu = np.mean(bleu_scores)
+print(f"BLEU: {avg_bleu:.3f}")
+
+# 4. LLM-as-Judge (optional, requires API)
+# Use GPT-4 to score quality
+import openai
+judge_scores = []
+for gen, ref in zip(generated_summaries, references):
+    prompt = f"""Rate the quality of this summary (1-10):
+Reference: {ref}
+Generated: {gen}
+Score:"""
+    response = openai.ChatCompletion.create(
+        model="gpt-4",
+        messages=[{"role": "user", "content": prompt}],
+        temperature=0,
+    )
+    score = int(response['choices'][0]['message']['content'].strip())
+    judge_scores.append(score)
+avg_judge = np.mean(judge_scores)
+print(f"LLM-as-Judge: {avg_judge:.1f}/10")
 ```
 
 ## Interview Quick-Reference
+
 | Question | What to say |
 |---|---|
-| "Explain [topic]?" | [Answer] |
+| "How to evaluate LLMs?" | Task-dependent: use perplexity (LM), accuracy (classification), ROUGE (generation), human eval (open-ended). |
+| "BLEU limitations?" | Lexical overlap only, doesn't capture paraphrasing, doesn't measure hallucination or factuality. |
+| "Human eval importance?" | Automatic metrics measure similarity, not quality. Human eval answers "is this actually useful?" |
+| "Test set size?" | Aim for 1000+ examples for reliable metrics. <100 is too noisy; results may not be significant. |
+| "How many annotators?" | 2-3 per example for inter-annotator agreement. Kappa ≥ 0.7 is acceptable; <0.6 means guidelines unclear. |
+| "LLM-as-Judge?" | Tempting but untested. Validate that it correlates with human judgments before relying on it. |
 
 ## Related Topics
-- [Related](other.md)
+- [Prompt Optimization](prompt-optimization.md) — evaluating changes to prompts
+- [Instruction Tuning](instruction-tuning.md) — training requires eval metrics
+- [RLHF](rlhf.md) — uses human eval for reward modeling
+- [Evaluation Metrics](../ml/concepts/evaluation-metrics.md) — broader evaluation concepts
 
 ## Resources
-- [Reference](url)
+- [BLEU: a Method for Automatic Evaluation of Machine Translation](https://aclanthology.org/P02-1040/)
+- [ROUGE: A Package for Automatic Evaluation of Summaries](https://aclanthology.org/W04-1013/)
+- [Evaluation of Text Generation: A Survey](https://arxiv.org/abs/2006.14799)
+- [On Evaluating and Comparing LLMs](https://huggingface.co/spaces/HuggingFace/open_llm_leaderboard)
