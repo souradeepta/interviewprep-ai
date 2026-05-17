@@ -19,6 +19,12 @@ def load_concepts_mapping() -> dict:
 
 def get_all_notebooks() -> List[Path]:
     """Get all generated notebooks."""
+    all_notebooks = sorted(NOTEBOOKS_DIR.glob("*.ipynb"))
+    # Exclude concept map (00-concept-map.ipynb) from concept-specific tests
+    return [nb for nb in all_notebooks if not nb.name.startswith("00-")]
+
+def get_all_notebooks_including_map() -> List[Path]:
+    """Get all generated notebooks including concept map."""
     return sorted(NOTEBOOKS_DIR.glob("*.ipynb"))
 
 class TestNotebookStructure:
@@ -132,8 +138,8 @@ class TestConceptCoverage:
         assert not missing, f"Missing notebooks for concepts: {missing}"
 
     def test_minimum_notebook_count(self):
-        """Should have at least 33 notebooks."""
-        notebooks = get_all_notebooks()
+        """Should have at least 32 concept notebooks plus concept map."""
+        notebooks = get_all_notebooks_including_map()
         assert len(notebooks) >= 33, f"Expected at least 33 notebooks, found {len(notebooks)}"
 
 if __name__ == "__main__":
