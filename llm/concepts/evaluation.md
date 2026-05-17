@@ -56,6 +56,18 @@ Measure LLM quality across multiple dimensions: perplexity (language modeling), 
 
 Typically: 100-500 examples, 2-3 annotators per example, inter-annotator agreement (Kappa) ≥ 0.7.
 
+### Workflow Flowchart
+
+```mermaid
+graph LR
+    A["Input"] --> B["Evaluation Process"]
+    B --> C["Output"]
+
+    style A fill:#e1f5ff
+    style B fill:#fff3e0
+    style C fill:#e8f5e9
+```
+
 ## Key Properties / Trade-offs
 
 | Metric | Cost | Reliability | Coverage |
@@ -183,3 +195,14 @@ print(f"LLM-as-Judge: {avg_judge:.1f}/10")
 - [ROUGE: A Package for Automatic Evaluation of Summaries](https://aclanthology.org/W04-1013/)
 - [Evaluation of Text Generation: A Survey](https://arxiv.org/abs/2006.14799)
 - [On Evaluating and Comparing LLMs](https://huggingface.co/spaces/HuggingFace/open_llm_leaderboard)
+
+## Concept Relationships
+
+```mermaid
+graph TD
+    A["Evaluation"]
+    A -->|used with| D["Fine-tuning"]
+    A -->|used with| D["Instruction Tuning"]
+    
+    style A fill:#fff3e0
+```

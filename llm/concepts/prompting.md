@@ -35,6 +35,18 @@ Input: [user text]
 - Format specification: "output as JSON"
 - Constraints: "do not mention X", "be concise"
 
+### Workflow Flowchart
+
+```mermaid
+graph LR
+    A["Input"] --> B["Prompting Process"]
+    B --> C["Output"]
+
+    style A fill:#e1f5ff
+    style B fill:#fff3e0
+    style C fill:#e8f5e9
+```
+
 ## Key Properties / Trade-offs
 
 | Approach | Clarity | Examples | Output | Quality |
@@ -116,3 +128,15 @@ print("Good:", response_good.content[0].text)
 ## Resources
 - [OpenAI Prompt Engineering](https://platform.openai.com/docs/guides/prompt-engineering)
 - [Prompt Engineering Guide](https://www.promptingguide.ai/)
+
+## Concept Relationships
+
+```mermaid
+graph TD
+    A["Prompting"]
+    A -->|prerequisite for| C["Prompt Optimization"]
+    A -->|used with| D["In-Context Learning"]
+    A -->|used with| D["Chain-of-Thought"]
+    
+    style A fill:#fff3e0
+```

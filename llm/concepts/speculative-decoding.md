@@ -104,6 +104,18 @@ while not_done:
         break
 ```
 
+### Workflow Flowchart
+
+```mermaid
+graph LR
+    A["Input"] --> B["Speculative Decoding Process"]
+    B --> C["Output"]
+
+    style A fill:#e1f5ff
+    style B fill:#fff3e0
+    style C fill:#e8f5e9
+```
+
 ## Key Properties / Trade-offs
 
 | Metric | Standard | Speculative (k=5) | Notes |
@@ -303,3 +315,13 @@ outputs = llm.generate(
 - [SpecInfer: Accelerating Generative Large Language Model Serving](https://arxiv.org/abs/2305.09781)
 - [Blockwise Parallel Decoding for Fast LLM Inference](https://arxiv.org/abs/2305.04966)
 - [vLLM: Easy, Fast, and Cheap LLM Serving](https://arxiv.org/abs/2309.06180) — implements speculative decoding
+
+## Concept Relationships
+
+```mermaid
+graph TD
+    A["Speculative Decoding"]
+    A -->|used with| D["Attention Optimization"]
+    
+    style A fill:#fff3e0
+```

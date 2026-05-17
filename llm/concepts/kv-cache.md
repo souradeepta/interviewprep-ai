@@ -53,6 +53,18 @@ With cache:
 Speedup: O(seq_len) improvement! For seq_len=2048, ~2000x faster
 ```
 
+### Workflow Flowchart
+
+```mermaid
+graph LR
+    A["Input"] --> B["KV Cache Process"]
+    B --> C["Output"]
+
+    style A fill:#e1f5ff
+    style B fill:#fff3e0
+    style C fill:#e8f5e9
+```
+
 ## Key Properties / Trade-offs
 
 | Aspect | No Cache | With Cache |
@@ -178,3 +190,13 @@ print(f"Speedup: {time_no_cache / time_cached:.1f}x")
 - [vLLM: Efficient Memory Management for LLM Serving](https://arxiv.org/abs/2309.06180)
 - [Flash-Decoding: Fast and Accurate Generation in Long-Context LLMs](https://arxiv.org/abs/2307.01841)
 - [HuggingFace: Using KV Cache](https://huggingface.co/docs/transformers/llm_tutorial_generate)
+
+## Concept Relationships
+
+```mermaid
+graph TD
+    A["KV Cache"]
+    A -->|used with| D["Attention Optimization"]
+    
+    style A fill:#fff3e0
+```

@@ -37,6 +37,18 @@ Result: LLM that summarizes well
 5. Evaluate: perplexity, task-specific metrics on test set
 6. Deploy: load fine-tuned weights, run inference
 
+### Workflow Flowchart
+
+```mermaid
+graph LR
+    A["Input"] --> B["Fine-tuning Process"]
+    B --> C["Output"]
+
+    style A fill:#e1f5ff
+    style B fill:#fff3e0
+    style C fill:#e8f5e9
+```
+
 ## Key Properties / Trade-offs
 
 | Aspect | RAG | Fine-Tuning | Prompt Engineering |
@@ -144,3 +156,18 @@ reloaded = AutoModelForCausalLM.from_pretrained("./fine_tuned_model")
 - [Fine-Tuning Language Models from Human Preferences](https://arxiv.org/abs/1909.08383)
 - [QLoRA: Efficient Finetuning of Quantized LLMs](https://arxiv.org/abs/2305.14314)
 - [Hugging Face Transformers Trainer](https://huggingface.co/docs/transformers/main_classes/trainer)
+
+## Concept Relationships
+
+```mermaid
+graph TD
+    A["Fine-tuning"]
+    B["Pretraining"] -->|prerequisite| A
+    A -->|prerequisite for| C["Parameter-Efficient Fine-tuning"]
+    A -->|prerequisite for| C["LoRA (Low-Rank Adaptation)"]
+    A -->|prerequisite for| C["Adapters"]
+    A -->|used with| D["Instruction Tuning"]
+    A -->|used with| D["RLHF (Reinforcement Learning from Human Feedback)"]
+    
+    style A fill:#fff3e0
+```

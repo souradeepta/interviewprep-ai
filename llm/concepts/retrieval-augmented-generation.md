@@ -42,6 +42,18 @@ User: "How many employees does Acme Corp have?"
   → LLM: "Acme Corp has 5,000 employees as of Q3 2024."
 ```
 
+### Workflow Flowchart
+
+```mermaid
+graph LR
+    A["Input"] --> B["Retrieval-Augmented Generation Process"]
+    B --> C["Output"]
+
+    style A fill:#e1f5ff
+    style B fill:#fff3e0
+    style C fill:#e8f5e9
+```
+
 ## Key Properties / Trade-offs
 
 | Aspect | Naive Generation | RAG | Fine-Tuning |
@@ -141,3 +153,13 @@ print(f"\nPrompt to LLM:\n{prompt}")
 - [LangChain RAG Tutorial](https://python.langchain.com/docs/use_cases/question_answering/)
 - [Pinecone: RAG Explained](https://www.pinecone.io/learn/retrieval-augmented-generation/)
 - [HuggingFace: RAG Model](https://huggingface.co/docs/transformers/model_doc/rag)
+
+## Concept Relationships
+
+```mermaid
+graph TD
+    A["Retrieval-Augmented Generation"]
+    A -->|used with| D["RAG (Retrieval-Augmented Generation)"]
+    
+    style A fill:#fff3e0
+```

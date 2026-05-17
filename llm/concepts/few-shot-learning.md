@@ -35,6 +35,18 @@ Sentiment:
 - **Similarity:** Examples similar to test case → better few-shot performance
 - **Explanations:** Include reasoning in examples (especially for complex tasks)
 
+### Workflow Flowchart
+
+```mermaid
+graph LR
+    A["Input"] --> B["Few-Shot Learning Process"]
+    B --> C["Output"]
+
+    style A fill:#e1f5ff
+    style B fill:#fff3e0
+    style C fill:#e8f5e9
+```
+
 ## Key Properties / Trade-offs
 
 | Shots | Examples | Latency | Accuracy | Best For |
@@ -96,3 +108,14 @@ print(response.content[0].text)
 ## Resources
 - [In-Context Learning in Large Language Models](https://arxiv.org/abs/2301.00234)
 - [What In-Context Learning "Learns"](https://arxiv.org/abs/2310.00867)
+
+## Concept Relationships
+
+```mermaid
+graph TD
+    A["Few-Shot Learning"]
+    B["In-Context Learning"] -->|prerequisite| A
+    A -->|used with| D["Chain-of-Thought"]
+    
+    style A fill:#fff3e0
+```

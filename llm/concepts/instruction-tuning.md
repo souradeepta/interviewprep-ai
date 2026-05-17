@@ -53,6 +53,18 @@ Instruction tuning:
 }
 ```
 
+### Workflow Flowchart
+
+```mermaid
+graph LR
+    A["Input"] --> B["Instruction Tuning Process"]
+    B --> C["Output"]
+
+    style A fill:#e1f5ff
+    style B fill:#fff3e0
+    style C fill:#e8f5e9
+```
+
 ## Key Properties / Trade-offs
 
 | Aspect | Pre-trained | Instruction-Tuned |
@@ -157,3 +169,15 @@ trainer.train()
 - [Instruction Tuning with GPT-3.5](https://platform.openai.com/docs/guides/fine-tuning)
 - [The Flan Collection: Designing Data and Methods for Effective Instruction Tuning](https://arxiv.org/abs/2301.13688)
 - [Alpaca: A Strong, Replicable Instruction-Following Model](https://crfm.stanford.edu/2023/03/13/alpaca.html)
+
+## Concept Relationships
+
+```mermaid
+graph TD
+    A["Instruction Tuning"]
+    B["Fine-tuning"] -->|prerequisite| A
+    A -->|used with| D["RLHF (Reinforcement Learning from Human Feedback)"]
+    A -->|used with| D["DPO (Direct Preference Optimization)"]
+    
+    style A fill:#fff3e0
+```

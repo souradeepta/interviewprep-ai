@@ -66,6 +66,18 @@ For each preference pair:
   5. Backward pass, update π_θ
 ```
 
+### Workflow Flowchart
+
+```mermaid
+graph LR
+    A["Input"] --> B["DPO (Direct Preference Optimization) Process"]
+    B --> C["Output"]
+
+    style A fill:#e1f5ff
+    style B fill:#fff3e0
+    style C fill:#e8f5e9
+```
+
 ## Key Properties / Trade-offs
 
 | Method | Stages | Reward Model | Complexity | Speed | Quality | Stability |
@@ -202,3 +214,13 @@ dpo_trainer.train()
 - [Identity Preference Optimization (IPO)](https://arxiv.org/abs/2310.12036)
 - [TRL Library: DPO Trainer](https://huggingface.co/docs/trl/en/dpo_trainer)
 - [Arxiv: A Comparative Study of DPO vs RLHF](https://arxiv.org/abs/2307.02027)
+
+## Concept Relationships
+
+```mermaid
+graph TD
+    A["DPO (Direct Preference Optimization)"]
+    B["RLHF (Reinforcement Learning from Human Feedback)"] -->|prerequisite| A
+    
+    style A fill:#fff3e0
+```

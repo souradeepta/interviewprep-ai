@@ -110,6 +110,18 @@ Level 4 (Expert):
   Cost: $0.005 (200x reduction)
 ```
 
+### Workflow Flowchart
+
+```mermaid
+graph LR
+    A["Input"] --> B["Inference Optimization Process"]
+    B --> C["Output"]
+
+    style A fill:#e1f5ff
+    style B fill:#fff3e0
+    style C fill:#e8f5e9
+```
+
 ## Key Properties / Trade-offs
 
 | Technique | Latency | Memory | Quality | Complexity | Best For |
@@ -301,3 +313,15 @@ Baseline (float32):
 - [Flash Attention](https://arxiv.org/abs/2205.14135)
 - [Quantization Matters: A Comprehensive Survey of Methods and Applications](https://arxiv.org/abs/2308.06596)
 - [DeepSpeed Inference: Towards Efficient Generative Model Serving](https://arxiv.org/abs/2207.00032)
+
+## Concept Relationships
+
+```mermaid
+graph TD
+    A["Inference Optimization"]
+    A -->|used with| D["Quantization"]
+    A -->|used with| D["KV Cache"]
+    A -->|used with| D["Attention Optimization"]
+    
+    style A fill:#fff3e0
+```

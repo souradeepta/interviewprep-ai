@@ -37,6 +37,18 @@ Model: Sees pattern (positive words → positive, negative words → negative)
 - Attention mechanisms can recognize task structure from examples
 - The prompt itself acts as a "computation": context modifies how the model processes new input
 
+### Workflow Flowchart
+
+```mermaid
+graph LR
+    A["Input"] --> B["In-Context Learning Process"]
+    B --> C["Output"]
+
+    style A fill:#e1f5ff
+    style B fill:#fff3e0
+    style C fill:#e8f5e9
+```
+
 ## Key Properties / Trade-offs
 
 | Approach | Data Needed | Accuracy | Speed | Compute Cost |
@@ -155,3 +167,14 @@ print(response['choices'][0]['message']['content'])
 - [What In-Context Learning "Learns"](https://arxiv.org/abs/2310.00867)
 - [How Can We Know When Language Models Know?](https://aclanthology.org/2021.emnlp-main.585/)
 - [Few-shot Learning in Vision and Language](https://arxiv.org/abs/2012.14936)
+
+## Concept Relationships
+
+```mermaid
+graph TD
+    A["In-Context Learning"]
+    A -->|used with| D["Few-Shot Learning"]
+    A -->|used with| D["Chain-of-Thought"]
+    
+    style A fill:#fff3e0
+```

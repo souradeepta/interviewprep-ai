@@ -86,6 +86,18 @@ Query Embedding (e.g., 384-dim vector)
 - Explicit: invalidate on data updates (manual, complex)
 - Hybrid: assume 24-hour freshness for most queries
 
+### Workflow Flowchart
+
+```mermaid
+graph LR
+    A["Input"] --> B["Semantic Caching Process"]
+    B --> C["Output"]
+
+    style A fill:#e1f5ff
+    style B fill:#fff3e0
+    style C fill:#e8f5e9
+```
+
 ## Key Properties / Trade-offs
 
 | Aspect | Semantic Cache | Standard Cache | No Cache |
@@ -321,3 +333,14 @@ print(f"Response: {response3[:100]}...")
 - [FAISS: Efficient Similarity Search](https://github.com/facebookresearch/faiss)
 - [Sentence-Transformers Library](https://www.sbert.net/)
 - [Pinecone: Semantic Search & Caching](https://www.pinecone.io/)
+
+## Concept Relationships
+
+```mermaid
+graph TD
+    A["Semantic Caching"]
+    B["Embeddings"] -->|prerequisite| A
+    A -->|used with| D["Vector Databases"]
+    
+    style A fill:#fff3e0
+```

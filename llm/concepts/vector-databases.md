@@ -55,6 +55,18 @@ Regular databases optimize for exact key lookups (e.g., "get user ID 42"). Vecto
 - Post-filter: retrieve k+buffer, filter, return top-k
 - Metadata filtering: exact match, range, boolean ops
 
+### Workflow Flowchart
+
+```mermaid
+graph LR
+    A["Input"] --> B["Vector Databases Process"]
+    B --> C["Output"]
+
+    style A fill:#e1f5ff
+    style B fill:#fff3e0
+    style C fill:#e8f5e9
+```
+
 ## Key Properties / Trade-offs
 
 | Database | Latency | Scale | Cost | Ease |
@@ -163,3 +175,14 @@ print(indices, distances)
 - [Qdrant: Vector Database for Similarity Search](https://qdrant.tech/)
 - [FAISS: Efficient Similarity Search and Clustering](https://github.com/facebookresearch/faiss)
 - [Milvus: Open-source Vector Database](https://milvus.io/)
+
+## Concept Relationships
+
+```mermaid
+graph TD
+    A["Vector Databases"]
+    B["Embeddings"] -->|prerequisite| A
+    A -->|used with| D["Semantic Caching"]
+    
+    style A fill:#fff3e0
+```

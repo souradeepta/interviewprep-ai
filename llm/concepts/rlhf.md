@@ -92,6 +92,18 @@ Human preferences (comparisons)
    Aligned Policy π_RL
 ```
 
+### Workflow Flowchart
+
+```mermaid
+graph LR
+    A["Input"] --> B["RLHF (Reinforcement Learning from Human Feedback) Process"]
+    B --> C["Output"]
+
+    style A fill:#e1f5ff
+    style B fill:#fff3e0
+    style C fill:#e8f5e9
+```
+
 ## Key Properties / Trade-offs
 
 | Stage | Data Needed | Duration | Cost | Compute |
@@ -236,3 +248,15 @@ dpo_trainer.train()  # Single stage instead of 3
 - [Training a Helpful and Harmless Assistant with Reinforcement Learning from Human Feedback](https://arxiv.org/abs/2204.05862) — Anthropic's approach
 - [TRL: Transformer Reinforcement Learning Library](https://huggingface.co/docs/trl/en/index)
 - [Secrets of RLHF by Hugging Face](https://huggingface.co/blog/rlhf)
+
+## Concept Relationships
+
+```mermaid
+graph TD
+    A["RLHF (Reinforcement Learning from Human Feedback)"]
+    B["Fine-tuning"] -->|prerequisite| A
+    A -->|used with| D["Instruction Tuning"]
+    A -->|used with| D["DPO (Direct Preference Optimization)"]
+    
+    style A fill:#fff3e0
+```

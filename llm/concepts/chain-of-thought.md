@@ -46,6 +46,18 @@ Take majority vote on final answer
 Improves accuracy by 5-15% (handles hallucinations)
 ```
 
+### Workflow Flowchart
+
+```mermaid
+graph LR
+    A["Input"] --> B["Chain-of-Thought Process"]
+    B --> C["Output"]
+
+    style A fill:#e1f5ff
+    style B fill:#fff3e0
+    style C fill:#e8f5e9
+```
+
 ## Key Properties / Trade-offs
 
 | Approach | Accuracy | Token Cost | Latency |
@@ -141,3 +153,15 @@ print(f"Self-consistency answer (majority vote): {most_common}")
 - [Chain-of-Thought Prompting Elicits Reasoning in LLMs](https://arxiv.org/abs/2201.11903)
 - [Self-Consistency Improves Chain of Thought Reasoning](https://arxiv.org/abs/2203.11171)
 - [OpenAI: Chain-of-Thought Prompting](https://platform.openai.com/docs/guides/prompt-engineering)
+
+## Concept Relationships
+
+```mermaid
+graph TD
+    A["Chain-of-Thought"]
+    B["Prompting"] -->|prerequisite| A
+    A -->|used with| D["Few-Shot Learning"]
+    A -->|used with| D["Instruction Tuning"]
+    
+    style A fill:#fff3e0
+```

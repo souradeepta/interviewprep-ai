@@ -91,6 +91,18 @@ KV cache shape: (total_tokens, hidden_dim) = (150, 128)
 Memory: 150 × 128 × 2 × 4 bytes = 154 KB (much smaller!)
 ```
 
+### Workflow Flowchart
+
+```mermaid
+graph LR
+    A["Input"] --> B["Continuous Batching Process"]
+    B --> C["Output"]
+
+    style A fill:#e1f5ff
+    style B fill:#fff3e0
+    style C fill:#e8f5e9
+```
+
 ## Key Properties / Trade-offs
 
 | Metric | Static | Continuous | Notes |
@@ -267,3 +279,13 @@ class SimpleBatchScheduler:
 - [vLLM: Easy, Fast, and Cheap LLM Serving with PagedAttention](https://arxiv.org/abs/2309.06180)
 - [PagedAttention: Efficient Memory Management for LLM Serving](https://arxiv.org/abs/2309.06180#paged-attention)
 - [DeepSpeed Inference: A system for serving large models efficiently](https://arxiv.org/abs/2207.00032)
+
+## Concept Relationships
+
+```mermaid
+graph TD
+    A["Continuous Batching"]
+    A -->|used with| D["Token Optimization"]
+    
+    style A fill:#fff3e0
+```

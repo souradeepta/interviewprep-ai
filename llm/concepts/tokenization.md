@@ -113,6 +113,18 @@ Chinese/Japanese: ~1.3 characters per token (low compression)
 Arabic: ~3-4 characters per token (moderate)
 ```
 
+### Workflow Flowchart
+
+```mermaid
+graph LR
+    A["Input"] --> B["Tokenization Process"]
+    B --> C["Output"]
+
+    style A fill:#e1f5ff
+    style B fill:#fff3e0
+    style C fill:#e8f5e9
+```
+
 ## Key Properties / Trade-offs
 
 | Property | Character | BPE | WordPiece | SentencePiece |
@@ -281,3 +293,14 @@ print(f"Chinese tokens: {count_tokens_by_language('人工智能的未来')}")
 - [WordPiece Tokenization (BERT)](https://arxiv.org/abs/1810.04805)
 - [SentencePiece: A Simple and Language Independent Subword Tokenizer and Detokenizer for Neural Machine Translation](https://arxiv.org/abs/1808.06226)
 - [Tokenizers by Hugging Face](https://github.com/huggingface/tokenizers)
+
+## Concept Relationships
+
+```mermaid
+graph TD
+    A["Tokenization"]
+    A -->|used with| D["Pretraining"]
+    A -->|used with| D["In-Context Learning"]
+    
+    style A fill:#fff3e0
+```

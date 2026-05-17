@@ -110,6 +110,18 @@ Phase 3: Domain-specific data (code, scientific papers)
   → specialized knowledge
 ```
 
+### Workflow Flowchart
+
+```mermaid
+graph LR
+    A["Input"] --> B["Pretraining Process"]
+    B --> C["Output"]
+
+    style A fill:#e1f5ff
+    style B fill:#fff3e0
+    style C fill:#e8f5e9
+```
+
 ## Key Properties / Trade-offs
 
 | Aspect | Causal (GPT) | Masked (BERT) | Hybrid |
@@ -275,3 +287,16 @@ bert_model = BertForMaskedLM(bert_config)
 - [BERT: Pre-training of Deep Bidirectional Transformers](https://arxiv.org/abs/1810.04805)
 - [Chinchilla Scaling Laws & Optimal Compute Allocation](https://arxiv.org/abs/2203.15556)
 - [Training Compute-Optimal Large Language Models](https://arxiv.org/abs/2309.03494)
+
+## Concept Relationships
+
+```mermaid
+graph TD
+    A["Pretraining"]
+    A -->|prerequisite for| C["Fine-tuning"]
+    A -->|prerequisite for| C["Instruction Tuning"]
+    A -->|used with| D["Tokenization"]
+    A -->|used with| D["Fine-tuning"]
+    
+    style A fill:#fff3e0
+```

@@ -48,6 +48,18 @@ Adapter(x)  [trained]
 - Parallel-adapters: different adapters for different modalities or domains
 - Adapter fusion: learnable combination of task-specific adapters
 
+### Workflow Flowchart
+
+```mermaid
+graph LR
+    A["Input"] --> B["Adapters Process"]
+    B --> C["Output"]
+
+    style A fill:#e1f5ff
+    style B fill:#fff3e0
+    style C fill:#e8f5e9
+```
+
 ## Key Properties / Trade-offs
 
 | Property | Adapters | LoRA | Full FT | Prefix Tuning |
@@ -158,3 +170,15 @@ model.set_active_adapters(["task1"])  # Switch task at inference
 - [Adapters: A Unified Library for Parameter-Efficient and Modular Transfer Learning](https://arxiv.org/abs/2311.11077)
 - [PEFT Library Documentation](https://huggingface.co/docs/peft/index)
 - [Adapter Hub](https://adapterhub.ml/)
+
+## Concept Relationships
+
+```mermaid
+graph TD
+    A["Adapters"]
+    B["Fine-tuning"] -->|prerequisite| A
+    A -->|used with| D["LoRA (Low-Rank Adaptation)"]
+    A -->|used with| D["Prefix Tuning"]
+    
+    style A fill:#fff3e0
+```

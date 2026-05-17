@@ -64,6 +64,18 @@ If multiple queries or rankings needed:
   - Return top results
 ```
 
+### Workflow Flowchart
+
+```mermaid
+graph LR
+    A["Input"] --> B["Semantic Search Process"]
+    B --> C["Output"]
+
+    style A fill:#e1f5ff
+    style B fill:#fff3e0
+    style C fill:#e8f5e9
+```
+
 ## Key Properties / Trade-offs
 
 | Aspect | Keyword Search | Semantic Search |
@@ -183,3 +195,14 @@ for i, (idx, dist) in enumerate(zip(indices[0], distances[0])):
 - [FAISS: Facebook AI Similarity Search](https://github.com/facebookresearch/faiss)
 - [Sentence-Transformers: Semantic Embeddings](https://www.sbert.net/)
 - [Beyond BM25: Semantic Search with Embeddings](https://huggingface.co/blog/semantic-search)
+
+## Concept Relationships
+
+```mermaid
+graph TD
+    A["Semantic Search"]
+    B["Embeddings"] -->|prerequisite| A
+    A -->|used with| D["Vector Databases"]
+    
+    style A fill:#fff3e0
+```

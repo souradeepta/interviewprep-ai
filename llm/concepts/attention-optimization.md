@@ -108,6 +108,18 @@ head_24-31 → KV_head_3
 KV cache size: seq_len × 4 × 64 × 2 = 8x smaller!
 ```
 
+### Workflow Flowchart
+
+```mermaid
+graph LR
+    A["Input"] --> B["Attention Optimization Process"]
+    B --> C["Output"]
+
+    style A fill:#e1f5ff
+    style B fill:#fff3e0
+    style C fill:#e8f5e9
+```
+
 ## Key Properties / Trade-offs
 
 | Method | Speedup | Memory | Quality | Latency | Deploy |
@@ -219,3 +231,14 @@ print(torch.allclose(output_standard, output_flash, atol=1e-4))  # True
 - [GQA: Training Generalized Multi-Query Transformers](https://arxiv.org/abs/2305.13245)
 - [Efficient Attention: You Only Need to Care About Output Tokens](https://arxiv.org/abs/2302.10379)
 - [vLLM: Easy, Fast, and Cheap LLM Serving](https://arxiv.org/abs/2309.06180)
+
+## Concept Relationships
+
+```mermaid
+graph TD
+    A["Attention Optimization"]
+    A -->|used with| D["KV Cache"]
+    A -->|used with| D["Speculative Decoding"]
+    
+    style A fill:#fff3e0
+```

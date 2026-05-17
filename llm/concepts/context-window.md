@@ -62,6 +62,18 @@ Solutions:
 3. Fine-tuning on longer sequences: re-train position encoding on longer contexts
 ```
 
+### Workflow Flowchart
+
+```mermaid
+graph LR
+    A["Input"] --> B["Context Window Process"]
+    B --> C["Output"]
+
+    style A fill:#e1f5ff
+    style B fill:#fff3e0
+    style C fill:#e8f5e9
+```
+
 ## Key Properties / Trade-offs
 
 | Property | 4K | 32K | 128K | 200K |
@@ -204,3 +216,13 @@ print(response.content[0].text)
 - [LLaMA 2: Open Foundation and Fine-Tuned Chat Models](https://arxiv.org/abs/2307.09288) — discusses context window design
 - [Rotary Position Embedding](https://arxiv.org/abs/2104.09864)
 - [OpenAI: Extending Context Windows](https://openai.com/research/extending-context-is-hard-but-lets-do-it-right)
+
+## Concept Relationships
+
+```mermaid
+graph TD
+    A["Context Window"]
+    A -->|used with| D["Token Optimization"]
+    
+    style A fill:#fff3e0
+```

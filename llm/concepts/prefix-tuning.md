@@ -89,6 +89,18 @@ Long (100-500 tokens):
   - can handle complex tasks
 ```
 
+### Workflow Flowchart
+
+```mermaid
+graph LR
+    A["Input"] --> B["Prefix Tuning Process"]
+    B --> C["Output"]
+
+    style A fill:#e1f5ff
+    style B fill:#fff3e0
+    style C fill:#e8f5e9
+```
+
 ## Key Properties / Trade-offs
 
 | Aspect | Prefix | LoRA | Adapters | BitFit |
@@ -277,3 +289,15 @@ response = tokenizer.decode(outputs[0], skip_special_tokens=True)
 - [Prefix Tuning: Optimizing Continuous Prompts for Generation](https://arxiv.org/abs/2101.00297)
 - [The Power of Scale for Parameter-Efficient Prompt Tuning](https://arxiv.org/abs/2104.08691)
 - [Prompt Tuning vs Fine-tuning: A Comparative Study](https://arxiv.org/abs/2210.01241)
+
+## Concept Relationships
+
+```mermaid
+graph TD
+    A["Prefix Tuning"]
+    B["Fine-tuning"] -->|prerequisite| A
+    A -->|used with| D["LoRA (Low-Rank Adaptation)"]
+    A -->|used with| D["Adapters"]
+    
+    style A fill:#fff3e0
+```

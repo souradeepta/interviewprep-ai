@@ -144,6 +144,18 @@ PaliGemma:
   Method: Early fusion with co-training
 ```
 
+### Workflow Flowchart
+
+```mermaid
+graph LR
+    A["Input"] --> B["Multimodal Process"]
+    B --> C["Output"]
+
+    style A fill:#e1f5ff
+    style B fill:#fff3e0
+    style C fill:#e8f5e9
+```
+
 ## Key Properties / Trade-offs
 
 | Aspect | Text-Only | Text+Image | Text+Image+Audio | Full Multimodal |
@@ -313,3 +325,14 @@ for images, captions in dataloader:
 - [Flamingo: a Visual Language Model for Few-Shot Learning](https://arxiv.org/abs/2204.14198)
 - [LLaVA: Large Language and Vision Assistant](https://arxiv.org/abs/2304.08485)
 - [GPT-4V(ision) System Card](https://cdn.openai.com/papers/gpt_4_vision_system_card.pdf)
+
+## Concept Relationships
+
+```mermaid
+graph TD
+    A["Multimodal"]
+    A -->|used with| D["Embeddings"]
+    A -->|used with| D["Tokenization"]
+    
+    style A fill:#fff3e0
+```

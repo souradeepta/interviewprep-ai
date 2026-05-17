@@ -45,6 +45,18 @@ Adapters        2%      96-98%          30x    30x
 BitFit          0.1%    90-95%          50x    50x
 ```
 
+### Workflow Flowchart
+
+```mermaid
+graph LR
+    A["Input"] --> B["Parameter-Efficient Fine-tuning Process"]
+    B --> C["Output"]
+
+    style A fill:#e1f5ff
+    style B fill:#fff3e0
+    style C fill:#e8f5e9
+```
+
 ## Key Properties / Trade-offs
 
 | Method | Flexibility | Accuracy | Param Count | Combine |
@@ -141,3 +153,16 @@ merged_model.save_pretrained("./merged_model")
 - [Adapter Modules](https://arxiv.org/abs/1902.00751)
 - [Prefix Tuning](https://arxiv.org/abs/2101.00297)
 - [BitFit](https://arxiv.org/abs/2106.10199)
+
+## Concept Relationships
+
+```mermaid
+graph TD
+    A["Parameter-Efficient Fine-tuning"]
+    B["Fine-tuning"] -->|prerequisite| A
+    A -->|used with| D["LoRA (Low-Rank Adaptation)"]
+    A -->|used with| D["Adapters"]
+    A -->|used with| D["Prefix Tuning"]
+    
+    style A fill:#fff3e0
+```

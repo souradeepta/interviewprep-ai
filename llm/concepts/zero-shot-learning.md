@@ -31,6 +31,18 @@ Sentiment:
 - Rare categories
 - Complex reasoning
 
+### Workflow Flowchart
+
+```mermaid
+graph LR
+    A["Input"] --> B["Zero-Shot Learning Process"]
+    B --> C["Output"]
+
+    style A fill:#e1f5ff
+    style B fill:#fff3e0
+    style C fill:#e8f5e9
+```
+
 ## Key Properties / Trade-offs
 
 | Aspect | Zero-Shot | Few-Shot |
@@ -98,3 +110,14 @@ print("Few-shot:", response.content[0].text)  # Also "German" but more confident
 
 ## Resources
 - [Prompt Engineering Guide](https://www.promptingguide.ai/)
+
+## Concept Relationships
+
+```mermaid
+graph TD
+    A["Zero-Shot Learning"]
+    B["Prompting"] -->|prerequisite| A
+    A -->|used with| D["In-Context Learning"]
+    
+    style A fill:#fff3e0
+```

@@ -33,6 +33,18 @@ Cosine similarity preferred because:
 - Task-specific fine-tuning (contrastive learning on pairs)
 - Specialized models (Sentence-BERT, MPNet)
 
+### Workflow Flowchart
+
+```mermaid
+graph LR
+    A["Input"] --> B["Embeddings Process"]
+    B --> C["Output"]
+
+    style A fill:#e1f5ff
+    style B fill:#fff3e0
+    style C fill:#e8f5e9
+```
+
 ## Key Properties / Trade-offs
 
 | Property | Static | Contextual | Task-Specific |
@@ -121,3 +133,14 @@ print(sims)
 - [Sentence-BERT: Sentence Embeddings using Siamese BERT-Networks](https://arxiv.org/abs/1908.10084)
 - [HuggingFace: Sentence Transformers](https://www.sbert.net/)
 - [Pinecone: Understanding Embeddings](https://www.pinecone.io/learn/vector-embeddings/)
+
+## Concept Relationships
+
+```mermaid
+graph TD
+    A["Embeddings"]
+    A -->|prerequisite for| C["Semantic Search"]
+    A -->|used with| D["Vector Databases"]
+    
+    style A fill:#fff3e0
+```

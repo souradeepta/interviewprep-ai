@@ -83,6 +83,18 @@ Text: "This is just fantastic"
 ✅ Contextualized: "You are an expert at sentiment analysis for product reviews. Classify with expertise in e-commerce language."
 ```
 
+### Workflow Flowchart
+
+```mermaid
+graph LR
+    A["Input"] --> B["Prompt Optimization Process"]
+    B --> C["Output"]
+
+    style A fill:#e1f5ff
+    style B fill:#fff3e0
+    style C fill:#e8f5e9
+```
+
 ## Key Properties / Trade-offs
 
 | Optimization Technique | Time | Cost | Accuracy Gain | Best For |
@@ -272,3 +284,14 @@ print(f"Final accuracy: {accuracy:.2%}")
 - [Anthropic: Prompt Engineering](https://docs.anthropic.com/en/docs/guides/prompt-engineering)
 - [AutoPrompt: Eliciting Knowledge from Language Models with Automatically Generated Prompts](https://arxiv.org/abs/2010.15980)
 - [Large Language Models Are Zero-Shot Reasoners](https://arxiv.org/abs/2205.11916)
+
+## Concept Relationships
+
+```mermaid
+graph TD
+    A["Prompt Optimization"]
+    B["Prompting"] -->|prerequisite| A
+    A -->|used with| D["Few-Shot Learning"]
+    
+    style A fill:#fff3e0
+```

@@ -44,6 +44,18 @@ Result:     finer control, less accuracy loss
 - Static: calibrate scales once, same for all inference
 - Dynamic: recompute scales per batch at inference (slower but adaptive)
 
+### Workflow Flowchart
+
+```mermaid
+graph LR
+    A["Input"] --> B["Quantization Process"]
+    B --> C["Output"]
+
+    style A fill:#e1f5ff
+    style B fill:#fff3e0
+    style C fill:#e8f5e9
+```
+
 ## Key Properties / Trade-offs
 
 | Method | Model Size | Speed | Accuracy | Cost | Use Case |
@@ -146,3 +158,14 @@ quantized_model = AutoModelForCausalLM.from_pretrained(
 - [bitsandbytes: Quantization Library](https://github.com/TimDettmers/bitsandbytes)
 - [GPTQ: Accurate Post-Training Quantization for Generative Pre-trained Transformers](https://arxiv.org/abs/2210.17323)
 - [QLoRA: Efficient Finetuning of Quantized LLMs](https://arxiv.org/abs/2305.14314)
+
+## Concept Relationships
+
+```mermaid
+graph TD
+    A["Quantization"]
+    A -->|used with| D["KV Cache"]
+    A -->|used with| D["Attention Optimization"]
+    
+    style A fill:#fff3e0
+```

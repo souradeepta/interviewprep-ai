@@ -134,6 +134,18 @@ Quality: 1-2% loss (information compressed in merge)
 Stability: can hurt if merge threshold too low (merges dissimilar tokens)
 ```
 
+### Workflow Flowchart
+
+```mermaid
+graph LR
+    A["Input"] --> B["Token Optimization Process"]
+    B --> C["Output"]
+
+    style A fill:#e1f5ff
+    style B fill:#fff3e0
+    style C fill:#e8f5e9
+```
+
 ## Key Properties / Trade-offs
 
 | Technique | Speedup | Quality Loss | Latency | Memory | Complexity |
@@ -321,3 +333,13 @@ print(f"Prediction: {torch.argmax(outputs, dim=-1)}")
 - [Early Exiting in Transformers for More Efficient Inference](https://arxiv.org/abs/2002.00028)
 - [Fastformer: Additive Attention Can Be All You Need](https://arxiv.org/abs/2108.09084)
 - [DejaVu: Efficient Transformer Inference](https://arxiv.org/abs/2310.01681)
+
+## Concept Relationships
+
+```mermaid
+graph TD
+    A["Token Optimization"]
+    A -->|used with| D["Context Window"]
+    
+    style A fill:#fff3e0
+```

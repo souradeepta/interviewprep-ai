@@ -51,6 +51,18 @@ Option 2: Merge weights offline
   y = W_LoRA × x  (same latency as full FT)
 ```
 
+### Workflow Flowchart
+
+```mermaid
+graph LR
+    A["Input"] --> B["LoRA (Low-Rank Adaptation) Process"]
+    B --> C["Output"]
+
+    style A fill:#e1f5ff
+    style B fill:#fff3e0
+    style C fill:#e8f5e9
+```
+
 ## Key Properties / Trade-offs
 
 | Aspect | Full FT | LoRA | QLoRA |
@@ -170,3 +182,15 @@ merged.save_pretrained("./merged_model")
 - [PEFT Library by HuggingFace](https://github.com/huggingface/peft)
 - [QLoRA: Efficient Finetuning of Quantized LLMs](https://arxiv.org/abs/2305.14314)
 - [LoRA Explained in Detail](https://lightning.ai/pages/community/tutorial/lora-fine-tuning/)
+
+## Concept Relationships
+
+```mermaid
+graph TD
+    A["LoRA (Low-Rank Adaptation)"]
+    B["Fine-tuning"] -->|prerequisite| A
+    A -->|used with| D["Adapters"]
+    A -->|used with| D["Prefix Tuning"]
+    
+    style A fill:#fff3e0
+```
