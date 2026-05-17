@@ -48,6 +48,24 @@ Reproduce Best Model
 Production Model
 ```
 
+```mermaid
+graph LR
+    A["Training Loop<br/>PyTorch"] --> B["MLflow/W&B<br/>Client"]
+    B --> |"Log each epoch"| C["Metrics<br/>Loss, Accuracy<br/>Validation F1"]
+    B --> |"Log once"| D["Parameters<br/>Learning rate<br/>Batch size"]
+    B --> |"Log artifacts"| E["Model Weights<br/>Checkpoints<br/>Predictions"]
+    B --> |"Log metadata"| F["Git Commit<br/>Training Time<br/>Hardware Used"]
+    
+    C --> G["Tracking Backend<br/>MLflow Server<br/>W&B Cloud"]
+    D --> G
+    E --> G
+    F --> G
+    
+    G --> H["Dashboard<br/>Compare Runs<br/>Filter by Metric"]
+    H --> |"Find Best"| I["Inspect<br/>Parameters"]
+    I --> |"Reproduce"| J["Production<br/>Model"]
+```
+
 ### Hyperparameter Search Example
 
 ```

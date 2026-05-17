@@ -28,13 +28,38 @@ Layer 4: Business Logic Checks (domain-specific rules)
 Validated Data
 ```
 
-**Layer 1 (Schema):** Does each field have the expected type? Schema validation catches type mismatches early.
+```mermaid
+graph TD
+    A["Raw Data<br/>Ingested"] --> B["Layer 1: Schema<br/>Type Check<br/>Format Check"]
+    B --> |"Pass?"| C{Valid<br/>Schema?}
+    C --> |"No"| D["⚠️ Type Error<br/>Block Data"]
+    C --> |"Yes"| E["Layer 2: Completeness<br/>Required Fields<br/>Null Counts"]
+    
+    E --> |"Pass?"| F{Complete<br/>Enough?}
+    F --> |"No"| G["⚠️ Missing Data<br/>> 5% nulls"]
+    F --> |"Yes"| H["Layer 3: Statistical<br/>Distribution<br/>Outlier Detection"]
+    
+    H --> |"Pass?"| I{Distribution<br/>OK?}
+    I --> |"No"| J["⚠️ Anomaly<br/>Investigate"]
+    I --> |"Yes"| K["Layer 4: Business Logic<br/>Domain Rules<br/>Value Ranges"]
+    
+    K --> |"Pass?"| L{Rules<br/>OK?}
+    L --> |"No"| M["⚠️ Logic Error<br/>Price < 0?"]
+    L --> |"Yes"| N["✓ Validated Data<br/>Ready to Use"]
+    
+    D --> O["Alert & Block"]
+    G --> O
+    J --> O
+    M --> O
+```
 
-**Layer 2 (Completeness):** Are required fields present? % of nulls within acceptable range?
+**Layer 1 (Schema):** Does each field have the expected type? Schema validation catches type mismatches early. Example: amount must be float, not string. Failures: type mismatch (string where float expected), format error (invalid date format).
 
-**Layer 3 (Statistical):** Do value distributions match historical patterns? Outlier detection flags anomalies.
+**Layer 2 (Completeness):** Are required fields present? % of nulls within acceptable range? Example: user_id must be present in 99% of rows. Failures: >1% null user_id, missing required column.
 
-**Layer 4 (Business Logic):** Do values make sense in business context? (e.g., price >= 0, shipping_days <= 30).
+**Layer 3 (Statistical):** Do value distributions match historical patterns? Outlier detection flags anomalies. Example: median spend usually $50; alert if $500. Failures: p95 changed 5x (distribution shift), new unexpected value categories.
+
+**Layer 4 (Business Logic):** Do values make sense in business context? (e.g., price >= 0, shipping_days <= 30). Example: order date < delivery date, quantity > 0. Failures: negative prices, impossible dates, invalid relationships.
 
 ### Data Contract Example
 

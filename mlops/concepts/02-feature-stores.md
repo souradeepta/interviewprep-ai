@@ -26,6 +26,23 @@ Offline Storage (Data Warehouse)          Online Storage (Redis, DynamoDB)
 Training Jobs ←────────────────────→ Serving APIs (low-latency fetch)
 ```
 
+```mermaid
+graph TB
+    A["Offline Path<br/>Historical Data"] --> B["Batch Engineering<br/>Spark, SQL<br/>Daily Jobs"]
+    C["Real-Time Path<br/>Event Streams"] --> D["Stream Processing<br/>Flink, Kafka<br/>Per-Event"]
+    
+    B --> E["Feature Registry<br/>Catalog<br/>Versioning"]
+    D --> E
+    
+    E --> F["Offline Storage<br/>Data Warehouse<br/>S3, BigQuery"]
+    E --> G["Online Storage<br/>Redis<br/>DynamoDB<br/>Low-latency"]
+    
+    F --> H["Training<br/>Full features<br/>Historical"]
+    G --> I["Inference<br/>Batch + Real-time<br/>Combined"]
+    H --> J["Model Registry"]
+    I --> J
+```
+
 **Offline path:** Batch features for training and batch inference. High latency acceptable (hours), high throughput required.  
 **Online path:** Real-time features for online inference. Low latency required (<10ms), moderate throughput.
 
@@ -65,6 +82,21 @@ Common Mistake: using data after label date (leakage!)
 | **Custom Solution** | Build your own | Full control, no vendor lock-in, optimized for specific needs | High operational burden, ongoing maintenance required, inconsistency risk | Well-resourced teams, very specific requirements |
 
 **Decision Framework:**
+
+```mermaid
+graph TD
+    A["Feature Store Choice"] --> B{Team<br/>Size?}
+    
+    B --> |"Small<br/><5 engineers"| C{Budget?}
+    C --> |"Low cost"| D["Feast<br/>Open-source<br/>Python-first<br/>Low operational overhead"]
+    C --> |"Has budget"| E["Tecton<br/>SaaS<br/>Managed<br/>Enterprise features"]
+    
+    B --> |"Large<br/>10+ engineers"| F{Infrastructure?}
+    F --> |"Databricks"| G["Databricks Feature Store<br/>Native Delta<br/>Spark-optimized"]
+    F --> |"Lakehouse"| H["Hopsworks<br/>End-to-end<br/>Feature-centric"]
+    F --> |"Custom needs"| I["Build Custom<br/>Full control<br/>High maintenance"]
+```
+
 - **Small team, quick start:** Feast (open-source, simple)
 - **Enterprise, compliance-heavy:** Tecton (governance, audit trails)
 - **Data-centric team:** Hopsworks (strong governance, lineage)

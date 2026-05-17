@@ -26,6 +26,17 @@ Feature Store or Data Warehouse
 Model Training or Inference
 ```
 
+```mermaid
+graph LR
+    A["Source Systems<br/>APIs, Databases<br/>3rd Party"] --> B["Ingestion<br/>Extract<br/>30 min"]
+    B --> C["Validation<br/>Schema, Quality<br/>5 min"]
+    C --> |"Pass?"| D{Good?}
+    D --> |"No"| E["Alert<br/>Investigate"]
+    D --> |"Yes"| F["Transform<br/>Aggregate, Enrich<br/>1-2 hours"]
+    F --> G["Load<br/>Feature Store<br/>Warehouse"]
+    G --> H["Training/Inference"]
+```
+
 **Schedule-based execution:** Run at fixed times (daily, hourly) via cron or orchestrator.  
 **Latency:** Minutes to hours (acceptable for training, risky for serving).  
 **Throughput:** High (can process millions of rows efficiently).  
@@ -43,6 +54,15 @@ Real-Time Feature Store
 Online Model Inference
 ```
 
+```mermaid
+graph LR
+    A["Event Stream<br/>Kafka, Pub/Sub<br/>1M events/sec"] --> B["Parse<br/>JSON → Struct<br/>1-5ms"]
+    B --> C["Validate<br/>Schema<br/>1-2ms"]
+    C --> D["Transform<br/>Aggregate, Window<br/>5-10ms"]
+    D --> E["Cache<br/>Redis<br/>Feature Store"]
+    E --> F["Inference<br/>Real-time<br/>Responses"]
+```
+
 **Event-driven execution:** Process data as it arrives.  
 **Latency:** Milliseconds (necessary for real-time applications).  
 **Throughput:** Medium (constrained by processing latency per event).  
@@ -56,6 +76,20 @@ Most production systems use both:
 
 The integration point is typically the feature store, which maintains both batch-computed and streaming-computed features.
 
+```mermaid
+graph TB
+    A["Historical Data<br/>Batch Pipelines<br/>User embeddings<br/>Content similarities"]
+    B["Real-time Events<br/>Streaming Pipelines<br/>Session context<br/>Current behavior"]
+    
+    A --> C["Feature Store<br/>Batch Features<br/>Updated daily"]
+    B --> D["Feature Store<br/>Real-time Features<br/>Updated per event"]
+    
+    C --> E["Model Inference"]
+    D --> E
+    
+    E --> F["Recommendations<br/>Combine batch+<br/>streaming features"]
+```
+
 ## Tool Comparisons
 
 | Tool | Type | Strengths | Weaknesses | Best For |
@@ -68,6 +102,23 @@ The integration point is typically the feature store, which maintains both batch
 | **dbt** | Transformation focus | SQL-first, lineage tracking, testing, documentation, simple to learn | Limited to SQL, not for orchestration, newer tool | Analytical workflows, data warehouse transformations |
 
 **Decision Framework:**
+
+```mermaid
+graph TD
+    A["Pipeline Type Decision"] --> B{Batch or<br/>Streaming?}
+    
+    B --> |"Batch"| C{Complexity?}
+    C --> |"Simple<br/>Small Team"| D["Luigi<br/>Python-first<br/>Low overhead"]
+    C --> |"Medium<br/>Growing"| E["Airflow<br/>Industry standard<br/>Great UI"]
+    C --> |"On Kubernetes"| F["Kubeflow<br/>K8s native<br/>Containers"]
+    
+    B --> |"Streaming"| G{Latency<br/>Requirement?}
+    G --> |"Ultra-low<br/>< 100ms"| H["Apache Flink<br/>True streaming<br/>Complex"]
+    G --> |"Medium<br/>100ms-1sec"| I["Spark Streaming<br/>Micro-batch<br/>SQL-friendly"]
+    
+    B --> |"Hybrid"| J["Airflow + Flink<br/>or Airflow +<br/>Spark Streaming"]
+```
+
 - **Batch pipelines:** Airflow (industry standard, safe bet) or Luigi (simplicity)
 - **Streaming:** Flink (low-latency) or Spark (SQL-heavy)
 - **Hybrid:** Airflow (batch) + Flink/Spark (streaming)

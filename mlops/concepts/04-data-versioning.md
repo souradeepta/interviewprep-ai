@@ -51,10 +51,34 @@ raw_events (2026-05-16) → data_pipeline_v2 → training_set_v3 → model_v5
                            source_db (extraction)
 ```
 
+```mermaid
+graph LR
+    A["Raw Events<br/>2026-05-16<br/>100M rows"] --> B["Extraction<br/>Pipeline v2<br/>100GB → 50GB"]
+    B --> C["Filtering<br/>Valid txns<br/>50GB → 45GB"]
+    C --> D["Aggregation<br/>Features<br/>45GB → 10GB"]
+    D --> E["Training Set v3<br/>hash: abc123<br/>10GB"]
+    
+    E --> F["Model v5<br/>Trained<br/>95% Accuracy"]
+    
+    G["Schema Contract"] -.-> E
+    H["Freshness SLA<br/>1 day"] -.-> E
+```
+
 Lineage enables:
-- Understanding what upstream data changed
-- Recomputing datasets when upstream changed
-- Debugging cascading failures (if source_db broke, which datasets affected?)
+- **Upstream tracking:** If source_db broke, which downstream datasets affected?
+- **Reproducibility:** Given dataset v3, which pipeline/code created it?
+- **Debugging:** Model accuracy dropped; which upstream datasets changed?
+- **Recomputation:** If pipeline bug found, recompute dependent datasets
+
+```mermaid
+graph TB
+    A["Data Versioning<br/>Question"] --> B{Tool Choice?}
+    
+    B --> |"Small, Git-native"| C["DVC<br/>File-based<br/>Simple tracking"]
+    B --> |"Databricks"| D["Delta Lake<br/>ACID transactions<br/>Efficient deltas"]
+    B --> |"Modern Warehouse"| E["Apache Iceberg<br/>Vendor-neutral<br/>Time travel"]
+    B --> |"Cloud-native"| F["Metadata-only<br/>Track hashes<br/>Minimal storage"]
+```
 
 ## Tool Comparisons
 
