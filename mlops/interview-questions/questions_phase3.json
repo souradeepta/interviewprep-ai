@@ -1,0 +1,329 @@
+{
+  "questions": [
+    {
+      "id": "concept_09_001",
+      "concept": "Model Testing",
+      "difficulty": "easy",
+      "company": "FAANG",
+      "question": "Model has 95% accuracy on test set. Is it production ready?",
+      "answer_outline": "Not necessarily. Accuracy is one dimension; ask: (1) test set representative of production? (distribution shift common), (2) class balance: is 95% accuracy meaningful or useless? (3) performance on subgroups: does accuracy vary across geographies/user types? (4) latency: can model serve within SLO (<100ms)? (5) failure modes: what kind of errors (false positives vs false negatives)? (6) monitoring: is production instrumentation ready?",
+      "follow_ups": [
+        "How would you test this model in production?",
+        "What guardrails would you set?"
+      ],
+      "tags": ["correctness", "production-readiness", "fairness"]
+    },
+    {
+      "id": "concept_09_002",
+      "concept": "Model Testing",
+      "difficulty": "medium",
+      "company": "Netflix",
+      "question": "Design a testing framework for recommendation models. What metrics matter?",
+      "answer_outline": "Multiple layers: (1) correctness (does model rank user's favorite high?), (2) robustness (cold-start users, new content), (3) fairness (performance across demographics), (4) latency (<500ms SLO), (5) diversity (don't recommend only top shows). Test: unit tests (correctness), integration (with feature store), shadow (1 week on real traffic), A/B (25K users, measure engagement).",
+      "follow_ups": [
+        "How do you measure diversity?",
+        "How long should A/B test run?"
+      ],
+      "tags": ["testing-layers", "metrics", "production"]
+    },
+    {
+      "id": "concept_09_003",
+      "concept": "Model Testing",
+      "difficulty": "hard",
+      "company": "Stripe",
+      "question": "Fraud model tests pass. Deployed. Accuracy dropped 3% in production. Root cause?",
+      "answer_outline": "Likely: (1) distribution shift (production fraud patterns different from training), (2) fairness issue (accurate on average, fails for minority group), (3) latency SLO not met (slower model → fewer predictions → lower accuracy on time-constrained cases), (4) monitoring not detecting edge cases. Debug: check production data quality (null%, outliers), compare distributions (KS test), analyze per-group performance, review edge cases.",
+      "follow_ups": [
+        "How do you prevent this?",
+        "When is 3% drop acceptable?"
+      ],
+      "tags": ["debugging", "production-issues", "distribution-shift"]
+    },
+    {
+      "id": "concept_09_004",
+      "concept": "Model Testing",
+      "difficulty": "medium",
+      "company": "Google",
+      "question": "How do you test fairness in a model with protected attributes (gender, race)?",
+      "answer_outline": "Fairness testing: (1) measure performance by group (accuracy, precision, recall per demographic), (2) check for gaps (max gap <3% acceptable), (3) test disparate impact (model doesn't harm minority group disproportionately), (4) calibration (prediction confidence similar across groups), (5) monitor in production (fairness metrics dashboard). Example: credit model must have similar approval rates across races within 1%.",
+      "follow_ups": [
+        "What if groups have different characteristics?",
+        "How do you balance fairness and accuracy?"
+      ],
+      "tags": ["fairness", "bias", "compliance"]
+    },
+    {
+      "id": "concept_10_001",
+      "concept": "Data Testing",
+      "difficulty": "easy",
+      "company": "FAANG",
+      "question": "What makes data 'production ready'?",
+      "answer_outline": "Production-ready data: (1) schema fixed (column names, types won't change), (2) completeness (<1% nulls for critical fields), (3) freshness (timestamps within SLA, e.g., <1 hour), (4) statistical (distribution matches training data, KS test p > 0.05), (5) validity (no invalid values: negative prices, impossible dates), (6) idempotency (same input twice → same output), (7) documentation (schema documented, known issues tracked).",
+      "follow_ups": [
+        "How do you monitor completeness?",
+        "What if 1% data is missing?"
+      ],
+      "tags": ["quality", "completeness", "validation"]
+    },
+    {
+      "id": "concept_10_002",
+      "concept": "Data Testing",
+      "difficulty": "medium",
+      "company": "Uber",
+      "question": "Production data distribution shifted. Model accuracy dropped 3%. How do you diagnose?",
+      "answer_outline": "Diagnosis: (1) run KS test (training dist vs production dist) on each feature, identify which shifted most, (2) compare ranges: are min/max values different? (3) check null%: increasing nulls indicate pipeline issue, (4) investigate cause: real-world change (seasonal, new users) or data quality issue (pipeline bug), (5) decide action: retrain if real-world shift, fix pipeline if data issue.",
+      "follow_ups": [
+        "How often do you retrain?",
+        "What if you can't identify root cause?"
+      ],
+      "tags": ["drift-detection", "diagnosis", "distribution"]
+    },
+    {
+      "id": "concept_10_003",
+      "concept": "Data Testing",
+      "difficulty": "hard",
+      "company": "Stripe",
+      "question": "Design data validation for 500M transactions/day. Latency <100ms/txn. What checks?",
+      "answer_outline": "Real-time validation at scale: (1) fast schema checks (type, required fields), (2) range validation (amount > 0, currency valid), (3) sampling-based stats (can't check all 500M; reservoir sample for statistical validation), (4) alert strategy: critical violations (50% nulls) → STOP pipeline, warnings (1% outlier jump) → log, (5) fallback: if validation fails, use simpler model or previous day features, (6) monitoring: emit null%, outlier%, drift metrics every minute.",
+      "follow_ups": [
+        "How do you sample for statistical tests?",
+        "What happens if validation fails?"
+      ],
+      "tags": ["real-time", "scale", "monitoring"]
+    },
+    {
+      "id": "concept_11_001",
+      "concept": "A/B Testing",
+      "difficulty": "easy",
+      "company": "FAANG",
+      "question": "When should you A/B test vs deploy immediately?",
+      "answer_outline": "Deploy immediately (no A/B test): (1) crash fix, latency reduction (obvious win), (2) internal tooling (users don't interact), (3) rollback plan verified. A/B test for: (1) model changes (uncertain business impact), (2) feature changes (UX unknown), (3) uncertain business metrics (model better in lab, real-world impact unknown). Example: deploy tokenizer fix immediately. A/B test new recommendation model.",
+      "follow_ups": [
+        "How do you get statistical significance?",
+        "What sample size do you need?"
+      ],
+      "tags": ["deployment", "decision-making", "risk"]
+    },
+    {
+      "id": "concept_11_002",
+      "concept": "A/B Testing",
+      "difficulty": "medium",
+      "company": "Netflix",
+      "question": "A/B test needs 10M samples to detect 2% lift. 50M users/day. How long?",
+      "answer_outline": "Sample size: 50M users/day × 50% in treatment = 25M treatment samples/day. Need 10M → 10M / 25M = 0.4 days. But: account for day-of-week effects (running only 10 hours misses weekly patterns). Solution: run ≥7 days minimum, even if sample size achieved earlier. 50M users × 7 days = 350M samples, easily >10M. Statistical significance reached day 2, but run full 7 days.",
+      "follow_ups": [
+        "What if you need faster results?",
+        "How do you account for seasonality?"
+      ],
+      "tags": ["sample-size", "power-analysis", "duration"]
+    },
+    {
+      "id": "concept_11_003",
+      "concept": "A/B Testing",
+      "difficulty": "hard",
+      "company": "Stripe",
+      "question": "Design A/B test for fraud model update. False declines are expensive. What metrics?",
+      "answer_outline": "Fraud test metrics: (1) primary: fraud loss = (fraud missed × avg_fraud_amount) + (legitimate declined × cost). Minimize loss. (2) secondary: false-positive rate (decline rate on legitimate), false-negative rate (fraud detection rate), (3) guardrails: don't increase decline rate >1% (lose legitimate transactions), don't decrease detection rate <95% (miss fraud). Sample: need ~1M transactions per group (fraud is 1%, so 1M txns = 10K fraud cases = statistically valid). Duration: 1 month (fraud patterns vary weekly).",
+      "follow_ups": [
+        "How do you define 'cost of decline'?",
+        "What if results are inconclusive?"
+      ],
+      "tags": ["metric-design", "trade-offs", "guardrails"]
+    },
+    {
+      "id": "concept_12_001",
+      "concept": "Evaluation Metrics",
+      "difficulty": "easy",
+      "company": "FAANG",
+      "question": "Model has 98% accuracy on fraud detection. Is it good?",
+      "answer_outline": "Depends on data balance. If 98% of data is legitimate (fraud rate 2%), 98% accuracy is useless. You could achieve 98% by always predicting 'no fraud.' Better metrics for imbalanced: (1) precision (of fraud I flag, how many are actually fraud?), (2) recall (of all fraud, what % do I catch?), (3) ROC-AUC (threshold-invariant, shows ranking), (4) PR-AUC (better for imbalanced). Example: fraud rate 0.1%, use ROC-AUC. Model should show 0.85+ (excellent) vs 0.5 (random).",
+      "follow_ups": [
+        "How do you choose between precision and recall?",
+        "What guardrails would you set?"
+      ],
+      "tags": ["imbalanced-data", "metric-selection", "accuracy-trap"]
+    },
+    {
+      "id": "concept_12_002",
+      "concept": "Evaluation Metrics",
+      "difficulty": "medium",
+      "company": "Netflix",
+      "question": "Precision 95%, Recall 70%. Accept or improve?",
+      "answer_outline": "Precision 95%: of transactions I flag as fraud, 95% are actually fraud. Low false-positive rate. Recall 70%: catch 70% of fraud, 30% slips through. Depends on business: (1) if false declines are expensive (revenue loss): high precision good (only decline when confident). (2) if fraud loss is expensive: low recall bad (losing $100 to fraud worse than declining $1 legitimate). Trade-off: can't simultaneously have precision 95% and recall 95%. Must choose priority. Decision: 'High precision but low recall' is conservative, good if false positives hurt.",
+      "follow_ups": [
+        "How do you decide the threshold?",
+        "What's the business trade-off?"
+      ],
+      "tags": ["precision-recall", "trade-offs", "business-metrics"]
+    },
+    {
+      "id": "concept_12_003",
+      "concept": "Evaluation Metrics",
+      "difficulty": "hard",
+      "company": "Uber",
+      "question": "Design metrics for ETA model. Latency <100ms SLO. Accuracy matters but latency too.",
+      "answer_outline": "Multi-objective: (1) primary: MAE (mean absolute error) on ETA prediction, (2) secondary: latency p99 (<100ms), (3) guardrail: don't decrease accuracy >2%, don't increase latency >10%. Trade-off analysis: deeper model (higher accuracy but slower). Example: depth 7 achieves 85% accuracy in 45ms. Depth 10 achieves 86% but 65ms (exceeds SLO). Choose depth 7. Metrics: accuracy AND latency, not one or other.",
+      "follow_ups": [
+        "How do you measure latency?",
+        "What if accuracy-latency conflict?"
+      ],
+      "tags": ["multi-objective", "latency", "trade-offs"]
+    },
+    {
+      "id": "concept_13_001",
+      "concept": "Containerization",
+      "difficulty": "easy",
+      "company": "FAANG",
+      "question": "Code works on laptop, fails on server. Docker fixes it. How?",
+      "answer_outline": "Environment mismatch: laptop has Python 3.9, server has 3.8. Dockerfile pins versions: FROM python:3.9, pip install torch==2.0.0 (exact version). Docker builds image with all dependencies, runs identically everywhere. Dockerfile layers: base image (Python version) → dependencies → code. Same Dockerfile → same behavior on laptop/staging/production. Benefit: reproducibility, no 'works on my machine' problems.",
+      "follow_ups": [
+        "How do you version Docker images?",
+        "How do you optimize image size?"
+      ],
+      "tags": ["reproducibility", "environment", "basics"]
+    },
+    {
+      "id": "concept_13_002",
+      "concept": "Containerization",
+      "difficulty": "medium",
+      "company": "Stripe",
+      "question": "Docker image is 5GB. Slow to push to registry. Optimize.",
+      "answer_outline": "Reduce size: (1) multi-stage builds (build in one image, copy artifacts to smaller image), (2) slim base image (python:3.9-slim 100MB vs python:3.9 1GB), (3) remove unnecessary files (pip cache, test files), (4) layer ordering: put slow-changing (dependencies) before fast-changing (code). Result: 5GB → 500MB (10x smaller, faster push/pull). Multi-stage example: build wheels in builder image, copy wheels to slim image.",
+      "follow_ups": [
+        "What's a multi-stage build?",
+        "How do you leverage layer caching?"
+      ],
+      "tags": ["optimization", "multi-stage", "efficiency"]
+    },
+    {
+      "id": "concept_13_003",
+      "concept": "Containerization",
+      "difficulty": "hard",
+      "company": "Netflix",
+      "question": "Design containerization strategy for 100 models. Each needs different Python versions.",
+      "answer_outline": "Don't build 100 different images. Two approaches: (1) base image + model mounting: single Python image deployed 100 times with different model configs. Model mounted at /models/model_name. When model updates, no container rebuild. (2) versioned model images: myregistry.com/model-fraud:v1 (fraud model + inference server, Python 3.9), myregistry.com/model-churn:v1 (churn model, Python 3.8). Enables model-specific optimization, independent deployment. Choose based on: do models need different Python versions? If yes, approach 2. If no, approach 1.",
+      "follow_ups": [
+        "How do you version images?",
+        "How do you rollback?"
+      ],
+      "tags": ["scale", "design", "versioning"]
+    },
+    {
+      "id": "concept_14_001",
+      "concept": "Model Serving",
+      "difficulty": "easy",
+      "company": "FAANG",
+      "question": "Model inference takes 500ms. User needs response in 100ms. Fix it.",
+      "answer_outline": "Multiple approaches: (1) optimize model: quantization (500ms → 350ms), distillation (reduce model size), (2) infrastructure: GPU batching (process 128 at once), reduce latency (fewer hops), (3) caching: if same predictions repeated, cache (instant on hits), (4) feature pre-computation: precompute expensive features offline, (5) feature server: cache features in Redis (<10ms fetch). Realistic: 500ms → optimize model (350ms) + caching (instant hits, 350ms misses) + feature server (50ms). Target: 100ms p50, 150ms p99.",
+      "follow_ups": [
+        "How do you measure latency?",
+        "What's acceptable latency drift?"
+      ],
+      "tags": ["optimization", "latency", "caching"]
+    },
+    {
+      "id": "concept_14_002",
+      "concept": "Model Serving",
+      "difficulty": "medium",
+      "company": "Uber",
+      "question": "How do you deploy new model without downtime?",
+      "answer_outline": "Model versioning with no-downtime: (1) canary: 5% traffic on new model, 95% on old. Monitor. Expand if good. (2) blue-green: run both versions, switch traffic instantly. Instant rollback if needed. (3) shadow: new model runs, predictions logged but unused. (4) gradual: 5% → 25% → 50% → 100% over hours/days. Framework support: Seldon, KServe handle traffic splitting. You manage versions, framework handles routing.",
+      "follow_ups": [
+        "How long should canary run?",
+        "What metrics do you monitor?"
+      ],
+      "tags": ["deployment", "versioning", "zero-downtime"]
+    },
+    {
+      "id": "concept_14_003",
+      "concept": "Model Serving",
+      "difficulty": "hard",
+      "company": "Netflix",
+      "question": "Design serving for model requiring features, real-time API, batch data. Latency <100ms.",
+      "answer_outline": "Latency breakdown: feature store (10ms), real-time API (20ms), batch (50ms). If serial: 80ms. If parallel: max(10, 20, 50) = 50ms. Better. Strategy: parallel feature fetch. Request arrives → spawn 3 threads (fetch feature store, call API, fetch batch) simultaneously → inference (20ms) → response (70ms total). Framework should support parallel feature fetching or build manually. Dependencies: feature store (Redis <10ms), real-time API (timeout 20ms), batch data (S3 <50ms).",
+      "follow_ups": [
+        "How do you handle dependency failures?",
+        "What's your fallback strategy?"
+      ],
+      "tags": ["latency", "dependencies", "design"]
+    },
+    {
+      "id": "concept_15_001",
+      "concept": "Model Registry & CI/CD",
+      "difficulty": "easy",
+      "company": "FAANG",
+      "question": "Model is trained. How do you safely deploy it?",
+      "answer_outline": "Not directly. Pipeline: (1) register: model registry records training run, metrics, code version, (2) validate: unit + integration + shadow tests, (3) approve: code review style, 2 approvals confirm metrics acceptable, (4) canary: 5% traffic, 24h monitoring, (5) rollout: gradual expansion (25% → 50% → 100%), (6) monitor: continuous, auto-rollback if degradation. Safety layers prevent bad models from reaching production.",
+      "follow_ups": [
+        "How do you version models?",
+        "What happens if tests fail?"
+      ],
+      "tags": ["safety", "pipeline", "process"]
+    },
+    {
+      "id": "concept_15_002",
+      "concept": "Model Registry & CI/CD",
+      "difficulty": "medium",
+      "company": "Stripe",
+      "question": "Model deployed at 10am. By 4pm, accuracy dropped. Auto-rollback?",
+      "answer_outline": "Yes. Auto-rollback process: (1) monitoring detects accuracy drop (set threshold, e.g., >2% drop), (2) immediately rollback to previous version, (3) investigate: why did it drop? (data issue, code bug, real-world shift?), (4) fix and re-deploy through pipeline. Without auto-rollback: manual monitoring, delay, outage. With auto-rollback: instant (seconds), zero user impact. Threshold: auto-rollback if accuracy drops >2% (configurable per model).",
+      "follow_ups": [
+        "How do you investigate root cause?",
+        "How often does this happen?"
+      ],
+      "tags": ["monitoring", "rollback", "automation"]
+    },
+    {
+      "id": "concept_15_003",
+      "concept": "Model Registry & CI/CD",
+      "difficulty": "hard",
+      "company": "Netflix",
+      "question": "Design approval workflow for 100 models.",
+      "answer_outline": "Tiered automation: (1) auto-approve if all gates pass (accuracy > threshold, shadow test good, fairness metrics ok) → deploy to canary. (2) manual approval if flags (accuracy slightly above threshold, latency at edge) → engineer checks, quick review. (3) blocked if critical failures (accuracy below threshold, fairness issues) → requires retraining. For 100 models: ~80% auto-approved (no delay), ~15% manual (engineer review), ~5% blocked. Approval gate should be fast (<10 min review) not slow.",
+      "follow_ups": [
+        "How do you make auto-approval reliable?",
+        "What if human reviewer disagrees with metrics?"
+      ],
+      "tags": ["scale", "automation", "governance"]
+    },
+    {
+      "id": "concept_16_001",
+      "concept": "Deployment Strategies",
+      "difficulty": "easy",
+      "company": "FAANG",
+      "question": "How do you deploy new model without affecting current users?",
+      "answer_outline": "Deployment strategy determines risk: (1) canary: 5% traffic (low risk, 3 days), (2) blue-green: instant switch + instant rollback (no risk, double cost), (3) rolling: gradual replica replacement (no double cost, hard rollback), (4) shadow: no traffic on new model, test only. Canary recommended: start 5%, monitor 24h, expand 25% if metrics pass, expand 50% if metrics still pass, expand 100% if metrics still pass. Any degradation → instant rollback.",
+      "follow_ups": [
+        "How long should canary phase be?",
+        "What metrics do you monitor?"
+      ],
+      "tags": ["safety", "strategy", "risk"]
+    },
+    {
+      "id": "concept_16_002",
+      "concept": "Deployment Strategies",
+      "difficulty": "medium",
+      "company": "Uber",
+      "question": "Canary deployment takes 3 days. Too slow. How do you speed up?",
+      "answer_outline": "Trade speed vs safety. Options: (1) faster canary: expand at 6h (not 24h) for low-risk changes (bug fix, optimization), (2) bigger canary: start at 25% (not 5%) if confidence high (extensive shadow testing), (3) blue-green: instant deployment (need double infrastructure cost), (4) pre-validate: longer shadow test before canary (reduces canary issues). Choose based on: how confident are you? High confidence → faster canary. Low confidence → longer shadow test before canary. Speed is valuable but safety first.",
+      "follow_ups": [
+        "What if canary shows issues?",
+        "How do you test rollback?"
+      ],
+      "tags": ["speed", "confidence", "trade-offs"]
+    },
+    {
+      "id": "concept_16_003",
+      "concept": "Deployment Strategies",
+      "difficulty": "hard",
+      "company": "Netflix",
+      "question": "Design deployment strategy for 100 models across company.",
+      "answer_outline": "Standardized strategy for all: (1) baseline: canary (5% → 25% → 50% → 100%, 3 days) for all models, (2) variations: low-risk (bug fix) → faster (6h windows), high-risk (major change) → slower (shadow test 2 weeks first), critical (fraud) → blue-green (instant, double cost), (3) infrastructure: Kubernetes + Flagger/Istio for traffic splitting + auto-rollback, (4) approval: low-risk auto-approved canary, high-risk manual approval, critical models on-call monitoring. Result: 100 models, safe, standardized, automated deployment.",
+      "follow_ups": [
+        "How do you decide risk level?",
+        "What happens if deployment fails?"
+      ],
+      "tags": ["scale", "standardization", "governance"]
+    }
+  ]
+}
