@@ -182,3 +182,43 @@ graph TD
     
     style A fill:#fff3e0
 ```
+
+## Interview Questions
+
+**Q: What's the main advantage of using adapters over full fine-tuning?**
+*A: Adapters reduce trainable parameters from millions to thousands (often 0.5-5% of original), enabling fast adaptation to multiple tasks while keeping the base model frozen. This allows sharing a single large base model across many specialized tasks.*
+
+**Q: How do adapters maintain performance while reducing parameters?**
+*A: They leverage the fact that fine-tuning operates in a much lower-dimensional subspace. Adapters use bottleneck architectures (down-project, activate, up-project) that capture task-specific information efficiently without modifying pre-trained knowledge.*
+
+**Q: Can you explain the adapter architecture in detail?**
+*A: Adapters follow a bottleneck design: input → linear down-projection (to small dim like 64) → activation (GELU) → linear up-projection (back to original dim) → residual connection. This 2-layer MLP is much smaller than the original layer but learns task-specific transformations.*
+
+**Q: What are the trade-offs between LoRA and Adapters?**
+*A: LoRA uses low-rank matrix decomposition added to weights (multiplicative). Adapters are bottleneck MLP modules (additive). LoRA is often more parameter-efficient but harder to interpret. Adapters are modular and easier to compose but use slightly more parameters.*
+
+## Real-World Applications
+
+### Meta (Facebook): Efficient model specialization
+Uses adapters to quickly adapt LLAMA models to specific languages and domains without full retraining. Reduces deployment footprint significantly.
+
+### Microsoft: Multi-tenant serving
+Deploys adapters for different enterprise customers on shared base models. Each customer gets a specialized model via lightweight adapters.
+
+### Google: Task-specific models
+Uses adapter-like modules in T5 and FLAN to efficiently adapt to new tasks without retraining massive models.
+
+## Best Practices
+
+- Keep bottleneck dimension between 8-64. Too small loses expressiveness, too large wastes parameters.
+- Initialize down-projection with uniform distribution, up-projection with zeros to start as identity.
+- Add layer normalization after residual connection for training stability.
+- Use adapters in every transformer layer for consistent improvement across depths.
+
+## Common Pitfalls to Avoid
+
+- **Adapter bottleneck too small**: Adapter bottleneck too small: insufficient capacity for complex task shifts
+- **Placing adapters only in middle layers**: Placing adapters only in middle layers: misses specialization opportunities in early/late layers
+- **Not freezing base model**: Not freezing base model: defeats the purpose of parameter efficiency
+- **Insufficient adapter training data**: Insufficient adapter training data: small adaptation sets may overfit to adapters
+

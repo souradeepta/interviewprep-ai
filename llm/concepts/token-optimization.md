@@ -343,3 +343,15 @@ graph TD
     
     style A fill:#fff3e0
 ```
+
+## Interview Questions
+
+**Q: What's the core problem this concept solves?**
+*A: See the 'Core Intuition' section above for the fundamental problem and how this concept addresses it.*
+
+**Q: What are the main advantages and disadvantages?**
+*A: See 'Key Properties / Trade-offs' section for detailed comparison with alternatives.*
+
+**Q: How do you implement this in practice?**
+*A: Refer to the corresponding Jupyter notebook in `llm/notebooks/` for working Python implementations and examples.*
+

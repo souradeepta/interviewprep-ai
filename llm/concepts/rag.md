@@ -166,3 +166,43 @@ graph TD
     
     style A fill:#fff3e0
 ```
+
+## Interview Questions
+
+**Q: Why is RAG necessary if LLMs are large?**
+*A: LLMs have knowledge cutoff dates, can hallucinate, and have limited context windows. RAG retrieves fresh, relevant information at query time, grounding generation in actual documents. This reduces hallucination and enables current information access.*
+
+**Q: What are the three main components of RAG?**
+*A: 1) Retriever: finds relevant documents via semantic/BM25 search. 2) Reader/LLM: generates answer using retrieved documents. 3) Ranking: orders retrieved docs by relevance. Often uses dense retrievers (embeddings) + re-rankers.*
+
+**Q: How do you evaluate RAG quality?**
+*A: Retrieval metrics: MRR, NDCG, Recall@k (is relevant doc in top-k?). Generation metrics: BLEU, ROUGE (similarity to reference). End-to-end: EM, F1 on QA datasets. Human evaluation for factuality and relevance.*
+
+**Q: What's the trade-off between retrieval and generation in RAG?**
+*A: Better retrieval → better context → better generation. But retrieval is expensive (vector similarity over millions of docs). Need to balance: retrieve more docs (higher latency) vs. fewer docs (lower quality). Sweet spot: top-5 to top-20.*
+
+## Real-World Applications
+
+### OpenAI: ChatGPT plugins and browsing
+Uses RAG-like approach to fetch real-time information from web and plugins, grounding responses in live data.
+
+### LinkedIn: Search and Q&A
+Uses RAG for enterprise Q&A over company knowledge bases, enabling employees to ask natural questions.
+
+### Amazon: Customer service automation
+Retrieves from FAQs and product documentation to answer customer questions accurately without hallucination.
+
+## Best Practices
+
+- Hybrid retrieval: combine dense (semantic) + sparse (BM25) search for robustness.
+- Re-ranking: use cross-encoder to re-rank retrieved documents by relevance before generation.
+- Chunk documents carefully: too small → multiple docs with partial info, too large → noise.
+- Cache embeddings: pre-compute and store document embeddings for fast retrieval.
+
+## Common Pitfalls to Avoid
+
+- **Retrieving irrelevant documents**: Retrieving irrelevant documents: LLM can't fix bad retrieval, garbage in = garbage out
+- **Too many documents**: Too many documents: overwhelms context window and confuses model
+- **Poor document indexing**: Poor document indexing: missing relevant documents makes retrieval impossible
+- **Outdated embeddings**: Outdated embeddings: if documents change, embeddings become stale
+

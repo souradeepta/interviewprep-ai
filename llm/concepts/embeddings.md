@@ -144,3 +144,43 @@ graph TD
     
     style A fill:#fff3e0
 ```
+
+## Interview Questions
+
+**Q: Why are embeddings important in modern NLP?**
+*A: Embeddings convert discrete text into continuous vectors that capture semantic meaning. This enables: similarity computation, retrieval, clustering, and transfer learning. They're foundational for RAG, semantic search, and similarity-based tasks.*
+
+**Q: What's the difference between word embeddings and sentence embeddings?**
+*A: Word embeddings (Word2Vec, GloVe) represent single words. Sentence embeddings (Sentence-BERT, Universal Sentence Encoder) represent entire sentences/documents by pooling or attending over word embeddings, capturing full semantic context.*
+
+**Q: How do you choose an embedding model?**
+*A: Consider: task (semantic similarity, clustering, retrieval), domain (general vs. specialized), embedding dimension (128 for speed, 384+ for quality), model size (computational budget), and benchmark performance on similar tasks.*
+
+**Q: What's the computational cost of generating embeddings at scale?**
+*A: Inference cost is relatively low (ms per example). Main costs are: initial embedding generation for large corpora (hours to days), storage (embedding_dim * num_examples bytes), and similarity computation (O(n²) for exact search).*
+
+## Real-World Applications
+
+### Pinecone: Vector search infrastructure
+Provides vector databases for storing and searching embeddings at scale. Used by Uber, Slack, DuckDuckGo for semantic search and recommendations.
+
+### Airbnb: Listing search and recommendations
+Uses embeddings to compute similarity between listings and user preferences, enabling semantic search beyond keyword matching.
+
+### Spotify: Music recommendations
+Generates embeddings for songs and user preferences. Uses cosine similarity to recommend songs that are semantically similar in taste space.
+
+## Best Practices
+
+- Normalize embeddings to unit vectors for efficient cosine similarity (dot product = cosine similarity).
+- Use contrastive training (sentence-BERT) for better semantic representations than vanilla transformers.
+- Dimension reduction (PCA, UMAP) can improve efficiency for downstream tasks without much quality loss.
+- Fine-tune embeddings on domain-specific data for better domain relevance.
+
+## Common Pitfalls to Avoid
+
+- **Using overly generic embeddings for specialized domains**: Using overly generic embeddings for specialized domains: task-specific fine-tuning usually helps
+- **Not normalizing embeddings**: Not normalizing embeddings: breaks cosine similarity assumptions
+- **Using too-large models for simple tasks**: Using too-large models for simple tasks: waste of compute; smaller models often sufficient
+- **Outdated embedding models**: Outdated embedding models: new models (Sentence-BERT v2) have much better quality
+

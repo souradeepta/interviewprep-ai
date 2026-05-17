@@ -194,3 +194,43 @@ graph TD
     
     style A fill:#fff3e0
 ```
+
+## Interview Questions
+
+**Q: Why does LoRA work so well despite using so few parameters?**
+*A: LoRA is based on the hypothesis that weight updates during fine-tuning have low intrinsic dimensionality. Instead of updating all parameters, LoRA learns low-rank factors A (in_dim × r) and B (r × out_dim) where r << both dimensions. The update is W ← W + AB^T.*
+
+**Q: How do you choose the LoRA rank?**
+*A: Rank is task and model dependent. Common values: r=4-8 (10-20% of LoRA params), r=16-32 (40-60%), r=64 (heavy adaptation). Start with r=8 and tune based on performance. Diminishing returns after rank ≈ model_dim/4.*
+
+**Q: Can you stack multiple LoRA adapters?**
+*A: Yes! LoRA is composable. You can have separate LoRA modules for different tasks and combine them (e.g., task1_weights + task2_weights). This enables multi-task adaptation with minimal additional parameters.*
+
+**Q: What's the relationship between LoRA and matrix factorization?**
+*A: LoRA decomposes large weight matrices into products of smaller matrices. This is essentially low-rank matrix factorization. It works because fine-tuning updates are approximately low-rank (empirically verified).*
+
+## Real-World Applications
+
+### Microsoft: Efficient LLM fine-tuning
+Original LoRA paper. Used for fine-tuning LLAMA and other large models with 99% parameter reduction while maintaining performance.
+
+### Hugging Face: PEFT library
+Provides production-ready LoRA implementation. Used by 100k+ developers for fine-tuning models on consumer hardware.
+
+### OpenAI: Model customization
+Uses LoRA-like techniques for efficient fine-tuning of GPT models for enterprise customers.
+
+## Best Practices
+
+- Use alpha/rank scaling: multiply LoRA updates by alpha/rank for stable training across different ranks.
+- Apply LoRA to both Q and V projections in attention; less critical but helps for heavy adaptation.
+- Start with frozen base model + LoRA. Only unfreeze base if significant gains plateau.
+- Use moderate learning rates (1e-4 to 5e-4). LoRA is more sensitive than full fine-tuning.
+
+## Common Pitfalls to Avoid
+
+- **Too small rank**: Too small rank: insufficient capacity; performance plateaus quickly
+- **Too large rank**: Too large rank: loses efficiency benefits; approaching full fine-tuning cost
+- **High learning rate**: High learning rate: LoRA can diverge quickly if not careful
+- **Not scaling updates**: Not scaling updates: unstable training when switching between ranks
+

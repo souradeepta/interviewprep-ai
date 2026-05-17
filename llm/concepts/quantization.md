@@ -169,3 +169,43 @@ graph TD
     
     style A fill:#fff3e0
 ```
+
+## Interview Questions
+
+**Q: What's the intuition behind quantization?**
+*A: Neural networks can operate at lower precision without significant accuracy loss. Quantization reduces precision (float32 → int8/int4), shrinking model size by 4-8x and speeding inference. Trade-off: slight accuracy loss, faster speed, less memory.*
+
+**Q: What's the difference between post-training quantization and QAT?**
+*A: PTQ: quantize pre-trained weights directly, fast but may lose accuracy. QAT (Quantization-Aware Training): simulate quantization during training, learn optimal scaling factors, better accuracy but requires retraining.*
+
+**Q: How do you choose quantization bits?**
+*A: 8-bit: standard, minimal loss, 4x compression. 4-bit: aggressive, noticeable but acceptable loss for many tasks, 8x compression. 2-bit: extreme, only for specific models. Research shows 4-8 bit is sweet spot.*
+
+**Q: What's the relationship between quantization and hardware?**
+*A: Modern GPUs have int8 operations but less common for int4. CPUs have int8 support. Specialized hardware (TPUs, Qualcomm Snapdragon) have excellent int8 performance. Quantization choice should match target hardware.*
+
+## Real-World Applications
+
+### NVIDIA: TensorRT optimization
+Provides automated quantization and optimization for deep learning models on GPUs, enabling 4-8x speedup.
+
+### Apple: On-device ML
+Uses INT8 and mixed-precision quantization to run models efficiently on iPhones and Macs without cloud computing.
+
+### Meta: Efficient inference
+Uses post-training quantization for LLAMA models to serve billions of requests with reduced latency and cost.
+
+## Best Practices
+
+- Start with 8-bit symmetric quantization, most tools support it well.
+- Use calibration data: quantization needs representative samples to determine good scaling factors.
+- Per-channel quantization: quantize each filter differently for better accuracy than per-layer.
+- Test on actual hardware: simulated quantization != real hardware performance.
+
+## Common Pitfalls to Avoid
+
+- **Naive uniform quantization**: Naive uniform quantization: loses precision for outlier weights; use asymmetric or per-channel instead
+- **Calibration on unrepresentative data**: Calibration on unrepresentative data: scaling factors won't generalize to real data
+- **Extreme quantization (2-bit) for all layers**: Extreme quantization (2-bit) for all layers: some layers are sensitive, need higher precision
+- **Ignoring hardware**: Ignoring hardware: int4 speedup varies wildly by hardware; may not justify complexity
+
