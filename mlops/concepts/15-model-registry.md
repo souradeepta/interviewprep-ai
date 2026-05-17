@@ -47,6 +47,34 @@ If degradation detected → auto-rollback to previous version
 Archive: version 1.0.0 available for history
 ```
 
+```mermaid
+graph TD
+    A["Model Training<br/>v1.0.0"] --> B["Register<br/>Model Registry"]
+    B --> C["Staging Environment<br/>Unit Tests<br/>Integration Tests"]
+    C --> |"Pass?"| D{Tests OK?}
+    D --> |"No"| E["Debug<br/>Retrain"]
+    E --> B
+    D --> |"Yes"| F["Shadow Test<br/>1 Week<br/>Production Data"]
+    F --> |"Pass?"| G{Metrics OK?}
+    G --> |"No"| E
+    G --> |"Yes"| H["Approval Gate<br/>Manual Review"]
+    H --> |"Approve?"| I{Approved?}
+    I --> |"No"| E
+    I --> |"Yes"| J["Canary Deploy<br/>5% Traffic<br/>1 Day"]
+    J --> |"OK?"| K{Monitor<br/>Metrics}
+    K --> |"Degradation"| L["Auto-Rollback<br/>to v0.9.9"]
+    K --> |"Good"| M["Expand: 25%"]
+    M --> |"OK?"| K
+    M --> |"Good"| N["Expand: 50%"]
+    N --> |"OK?"| K
+    N --> |"Good"| O["Expand: 100%"]
+    O --> |"OK?"| K
+    O --> |"Good"| P["Production<br/>v1.0.0 Live"]
+    P --> Q["Continuous Monitoring"]
+    Q --> |"Degradation"| L
+    L --> R["Archive: v0.9.9"]
+```
+
 ### CI/CD Pipeline Stages
 
 **Stage 1: Model Training**

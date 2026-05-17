@@ -37,6 +37,47 @@ Input Data
 Clean Data (safe for training/inference)
 ```
 
+```mermaid
+graph LR
+    A["Raw Data"] --> B["Schema Check<br/>Types, Structure"]
+    B --> |"Pass?"| C{Valid Schema?}
+    C --> |"No"| D["Alert: Schema Error"]
+    C --> |"Yes"| E["Completeness Check<br/>Nulls, Missing Values"]
+    E --> |"Pass?"| F{Complete?}
+    F --> |"No"| G["Alert: Missing Data"]
+    F --> |"Yes"| H["Statistical Check<br/>Distribution, Outliers"]
+    H --> |"Pass?"| I{Good Distribution?}
+    I --> |"No"| J["Alert: Distribution Shift"]
+    I --> |"Yes"| K["Business Logic Check<br/>Domain Rules"]
+    K --> |"Pass?"| L{Valid Values?}
+    L --> |"No"| M["Alert: Logic Error"]
+    L --> |"Yes"| N["Data Quality Score<br/>Ready for Use"]
+```
+
+```mermaid
+graph TB
+    A["Data Quality Checks"] --> B["Schema Tests"]
+    A --> C["Completeness Tests"]
+    A --> D["Statistical Tests"]
+    A --> E["Business Logic Tests"]
+    
+    B --> B1["Column Types"]
+    B --> B2["Required Fields"]
+    B --> B3["Value Ranges"]
+    
+    C --> C1["Null Count %"]
+    C --> C2["Empty Strings"]
+    C --> C3["Missing Rows"]
+    
+    D --> D1["Distribution Match"]
+    D --> D2["Outlier Detection"]
+    D --> D3["Drift Monitoring"]
+    
+    E --> E1["Price > 0"]
+    E --> E2["Valid Dates"]
+    E --> E3["Relationships"]
+```
+
 ### Categories of Data Tests
 
 **1. Schema Validation**

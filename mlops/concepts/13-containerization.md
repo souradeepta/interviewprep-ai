@@ -33,6 +33,16 @@ docker run (creates container from image)
 Container (running instance)
 ```
 
+```mermaid
+graph LR
+    A["Dockerfile<br/>Recipe"] --> B["docker build"]
+    B --> |"Creates"| C["Image<br/>Blueprint"]
+    C --> D["Registry<br/>Storage"]
+    D --> E["docker run"]
+    E --> |"Launches"| F["Container<br/>Instance"]
+    F --> G["Running<br/>Process"]
+```
+
 ### Dockerfile Structure
 
 ```dockerfile
@@ -50,6 +60,13 @@ Docker images are built in layers. Each instruction (FROM, COPY, RUN) creates a 
 - **Benefit**: If layer A hasn't changed, Docker reuses cached layer instead of rebuilding
 - **Optimization**: Put slowly-changing layers first (base image), frequently-changing layers last (code)
 
+```mermaid
+graph TB
+    A["Layer 1: Base Image<br/>python:3.9-slim<br/>Rarely changes<br/>Cached"]
+    A --> B["Layer 2: Dependencies<br/>pip install requirements.txt<br/>Rarely changes<br/>Cached"]
+    B --> C["Layer 3: Code<br/>COPY app.py<br/>Frequently changes<br/>Rebuild"]
+```
+
 ### Example: Inefficient vs Efficient
 
 **Inefficient:**
@@ -60,6 +77,13 @@ RUN pip install -r requirements.txt  # Install (slow)
 ```
 Each code change → rebuild dependencies (slow).
 
+```mermaid
+graph TB
+    A["Code Changes"] --> B["Invalidate Layer 2<br/>COPY . ."]
+    B --> C["Rebuild Layer 3<br/>pip install<br/>Takes 2 minutes"]
+    C --> D["Every code change is slow"]
+```
+
 **Efficient:**
 ```dockerfile
 FROM python:3.9-slim
@@ -68,6 +92,13 @@ RUN pip install -r requirements.txt  # Install once
 COPY . .  # Copy code last (frequent changes)
 ```
 Code changes → reuse cached dependency layer (fast).
+
+```mermaid
+graph TB
+    A["Code Changes"] --> B["Invalidate Layer 3<br/>COPY . ."]
+    B --> C["Layer 2 Cached<br/>pip install<br/>Skipped!"]
+    C --> D["Build Complete<br/>10 seconds"]
+```
 
 ---
 

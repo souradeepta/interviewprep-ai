@@ -19,17 +19,32 @@ Netflix optimizes watch hours (business), not accuracy. Stripe optimizes fraud l
 
 ### Classification Metrics
 
-**Accuracy**: (TP + TN) / (TP + TN + FP + FN). Good only for balanced data.
+```mermaid
+graph TD
+    A["Classification Task"] --> B{Balanced<br/>Data?}
+    B --> |"Yes"| C["Accuracy OK"]
+    B --> |"No<br/>Imbalanced"| D["Use ROC-AUC<br/>or PR-AUC"]
+    
+    C --> E{Threshold<br/>Matters?}
+    E --> |"Yes<br/>Need to pick cutoff"| F["Precision-Recall"]
+    E --> |"No<br/>Ranking quality"| G["ROC-AUC"]
+    
+    D --> H{Focus on<br/>Finding Positives?}
+    H --> |"Yes<br/>Catch fraud"| I["PR-AUC<br/>Recall"]
+    H --> |"No<br/>Confident predictions"| J["ROC-AUC<br/>Precision"]
+```
 
-**Precision**: TP / (TP + FP). "Of predictions I made positive, how many are actually positive?" For fraud: "Of transactions I flag as fraud, how many are actual fraud?"
+**Accuracy**: (TP + TN) / (TP + TN + FP + FN). Good only for balanced data (>10% minority class).
 
-**Recall**: TP / (TP + FN). "Of all actual positives, how many did I catch?" For fraud: "Of all fraud transactions, what % do I detect?"
+**Precision**: TP / (TP + FP). "Of predictions I made positive, how many are actually positive?" For fraud: "Of transactions I flag as fraud, how many are actual fraud?" Use when false positives are costly.
 
-**F1 Score**: 2 * (Precision * Recall) / (Precision + Recall). Harmonic mean. Good when you care about both.
+**Recall**: TP / (TP + FN). "Of all actual positives, how many did I catch?" For fraud: "Of all fraud transactions, what % do I detect?" Use when missing positives is costly.
 
-**ROC-AUC**: Area under ROC curve. Threshold-invariant. Shows model ranking (does it rank positives higher than negatives?). Useful for model comparison.
+**F1 Score**: 2 * (Precision * Recall) / (Precision + Recall). Harmonic mean. Good when you care about both precision and recall equally. Default choice for imbalanced classification.
 
-**PR-AUC**: Precision-recall curve AUC. Better for imbalanced data (where negatives >> positives).
+**ROC-AUC**: Area under ROC curve. Threshold-invariant. Shows model ranking quality (does it rank positives higher than negatives?). Useful for model comparison across thresholds. Range: 0.5 (random) to 1.0 (perfect).
+
+**PR-AUC**: Precision-recall curve AUC. Better for imbalanced data (where negatives >> positives). More informative than ROC-AUC when you care about precision-recall trade-off.
 
 ### Regression Metrics
 

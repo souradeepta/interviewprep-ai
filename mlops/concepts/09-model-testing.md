@@ -33,42 +33,100 @@ Model testing has multiple layers, each catching different categories of failure
 └─────────────────────────────────────────────┘
 ```
 
+```mermaid
+graph TD
+    A["Input Data"] --> B["Data Validation Tests"]
+    B --> |"Schema OK?"| C{"Valid Data?"}
+    C --> |"No"| D["Reject"]
+    C --> |"Yes"| E["Unit Tests<br/>Correctness, Robustness"]
+    E --> |"Pass?"| F{"Model OK?"}
+    F --> |"No"| D
+    F --> |"Yes"| G["Integration Tests<br/>Model + Features + Pipeline"]
+    G --> |"Pass?"| H{"System OK?"}
+    H --> |"No"| D
+    H --> |"Yes"| I["E2E Tests<br/>Full Production Simulation"]
+    I --> |"Pass?"| J{"Ready?"}
+    J --> |"No"| D
+    J --> |"Yes"| K["Shadow Test<br/>Production Data, No Impact"]
+    K --> |"Pass?"| L{"Deploy?"}
+    L --> |"No"| D
+    L --> |"Yes"| M["Canary Deployment"]
+    M --> |"Monitor"| N{"Metrics OK?"}
+    N --> |"No"| O["Rollback"]
+    N --> |"Yes"| P["Production"]
+```
+
 ### Categories of Model Tests
 
-**1. Correctness Tests**
+```mermaid
+graph TB
+    A["Model Tests"] --> B["Correctness"]
+    A --> C["Robustness"]
+    A --> D["Fairness"]
+    A --> E["Performance"]
+    A --> F["Behavioral"]
+    
+    B --> B1["Forward Pass"]
+    B --> B2["Learning Rate"]
+    B --> B3["Loss Convergence"]
+    
+    C --> C1["Adversarial Inputs"]
+    C --> C2["Distribution Tails"]
+    C --> C3["Noisy/Corrupted Data"]
+    C --> C4["Extrapolation"]
+    
+    D --> D1["Demographic Parity"]
+    D --> D2["Equal Opportunity"]
+    D --> D3["Equalized Odds"]
+    
+    E --> E1["Latency P99"]
+    E --> E2["Throughput"]
+    E --> E3["Memory Usage"]
+    E --> E4["GPU Utilization"]
+    
+    F --> F1["Consistency"]
+    F --> F2["Monotonicity"]
+    F --> F3["Domain Logic"]
+```
+
+**1. Correctness Tests** — Does the model work at all?
 - Does the model produce sensible outputs on known inputs?
-- Does it learn from training data?
-- Does loss decrease during training?
+- Does it learn from training data? (loss decreasing)
+- Can it overfit on small dataset? (sanity check)
 
-Example: Test that a pretrained BERT model outputs higher similarity scores for paraphrases than for random sentences.
+Example: Test that a pretrained BERT model outputs higher similarity scores for paraphrases than for random sentences. Fraud model should assign higher scores to known fraud transactions than legitimate ones.
 
-**2. Robustness Tests**
-- How does the model behave on adversarial inputs?
-- What about rare cases in the tail of the distribution?
-- Does it gracefully degrade with corrupted inputs?
+**2. Robustness Tests** — Does it handle edge cases and distribution shifts?
+- How does the model behave on adversarial inputs? (intentional perturbations)
+- What about rare cases in the tail of the distribution? (outliers)
+- Does it gracefully degrade with corrupted inputs? (missing values, NaN, outliers)
+- How does it perform on out-of-distribution data? (different geographies, time periods)
 
-Example: Fraud model tested on transactions from 100+ countries, edge cases (midnight, holidays, max amount).
+Example: Fraud model tested on transactions from 100+ countries, edge cases (midnight, holidays, max amount, zero amount, duplicate transactions). Models often fail on geographic shifts (model trained on US data, deployed to EU).
 
-**3. Fairness Tests**
-- Does performance vary across demographic groups?
-- Are error rates equal across classes?
-- Is the model bias-aware and documented?
+**3. Fairness Tests** — Is it biased?
+- Does performance vary across demographic groups? (age, gender, geography)
+- Are error rates equal across classes? (disparate impact)
+- Is the model bias-aware and documented? (audit trail)
+- Can users opt-out if they're harmed? (legal requirement)
 
-Example: Lending model tested separately for male/female applicants, must have <1% performance gap.
+Example: Lending model tested separately for male/female applicants, must have <1% performance gap. Netflix recommendation system measured separately for new users (cold start fairness) and long-term users (engagement fairness).
 
-**4. Performance Tests**
-- What are latency and throughput SLOs?
-- How much memory and compute are required?
-- Does the model meet production requirements?
+**4. Performance Tests** — Can it serve production traffic?
+- What are latency and throughput SLOs? (p99 latency, requests/sec)
+- How much memory and compute are required? (per-request and total)
+- Can it handle traffic spikes? (auto-scaling, queue depth)
+- What's the cost per prediction? (GPU hours, API calls)
 
-Example: Real-time recommendation model must infer <50ms for a user profile lookup from 100M users.
+Example: Real-time recommendation model must infer <50ms for a user profile lookup from 100M users with <2GB memory. Stripe fraud model must handle 500K transactions/second with <100ms latency.
 
-**5. Behavioral Tests**
+**5. Behavioral Tests** — Does it follow domain rules?
 - Does the model behave consistently across runs (given same seed)?
-- Does it produce monotonic outputs where expected (longer text shouldn't lower score)?
-- Does it follow domain logic (prices shouldn't be negative)?
+- Does it produce monotonic outputs where expected? (longer text shouldn't lower score, higher income shouldn't lower credit score)
+- Does it follow domain logic? (prices shouldn't be negative, probabilities should be [0,1])
+- Are outputs calibrated? (confidence matches accuracy)
 
-Example: Credit scoring model should not lower scores if income increases.
+Example: Credit scoring model should not lower scores if income increases. Recommendation model should not recommend the same item twice to one user. Fraud model confidence should match actual fraud rate (if confidence = 0.95, fraud should happen ~95% of the time).
 
 ### The Testing Workflow
 

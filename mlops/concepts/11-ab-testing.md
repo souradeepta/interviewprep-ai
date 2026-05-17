@@ -32,6 +32,23 @@ Compute p-value & confidence interval
 Make decision (ship, iterate, or discard)
 ```
 
+```mermaid
+graph TD
+    A["Define Hypothesis<br/>Baseline Metric<br/>Expected Lift"] --> B["Sample Size<br/>Calculation"]
+    B --> C["Randomize Users<br/>Control vs Treatment<br/>50-50 Split"]
+    C --> D["Run Experiment<br/>N Days<br/>Collect Metrics"]
+    D --> |"Enough Data?"| E{Min Sample<br/>Collected?}
+    E --> |"No"| D
+    E --> |"Yes"| F["Statistical Analysis<br/>T-test<br/>P-value & CI"]
+    F --> G{p < 0.05?}
+    G --> |"No"| H["Not Significant<br/>Inconclusive"]
+    G --> |"Yes"| I{All Guardrails<br/>OK?}
+    I --> |"No"| J["Guardrail Violation<br/>Do Not Ship"]
+    I --> |"Yes"| K["Statistically Significant<br/>Ready to Ship"]
+    H --> L["Options:<br/>Extend Test<br/>Redesign<br/>Discard"]
+    J --> L
+```
+
 ### Key Components
 
 **1. Hypothesis**

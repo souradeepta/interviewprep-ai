@@ -20,6 +20,26 @@ Netflix uses canary deployment for all models. Stripe uses blue-green for fraud 
 
 ### Deployment Strategy Comparison
 
+```mermaid
+graph TB
+    A["Deployment Strategy Decision"] --> B["Canary<br/>Gradual"]
+    A --> C["Blue-Green<br/>Instant Switch"]
+    A --> D["Rolling<br/>Kubernetes"]
+    A --> E["Shadow<br/>Validation Only"]
+    
+    B --> B1["5% → 25% → 50% → 100%<br/>24h each stage"]
+    B1 --> B2["Risk: Low<br/>Time: 3-4 days<br/>Rollback: Fast<br/>Cost: 1.05x<br/>Use: Most cases"]
+    
+    C --> C1["Blue: Current<br/>Green: New<br/>Switch instantly"]
+    C1 --> C2["Risk: High<br/>Time: Instant<br/>Rollback: Fast<br/>Cost: 2.0x<br/>Use: Critical only"]
+    
+    D --> D1["1 new → 1 old<br/>Remove old<br/>Repeat"]
+    D1 --> D2["Risk: Medium<br/>Time: 30-60m<br/>Rollback: Hard<br/>Cost: 1.05x<br/>Use: K8s native"]
+    
+    E --> E1["New model<br/>No traffic<br/>Log predictions"]
+    E1 --> E2["Risk: None<br/>Time: 1 week<br/>Rollback: N/A<br/>Cost: 1.05x<br/>Use: Validation"]
+```
+
 **1. Canary Deployment** (recommended)
 ```
 Deploy new model to 5% traffic (1% of users)
@@ -35,10 +55,24 @@ If good (24h): expand to 100%
 If bad (any time): rollback to previous model instantly
 ```
 
+```mermaid
+graph LR
+    A["Deploy<br/>5%"] --> B["Monitor<br/>24h"]
+    B --> |"OK"| C["Expand<br/>25%"]
+    B --> |"Bad"| D["Rollback<br/>Instant"]
+    C --> E["Monitor<br/>24h"]
+    E --> |"OK"| F["Expand<br/>50%"]
+    E --> |"Bad"| D
+    F --> G["Monitor<br/>24h"]
+    G --> |"OK"| H["Expand<br/>100%"]
+    G --> |"Bad"| D
+    H --> I["Production<br/>All Users"]
+```
+
 Advantages: Low risk (5% affected), catches issues, fast rollback
 Disadvantages: Takes 3+ days for full deployment
 
-**2. Blue-Green Deployment** (safe but slower)
+**2. Blue-Green Deployment** (safe but requires 2x infrastructure)
 ```
 Blue (current model): receives all traffic
     ↓
@@ -51,10 +85,19 @@ If good: keep Green, decommission Blue
 If bad: instant rollback (switch traffic back to Blue)
 ```
 
-Advantages: Instant rollout, instant rollback
-Disadvantages: Requires double infrastructure (run both models simultaneously), resource cost
+```mermaid
+graph TB
+    A["Blue<br/>100% Traffic<br/>v0.9.9"] --> B["Prepare Green<br/>v1.0.0<br/>Shadow Test"]
+    B --> |"Ready"| C["Switch<br/>All Traffic<br/>to Green"]
+    C --> D{Monitor<br/>Issues?}
+    D --> |"Yes<br/>Instant"| E["Switch Back<br/>to Blue<br/>Rollback Done"]
+    D --> |"No"| F["Archive<br/>Blue"]
+```
 
-**3. Rolling Deployment** (fast but risky)
+Advantages: Instant rollout, instant rollback
+Disadvantages: Requires double infrastructure (run both models simultaneously), 2x resource cost
+
+**3. Rolling Deployment** (fast but harder to rollback)
 ```
 Deploy to 1 replica, wait for it to start
     ↓

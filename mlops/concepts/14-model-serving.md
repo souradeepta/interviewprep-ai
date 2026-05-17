@@ -92,6 +92,41 @@ Inference server (receives request)
 Response returned to user
 ```
 
+```mermaid
+graph LR
+    A["User Request<br/>user_id, context"] --> B["Load Balancer"]
+    B --> |"Route"| C["Inference Server<br/>Replica 1-N"]
+    C --> D{Cache<br/>Hit?}
+    D --> |"Yes<br/>&lt;5ms"| E["Return Prediction<br/>from Cache"]
+    D --> |"No"| F["Feature Fetch<br/>Feature Store"]
+    F --> |"15-30ms"| G["Prepare Features"]
+    G --> H["Model Inference"]
+    H --> |"10-50ms"| I["Post-process<br/>Sigmoid, Top-K"]
+    I --> J["Cache Result<br/>TTL: 1h"]
+    J --> E
+    E --> K["Response<br/>to User<br/>&lt;100ms p99"]
+```
+
+```mermaid
+graph TB
+    A["Framework Choice"] --> B["FastAPI"]
+    A --> C["Seldon Core"]
+    A --> D["KServe"]
+    A --> E["Ray Serve"]
+    
+    B --> B1["Pros:<br/>Simple<br/>Fast to prototype"]
+    B --> B2["Cons:<br/>No built-in<br/>versioning"]
+    
+    C --> C1["Pros:<br/>K8s native<br/>Canary"]
+    C --> C2["Cons:<br/>K8s required<br/>Complex"]
+    
+    D --> D1["Pros:<br/>Standard<br/>Multi-framework"]
+    D --> D2["Cons:<br/>Heavier<br/>Enterprise"]
+    
+    E --> E1["Pros:<br/>Distributed<br/>GPU friendly"]
+    E --> E2["Cons:<br/>Ray dependency<br/>Newer"]
+```
+
 ---
 
 ## Interview Q&A: Model Serving
