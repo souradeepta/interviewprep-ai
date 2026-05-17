@@ -1,0 +1,264 @@
+{
+  "questions": [
+    {
+      "id": "concept_01_001",
+      "concept": "Data Pipelines",
+      "difficulty": "easy",
+      "company": "FAANG",
+      "question": "Explain the difference between batch and streaming pipelines. When would you use each?",
+      "answer_outline": "Batch: processes large volumes periodically (daily), good for high-latency tolerance (training). Streaming: processes events in real-time, needed for low-latency serving (<100ms). Most production systems use both: batch for training (slow is OK), streaming for serving (fast required).",
+      "follow_ups": [
+        "Can you design a pipeline for 1M events/day?",
+        "How would you debug a failed batch job?"
+      ],
+      "tags": ["architecture", "scale", "trade-offs"]
+    },
+    {
+      "id": "concept_01_002",
+      "concept": "Data Pipelines",
+      "difficulty": "medium",
+      "company": "Netflix",
+      "question": "Your data pipeline failed. Inference latency went from 50ms to 500ms. How would you debug this?",
+      "answer_outline": "Profile each stage: (1) Data fetch: database query slow? Add caching. (2) Computation: feature engineering slow? Parallelize or optimize code. (3) Storage: reading slow? Switch storage layer. (4) Network: high latency? Check bandwidth. Find the bottleneck, optimize that stage first. Monitor: track latency per stage.",
+      "follow_ups": [
+        "How would you prevent this in the future?",
+        "What monitoring would you set up?"
+      ],
+      "tags": ["debugging", "latency", "performance"]
+    },
+    {
+      "id": "concept_01_003",
+      "concept": "Data Pipelines",
+      "difficulty": "hard",
+      "company": "Uber",
+      "question": "Design a data pipeline for Uber's surge pricing that requires <100ms latency. How would you architect it?",
+      "answer_outline": "Real-time streaming pipeline: Kafka ingests demand/supply events. Flink computes surge ratio (<20ms). Cache in Redis (<10ms lookup). Total: ~50ms SLA. Fallback to cached value if computation slow. Monitor for SLA violations. Trade-off: eventual consistency (slight staleness) for low latency.",
+      "follow_ups": [
+        "What if surge calculation became 500ms slow?",
+        "How would you handle failures?"
+      ],
+      "tags": ["real-time", "constraints", "trade-offs"]
+    },
+    {
+      "id": "concept_02_001",
+      "concept": "Feature Stores",
+      "difficulty": "easy",
+      "company": "FAANG",
+      "question": "What is a feature store and why do teams use them?",
+      "answer_outline": "Feature store centralizes feature computation, versioning, and serving. Problem it solves: features computed multiple times in different places = duplicated code, inconsistent definitions, training-serving skew. Solution: compute once, serve everywhere. Benefits: reduced engineering time, consistency, faster model iteration.",
+      "follow_ups": [
+        "Give an example of training-serving skew.",
+        "How do you prevent it?"
+      ],
+      "tags": ["architecture", "governance", "efficiency"]
+    },
+    {
+      "id": "concept_02_002",
+      "concept": "Feature Stores",
+      "difficulty": "medium",
+      "company": "Netflix",
+      "question": "Design a feature store for Netflix serving 100M users with 100+ models. How would you architect batch vs real-time?",
+      "answer_outline": "Batch (daily): user embeddings, genre preferences, historical aggregations. Store in warehouse (S3, BigQuery). Real-time: current session context, trending titles. Compute on-demand or cache in Redis. Combine at serving: batch (50ms) + real-time (<5ms) = <100ms total. Registry: versioning, ownership, SLA tracking.",
+      "follow_ups": [
+        "How do you handle 10K+ features?",
+        "How do you prevent data leakage?"
+      ],
+      "tags": ["scale", "governance", "architecture"]
+    },
+    {
+      "id": "concept_02_003",
+      "concept": "Feature Stores",
+      "difficulty": "hard",
+      "company": "Stripe",
+      "question": "Your feature store serving latency degraded from 50ms to 500ms. Debug and optimize it.",
+      "answer_outline": "Profile: (1) Batch feature fetch from warehouse slow? Optimize queries, add caching. (2) Real-time feature computation slow? Reduce computation, increase resources. (3) Online storage slow? Switch Redis, increase throughput. (4) Integration slow? Batch fetch multiple features. Once bottleneck identified, optimize that path. Monitor: track latency per feature family.",
+      "follow_ups": [
+        "What's your monitoring strategy?",
+        "How would you prevent this?"
+      ],
+      "tags": ["debugging", "performance", "latency"]
+    },
+    {
+      "id": "concept_03_001",
+      "concept": "Data Validation",
+      "difficulty": "easy",
+      "company": "FAANG",
+      "question": "What are the layers of data validation? Give an example of each.",
+      "answer_outline": "Layer 1: Schema (types, nullability). Layer 2: Completeness (required fields present). Layer 3: Statistical (distributions, outliers). Layer 4: Business logic (domain rules). Example: transaction amount must be positive (schema), all transactions must have user_id (completeness), amount distribution shouldn't change 10x (statistical), amount must be within merchant's range (business logic).",
+      "follow_ups": [
+        "How would you implement this?",
+        "What tools would you use?"
+      ],
+      "tags": ["quality", "architecture", "best-practices"]
+    },
+    {
+      "id": "concept_03_002",
+      "concept": "Data Validation",
+      "difficulty": "medium",
+      "company": "Stripe",
+      "question": "Data validation blocked 5% of today's data for anomalies. Should you allow it or investigate?",
+      "answer_outline": "Investigate first. (1) Is it real corruption or false positive? (2) Check source—did producer change? (3) Check distribution—is it 5x normal or 5.1x? (4) If real anomaly: stop processing, investigate root cause. (5) If false positive: loosen threshold. Never silently allow anomalies—could be real corruption masquerading as outliers.",
+      "follow_ups": [
+        "How do you balance false positives vs false negatives?",
+        "What's your escalation process?"
+      ],
+      "tags": ["debugging", "decision-making", "trade-offs"]
+    },
+    {
+      "id": "concept_03_003",
+      "concept": "Data Validation",
+      "difficulty": "hard",
+      "company": "Netflix",
+      "question": "Design a data validation strategy for 1B events/day. What checks would you implement?",
+      "answer_outline": "Layered approach: (1) Schema validation (<10ms). (2) Completeness checks (<5ms). (3) Statistical validation (50ms, parallelized). (4) Business logic checks (100ms, async). Monitoring: track pass rate per layer, alert if >1% fail schema. Automation: block bad data before warehouse loading. Fail loud, investigate root cause, don't silently skip.",
+      "follow_ups": [
+        "How would you handle validation failures?",
+        "What's your monitoring strategy?"
+      ],
+      "tags": ["scale", "architecture", "monitoring"]
+    },
+    {
+      "id": "concept_04_001",
+      "concept": "Data Versioning",
+      "difficulty": "easy",
+      "company": "FAANG",
+      "question": "Why is data versioning important for ML? Give an example where it would help.",
+      "answer_outline": "Data versioning enables reproducibility. Example: model trained 3 months ago achieved 95% accuracy. Today, using same code, accuracy is 90%. Without versioning, you can't diagnose: did data change? Code? With versioning: look up original data, retrain, see if accuracy returns to 95%. If yes, data changed. If no, code/config changed. Isolates root cause.",
+      "follow_ups": [
+        "How would you implement this?",
+        "What's the cost implication?"
+      ],
+      "tags": ["reproducibility", "debugging", "best-practices"]
+    },
+    {
+      "id": "concept_04_002",
+      "concept": "Data Versioning",
+      "difficulty": "medium",
+      "company": "Uber",
+      "question": "Design a data versioning strategy for 1TB of monthly training data. How would you manage storage costs?",
+      "answer_outline": "Metadata-only approach: store data immutable in S3 (once), record metadata (hash, row count, schema). Retention: keep current + 2 previous versions in hot storage, archive older to cold (Glacier). Cost: ~$100/month vs $3000/month for keeping all. To retrain on old data: look up metadata, fetch from S3, train with same code.",
+      "follow_ups": [
+        "How do you handle schema changes?",
+        "How do you detect what changed between versions?"
+      ],
+      "tags": ["cost", "architecture", "storage"]
+    },
+    {
+      "id": "concept_04_003",
+      "concept": "Data Versioning",
+      "difficulty": "hard",
+      "company": "Stripe",
+      "question": "Implement lineage tracking for 100+ interdependent datasets. How would you design it?",
+      "answer_outline": "Build a lineage graph: nodes=datasets, edges=transformations. Metadata per dataset: (1) Creator (which pipeline?), (2) Inputs (upstream datasets), (3) Timestamp, (4) Content hash. Capture lineage in pipeline code (record inputs→outputs). Store in graph database or metadata store. Query: given dataset X, what are dependencies? Recompute: if upstream changed, which datasets need recomputation?",
+      "follow_ups": [
+        "How would you detect cascading failures?",
+        "How would you handle schema propagation?"
+      ],
+      "tags": ["architecture", "governance", "scale"]
+    },
+    {
+      "id": "concept_01_004",
+      "concept": "Data Pipelines",
+      "difficulty": "medium",
+      "company": "Google",
+      "question": "Compare Airflow, Kubeflow, and Luigi. When would you use each?",
+      "answer_outline": "Airflow: most popular, Python-first, good for workflows, strong community. Kubeflow: Kubernetes-native, good for ML teams already on K8s. Luigi: simpler, lightweight, good for small teams. Decision: if Kubernetes shop → Kubeflow. Otherwise → Airflow. Luigi rarely chosen (unmaintained). Airflow dominates due to maturity and ecosystem.",
+      "follow_ups": [
+        "What are the drawbacks of each?",
+        "How would you migrate from one to another?"
+      ],
+      "tags": ["tools", "trade-offs", "architecture"]
+    },
+    {
+      "id": "concept_02_004",
+      "concept": "Feature Stores",
+      "difficulty": "medium",
+      "company": "Meta",
+      "question": "How do you prevent training-serving skew in a feature store? Give specific techniques.",
+      "answer_outline": "Enforce versioning: (1) Feature registry tracks versions (v1, v2, v3). (2) Training explicitly requests version (train on v1). (3) Serving explicitly requests same version (serve on v1). (4) A/B test: run both versions in parallel. (5) Monitoring: track feature version in serving, alert if mismatch. (6) Validation: verify that serving uses same feature version as training before prediction.",
+      "follow_ups": [
+        "How do you handle feature definition changes?",
+        "What if a feature becomes unavailable?"
+      ],
+      "tags": ["consistency", "governance", "testing"]
+    },
+    {
+      "id": "concept_03_004",
+      "concept": "Data Validation",
+      "difficulty": "medium",
+      "company": "Uber",
+      "question": "How would you implement data contracts between producers and consumers?",
+      "answer_outline": "Contract specifies: schema (types, ranges), freshness (update frequency), completeness (% nulls), distribution (expected ranges). Implement: (1) Version contracts (like code). (2) Encode in validation tests (Great Expectations, dbt). (3) Monitor: alert if contract violated. (4) Ownership: producer commits to delivering per contract, consumer depends on contract. (5) Evolution: deprecate old contracts gradually, introduce new ones with parallel support.",
+      "follow_ups": [
+        "How do you handle breaking changes?",
+        "What's your notification process?"
+      ],
+      "tags": ["governance", "communication", "testing"]
+    },
+    {
+      "id": "concept_01_005",
+      "concept": "Data Pipelines",
+      "difficulty": "hard",
+      "company": "Stripe",
+      "question": "Design a data pipeline for fraud detection processing 1M transactions/day with <100ms serving latency. Fraud labels are confirmed 5 days after transaction.",
+      "answer_outline": "Batch (daily training): ingest confirmed fraud labels from 5 days ago, compute features, train model. Streaming (real-time): compute real-time features (velocity, geographic anomaly), cache in Redis. Combine at inference: batch features (20ms) + streaming features (15ms) + scoring (10ms) = <100ms. Key challenge: label delay—train daily on 5-day-old labels. Unsupervised anomaly detection fills real-time gap.",
+      "follow_ups": [
+        "How would you handle model degradation?",
+        "What's your feedback loop?"
+      ],
+      "tags": ["scale", "constraints", "design"]
+    },
+    {
+      "id": "concept_02_005",
+      "concept": "Feature Stores",
+      "difficulty": "hard",
+      "company": "DoorDash",
+      "question": "You're building a feature store for 100+ models at DoorDash. Describe your end-to-end architecture including storage, computation, and governance.",
+      "answer_outline": "Architecture: (1) Batch: Spark daily jobs compute user/restaurant embeddings, store in warehouse. (2) Real-time: Flink streams compute order velocity, cache in Redis. (3) Registry: centralized catalog with versioning, ownership, SLA. (4) Serving: low-latency API combining batch + real-time. (5) Governance: data lineage, access control, monitoring. Benefits: 60% reduction in feature engineering code, faster model iteration, training-serving consistency.",
+      "follow_ups": [
+        "How would you handle 10K+ features?",
+        "What's your cost model?"
+      ],
+      "tags": ["design", "scale", "governance"]
+    },
+    {
+      "id": "concept_03_005",
+      "concept": "Data Validation",
+      "difficulty": "hard",
+      "company": "Meta",
+      "question": "Your model's accuracy dropped but data validation passed all checks. What could have changed?",
+      "answer_outline": "Validation catches schema/completeness issues, not all problems. Investigate: (1) Data distribution shift (values changed but still within range). (2) Upstream transformation changed (different calculation). (3) Labels became stale (training data freshness). (4) Feature became unavailable (replaced with default). (5) Data definition diverged (same name, different meaning). Solution: add statistical monitoring (track distribution over time), detect subtle shifts, investigate before retraining.",
+      "follow_ups": [
+        "How would you detect these issues earlier?",
+        "What's your monitoring strategy?"
+      ],
+      "tags": ["debugging", "monitoring", "advanced"]
+    },
+    {
+      "id": "concept_04_004",
+      "concept": "Data Versioning",
+      "difficulty": "medium",
+      "company": "Netflix",
+      "question": "A model trained 3 months ago achieved 95% accuracy. Today, using the same code, it's 90%. Is it data or code? How do you diagnose?",
+      "answer_outline": "Use data versioning to isolate the issue: (1) Retrain on original data (from 3 months ago) with original code. (2) If accuracy is 95%: data changed, not code. Debug: compare data versions (schema, row count, distributions). (3) If accuracy is 90%: code/config changed. Debug: compare code, dependencies, hyperparameters. This technique separates concerns and isolates root cause.",
+      "follow_ups": [
+        "How often should you run this diagnostic?",
+        "What would you version for code?"
+      ],
+      "tags": ["debugging", "troubleshooting", "versioning"]
+    },
+    {
+      "id": "concept_04_005",
+      "concept": "Data Versioning",
+      "difficulty": "hard",
+      "company": "Google",
+      "question": "How would you prevent your data versioning system from consuming too much storage? Give specific strategies.",
+      "answer_outline": "Policies: (1) Retention: keep current + 2 previous versions only, delete older. (2) Compression: use Parquet (10x reduction vs CSV). (3) Deduplication: if two datasets have identical rows, store once with pointers. (4) Immutability: use Delta/Iceberg (store deltas, not full copies). (5) Selective versioning: version final training datasets, not intermediate computations. (6) Automated cleanup: cron job deletes versions older than X days. Cost impact: 1TB dataset, 12 versions/year: with strategies → 100GB, without → 1TB.",
+      "follow_ups": [
+        "How do you balance cost vs recoverability?",
+        "What retention policy would you choose?"
+      ],
+      "tags": ["cost", "architecture", "operations"]
+    }
+  ]
+}
