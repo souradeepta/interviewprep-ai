@@ -112,12 +112,16 @@ KV cache size: seq_len × 4 × 64 × 2 = 8x smaller!
 
 ```mermaid
 graph LR
-    A["Input"] --> B["Attention Optimization Process"]
-    B --> C["Output"]
+    A["Input Sequence<br/>8K tokens"] -->|Standard| B["Attention O(n²)<br/>64M ops"]
+    A -->|FlashAttention| C["Tiled Attention<br/>6.4M ops"]
+    B -->|Output| D["Latency: 8s"]
+    C -->|Output| E["Latency: 0.8s"]
 
-    style A fill:#e1f5ff
-    style B fill:#fff3e0
+    style A fill:#e3f2fd
+    style B fill:#ffebee
     style C fill:#e8f5e9
+    style D fill:#ffebee
+    style E fill:#e8f5e9
 ```
 
 ## Key Properties / Trade-offs
@@ -219,6 +223,28 @@ print(torch.allclose(output_standard, output_flash, atol=1e-4))  # True
 | "Hardware dependency?" | Flash Attention needs A100/H100. Sparse works anywhere. Check deployment GPU. |
 | "Quality impact?" | Flash: 0%. Sparse local: <1%. Sparse strided: <2%. GQA: <1%. Combine carefully. |
 
+## Real-World Examples
+
+### FlashAttention in Production RAG
+Retrieval returns 100 context chunks (100K tokens). Standard attention: 10B operations. FlashAttention: 1B operations. Latency: 2s → 0.2s. Implementation: drop-in replacement for HuggingFace transformers (no model changes). Deployment: Llama 2 70B on A100, 20 req/sec (vs 3 req/sec without).
+
+### GQA for Edge Deployment
+Model: Llama 2 7B. Standard: 14GB memory (KV cache overhead). GQA variant: 8GB memory. Deployed on consumer GPU (RTX 4090 24GB). Batch size: 2 vs 1 before. Accuracy on MMLU: 54.3% (standard) vs 53.8% (GQA). Worth the trade-off for mobile/edge.
+
+### Multi-User Serving with PagedAttention
+vLLM server: 10 concurrent users, variable output lengths. Without paging: batch size fixed at 4, 40% idle. With PagedAttention: dynamic batching, batch size 4-8 depending on freed pages. Throughput: 10 req/sec (vs 4 req/sec). 2.5x improvement from paging alone.
+
+## Real-World Examples
+
+### FlashAttention in Production RAG
+Retrieval returns 100 context chunks (100K tokens). Standard attention: 10B operations. FlashAttention: 1B operations. Latency: 2s → 0.2s. Implementation: drop-in replacement for HuggingFace transformers (no model changes). Deployment: Llama 2 70B on A100, 20 req/sec (vs 3 req/sec without).
+
+### GQA for Edge Deployment
+Model: Llama 2 7B. Standard: 14GB memory (KV cache overhead). GQA variant: 8GB memory. Deployed on consumer GPU (RTX 4090 24GB). Batch size: 2 vs 1 before. Accuracy on MMLU: 54.3% (standard) vs 53.8% (GQA). Worth the trade-off for mobile/edge.
+
+### Multi-User Serving with PagedAttention
+vLLM server: 10 concurrent users, variable output lengths. Without paging: batch size fixed at 4, 40% idle. With PagedAttention: dynamic batching, batch size 4-8 depending on freed pages. Throughput: 10 req/sec (vs 4 req/sec). 2.5x improvement from paging alone.
+
 ## Related Topics
 - [[transformers]] — core architecture with attention
 - [[kv-cache]] — KV cache reduction with GQA
@@ -245,12 +271,17 @@ graph TD
 
 ## Interview Questions
 
-**Q: What's the core problem this concept solves?**
-*A: See the 'Core Intuition' section above for the fundamental problem and how this concept addresses it.*
+**Q: Why is attention optimization important?**
+*A: Standard attention: O(n²) complexity. For 4K context: 16M operations. For 32K: 1B operations. This dominates inference latency. Optimization: FlashAttention (10x faster), grouped-query attention (3x faster), PagedAttention (2x faster). Real-world: 32K context goes from 5s to 0.5s.*
 
-**Q: What are the main advantages and disadvantages?**
-*A: See 'Key Properties / Trade-offs' section for detailed comparison with alternatives.*
+**Q: What's the difference between FlashAttention and standard attention?**
+*A: Standard: loads full Q,K,V matrices → computes attention → writes output (lots of memory I/O). FlashAttention: tiles computation, keeps intermediate results in faster SRAM, reduces HBM I/O by 5-10x. Same mathematical output, much faster. Trade-off: minimal (pure optimization).*
 
-**Q: How do you implement this in practice?**
-*A: Refer to the corresponding Jupyter notebook in `llm/notebooks/` for working Python implementations and examples.*
+**Q: How does grouped-query attention (GQA) work?**
+*A: Standard multi-head: each head has separate K,V. GQA: multiple query heads share one K,V head. Standard 32 heads: KV = 32. GQA with groups=8: KV = 4. Reduces KV cache by 8x. Trade-off: 0.5-1% accuracy loss, 10-15% latency improvement. Used in Llama 2, Mistral.*
 
+**Q: When would you use PagedAttention vs FlashAttention?**
+*A: FlashAttention: improves compute efficiency. PagedAttention: improves memory management. PagedAttention: splits KV cache into pages, allows dynamic batching (batch size changes mid-inference). Both can be used together. PagedAttention especially valuable for multi-user serving.*
+
+**Q: How do you handle long context efficiently?**
+*A: Combinations: FlashAttention (3x) + GQA (8x KV reduction) + sparse attention (10x for long sequences). For 128K context: standard would be 16B ops, optimized ~100M ops. Trade-off: sparse attention loses some fine-grained attention (negligible impact).*

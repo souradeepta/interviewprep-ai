@@ -49,13 +49,21 @@ Improves accuracy by 5-15% (handles hallucinations)
 ### Workflow Flowchart
 
 ```mermaid
-graph LR
-    A["Input"] --> B["Chain-of-Thought Process"]
-    B --> C["Output"]
+graph TD
+    A["Problem"] -->|Direct| B["Answer"]
+    A -->|CoT| C["Step 1:<br/>Decompose"]
+    C --> D["Step 2:<br/>Intermediate"]
+    D --> E["Step 3:<br/>Solution"]
+    E -->|Output| F["Reasoning Trace"]
+    B --> G["Low Accuracy"]
+    F --> H["High Accuracy"]
 
-    style A fill:#e1f5ff
-    style B fill:#fff3e0
-    style C fill:#e8f5e9
+    style A fill:#e3f2fd
+    style C fill:#fff3e0
+    style D fill:#fff3e0
+    style E fill:#fff3e0
+    style G fill:#ffebee
+    style H fill:#e8f5e9
 ```
 
 ## Key Properties / Trade-offs
@@ -144,6 +152,28 @@ print(f"Self-consistency answer (majority vote): {most_common}")
 | "Self-consistency?" | Run CoT multiple times, vote on answer. Reduces hallucinations, +5-15% accuracy, but 10-30x tokens. |
 | "Hallucinating reasoning?" | Risk: LLM shows plausible-sounding but false reasoning. Validate facts independently. |
 
+## Real-World Examples
+
+### CoT for Medical Diagnosis
+Input: Patient symptoms. Direct prompt: 'What's the diagnosis?' Accuracy: 61%. CoT prompt: 'Step 1) Symptom analysis. Step 2) Differential diagnosis. Step 3) Most likely condition.' Accuracy: 84%. Real hospital: gated behind doctor review, but used to highlight important differential diagnoses.
+
+### Self-Consistency for Math Homework Grading
+Problem: '2x + 5 = 13, solve for x'. Direct: 43% accuracy. CoT: 91% accuracy. Self-consistency (k=3): 96% accuracy. Used in educational platform: grade student work, identify common misconceptions. Cost: 3 inference calls per problem (acceptable for async grading).
+
+### CoT in Customer Support Routing
+Ticket: 'Order arrived damaged, want refund'. Direct: Assigns to 'Returns' (50%). CoT: 'Step 1) Assess urgency (high). Step 2) Identify need (refund + replacement). Step 3) Route to specialized team.' Assigns to 'High-Priority Returns' (90%). Reduces escalations by 35%.
+
+## Real-World Examples
+
+### CoT for Medical Diagnosis
+Input: Patient symptoms. Direct prompt: 'What's the diagnosis?' Accuracy: 61%. CoT prompt: 'Step 1) Symptom analysis. Step 2) Differential diagnosis. Step 3) Most likely condition.' Accuracy: 84%. Real hospital: gated behind doctor review, but used to highlight important differential diagnoses.
+
+### Self-Consistency for Math Homework Grading
+Problem: '2x + 5 = 13, solve for x'. Direct: 43% accuracy. CoT: 91% accuracy. Self-consistency (k=3): 96% accuracy. Used in educational platform: grade student work, identify common misconceptions. Cost: 3 inference calls per problem (acceptable for async grading).
+
+### CoT in Customer Support Routing
+Ticket: 'Order arrived damaged, want refund'. Direct: Assigns to 'Returns' (50%). CoT: 'Step 1) Assess urgency (high). Step 2) Identify need (refund + replacement). Step 3) Route to specialized team.' Assigns to 'High-Priority Returns' (90%). Reduces escalations by 35%.
+
 ## Related Topics
 - [Prompting](prompting.md) — structuring prompts for effectiveness
 - [Planning & Reasoning](../agentic-ai/concepts/planning-reasoning.md) — agents use similar decomposition
@@ -168,12 +198,17 @@ graph TD
 
 ## Interview Questions
 
-**Q: What's the core problem this concept solves?**
-*A: See the 'Core Intuition' section above for the fundamental problem and how this concept addresses it.*
+**Q: What problem does chain-of-thought solve?**
+*A: LLMs struggle with multi-step reasoning. Direct answer: 'What's 8+7?' → often wrong on arithmetic. CoT: 'Think step by step: 8+7, 8+5=13, 13+2=15' → correct. CoT helps math, logic, commonsense. Mechanism: intermediate steps force model to decompose problem, preventing shortcuts.*
 
-**Q: What are the main advantages and disadvantages?**
-*A: See 'Key Properties / Trade-offs' section for detailed comparison with alternatives.*
+**Q: How much does CoT improve accuracy?**
+*A: Depends on task: simple classification (minimal gain), math (+15-30%), logic puzzles (+20-40%), commonsense QA (+10-20%). Cost: 3-10x more tokens. Trade-off: accuracy vs latency. On MMLU: 52% (direct) → 82% (CoT with GPT-3.5).*
 
-**Q: How do you implement this in practice?**
-*A: Refer to the corresponding Jupyter notebook in `llm/notebooks/` for working Python implementations and examples.*
+**Q: What's self-consistency and when use it?**
+*A: Generate N different reasoning chains, take majority vote. k=5: 5 different paths. Improves robustness and accuracy (+5-10% on math). Cost: 5x inference. Best for: high-stakes decisions, math problems. Overkill for: simple classification.*
 
+**Q: How do you prompt for effective CoT?**
+*A: Key phrases: 'Let's think step by step', 'First...', 'Therefore...', 'The answer is'. Effective: explicit numbered steps. Weak: vague reasoning. Example: 'Step 1) Identify variables. Step 2) Set up equation. Step 3) Solve.' Works better than 'Think carefully'.*
+
+**Q: When should you avoid CoT?**
+*A: Simple tasks: 'Is this spam?' (direct answer fine). High-latency requirements: 10ms budget. Streaming: CoT requires full chain before streaming starts. Cost-sensitive: 3-10x token increase. Use direct prompting for these; CoT for reasoning tasks only.*

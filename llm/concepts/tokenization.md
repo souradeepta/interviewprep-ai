@@ -117,12 +117,15 @@ Arabic: ~3-4 characters per token (moderate)
 
 ```mermaid
 graph LR
-    A["Input"] --> B["Tokenization Process"]
-    B --> C["Output"]
+    A["Raw Text"] -->|Tokenize| B["Token IDs<br/>123, 456, 789"]
+    B -->|Embed| C["Token Embeddings"]
+    C -->|Model| D["Output"]
+    D -->|Decode| E["Generated Text"]
 
-    style A fill:#e1f5ff
+    style A fill:#e3f2fd
     style B fill:#fff3e0
-    style C fill:#e8f5e9
+    style C fill:#e0f2f1
+    style E fill:#e8f5e9
 ```
 
 ## Key Properties / Trade-offs
@@ -281,6 +284,28 @@ print(f"Chinese tokens: {count_tokens_by_language('人工智能的未来')}")
 | "Multilingual?" | ASCII languages efficient (~4 chars/token). CJK scripts less efficient (~1-2 chars/token). Use SentencePiece for multilingual. |
 | "Context length?" | More tokens per text = shorter effective context. 4K tokens ≠ 4K characters. Count tokens, not chars. |
 
+## Real-World Examples
+
+### Tokenizer for Code LLMs
+General tokenizer: code is inefficient (Python keywords split). Code-specific tokenizer (add 'def', 'class', 'import', etc.): same code = fewer tokens. Effect: can fit 50% more code in context window. Models like StarCoder use custom tokenizers. Result: better code understanding, lower training cost.
+
+### Multilingual Tokenization Strategy
+Single tokenizer for 100 languages. Problem: low-resource languages (e.g., Urdu, Tamil) heavily fragmented. Solution: add dedicated tokens for scripts (Arabic, Devanagari, Han). Effect: rare language tokens +3-5% from fragmentation penalty, improves multilingual consistency.
+
+### Efficient Streaming with Token Prediction
+Real-time translation API. Tokenizer choice impacts: English 'hello' = 1 token (efficient). Japanese 'こんにちは' = 5 tokens (inefficient). Streaming: send tokens as they're generated. Switching to language-specific tokenizer: 3x fewer tokens for Japanese, faster streaming, lower bandwidth.
+
+## Real-World Examples
+
+### Tokenizer for Code LLMs
+General tokenizer: code is inefficient (Python keywords split). Code-specific tokenizer (add 'def', 'class', 'import', etc.): same code = fewer tokens. Effect: can fit 50% more code in context window. Models like StarCoder use custom tokenizers. Result: better code understanding, lower training cost.
+
+### Multilingual Tokenization Strategy
+Single tokenizer for 100 languages. Problem: low-resource languages (e.g., Urdu, Tamil) heavily fragmented. Solution: add dedicated tokens for scripts (Arabic, Devanagari, Han). Effect: rare language tokens +3-5% from fragmentation penalty, improves multilingual consistency.
+
+### Efficient Streaming with Token Prediction
+Real-time translation API. Tokenizer choice impacts: English 'hello' = 1 token (efficient). Japanese 'こんにちは' = 5 tokens (inefficient). Streaming: send tokens as they're generated. Switching to language-specific tokenizer: 3x fewer tokens for Japanese, faster streaming, lower bandwidth.
+
 ## Related Topics
 - [[pretraining]] — tokenization is first step
 - [[prompt-optimization]] — token count affects prompt engineering
@@ -307,12 +332,17 @@ graph TD
 
 ## Interview Questions
 
-**Q: What's the core problem this concept solves?**
-*A: See the 'Core Intuition' section above for the fundamental problem and how this concept addresses it.*
+**Q: Why does tokenization matter for LLMs?**
+*A: LLMs don't process raw text; they process tokens. 'Hello world' = 2 tokens. Tokenization affects: model capacity (fewer tokens = more text fits), training efficiency, inference latency, cost (paid per token). Different models use different tokenizers (GPT uses cl100k_base, Llama uses Llama2).*
 
-**Q: What are the main advantages and disadvantages?**
-*A: See 'Key Properties / Trade-offs' section for detailed comparison with alternatives.*
+**Q: What are subword tokens and why use them?**
+*A: Character-level: 'world' = 5 tokens. Byte-pair encoding: 'world' = 1 token. Subword: 'beautiful' = 'beautiful' (1) but 'unfamiliar' = 'un' + 'familiar' (2). Balances: rare words (split) vs common (atomic). Reduces vocab size (50K tokens vs millions with char level).*
 
-**Q: How do you implement this in practice?**
-*A: Refer to the corresponding Jupyter notebook in `llm/notebooks/` for working Python implementations and examples.*
+**Q: How do you handle special tokens?**
+*A: BOS (beginning of sequence): [CLS]. EOS (end): [SEP]. Padding: [PAD]. Unknown: [UNK]. Model-specific: [INST] for instruction models. Custom: add domain tokens (medical: [DIAG], [MED]). Register early in tokenizer to ensure proper encoding.*
 
+**Q: How does context window relate to tokenization?**
+*A: 4K context = 4096 tokens max. Longer documents: tokenize first, check length. 'A long document (5K words)' = ~6-8K tokens (varies by tokenizer). Must truncate or chunk. Context window efficiency: subword tokenizers pack more text than character tokenizers.*
+
+**Q: When would you fine-tune a tokenizer?**
+*A: Specialized domains: medical (add anatomy terms), code (add language keywords), multilingual (improve rare language handling). Rare: pre-trained tokenizers usually sufficient. Benefits: +1-2% accuracy in specialized tasks. Effort: moderate (requires retraining BPE).*

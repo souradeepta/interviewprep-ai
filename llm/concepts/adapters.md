@@ -52,12 +52,18 @@ Adapter(x)  [trained]
 
 ```mermaid
 graph LR
-    A["Input"] --> B["Adapters Process"]
-    B --> C["Output"]
+    A["Base Model<br/>Frozen"] -->|Query| B["Adapter 1<br/>Task A"]
+    A -->|Query| C["Adapter 2<br/>Task B"]
+    A -->|Query| D["Adapter 3<br/>Task C"]
+    B --> E["Output A"]
+    C --> E
+    D --> E
 
-    style A fill:#e1f5ff
+    style A fill:#e3f2fd
     style B fill:#fff3e0
-    style C fill:#e8f5e9
+    style C fill:#fff3e0
+    style D fill:#fff3e0
+    style E fill:#e8f5e9
 ```
 
 ## Key Properties / Trade-offs
@@ -158,6 +164,28 @@ model.set_active_adapters(["task1"])  # Switch task at inference
 | "Inference cost?" | +5-10% latency vs full FT (add bottleneck FF). LoRA is cleaner (merges to 0% overhead). |
 | "When use adapters?" | Multiple tasks, need architectural flexibility, or prefer FF over low-rank. Otherwise LoRA simpler. |
 
+## Real-World Examples
+
+### Multi-Lingual Adapters for Customer Support
+Base model: mBERT (multi-lingual). Adapters: one per language (English, Spanish, French, Mandarin). Each adapter trained on 5K language-specific customer support conversations. Production: route incoming query to language-specific adapter → classify intent → ticket assignment. Result: 92% accuracy per language, shared base model saves 80% storage.
+
+### Task-Specific Adapters for E-Commerce
+Base model: RoBERTa. Adapters: sentiment (product reviews), NER (brand/product extraction), classification (returns reason), search ranking (relevance). Each adapter 512KB. Deploy one base model + 4 adapters = 1.5GB (vs 700MB×4 for full models). Latency: +0.5ms per adapter inference.
+
+### Efficient Domain Adaptation Pipeline
+Medical domain adapter: trained on 10K medical abstracts. Legal domain adapter: trained on 5K legal contracts. Each ~1M parameters. Swap adapters based on document classification. Accuracy: 94% (medical), 91% (legal). Training time: 2 hours per adapter (vs 48 hours full fine-tune).
+
+## Real-World Examples
+
+### Multi-Lingual Adapters for Customer Support
+Base model: mBERT (multi-lingual). Adapters: one per language (English, Spanish, French, Mandarin). Each adapter trained on 5K language-specific customer support conversations. Production: route incoming query to language-specific adapter → classify intent → ticket assignment. Result: 92% accuracy per language, shared base model saves 80% storage.
+
+### Task-Specific Adapters for E-Commerce
+Base model: RoBERTa. Adapters: sentiment (product reviews), NER (brand/product extraction), classification (returns reason), search ranking (relevance). Each adapter 512KB. Deploy one base model + 4 adapters = 1.5GB (vs 700MB×4 for full models). Latency: +0.5ms per adapter inference.
+
+### Efficient Domain Adaptation Pipeline
+Medical domain adapter: trained on 10K medical abstracts. Legal domain adapter: trained on 5K legal contracts. Each ~1M parameters. Swap adapters based on document classification. Accuracy: 94% (medical), 91% (legal). Training time: 2 hours per adapter (vs 48 hours full fine-tune).
+
 ## Related Topics
 - [[lora]] — low-rank alternative with similar efficiency
 - [[parameter-efficient-finetuning]] — PEFT umbrella including adapters and LoRA
@@ -185,18 +213,20 @@ graph TD
 
 ## Interview Questions
 
-**Q: What's the main advantage of using adapters over full fine-tuning?**
-*A: Adapters reduce trainable parameters from millions to thousands (often 0.5-5% of original), enabling fast adaptation to multiple tasks while keeping the base model frozen. This allows sharing a single large base model across many specialized tasks.*
+**Q: What are adapters and why use them instead of full fine-tuning?**
+*A: Adapters are small trainable modules inserted into a frozen base model. Instead of updating all 7B parameters, you train only 0.5-1M parameters. Advantages: 50-100x fewer parameters, faster training, easier multi-task management. Trade-off: slightly slower inference (2-5%) due to extra computation.*
 
-**Q: How do adapters maintain performance while reducing parameters?**
-*A: They leverage the fact that fine-tuning operates in a much lower-dimensional subspace. Adapters use bottleneck architectures (down-project, activate, up-project) that capture task-specific information efficiently without modifying pre-trained knowledge.*
+**Q: How do adapters compare to LoRA?**
+*A: Both are parameter-efficient. Adapters: bottleneck design (d→64→d), ~0.5M params/task, cleaner separation. LoRA: low-rank matrices (rank 4-8), ~0.1-1M params/task, better for large models. LoRA is newer and more popular; adapters still used in multi-task scenarios (Hub-style routing).*
 
-**Q: Can you explain the adapter architecture in detail?**
-*A: Adapters follow a bottleneck design: input → linear down-projection (to small dim like 64) → activation (GELU) → linear up-projection (back to original dim) → residual connection. This 2-layer MLP is much smaller than the original layer but learns task-specific transformations.*
+**Q: When would you use multi-task adapters vs single-task?**
+*A: Single-task: each task gets dedicated adapter (cleaner). Multi-task: one adapter trains on multiple tasks (parameter sharing, faster). Choose multi-task if tasks are related (sentiment analysis on different domains); single-task if tasks are distinct (translation + QA).*
 
-**Q: What are the trade-offs between LoRA and Adapters?**
-*A: LoRA uses low-rank matrix decomposition added to weights (multiplicative). Adapters are bottleneck MLP modules (additive). LoRA is often more parameter-efficient but harder to interpret. Adapters are modular and easier to compose but use slightly more parameters.*
+**Q: How do you handle adapter inference at scale?**
+*A: Load base model once, swap adapters for different tasks (lightweight). Routing: use a head network to select best adapter. Merging: merge adapters into base model for deployment (lose multi-task capability but gain speed).*
 
+**Q: What happens if you adapt a model already adapted?**
+*A: Adapter stacking works but shows diminishing returns. 1st adapter: 10% gain. 2nd adapter on top: +3-4% gain. Usually cap at 2 adapters. Better to use one well-tuned adapter or full fine-tuning if precision matters.*
 ## Real-World Applications
 
 ### Meta (Facebook): Efficient model specialization

@@ -55,12 +55,14 @@ Option 2: Merge weights offline
 
 ```mermaid
 graph LR
-    A["Input"] --> B["LoRA (Low-Rank Adaptation) Process"]
-    B --> C["Output"]
+    A["Base Model<br/>W"] -->|Frozen| B["Forward Pass"]
+    C["LoRA<br/>A × B<br/>Small"] -->|Trainable| B
+    B --> D["Output"]
+    D -->|Merge| E["Merged Model<br/>W + A×B"]
 
-    style A fill:#e1f5ff
-    style B fill:#fff3e0
-    style C fill:#e8f5e9
+    style A fill:#e3f2fd
+    style C fill:#fff3e0
+    style E fill:#e8f5e9
 ```
 
 ## Key Properties / Trade-offs
@@ -171,6 +173,28 @@ merged.save_pretrained("./merged_model")
 | "LoRA vs full FT?" | LoRA: 1% params, 30-50% faster, slightly lower quality. Full FT: higher ceiling, more compute. |
 | "Multiple LoRA on same base?" | Yes. Load different LoRA adapters for different tasks. Base model frozen, only load relevant LoRA. |
 
+## Real-World Examples
+
+### LoRA for Multi-Task Fine-Tuning
+Base model: Mistral 7B (quantized, 4GB). 10 downstream tasks (classification, NER, summarization). LoRA per task: 1M params each, 10M total. Training: 2 hours per task on consumer GPU. Deployment: 1 base model + 10 LoRA adapters = 4.5GB (vs 70GB×10). Dynamic routing based on task. Total accuracy: 85% average.
+
+### LoRA for Domain Adaptation
+General LLM fine-tuned to medical domain. LoRA rank-8 on 5K medical Q&A pairs. Training: 1 hour. Accuracy on medical MMLU: 42% → 68%. Deployed via API: base model serves 10 concurrent requests, LoRA loaded on-demand per request.
+
+### QLoRA for Consumer Hardware
+Model: Llama 2 13B. Standard LoRA training: 40GB VRAM. QLoRA (quantized): 6GB VRAM. Achievable on RTX 3090. Result: 95% of full fine-tune accuracy. Cost: $200 hardware vs $10K cloud GPU. Used by independent researchers and small companies.
+
+## Real-World Examples
+
+### LoRA for Multi-Task Fine-Tuning
+Base model: Mistral 7B (quantized, 4GB). 10 downstream tasks (classification, NER, summarization). LoRA per task: 1M params each, 10M total. Training: 2 hours per task on consumer GPU. Deployment: 1 base model + 10 LoRA adapters = 4.5GB (vs 70GB×10). Dynamic routing based on task. Total accuracy: 85% average.
+
+### LoRA for Domain Adaptation
+General LLM fine-tuned to medical domain. LoRA rank-8 on 5K medical Q&A pairs. Training: 1 hour. Accuracy on medical MMLU: 42% → 68%. Deployed via API: base model serves 10 concurrent requests, LoRA loaded on-demand per request.
+
+### QLoRA for Consumer Hardware
+Model: Llama 2 13B. Standard LoRA training: 40GB VRAM. QLoRA (quantized): 6GB VRAM. Achievable on RTX 3090. Result: 95% of full fine-tune accuracy. Cost: $200 hardware vs $10K cloud GPU. Used by independent researchers and small companies.
+
 ## Related Topics
 - [Fine-tuning](finetuning.md) — LoRA is an efficient alternative to full fine-tuning
 - [Parameter-Efficient Fine-tuning](parameter-efficient-finetuning.md) — broader PEFT category
@@ -197,18 +221,20 @@ graph TD
 
 ## Interview Questions
 
-**Q: Why does LoRA work so well despite using so few parameters?**
-*A: LoRA is based on the hypothesis that weight updates during fine-tuning have low intrinsic dimensionality. Instead of updating all parameters, LoRA learns low-rank factors A (in_dim × r) and B (r × out_dim) where r << both dimensions. The update is W ← W + AB^T.*
+**Q: What's LoRA and why use it?**
+*A: LoRA (Low-Rank Adaptation): Add small trainable matrices (A×B) instead of full weight update. 7B model: normally update 28B params. LoRA with rank-8: update only 1M params. 28x smaller, 10x faster training, 100x cheaper GPU hours. Merge for deployment → no inference cost.*
 
-**Q: How do you choose the LoRA rank?**
-*A: Rank is task and model dependent. Common values: r=4-8 (10-20% of LoRA params), r=16-32 (40-60%), r=64 (heavy adaptation). Start with r=8 and tune based on performance. Diminishing returns after rank ≈ model_dim/4.*
+**Q: How do you choose LoRA rank?**
+*A: Rank 4: basic adaptation, fastest, least accurate. Rank 8: sweet spot for most tasks (good balance). Rank 16: heavy adaptation, slower, marginal gains. Rank 32+: diminishing returns, defeats efficiency purpose. Start rank-4, increase if underfitting. Monitor loss curve.*
 
-**Q: Can you stack multiple LoRA adapters?**
-*A: Yes! LoRA is composable. You can have separate LoRA modules for different tasks and combine them (e.g., task1_weights + task2_weights). This enables multi-task adaptation with minimal additional parameters.*
+**Q: How does LoRA compare to full fine-tuning?**
+*A: LoRA: 99% parameter reduction, 1% accuracy loss typical. Full fine-tune: 100% params, 1% better accuracy. LoRA wins on efficiency; full fine-tune wins on accuracy ceiling. For most tasks (classification, QA, summarization): LoRA sufficient. For style transfer or major behavior change: consider full fine-tune.*
 
-**Q: What's the relationship between LoRA and matrix factorization?**
-*A: LoRA decomposes large weight matrices into products of smaller matrices. This is essentially low-rank matrix factorization. It works because fine-tuning updates are approximately low-rank (empirically verified).*
+**Q: How do you merge LoRA adapters for deployment?**
+*A: During training: keep base + LoRA separate. Deployment: W_merged = W_base + (A × B). Single matrix file, no multi-model overhead. Inference speed: identical to base model. This is why LoRA is production-friendly.*
 
+**Q: Can you combine LoRA with quantization?**
+*A: Yes. Quantize base model (INT8), train LoRA in FP32 on top. Deploy: quantized base + FP32 LoRA (small). Saves memory, maintains training precision. Common pattern: QLoRA (quantized + LoRA), reduces training memory 4x further.*
 ## Real-World Applications
 
 ### Microsoft: Efficient LLM fine-tuning

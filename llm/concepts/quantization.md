@@ -48,12 +48,16 @@ Result:     finer control, less accuracy loss
 
 ```mermaid
 graph LR
-    A["Input"] --> B["Quantization Process"]
-    B --> C["Output"]
+    A["FP32 Model<br/>28GB"] -->|Calibrate| B["Compute Scales"]
+    B -->|Quantize| C["INT8 Model<br/>7GB<br/>4x Compression"]
+    C -->|Deploy| D["Inference<br/>Faster"]
+    A -.->|Accuracy| E["99.5%"]
+    C -.->|Accuracy| F["98%<br/>-0.5% loss"]
 
-    style A fill:#e1f5ff
-    style B fill:#fff3e0
+    style A fill:#e3f2fd
     style C fill:#e8f5e9
+    style E fill:#e8f5e9
+    style F fill:#fff3e0
 ```
 
 ## Key Properties / Trade-offs
@@ -147,6 +151,28 @@ quantized_model = AutoModelForCausalLM.from_pretrained(
 | "When to quantize?" | Always for deployment. int8 default. Use int4 if memory critical or batch size matters. |
 | "Calibration data?" | Use representative data (similar to production). Wrong distribution → scales are off → accuracy loss. |
 
+## Real-World Examples
+
+### INT8 Quantization for Batch Inference
+Llama 2 7B FP32: 28GB VRAM, 100 ms/token. INT8: 7GB VRAM, 70 ms/token (15% faster). Deployed on A100 (80GB): FP32 = 2 models, INT8 = 10 models. Throughput: 2 models × 10 tok/s = 20 tok/s. With quantization: 10 models × 15 tok/s = 150 tok/s (7x improvement).
+
+### QLoRA for Fine-Tuning on Consumer GPU
+Llama 2 13B FP32: 52GB VRAM (beyond consumer GPUs). INT4 + LoRA: 6GB VRAM (RTX 3090 compatible). Process: quantize base model, train LoRA on top. Result: 95% of full fine-tune accuracy. Enables small teams to fine-tune large models independently.
+
+### GPTQ for On-Device Inference
+Model: 13B parameters. FP32: 52GB (not mobile-feasible). INT4 GPTQ: 3.5GB. Deployed on iPhone 14 Pro (6GB RAM). Inference: 5-10 tok/s (slow but functional). Use case: offline translation, on-device assistant. Trade-off: latency vs privacy (no cloud calls).
+
+## Real-World Examples
+
+### INT8 Quantization for Batch Inference
+Llama 2 7B FP32: 28GB VRAM, 100 ms/token. INT8: 7GB VRAM, 70 ms/token (15% faster). Deployed on A100 (80GB): FP32 = 2 models, INT8 = 10 models. Throughput: 2 models × 10 tok/s = 20 tok/s. With quantization: 10 models × 15 tok/s = 150 tok/s (7x improvement).
+
+### QLoRA for Fine-Tuning on Consumer GPU
+Llama 2 13B FP32: 52GB VRAM (beyond consumer GPUs). INT4 + LoRA: 6GB VRAM (RTX 3090 compatible). Process: quantize base model, train LoRA on top. Result: 95% of full fine-tune accuracy. Enables small teams to fine-tune large models independently.
+
+### GPTQ for On-Device Inference
+Model: 13B parameters. FP32: 52GB (not mobile-feasible). INT4 GPTQ: 3.5GB. Deployed on iPhone 14 Pro (6GB RAM). Inference: 5-10 tok/s (slow but functional). Use case: offline translation, on-device assistant. Trade-off: latency vs privacy (no cloud calls).
+
 ## Related Topics
 - [Inference Optimization](inference-optimization.md) — quantization is one technique among many
 - [KV Cache](kv-cache.md) — another memory optimization for inference
@@ -172,18 +198,20 @@ graph TD
 
 ## Interview Questions
 
-**Q: What's the intuition behind quantization?**
-*A: Neural networks can operate at lower precision without significant accuracy loss. Quantization reduces precision (float32 → int8/int4), shrinking model size by 4-8x and speeding inference. Trade-off: slight accuracy loss, faster speed, less memory.*
+**Q: What does quantization do?**
+*A: Store weights in lower precision. FP32 (4 bytes per param) → INT8 (1 byte) = 4x compression. FP32 (7B model) = 28GB → INT8 = 7GB. Trade-off: slight accuracy loss (0.5-2%). Inference: faster (less memory bandwidth), lower memory, deployable on smaller GPUs.*
 
 **Q: What's the difference between post-training quantization and QAT?**
-*A: PTQ: quantize pre-trained weights directly, fast but may lose accuracy. QAT (Quantization-Aware Training): simulate quantization during training, learn optimal scaling factors, better accuracy but requires retraining.*
+*A: Post-training (PTQ): quantize after training, quick (hours), some accuracy loss (~2%). QAT (quantization-aware training): train while simulating quantization, better accuracy (0.5% loss), slower (needs retraining). Use PTQ if time-critical; QAT if accuracy critical.*
 
-**Q: How do you choose quantization bits?**
-*A: 8-bit: standard, minimal loss, 4x compression. 4-bit: aggressive, noticeable but acceptable loss for many tasks, 8x compression. 2-bit: extreme, only for specific models. Research shows 4-8 bit is sweet spot.*
+**Q: When would you use INT4 vs INT8?**
+*A: INT8: 4x compression, minimal accuracy loss, standard approach. INT4: 8x compression, 1-2% accuracy loss, for extreme size constraints (mobile, edge). INT4 inference: requires special libraries (bitsandbytes, gptq). Cost-benefit: INT4 for 7B models on phones, INT8 for datacenter.*
 
-**Q: What's the relationship between quantization and hardware?**
-*A: Modern GPUs have int8 operations but less common for int4. CPUs have int8 support. Specialized hardware (TPUs, Qualcomm Snapdragon) have excellent int8 performance. Quantization choice should match target hardware.*
+**Q: How do you handle activation quantization?**
+*A: Weight quantization: straightforward. Activation quantization: depends on data (input distribution). Static: pre-computed scales. Dynamic: compute at inference. Dynamic: more accurate but slower. Typical: quantize weights, keep activations FP32 (reduces memory but not compute).*
 
+**Q: How does quantization affect model calibration?**
+*A: During quantization: calibrate on representative dataset (first 100 batches). Bad calibration: outlier batches → poor scale factors → errors. Good: diverse calibration set. Check: perplexity before/after quantization (should increase <5%).*
 ## Real-World Applications
 
 ### NVIDIA: TensorRT optimization

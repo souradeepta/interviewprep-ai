@@ -37,12 +37,15 @@ Cosine similarity preferred because:
 
 ```mermaid
 graph LR
-    A["Input"] --> B["Embeddings Process"]
-    B --> C["Output"]
+    A["Text"] -->|Encoder| B["Embedding<br/>384-dim vector"]
+    B --> C["Vector DB"]
+    C -->|Similarity Search| D["Nearest Neighbors"]
+    D --> E["Ranked Results"]
 
-    style A fill:#e1f5ff
+    style A fill:#e3f2fd
     style B fill:#fff3e0
-    style C fill:#e8f5e9
+    style C fill:#e0f2f1
+    style E fill:#e8f5e9
 ```
 
 ## Key Properties / Trade-offs
@@ -120,6 +123,28 @@ print(sims)
 | "Dimension choice?" | 300D (balanced), 768D (high quality, slower), 1536D+ (state-of-the-art, expensive). |
 | "Embedding drift?" | Word meanings shift over time. Retrain periodically or use recent data. |
 
+## Real-World Examples
+
+### Semantic Search for Documentation
+Company docs: 50K pages. Lexical search (Elasticsearch): 'GPU memory optimization' → relevant pages ranked #4-10. Embedding search: 'How to optimize GPU memory?' → relevant pages ranked #1-3. Implementation: embed all docs once, vector DB query. Latency: <50ms. User satisfaction: 72% → 91%.
+
+### Duplicate Detection in E-Commerce
+Problem: same product listed 5x with different descriptions. Lexical comparison: false negatives (different wording). Embedding cosine sim > 0.85: catches 95% duplicates. Pipeline: embed product descriptions, cluster with threshold. Saves manual curation hours.
+
+### Job Matching in Recruitment
+Job postings: 1M. Candidates: 500K. Lexical keyword matching: low coverage. Embedding-based: candidate skills → embed → search job postings → top-k matches. E.g., 'Python developer' matches 'Software engineer (Python)' and 'Backend engineer (preferred: Python)'. Better ranking of opportunities.
+
+## Real-World Examples
+
+### Semantic Search for Documentation
+Company docs: 50K pages. Lexical search (Elasticsearch): 'GPU memory optimization' → relevant pages ranked #4-10. Embedding search: 'How to optimize GPU memory?' → relevant pages ranked #1-3. Implementation: embed all docs once, vector DB query. Latency: <50ms. User satisfaction: 72% → 91%.
+
+### Duplicate Detection in E-Commerce
+Problem: same product listed 5x with different descriptions. Lexical comparison: false negatives (different wording). Embedding cosine sim > 0.85: catches 95% duplicates. Pipeline: embed product descriptions, cluster with threshold. Saves manual curation hours.
+
+### Job Matching in Recruitment
+Job postings: 1M. Candidates: 500K. Lexical keyword matching: low coverage. Embedding-based: candidate skills → embed → search job postings → top-k matches. E.g., 'Python developer' matches 'Software engineer (Python)' and 'Backend engineer (preferred: Python)'. Better ranking of opportunities.
+
 ## Related Topics
 - [Tokenization](tokenization.md) — tokens are what get embedded
 - [Semantic Search](semantic-search.md) — embeddings enable fast similarity search
@@ -147,18 +172,20 @@ graph TD
 
 ## Interview Questions
 
-**Q: Why are embeddings important in modern NLP?**
-*A: Embeddings convert discrete text into continuous vectors that capture semantic meaning. This enables: similarity computation, retrieval, clustering, and transfer learning. They're foundational for RAG, semantic search, and similarity-based tasks.*
-
-**Q: What's the difference between word embeddings and sentence embeddings?**
-*A: Word embeddings (Word2Vec, GloVe) represent single words. Sentence embeddings (Sentence-BERT, Universal Sentence Encoder) represent entire sentences/documents by pooling or attending over word embeddings, capturing full semantic context.*
+**Q: What are embeddings and why do they matter?**
+*A: Embeddings: dense vectors representing text semantics. 'cat' and 'kitten' have similar embeddings (cosine similarity ~0.9). Enables: semantic search, clustering, similarity comparison. All done in vector space, not lexical matching. Standard: 384-1536 dimensions.*
 
 **Q: How do you choose an embedding model?**
-*A: Consider: task (semantic similarity, clustering, retrieval), domain (general vs. specialized), embedding dimension (128 for speed, 384+ for quality), model size (computational budget), and benchmark performance on similar tasks.*
+*A: Trade-offs: small (all-MiniLM-L6-v2, 22M params, fast), medium (all-mpnet-base-v2, 109M params), large (instructor-xl, slower but better). Benchmark on your domain. MTEB leaderboard shows performance. For production: balance accuracy vs latency. Most: use all-MiniLM for speed, all-mpnet for accuracy.*
 
-**Q: What's the computational cost of generating embeddings at scale?**
-*A: Inference cost is relatively low (ms per example). Main costs are: initial embedding generation for large corpora (hours to days), storage (embedding_dim * num_examples bytes), and similarity computation (O(n²) for exact search).*
+**Q: How do you handle embeddings at scale?**
+*A: Batch encode: 1000s of texts at once (32-256 batch size). Store in vector DB (Pinecone, Weaviate, Milvus). Index for fast search. Query: embedding → similarity search in DB (not linear scan). Latency: <100ms per query. Storage: 1M docs × 384 dims × 4 bytes = 1.5GB.*
 
+**Q: When would you fine-tune embeddings?**
+*A: Pre-trained works for general text. Fine-tune if: domain-specific (medical abstracts, legal docs), task-specific (relevance ranking), distribution shift. Data needed: 10K+ pairs. Improves accuracy 5-15% but adds complexity. Usually not needed.*
+
+**Q: How do you evaluate embedding quality?**
+*A: Metrics: mean average precision (MAP), normalized discounted cumulative gain (NDCG), MRR. Test: does top-k nearest neighbor make sense? Do similar documents cluster? Manual inspection essential. MTEB benchmark for standardized eval.*
 ## Real-World Applications
 
 ### Pinecone: Vector search infrastructure

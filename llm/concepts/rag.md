@@ -46,12 +46,16 @@ User: "How many employees does Acme Corp have?"
 
 ```mermaid
 graph LR
-    A["Input"] --> B["RAG (Retrieval-Augmented Generation) Process"]
-    B --> C["Output"]
+    A["User Query"] -->|Embed| B["Query Vector"]
+    B -->|Search| C["Vector DB<br/>Top-k Retrieval"]
+    C -->|Retrieved Docs| D["Re-ranker<br/>Optional"]
+    D -->|Top Results| E["LLM<br/>+ Context"]
+    E -->|Output| F["Grounded Answer"]
 
-    style A fill:#e1f5ff
-    style B fill:#fff3e0
-    style C fill:#e8f5e9
+    style A fill:#e3f2fd
+    style C fill:#e0f2f1
+    style E fill:#fff3e0
+    style F fill:#e8f5e9
 ```
 
 ## Key Properties / Trade-offs
@@ -141,6 +145,28 @@ print(f"\nPrompt to LLM:\n{prompt}")
 | "Retrieval quality low?" | Check embedding model fit to domain, chunk segmentation, k value. Try dense + BM25 hybrid. |
 | "How to mitigate hallucination?" | Enforce citations to retrieved text, use grounding metrics, add re-ranker. |
 
+## Real-World Examples
+
+### Enterprise RAG for Customer Support
+KB: 50K support docs, product specs, FAQs. Query: 'How do I reset my password?' Retrieval: embed query, find top-5 docs (including password reset guides). Generate: 'Go to Settings > Security > Reset Password'. Users: 200 concurrent, average latency 1.5s. Accuracy (fact-grounding): 94%. Reduced support tickets by 35%.
+
+### Medical RAG for Diagnosis Support
+KB: medical journals, clinical guidelines (50K papers). Doctor input: patient symptoms. RAG retrieves relevant studies, differential diagnoses. LLM generates: 'Based on literature, consider these diagnoses: ...' Not used for final diagnosis (regulatory), but as decision support. Improves consistency, suggests relevant literature.
+
+### Financial RAG for Research
+KB: earnings calls (1K companies, 20 years). Query: 'What's Apple's strategy in India?' RAG retrieves relevant earnings call excerpts. LLM synthesizes: '2018: expand retail. 2022: invest in manufacturing. 2024: local partnerships.' All statements backed by documents. Saves analysts hours of manual searching.
+
+## Real-World Examples
+
+### Enterprise RAG for Customer Support
+KB: 50K support docs, product specs, FAQs. Query: 'How do I reset my password?' Retrieval: embed query, find top-5 docs (including password reset guides). Generate: 'Go to Settings > Security > Reset Password'. Users: 200 concurrent, average latency 1.5s. Accuracy (fact-grounding): 94%. Reduced support tickets by 35%.
+
+### Medical RAG for Diagnosis Support
+KB: medical journals, clinical guidelines (50K papers). Doctor input: patient symptoms. RAG retrieves relevant studies, differential diagnoses. LLM generates: 'Based on literature, consider these diagnoses: ...' Not used for final diagnosis (regulatory), but as decision support. Improves consistency, suggests relevant literature.
+
+### Financial RAG for Research
+KB: earnings calls (1K companies, 20 years). Query: 'What's Apple's strategy in India?' RAG retrieves relevant earnings call excerpts. LLM synthesizes: '2018: expand retail. 2022: invest in manufacturing. 2024: local partnerships.' All statements backed by documents. Saves analysts hours of manual searching.
+
 ## Related Topics
 - [Embeddings](embeddings.md) — how documents are encoded for retrieval
 - [Semantic Search](semantic-search.md) — the retrieval component of RAG
@@ -169,18 +195,20 @@ graph TD
 
 ## Interview Questions
 
-**Q: Why is RAG necessary if LLMs are large?**
-*A: LLMs have knowledge cutoff dates, can hallucinate, and have limited context windows. RAG retrieves fresh, relevant information at query time, grounding generation in actual documents. This reduces hallucination and enables current information access.*
+**Q: What problem does RAG solve?**
+*A: LLMs have knowledge cutoff (trained data ends 6-12 months ago). RAG (Retrieval-Augmented Generation): retrieve relevant documents, feed as context, generate answer grounded in retrieved docs. Solves: outdated info, company-specific data, fact-grounding. Reduces hallucinations by 30-50%.*
 
-**Q: What are the three main components of RAG?**
-*A: 1) Retriever: finds relevant documents via semantic/BM25 search. 2) Reader/LLM: generates answer using retrieved documents. 3) Ranking: orders retrieved docs by relevance. Often uses dense retrievers (embeddings) + re-rankers.*
+**Q: How do you structure a RAG pipeline?**
+*A: 1) Indexing: chunk documents, embed, store in vector DB. 2) Retrieval: embed query, retrieve top-k similar docs. 3) Ranking (optional): re-rank with cross-encoder. 4) Generation: feed docs + query to LLM. Latency: retrieval (10-50ms) + ranking (20-50ms) + generation (500-2000ms).*
 
-**Q: How do you evaluate RAG quality?**
-*A: Retrieval metrics: MRR, NDCG, Recall@k (is relevant doc in top-k?). Generation metrics: BLEU, ROUGE (similarity to reference). End-to-end: EM, F1 on QA datasets. Human evaluation for factuality and relevance.*
+**Q: What's the difference between dense and sparse retrieval?**
+*A: Dense: embedding-based (semantic, slow with large corpus). Sparse: keyword-based (BM25, fast, exact match). Hybrid: use both, combine scores. Dense: 'good customer service' matches 'satisfied with support'. Sparse: misses unless exact keywords. Hybrid gets both. State-of-art: dense + sparse + re-ranking.*
 
-**Q: What's the trade-off between retrieval and generation in RAG?**
-*A: Better retrieval → better context → better generation. But retrieval is expensive (vector similarity over millions of docs). Need to balance: retrieve more docs (higher latency) vs. fewer docs (lower quality). Sweet spot: top-5 to top-20.*
+**Q: When would you use re-ranking?**
+*A: Retrieval top-20 candidates. Re-ranker (cross-encoder) scores all 20 against query. Top-5 passed to LLM. Cost: +50-100ms, accuracy +5-10%. Use if: strict latency budget exists and quality matters. Skip if: query is simple or latency critical.*
 
+**Q: How do you handle large knowledge bases?**
+*A: Partitioning: shard KB across multiple vector stores. Hierarchical retrieval: first retrieve relevant shard, then search within shard. HyDE (Hypothetical Document Embeddings): generate hypothetical doc, use for retrieval. Results: <1s query latency on 100M docs.*
 ## Real-World Applications
 
 ### OpenAI: ChatGPT plugins and browsing
