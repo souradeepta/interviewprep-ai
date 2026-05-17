@@ -1,0 +1,225 @@
+{
+  "questions": [
+    {
+      "id": "concept_05_001",
+      "concept": "Experiment Tracking",
+      "difficulty": "easy",
+      "company": "FAANG",
+      "question": "What is experiment tracking and why do teams use it?",
+      "answer_outline": "Experiment tracking logs parameters, metrics, and metadata for every ML training run. It enables: (1) finding best experiments quickly (95% accuracy from 2 weeks ago), (2) avoiding re-running experiments (saved compute), (3) sharing learnings (optimal learning_rate), (4) reproducing results (metadata enables exact rerun).",
+      "follow_ups": [
+        "What should you log?",
+        "How do you organize 1000+ experiments?"
+      ],
+      "tags": ["basics", "scale", "efficiency"]
+    },
+    {
+      "id": "concept_05_002",
+      "concept": "Experiment Tracking",
+      "difficulty": "medium",
+      "company": "Netflix",
+      "question": "You're running 100 experiments/day during hyperparameter search. How would you organize them?",
+      "answer_outline": "Use tracking tool (MLflow/W&B). Log: parameters (learning_rate, batch_size), metrics (accuracy, loss), tags (dataset_version, model_type), metadata (git_commit, training_time). Dashboard enables: filtering (accuracy >0.90), sorting (by accuracy), comparison (side-by-side). Store metadata, lazy load artifacts.",
+      "follow_ups": [
+        "How do you find the best run?",
+        "What's your storage strategy?"
+      ],
+      "tags": ["scale", "organization", "tools"]
+    },
+    {
+      "id": "concept_05_003",
+      "concept": "Experiment Tracking",
+      "difficulty": "hard",
+      "company": "Stripe",
+      "question": "100 experiments across 5 teams, shared infrastructure. Design a tracking system.",
+      "answer_outline": "Hierarchical organization: project (per team), tags (model_type, status), owner. Permissions: team sees own, others read-only. Search: filter by accuracy >0.90, team=fraud, dataset=v5. Archive policy: keep 1 month hot, 1 year archive. Cost: metadata only, lazy load artifacts. Central dashboard for leadership visibility.",
+      "follow_ups": [
+        "How do you prevent teams from interfering?",
+        "What metrics does leadership care about?"
+      ],
+      "tags": ["governance", "scale", "multi-team"]
+    },
+    {
+      "id": "concept_06_001",
+      "concept": "Model Versioning & Registry",
+      "difficulty": "easy",
+      "company": "FAANG",
+      "question": "What is a model registry and what should it contain?",
+      "answer_outline": "Model registry centralizes model management. Should contain: (1) model metadata (name, version, status), (2) metrics (accuracy, precision), (3) artifacts (model path), (4) code (git commit), (5) data (training set version), (6) dependencies (pinned library versions), (7) audit (who deployed, when).",
+      "follow_ups": [
+        "What statuses should a model have?",
+        "How do you prevent bad models from deploying?"
+      ],
+      "tags": ["governance", "versioning", "audit"]
+    },
+    {
+      "id": "concept_06_002",
+      "concept": "Model Versioning & Registry",
+      "difficulty": "medium",
+      "company": "Uber",
+      "question": "Production model's accuracy dropped from 95% to 92%. How do you rollback?",
+      "answer_outline": "Check registry: (1) find previous version (v-1) with 95% accuracy, (2) verify: same architecture, different data?, (3) load weights from registry (S3 path), (4) deploy via blue-green (both versions running, switch traffic), (5) monitor accuracy, (6) investigate what changed (code, data, hyperparams).",
+      "follow_ups": [
+        "How long should rollback take?",
+        "How do you prevent this in future?"
+      ],
+      "tags": ["operations", "reliability", "debugging"]
+    },
+    {
+      "id": "concept_06_003",
+      "concept": "Model Versioning & Registry",
+      "difficulty": "hard",
+      "company": "Netflix",
+      "question": "Design a model registry for 50 models across 5 teams. Include governance.",
+      "answer_outline": "Centralized registry with versioning, approval workflow, audit trail. Workflow: register → staging → approve (2 reviews) → canary → production → archive. Governance: approval required before prod, audit logs all deployments, teams own their models. Search: find all models with accuracy >0.90. Deployment: blue-green with monitoring, auto-rollback if metrics degrade >2%.",
+      "follow_ups": [
+        "How do you prevent deploying bad models?",
+        "What should happen during canary phase?"
+      ],
+      "tags": ["governance", "scale", "workflow"]
+    },
+    {
+      "id": "concept_07_001",
+      "concept": "Reproducibility",
+      "difficulty": "easy",
+      "company": "FAANG",
+      "question": "Why is reproducibility important in ML? Give an example.",
+      "answer_outline": "Reproducibility: ability to retrain model 1 year later and get identical results. Important because: (1) debugging (did code change or data?), (2) compliance (show regulators exact model used), (3) rollback (deploy previous version). Example: model achieved 95% accuracy 3 months ago. Today need to retrain it → use versioned code, data, seed, dependencies → get 95% again.",
+      "follow_ups": [
+        "What's hardest to control?",
+        "How do you achieve it?"
+      ],
+      "tags": ["debugging", "compliance", "infrastructure"]
+    },
+    {
+      "id": "concept_07_002",
+      "concept": "Reproducibility",
+      "difficulty": "medium",
+      "company": "Stripe",
+      "question": "Code works on laptop but fails on server. How do you fix it?",
+      "answer_outline": "Reproducibility issue—environment differs. Diagnose: (1) Python version different? (3.9 vs 3.8), (2) Library versions different? (PyTorch 1.10 vs 2.0), (3) CUDA/GPU drivers? (11.0 vs 12.0), (4) System libraries? (Linux distro). Solution: Docker. Build container with exact Python 3.9, PyTorch 2.0, etc. Run same container on laptop and server → same results.",
+      "follow_ups": [
+        "What's the cost of Docker?",
+        "When is local development okay?"
+      ],
+      "tags": ["infrastructure", "deployment", "environment"]
+    },
+    {
+      "id": "concept_07_003",
+      "concept": "Reproducibility",
+      "difficulty": "hard",
+      "company": "Meta",
+      "question": "Design reproducibility for 100+ models across a company. How do you ensure every model is reproducible 1 year later?",
+      "answer_outline": "Version everything: (1) Code—git commit with model, (2) Data—content hashes or DVC, (3) Environment—Docker images with pinned versions, (4) Seed—captured in metadata, (5) Dependencies—requirements.txt exact versions. Capture metadata with every model. Monthly verification: retrain 1% of models from 1 year ago, verify accuracy matches (within 0.1%). Alert if reproducibility fails.",
+      "follow_ups": [
+        "How do you handle library updates?",
+        "What if results don't match?"
+      ],
+      "tags": ["scale", "infrastructure", "governance"]
+    },
+    {
+      "id": "concept_08_001",
+      "concept": "Hyperparameter Optimization",
+      "difficulty": "easy",
+      "company": "FAANG",
+      "question": "Compare grid search, random search, and Bayesian optimization.",
+      "answer_outline": "Grid search: tries all combinations (exhaustive, slow). Random search: samples randomly (faster, often finds good results). Bayesian: learns from past trials, proposes promising params (most efficient). When to use: <100 combos → grid; 100-1000 → random+early stopping; 1000+ → Bayesian.",
+      "follow_ups": [
+        "Which is fastest?",
+        "When would you use early stopping?"
+      ],
+      "tags": ["search", "efficiency", "comparison"]
+    },
+    {
+      "id": "concept_08_002",
+      "concept": "Hyperparameter Optimization",
+      "difficulty": "medium",
+      "company": "Uber",
+      "question": "Hyperparameter search is slow (50 trials, 2h each = 100 hours). Speed it up.",
+      "answer_outline": "Parallelize: run 10 trials in parallel on 10 GPUs → 10 hours wall time (not 100). Early stopping: kill unpromising runs by epoch 10 (saves 80% compute). Reduce data: validate on subset during search, full data for final. Focus params: which matter most? Optimize those first. Bayesian: learns from trials, proposes better params.",
+      "follow_ups": [
+        "What if early stopping cuts off good models?",
+        "How do you decide which params to focus on?"
+      ],
+      "tags": ["performance", "parallelization", "efficiency"]
+    },
+    {
+      "id": "concept_08_003",
+      "concept": "Hyperparameter Optimization",
+      "difficulty": "hard",
+      "company": "Netflix",
+      "question": "Design HPO system for 100+ models with conflicting objectives (accuracy vs latency).",
+      "answer_outline": "Multi-objective optimization. Define trade-off: accuracy + latency budget. Search space: model_depth (affects accuracy and latency). Results: depth=8 achieves 95% accuracy in 40ms (good). Depth=10 achieves 96% but 65ms (exceeds SLA). Choose depth=8. Parameter importance: identify which params matter (depth > learning_rate > dropout). Archive learned params (optimal lr=0.01 for future models).",
+      "follow_ups": [
+        "How do you balance different teams' objectives?",
+        "What if business metrics change?"
+      ],
+      "tags": ["multi-objective", "scale", "trade-offs"]
+    },
+    {
+      "id": "concept_05_004",
+      "concept": "Experiment Tracking",
+      "difficulty": "medium",
+      "company": "Google",
+      "question": "How do you make experiment tracking part of team culture?",
+      "answer_outline": "(1) Frictionless: one-line logging (one decorator on training function). (2) Documentation: show examples, best practices. (3) Dashboard as source of truth: where to find results, not emails. (4) Automation: auto-log standard metrics. (5) Review: inspect experiment runs during model review. (6) Reward: share findings (optimal hyperparams discovered).",
+      "follow_ups": [
+        "What happens if engineers skip logging?",
+        "How do you audit compliance?"
+      ],
+      "tags": ["culture", "automation", "process"]
+    },
+    {
+      "id": "concept_06_004",
+      "concept": "Model Versioning & Registry",
+      "difficulty": "medium",
+      "company": "Stripe",
+      "question": "How do you prevent deploying a model trained on corrupted data?",
+      "answer_outline": "Validation in registry: (1) Capture data version with model, (2) Data validation: before training, validate data meets quality checks, (3) On deployment: if data version is blacklisted (bad), block deployment, (4) Code review: who approved training data?, (5) Test: compare model output on test set vs production ground truth.",
+      "follow_ups": [
+        "Who decides if data is corrupted?",
+        "What's the rollback time?"
+      ],
+      "tags": ["quality", "governance", "safety"]
+    },
+    {
+      "id": "concept_07_004",
+      "concept": "Reproducibility",
+      "difficulty": "medium",
+      "company": "Netflix",
+      "question": "How do you handle library version updates (PyTorch 1.10 → 2.0)?",
+      "answer_outline": "Dependency management: (1) Log exact versions (not ranges) in requirements.txt. (2) Create Docker image, version it. (3) On deployment: use pinned image (not latest). (4) Upgrade strategy: test new version on canary traffic, validate metrics match, only promote if good. (5) Rollback: if new version breaks, revert to old image. (6) Document: breaking changes (PyTorch 2.0 API changes).",
+      "follow_ups": [
+        "What if metrics slightly change?",
+        "How often do you upgrade?"
+      ],
+      "tags": ["dependencies", "upgrade", "testing"]
+    },
+    {
+      "id": "concept_08_004",
+      "concept": "Hyperparameter Optimization",
+      "difficulty": "medium",
+      "company": "Meta",
+      "question": "Optimal hyperparameters on small data (learning_rate=0.01). Will they work on production (10x more data)?",
+      "answer_outline": "Maybe not. Hyperparameters often depend on data scale. Larger batches (production data) need higher learning rates (less gradient noise). Solution: (1) Optimize on representative data (similar scale to production). (2) Fine-tune on production data before deploy. (3) Monitor: if training curve looks off in prod, re-optimize. Example: small data: lr=0.01 works. Large data: try lr=0.05.",
+      "follow_ups": [
+        "How do you test this assumption?",
+        "When is small-data optimization okay?"
+      ],
+      "tags": ["generalization", "scale", "testing"]
+    },
+    {
+      "id": "concept_05_005",
+      "concept": "Experiment Tracking",
+      "difficulty": "hard",
+      "company": "Meta",
+      "question": "Experiment storage is 50TB. Optimize costs while keeping reproducibility.",
+      "answer_outline": "Retention policy: (1) Keep 1 month experiments hot (S3 standard, $200/TB/yr), (2) Archive older to cold (Glacier, $50/TB/yr). (3) Lazy load artifacts (don't download model weights unless needed). (4) Compress: zip models, int8 instead of float32. (5) Delete unsuccessful: keep top 10% by metric, delete rest after 1 month. (6) Metrics only: save metadata (100KB/run), not full artifacts. Cost: 1TB hot + 49TB cold = ~$300/month vs $12K.",
+      "follow_ups": [
+        "What data to archive vs delete?",
+        "How long to keep archive?"
+      ],
+      "tags": ["cost", "storage", "policy"]
+    }
+  ]
+}
