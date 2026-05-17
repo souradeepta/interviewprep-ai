@@ -203,6 +203,39 @@ GPU: 40GB memory. Batch=64, context=4K, FP32 without GQA: 64GB needed (exceeds m
 ### Long-Context RAG with Cache Optimization
 Retrieval: 100 context chunks (100K tokens). Naive: KV cache 25GB. GQA + INT8: 1.5GB. Within inference budget. Latency: 500ms (reasonable). Without optimization: impossible.
 
+## Real-World Examples
+
+### KV Cache in Multi-Turn Chat
+Conversation: 10 turns, each turn 100 tokens input. Without cache: recompute 1000s of attention operations per turn. With cache: reuse 900 from previous turns, compute only 100 new. Latency: 5s → 0.5s per turn.
+
+### Batch Inference with Limited Memory
+GPU: 40GB memory. Batch=64, context=4K, FP32 without GQA: 64GB needed (exceeds memory!). With GQA: 8GB KV cache. Can now run batch=64. Throughput: 100 tok/s (vs impossible without optimization).
+
+### Long-Context RAG with Cache Optimization
+Retrieval: 100 context chunks (100K tokens). Naive: KV cache 25GB. GQA + INT8: 1.5GB. Within inference budget. Latency: 500ms (reasonable). Without optimization: impossible.
+
+## Real-World Examples
+
+### KV Cache in Multi-Turn Chat
+Conversation: 10 turns, each turn 100 tokens input. Without cache: recompute 1000s of attention operations per turn. With cache: reuse 900 from previous turns, compute only 100 new. Latency: 5s → 0.5s per turn.
+
+### Batch Inference with Limited Memory
+GPU: 40GB memory. Batch=64, context=4K, FP32 without GQA: 64GB needed (exceeds memory!). With GQA: 8GB KV cache. Can now run batch=64. Throughput: 100 tok/s (vs impossible without optimization).
+
+### Long-Context RAG with Cache Optimization
+Retrieval: 100 context chunks (100K tokens). Naive: KV cache 25GB. GQA + INT8: 1.5GB. Within inference budget. Latency: 500ms (reasonable). Without optimization: impossible.
+
+## Real-World Examples
+
+### KV Cache in Multi-Turn Chat
+Conversation: 10 turns, each turn 100 tokens input. Without cache: recompute 1000s of attention operations per turn. With cache: reuse 900 from previous turns, compute only 100 new. Latency: 5s → 0.5s per turn.
+
+### Batch Inference with Limited Memory
+GPU: 40GB memory. Batch=64, context=4K, FP32 without GQA: 64GB needed (exceeds memory!). With GQA: 8GB KV cache. Can now run batch=64. Throughput: 100 tok/s (vs impossible without optimization).
+
+### Long-Context RAG with Cache Optimization
+Retrieval: 100 context chunks (100K tokens). Naive: KV cache 25GB. GQA + INT8: 1.5GB. Within inference budget. Latency: 500ms (reasonable). Without optimization: impossible.
+
 ## Related Topics
 - [Inference Optimization](inference-optimization.md) — KV cache is one technique among many
 - [Speculative Decoding](speculative-decoding.md) — uses KV cache for parallelization

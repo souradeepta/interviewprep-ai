@@ -90,12 +90,14 @@ Query Embedding (e.g., 384-dim vector)
 
 ```mermaid
 graph LR
-    A["Input"] --> B["Semantic Caching Process"]
-    B --> C["Output"]
-
-    style A fill:#e1f5ff
-    style B fill:#fff3e0
-    style C fill:#e8f5e9
+    A["Query"] -->|Embed| B["Query Vector"]
+    B -->|Check Cache| C{"Semantically<br/>Similar?"}
+    C -->|Yes| D["Return Cached<br/>Result"]
+    C -->|No| E["Generate New<br/>Result"]
+    E -->|Add to| F["Cache"]
+    D -->|Fast| G["Response"]
+    F -->|Response| G
+    style G fill:#e8f5e9
 ```
 
 ## Key Properties / Trade-offs
@@ -320,6 +322,30 @@ print(f"Response: {response3[:100]}...")
 | "Embedding model?" | Use lightweight (384-768 dims), fast (2-5ms). Examples: all-MiniLM-L6-v2, all-mpnet-base-v2. Must match production. |
 | "Implementation?" | FAISS for in-memory index, Pinecone/Weaviate for managed. Redis for response storage. Simple for medium scale. |
 
+## Real-World Examples
+
+### LLM API Cost Reduction
+API: 1000 req/sec similar queries. Without cache: $3K/day. Semantic cache: 50% hit rate. Cost: $1.5K/day. Savings: $1.5K/day ($500K/year). Infrastructure: $50K/year.
+
+### Chatbot Context Reuse
+User: asks similar questions in different wordings. Cache embeddings of previous answers. Hit rate: 30-50% on typical conversation. Latency: 100ms (vs 2s original).
+
+## Real-World Examples
+
+### LLM API Cost Reduction
+API: 1000 req/sec similar queries. Without cache: $3K/day. Semantic cache: 50% hit rate. Cost: $1.5K/day. Savings: $1.5K/day ($500K/year). Infrastructure: $50K/year.
+
+### Chatbot Context Reuse
+User: asks similar questions in different wordings. Cache embeddings of previous answers. Hit rate: 30-50% on typical conversation. Latency: 100ms (vs 2s original).
+
+## Real-World Examples
+
+### LLM API Cost Reduction
+API: 1000 req/sec similar queries. Without cache: $3K/day. Semantic cache: 50% hit rate. Cost: $1.5K/day. Savings: $1.5K/day ($500K/year). Infrastructure: $50K/year.
+
+### Chatbot Context Reuse
+User: asks similar questions in different wordings. Cache embeddings of previous answers. Hit rate: 30-50% on typical conversation. Latency: 100ms (vs 2s original).
+
 ## Related Topics
 - [[embeddings]] — encoding queries for similarity
 - [[rag]] — retrieval-augmented generation (uses embeddings)
@@ -347,12 +373,17 @@ graph TD
 
 ## Interview Questions
 
-**Q: What's the core problem this concept solves?**
-*A: See the 'Core Intuition' section above for the fundamental problem and how this concept addresses it.*
+**Q: What's semantic caching and why is it better than lexical caching?**
+*A: Lexical: 'How to reset password?' cached, 'How to recover account?' misses (different words). Semantic: embeddings → both similar → cache hit. Cache hit rate: 10% (lexical) → 40% (semantic).*
 
-**Q: What are the main advantages and disadvantages?**
-*A: See 'Key Properties / Trade-offs' section for detailed comparison with alternatives.*
+**Q: How does semantic caching work?**
+*A: 1) Embed incoming query. 2) Check if similar to cached queries. 3) If similar + cached result, return cached. 4) Otherwise, compute new. Requires embedding + similarity lookup (overhead).*
 
-**Q: How do you implement this in practice?**
-*A: Refer to the corresponding Jupyter notebook in `llm/notebooks/` for working Python implementations and examples.*
+**Q: When is semantic caching worthwhile?**
+*A: High-cost inference + repeated similar queries. Example: GPT-4 @$0.03/K tokens. Cache hit saves $0.03/query. If 50% cache hit on 1M queries: $15K savings. Cost of caching infrastructure: $5K. Worth it.*
 
+**Q: What's the latency impact of semantic caching?**
+*A: Cache lookup: 1-5ms (embedding + similarity). vs original query: 1000ms+. Even with lookup overhead, net gain. In ideal case: 1ms (cached) vs 1000ms (uncached).*
+
+**Q: How do you measure semantic cache effectiveness?**
+*A: Metrics: hit rate, savings (queries avoided), accuracy (cached results match fresh). Latency P99 (worst case). Trade-off: more conservative similarity threshold = higher accuracy but lower hit rate.*

@@ -113,13 +113,14 @@ Level 4 (Expert):
 ### Workflow Flowchart
 
 ```mermaid
-graph LR
-    A["Input"] --> B["Inference Optimization Process"]
-    B --> C["Output"]
-
-    style A fill:#e1f5ff
-    style B fill:#fff3e0
-    style C fill:#e8f5e9
+graph TD
+    A["Bottleneck"] -->|Compute| B["Quantization<br/>Sparsity"]
+    A -->|Memory| C["KV Cache Opt<br/>GQA"]
+    A -->|Latency| D["Batching<br/>Speculative"]
+    B -->|Optimize| E["Faster Inference"]
+    C -->|Optimize| E
+    D -->|Optimize| E
+    style E fill:#e8f5e9
 ```
 
 ## Key Properties / Trade-offs
@@ -300,6 +301,14 @@ Baseline (float32):
 | "Hardware matters?" | Yes. Quantization helps everywhere. Flash Attention needs A100+. Speculative needs extra capacity. Profile your hardware. |
 | "Batching vs latency?" | Batching: high throughput, higher latency. Continuous batching: both. Use for offline/batch, latency-sensitive use speculative. |
 
+## Real-World Examples
+
+### Quantization for Inference
+Model: Llama 7B. FP32: 28GB, 50ms/token. INT8: 7GB, 35ms/token. INT4: 3.5GB, 25ms/token. Trade-off: size vs speed vs accuracy.
+
+### Batching Optimization
+Single-request: 1 req/sec. Batch-32: 32 req/sec (but 32s per request). Continuous batching: 20 req/sec with 1-2s latency. Best for serving.
+
 ## Related Topics
 - [[quantization]] — weight and activation compression
 - [[kv-cache]] — attention cache optimization
@@ -328,12 +337,17 @@ graph TD
 
 ## Interview Questions
 
-**Q: What's the core problem this concept solves?**
-*A: See the 'Core Intuition' section above for the fundamental problem and how this concept addresses it.*
+**Q: What are the main inference bottlenecks?**
+*A: Compute (matrix multiplies), memory bandwidth (loading weights), latency (time to first token). Identify bottleneck: profile your setup. For large models: memory bandwidth dominates.*
 
-**Q: What are the main advantages and disadvantages?**
-*A: See 'Key Properties / Trade-offs' section for detailed comparison with alternatives.*
+**Q: How does batch size affect inference?**
+*A: Small: underutilize GPU. Large: saturate memory, maximize throughput. Trade-off: batch latency vs throughput. Balance depends on use case.*
 
-**Q: How do you implement this in practice?**
-*A: Refer to the corresponding Jupyter notebook in `llm/notebooks/` for working Python implementations and examples.*
+**Q: What's the difference between throughput and latency optimization?**
+*A: Throughput: maximize tokens/sec. Latency: minimize per-request time. Batching: great throughput, bad latency. Use both techniques together.*
 
+**Q: When would you use quantization vs distillation?**
+*A: Quantization: compress weights (4-8x), 1-2% accuracy loss. Distillation: smaller model trained on large model (moderate compression, variable loss). Choose: quantization for speed, distillation for accuracy.*
+
+**Q: How do you measure inference efficiency?**
+*A: Tokens/sec, ms/token, memory GB, power watts, FLOPS utilization. Track all: one metric incomplete. E.g., high throughput but high power wasteful.*

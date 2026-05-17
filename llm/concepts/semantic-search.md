@@ -68,12 +68,13 @@ If multiple queries or rankings needed:
 
 ```mermaid
 graph LR
-    A["Input"] --> B["Semantic Search Process"]
-    B --> C["Output"]
-
-    style A fill:#e1f5ff
-    style B fill:#fff3e0
-    style C fill:#e8f5e9
+    A["Query Text"] -->|Embedding| B["Query Vector"]
+    C["Corpus"] -->|Embedding| D["Doc Vectors<br/>Indexed"]
+    B -->|Similarity Search| E["Top-K Neighbors"]
+    E -->|Ranked| F["Results"]
+    style B fill:#e3f2fd
+    style D fill:#e0f2f1
+    style F fill:#e8f5e9
 ```
 
 ## Key Properties / Trade-offs
@@ -184,6 +185,30 @@ for i, (idx, dist) in enumerate(zip(indices[0], distances[0])):
 | "Latency?" | 10-100ms depending on database size and ANN method. Keyword search faster (<10ms); semantic search acceptable for most uses. |
 | "Hybrid search?" | Combine keyword (sparse) + semantic (dense). Better recall + precision. Recommended for production. |
 
+## Real-World Examples
+
+### E-commerce Product Search
+Keyword search: 'blue shoe' doesn't match 'footwear in navy'. Semantic search: matches because of similarity. Conversion rate: 2% → 5% from better relevance.
+
+### Customer Support Search
+Query: 'How do I reset my password?'. Should match: 'Forgotten credentials', 'Sign-in issue', 'Account access'. Keyword: misses many. Semantic: catches all.
+
+## Real-World Examples
+
+### E-commerce Product Search
+Keyword search: 'blue shoe' doesn't match 'footwear in navy'. Semantic search: matches because of similarity. Conversion rate: 2% → 5% from better relevance.
+
+### Customer Support Search
+Query: 'How do I reset my password?'. Should match: 'Forgotten credentials', 'Sign-in issue', 'Account access'. Keyword: misses many. Semantic: catches all.
+
+## Real-World Examples
+
+### E-commerce Product Search
+Keyword search: 'blue shoe' doesn't match 'footwear in navy'. Semantic search: matches because of similarity. Conversion rate: 2% → 5% from better relevance.
+
+### Customer Support Search
+Query: 'How do I reset my password?'. Should match: 'Forgotten credentials', 'Sign-in issue', 'Account access'. Keyword: misses many. Semantic: catches all.
+
 ## Related Topics
 - [Embeddings](embeddings.md) — how documents and queries are encoded
 - [Vector Databases](vector-databases.md) — storing and indexing embeddings at scale
@@ -209,12 +234,17 @@ graph TD
 
 ## Interview Questions
 
-**Q: What's the core problem this concept solves?**
-*A: See the 'Core Intuition' section above for the fundamental problem and how this concept addresses it.*
+**Q: How does semantic search differ from keyword search?**
+*A: Keyword: exact matching ('customer' doesn't match 'client'). Semantic: meaning-based ('customer' and 'client' similar). Semantic via embeddings: convert text → vector → cosine similarity. Better for synonyms, paraphrases, intent.*
 
-**Q: What are the main advantages and disadvantages?**
-*A: See 'Key Properties / Trade-offs' section for detailed comparison with alternatives.*
+**Q: Why use semantic search over traditional full-text search?**
+*A: Full-text: fast, exact, many false negatives. Semantic: slower but catches intent. Hybrid: use both, combine scores. Best: semantic for accuracy, full-text for speed (use full-text as first filter).*
 
-**Q: How do you implement this in practice?**
-*A: Refer to the corresponding Jupyter notebook in `llm/notebooks/` for working Python implementations and examples.*
+**Q: How do you scale semantic search to millions of documents?**
+*A: Index embeddings in vector DB (Pinecone, Weaviate, Milvus). HNSW/IVF algorithms for fast approximate search. Query: embed → search DB → get neighbors. Latency: <100ms for 10M docs.*
 
+**Q: What embedding model should you use?**
+*A: General: all-MiniLM-L6-v2 (fast), all-mpnet-base-v2 (accurate). Domain-specific: fine-tune on your domain. Multilingual: multilingual-e5-base. Speed: smaller models faster (22M params vs 335M params).*
+
+**Q: How do you evaluate semantic search quality?**
+*A: Metrics: mean average precision (MAP), NDCG, MRR. Manual inspection: do top-k results make sense? Click-through rate in production. A/B test: semantic vs keyword search.*

@@ -114,12 +114,13 @@ Phase 3: Domain-specific data (code, scientific papers)
 
 ```mermaid
 graph LR
-    A["Input"] --> B["Pretraining Process"]
-    B --> C["Output"]
-
-    style A fill:#e1f5ff
-    style B fill:#fff3e0
-    style C fill:#e8f5e9
+    A["Raw Text<br/>Massive"] -->|Tokenize| B["Token Stream"]
+    B -->|Batch| C["Training Loop"]
+    C -->|Next-Token| D["Predict Next"]
+    D -->|Minimize Loss| E["Better Model<br/>Week 1"]
+    E -->|Scale| F["Weeks/Months"]
+    F -->|Result| G["Pretrained LLM"]
+    style G fill:#e8f5e9
 ```
 
 ## Key Properties / Trade-offs
@@ -275,6 +276,14 @@ bert_model = BertForMaskedLM(bert_config)
 | "Transfer learning?" | Pretrain learns general patterns. Fine-tune on task-specific data (1-100x cheaper than pretraining). |
 | "Data quality?" | Matters more than quantity. 1T high-quality >> 10T noisy. Curate carefully. |
 
+## Real-World Examples
+
+### OpenAI Pretraining
+GPT-3: 175B model, 300B tokens, cost $10M+. Time: 3+ months. Result: strong zero-shot, few-shot capability. Established that scale enables capabilities.
+
+### Open-Source Pretraining
+Llama 2: 70B model, 2T tokens, compute-optimal training. Result: competitive with GPT-3.5 on many benchmarks. Cost: lower (open source infrastructure).
+
 ## Related Topics
 - [[tokenization]] — text → token IDs for pretraining
 - [[fine-tuning]] — adapting pretrained model to tasks
@@ -303,12 +312,17 @@ graph TD
 
 ## Interview Questions
 
-**Q: What's the core problem this concept solves?**
-*A: See the 'Core Intuition' section above for the fundamental problem and how this concept addresses it.*
+**Q: What's pretraining and why is it important?**
+*A: Pretraining: train model on massive unlabeled text (next-token prediction). Learns language, factual knowledge, reasoning patterns. Foundation for all downstream tasks. Cost: millions of dollars, weeks of GPU time. Benefit: transfers to any task.*
 
-**Q: What are the main advantages and disadvantages?**
-*A: See 'Key Properties / Trade-offs' section for detailed comparison with alternatives.*
+**Q: What's the pretraining objective?**
+*A: Next-token prediction: given 'The capital of France is', predict 'Paris'. Objective: minimize cross-entropy. Simple but powerful: emergent abilities appear at scale (reasoning, coding, translation).*
 
-**Q: How do you implement this in practice?**
-*A: Refer to the corresponding Jupyter notebook in `llm/notebooks/` for working Python implementations and examples.*
+**Q: How much pretraining data do you need?**
+*A: Rule of thumb: more data > larger model. Chinchilla scaling laws: compute ≈ data, model size ≈ data. 1.3T tokens (GPT-3): 175B model. Trade-off: too little (underfitting), too much (diminishing returns).*
 
+**Q: What's the relationship between model size and pretraining quality?**
+*A: Larger models learn more. But: compute grows cubically with size. 70B model = 27x compute vs 7B. Typical: scale to largest affordable size (time/money constrained).*
+
+**Q: How do you evaluate pretraining quality?**
+*A: Loss on held-out test set (perplexity). Downstream task performance (MMLU, etc). Both matter: low loss ≠ good downstream performance always. Look at both metrics.*

@@ -93,12 +93,12 @@ Long (100-500 tokens):
 
 ```mermaid
 graph LR
-    A["Input"] --> B["Prefix Tuning Process"]
-    B --> C["Output"]
-
-    style A fill:#e1f5ff
+    A["Input"] -->|Prepend| B["Learned Prefix<br/>P_e1, P_e2, ..."]
+    B -->|Concatenate| C["Full Sequence<br/>Prefix + Input"]
+    C -->|Model| D["Output"]
+    D -->|Task-Specific| E["Result"]
     style B fill:#fff3e0
-    style C fill:#e8f5e9
+    style E fill:#e8f5e9
 ```
 
 ## Key Properties / Trade-offs
@@ -279,6 +279,21 @@ response = tokenizer.decode(outputs[0], skip_special_tokens=True)
 | "Initialization?" | Critical. Initialize with task-related word embeddings or pretrained prompts. Random fails. |
 | "Latency impact?" | ~10-20ms per 100 prefix tokens (prepending + attention). Minor compared to generation. |
 
+## Real-World Examples
+
+### Interpretable Prefix-Tuning
+Learned prefix for medical domain: doctors can inspect what the model learned (somewhat). vs LoRA: black-box low-rank matrices. Useful for explainability.
+
+## Real-World Examples
+
+### Interpretable Prefix-Tuning
+Learned prefix for medical domain: doctors can inspect what the model learned (somewhat). vs LoRA: black-box low-rank matrices. Useful for explainability.
+
+## Real-World Examples
+
+### Interpretable Prefix-Tuning
+Learned prefix for medical domain: doctors can inspect what the model learned (somewhat). vs LoRA: black-box low-rank matrices. Useful for explainability.
+
 ## Related Topics
 - [[lora]] — alternative parameter-efficient method, better for multi-task
 - [[adapters]] — bottleneck layers, more flexible than prefix
@@ -304,12 +319,17 @@ graph TD
 
 ## Interview Questions
 
-**Q: What's the core problem this concept solves?**
-*A: See the 'Core Intuition' section above for the fundamental problem and how this concept addresses it.*
+**Q: What's prefix-tuning and how does it compare to LoRA?**
+*A: Prefix-tuning: add learnable tokens to input prefix. LoRA: add low-rank matrices to weights. Prefix: simpler (just tokens), easier to understand. LoRA: more flexible, works everywhere. Both: parameter-efficient (~0.1% params trainable).*
 
-**Q: What are the main advantages and disadvantages?**
-*A: See 'Key Properties / Trade-offs' section for detailed comparison with alternatives.*
+**Q: When would you use prefix-tuning vs LoRA?**
+*A: Prefix: when you want visible/interpretable parameters (the learned tokens). LoRA: when you want better accuracy or lower memory. Most: use LoRA. Prefix: still research-popular.*
 
-**Q: How do you implement this in practice?**
-*A: Refer to the corresponding Jupyter notebook in `llm/notebooks/` for working Python implementations and examples.*
+**Q: How many prefix tokens do you need?**
+*A: Typical: 10-100 tokens. More tokens = more expressiveness but more memory. 50 tokens: ~200KB (tiny). Can stack multiple tasks' prefixes.*
 
+**Q: Can you combine prefix-tuning with other methods?**
+*A: Yes: prefix-tuning + LoRA = more parameters, better accuracy. Prefix-tuning + fine-tuning = full fine-tune plus guided prefix. Trade-off: complexity vs performance.*
+
+**Q: What's the intuition behind prefix-tuning?**
+*A: Idea: in-context learning works, so learnable prefix (like learned examples) should work. Instead of new examples in prompt, learn prefix embeddings. Acts like implicit multi-task instruction.*

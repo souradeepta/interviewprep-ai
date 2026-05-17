@@ -186,6 +186,39 @@ Base model: trained on 50+ languages. Instruction-tuning: same 50K instructions 
 ### Light Instruction-Tuning for Domain
 Medical base model. Domain-specific instructions: 5K medical queries. Light tuning (1 epoch): instruction-following + medical knowledge combined. 90% accuracy on medical QA (vs 70% base).
 
+## Real-World Examples
+
+### Instruction-Tuning for Conversational AI
+Base LLM: general but doesn't follow instructions well. Instruction-tuning on 50K diverse instructions: ChatGPT-like behavior. Zero-shot on new tasks: 70% user satisfaction. Standard SFT: 40%.
+
+### Instruction-Tuning for Multilingual
+Base model: trained on 50+ languages. Instruction-tuning: same 50K instructions in each language. Results: instruction-following works in all languages (zero-shot). Enables multilingual assistant.
+
+### Light Instruction-Tuning for Domain
+Medical base model. Domain-specific instructions: 5K medical queries. Light tuning (1 epoch): instruction-following + medical knowledge combined. 90% accuracy on medical QA (vs 70% base).
+
+## Real-World Examples
+
+### Instruction-Tuning for Conversational AI
+Base LLM: general but doesn't follow instructions well. Instruction-tuning on 50K diverse instructions: ChatGPT-like behavior. Zero-shot on new tasks: 70% user satisfaction. Standard SFT: 40%.
+
+### Instruction-Tuning for Multilingual
+Base model: trained on 50+ languages. Instruction-tuning: same 50K instructions in each language. Results: instruction-following works in all languages (zero-shot). Enables multilingual assistant.
+
+### Light Instruction-Tuning for Domain
+Medical base model. Domain-specific instructions: 5K medical queries. Light tuning (1 epoch): instruction-following + medical knowledge combined. 90% accuracy on medical QA (vs 70% base).
+
+## Real-World Examples
+
+### Instruction-Tuning for Conversational AI
+Base LLM: general but doesn't follow instructions well. Instruction-tuning on 50K diverse instructions: ChatGPT-like behavior. Zero-shot on new tasks: 70% user satisfaction. Standard SFT: 40%.
+
+### Instruction-Tuning for Multilingual
+Base model: trained on 50+ languages. Instruction-tuning: same 50K instructions in each language. Results: instruction-following works in all languages (zero-shot). Enables multilingual assistant.
+
+### Light Instruction-Tuning for Domain
+Medical base model. Domain-specific instructions: 5K medical queries. Light tuning (1 epoch): instruction-following + medical knowledge combined. 90% accuracy on medical QA (vs 70% base).
+
 ## Related Topics
 - [Fine-tuning](finetuning.md) — broader fine-tuning concept
 - [RLHF](rlhf.md) — further aligning with human preferences

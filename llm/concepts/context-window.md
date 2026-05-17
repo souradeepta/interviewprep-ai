@@ -66,12 +66,15 @@ Solutions:
 
 ```mermaid
 graph LR
-    A["Input"] --> B["Context Window Process"]
-    B --> C["Output"]
-
-    style A fill:#e1f5ff
-    style B fill:#fff3e0
+    A["Document<br/>50K tokens"] -->|4K Model| B["Truncate<br/>4K context"]
+    A -->|128K Model| C["Use Full<br/>128K context"]
+    B -->|Limited| D["Partial Analysis"]
+    C -->|Complete| E["Full Understanding"]
+    style A fill:#e3f2fd
+    style B fill:#ffebee
     style C fill:#e8f5e9
+    style D fill:#ffebee
+    style E fill:#e8f5e9
 ```
 
 ## Key Properties / Trade-offs
@@ -205,6 +208,17 @@ print(response.content[0].text)
 | "When use long context?" | Document fits in one pass (avoid chunking overhead). Otherwise, standard context + chunking cheaper. |
 | "Truncation?" | Context longer than window → start lost. Summarize or hierarchical chunk. Don't rely on oldest context. |
 
+## Real-World Examples
+
+### 4K Context Limitation in Customer Support
+Support ticket: reference previous 10 conversations (50K tokens). 4K context model: truncates to last 2 conversations. Customer context lost, solution suggestions miss important history. 128K model: loads all history, provides better solutions. Customer satisfaction: 70% → 88%.
+
+### Code Repository Understanding
+Codebase: 100K tokens across multiple files. 4K model: analyzes one function at a time (limited understanding). 128K model: sees entire repository structure, dependencies, patterns. Code review quality: better suggestions, catches subtle bugs. GitHub: suggests Copilot with larger context.
+
+### Legal Document Analysis
+Contract: 200 pages = 100K tokens. 4K model: useless (can't fit full contract). Standard approach: expensive human review. With 128K model: upload full contract, extract terms, identify risks. Cost: $0.50 (tokens) vs $500 (human). Trade-off: still needs human verification.
+
 ## Related Topics
 - [[attention-optimization]] — techniques to reduce O(T²) overhead
 - [[kv-cache]] — KV cache grows with context length
@@ -229,12 +243,17 @@ graph TD
 
 ## Interview Questions
 
-**Q: What's the core problem this concept solves?**
-*A: See the 'Core Intuition' section above for the fundamental problem and how this concept addresses it.*
+**Q: What's the context window and why does it matter?**
+*A: Maximum sequence length a model can process. GPT-4: 8K/128K, Llama 2: 4K, Claude: 100K+. Matters because: longer context = more text analyzed at once. A 4K model can't summarize 50-page documents; 128K model can. Trade-off: larger windows = more memory + slower inference.*
 
-**Q: What are the main advantages and disadvantages?**
-*A: See 'Key Properties / Trade-offs' section for detailed comparison with alternatives.*
+**Q: How do you handle documents longer than context window?**
+*A: Options: 1) Truncate (lose info), 2) Chunk + summarize (recursive), 3) Use sliding window (overlap chunks). For RAG: chunk documents at index time, retrieve relevant chunks at query time. For fine-tuning: split into context-size pieces, train on each.*
 
-**Q: How do you implement this in practice?**
-*A: Refer to the corresponding Jupyter notebook in `llm/notebooks/` for working Python implementations and examples.*
+**Q: What are efficient long-context techniques?**
+*A: Sparse attention: attend to nearby tokens + random tokens (reduces O(n²) to O(n log n)). Recurrent: process in chunks, maintain state across chunks. Paged attention: splits KV cache into pages. ROPe (Rotary Position Embeddings): handles longer sequences better than absolute positions.*
 
+**Q: When is 4K context enough vs when do you need 128K?**
+*A: 4K (sufficient for): single-turn QA, classification, sentiment analysis. 128K (necessary for): multi-document analysis, long conversations, full book summarization, code repositories. Cost trade-off: 128K input = 32x tokens = 32x cost vs 4K.*
+
+**Q: How do position embeddings affect context length?**
+*A: Absolute positems: hardcoded for fixed length (4K). Extrapolation to 8K = hallucinations. RoPE/ALiBi: relative positions, can generalize to longer lengths. ALiBi: particularly good for length extrapolation (trained on 2K, works on 16K). Matters for real-world documents.*

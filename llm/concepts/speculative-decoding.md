@@ -108,12 +108,14 @@ while not_done:
 
 ```mermaid
 graph LR
-    A["Input"] --> B["Speculative Decoding Process"]
-    B --> C["Output"]
-
-    style A fill:#e1f5ff
-    style B fill:#fff3e0
-    style C fill:#e8f5e9
+    A["Input"] -->|Small Model| B["Generate Draft<br/>Tokens 1-5"]
+    B -->|Verify| C["Large Model<br/>Checks in Parallel"]
+    C -->|Accept?| D{Decision}
+    D -->|Yes| E["Use Draft<br/>Continue"]
+    D -->|No| F["Fallback to<br/>Large Model"]
+    E -->|Output| G["Faster Generation"]
+    F -->|Output| G
+    style G fill:#e8f5e9
 ```
 
 ## Key Properties / Trade-offs
@@ -304,6 +306,30 @@ outputs = llm.generate(
 | "Cost?" | +10-20% compute (draft + verify). Not faster if compute is bottleneck. Best for latency-sensitive. |
 | "When useful?" | Long generations (100+ tokens), high-quality draft, latency critical. Not for short outputs or compute-bound scenarios. |
 
+## Real-World Examples
+
+### llama.cpp Speculative Decoding
+Model: Llama 2 70B. Draft: Llama 2 7B. Speedup: 2.5x. Acceptance rate: 78%. Deployed in local inference (limited GPU).
+
+### Interactive Chat Speedup
+Chat: need <500ms latency. Without spec decoding: 1s. With: 400ms. Acceptance: 75%. User-facing improvement: noticeable.
+
+## Real-World Examples
+
+### llama.cpp Speculative Decoding
+Model: Llama 2 70B. Draft: Llama 2 7B. Speedup: 2.5x. Acceptance rate: 78%. Deployed in local inference (limited GPU).
+
+### Interactive Chat Speedup
+Chat: need <500ms latency. Without spec decoding: 1s. With: 400ms. Acceptance: 75%. User-facing improvement: noticeable.
+
+## Real-World Examples
+
+### llama.cpp Speculative Decoding
+Model: Llama 2 70B. Draft: Llama 2 7B. Speedup: 2.5x. Acceptance rate: 78%. Deployed in local inference (limited GPU).
+
+### Interactive Chat Speedup
+Chat: need <500ms latency. Without spec decoding: 1s. With: 400ms. Acceptance: 75%. User-facing improvement: noticeable.
+
 ## Related Topics
 - [[inference-optimization]] — speculative decoding as optimization technique
 - [[continuous-batching]] — compatible with continuous batching for serving
@@ -328,12 +354,17 @@ graph TD
 
 ## Interview Questions
 
-**Q: What's the core problem this concept solves?**
-*A: See the 'Core Intuition' section above for the fundamental problem and how this concept addresses it.*
+**Q: What's speculative decoding and why does it help?**
+*A: Problem: LLM generation slow (1 token/50ms). Solution: small model generates candidates, large model verifies in parallel. If candidates accepted: speedup 2-4x. If rejected: fallback to large model.*
 
-**Q: What are the main advantages and disadvantages?**
-*A: See 'Key Properties / Trade-offs' section for detailed comparison with alternatives.*
+**Q: How do you choose draft model size?**
+*A: Draft should be 5-10x smaller. 70B model → 7B draft. Speed ratio: 7B = 10x faster than 70B. Net speedup: if acceptance rate >70%, worth it.*
 
-**Q: How do you implement this in practice?**
-*A: Refer to the corresponding Jupyter notebook in `llm/notebooks/` for working Python implementations and examples.*
+**Q: What's the acceptance rate and why does it matter?**
+*A: Acceptance rate: % of draft tokens confirmed by large model. High (>80%): draft model aligned with large model. Low (<50%): draft model too different. Rule: if <50%, speedup < 1x (not worth it).*
 
+**Q: How does this relate to ensemble methods?**
+*A: Similar idea: multiple models voting. Speculative: small model proposes, large model decides. Ensemble: all vote. Speculative more efficient.*
+
+**Q: When is speculative decoding worth it?**
+*A: Latency-critical: 50ms budget. Have small model available. Acceptance rate likely >70%. Not worth: batch inference (throughput matters, not latency).*

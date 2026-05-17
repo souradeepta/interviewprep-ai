@@ -95,13 +95,13 @@ Human preferences (comparisons)
 ### Workflow Flowchart
 
 ```mermaid
-graph LR
-    A["Input"] --> B["RLHF (Reinforcement Learning from Human Feedback) Process"]
-    B --> C["Output"]
-
-    style A fill:#e1f5ff
-    style B fill:#fff3e0
-    style C fill:#e8f5e9
+graph TD
+    A["Generate Outputs"] -->|Human Eval| B["Preference Data<br/>A > B > C"]
+    B -->|Train| C["Reward Model"]
+    C -->|RL Training| D["Policy Update"]
+    D -->|New Model| E["Better Aligned<br/>LLM"]
+    E -->|Generates| A
+    style E fill:#e8f5e9
 ```
 
 ## Key Properties / Trade-offs
@@ -236,6 +236,30 @@ dpo_trainer.train()  # Single stage instead of 3
 | "vs DPO?" | RLHF: 3 stages, complex, slow, flexible. DPO: 2 stages, simple, fast, comparable quality. Use DPO if no specialized RM needed. |
 | "Scale RLHF?" | 10k comparisons takes weeks to annotate. Use smaller subsets or synthetic preferences. Alternative: DPO avoids RM bottleneck. |
 
+## Real-World Examples
+
+### OpenAI ChatGPT Alignment
+RLHF pipeline: 13K human evaluators. Process: GPT-3.5 → RLHF → ChatGPT. Improvement: instruction-following, refuses harmful. Standard approach for alignment in industry.
+
+### Safety Fine-Tuning
+Base model: 60% refuse harmful, 40% comply. After RLHF: 95% refuse, 5% false positives. Trade-off: safety vs helpfulness (needs careful tuning).
+
+## Real-World Examples
+
+### OpenAI ChatGPT Alignment
+RLHF pipeline: 13K human evaluators. Process: GPT-3.5 → RLHF → ChatGPT. Improvement: instruction-following, refuses harmful. Standard approach for alignment in industry.
+
+### Safety Fine-Tuning
+Base model: 60% refuse harmful, 40% comply. After RLHF: 95% refuse, 5% false positives. Trade-off: safety vs helpfulness (needs careful tuning).
+
+## Real-World Examples
+
+### OpenAI ChatGPT Alignment
+RLHF pipeline: 13K human evaluators. Process: GPT-3.5 → RLHF → ChatGPT. Improvement: instruction-following, refuses harmful. Standard approach for alignment in industry.
+
+### Safety Fine-Tuning
+Base model: 60% refuse harmful, 40% comply. After RLHF: 95% refuse, 5% false positives. Trade-off: safety vs helpfulness (needs careful tuning).
+
 ## Related Topics
 - [[dpo]] — simpler direct preference optimization alternative
 - [[fine-tuning]] — supervised fine-tuning baseline
@@ -263,12 +287,17 @@ graph TD
 
 ## Interview Questions
 
-**Q: What's the core problem this concept solves?**
-*A: See the 'Core Intuition' section above for the fundamental problem and how this concept addresses it.*
+**Q: What's RLHF and why is it important for alignment?**
+*A: RLHF (Reinforcement Learning from Human Feedback): fine-tune model using human preferences. Process: 1) Generate outputs. 2) Humans rate quality. 3) Train reward model. 4) RL training to maximize reward. Result: better aligned model, follows instructions, refuses harmful.*
 
-**Q: What are the main advantages and disadvantages?**
-*A: See 'Key Properties / Trade-offs' section for detailed comparison with alternatives.*
+**Q: How is DPO different from RLHF?**
+*A: RLHF: complex (reward model + RL training). DPO: direct preference optimization (no reward model, no RL). DPO simpler, faster, comparable results. RLHF still valuable for complex preference modeling.*
 
-**Q: How do you implement this in practice?**
-*A: Refer to the corresponding Jupyter notebook in `llm/notebooks/` for working Python implementations and examples.*
+**Q: What are the challenges with RLHF?**
+*A: Expensive: need 10K-100K human evaluations. Unstable: RL training can diverge. Scalability: RL training expensive. Data quality: human disagreement. Reward model: separate model to train (adds complexity).*
 
+**Q: How much data do you need for RLHF?**
+*A: Minimum: 5K preference pairs (basic alignment). Standard: 50K (good alignment). Large: 100K+ (refined). More data = better alignment, diminishing returns >100K.*
+
+**Q: How do you prevent reward hacking in RLHF?**
+*A: Reward model can be gamed (model finds loopholes). Solutions: 1) Regularization (penalize divergence from base). 2) Conservative RL (don't stray too far). 3) Regular human evaluation (catch gaming).*

@@ -138,12 +138,11 @@ Stability: can hurt if merge threshold too low (merges dissimilar tokens)
 
 ```mermaid
 graph LR
-    A["Input"] --> B["Token Optimization Process"]
-    B --> C["Output"]
-
-    style A fill:#e1f5ff
-    style B fill:#fff3e0
-    style C fill:#e8f5e9
+    A["Input Text<br/>50K tokens"] -->|Prune| B["Remove Filler<br/>40K tokens"]
+    B -->|Summarize| C["Key Points<br/>30K tokens"]
+    C -->|Feed to LLM| D["Output"]
+    D -->|Cost Saving| E["30% Reduction<br/>Lower Cost"]
+    style E fill:#e8f5e9
 ```
 
 ## Key Properties / Trade-offs
@@ -322,6 +321,14 @@ print(f"Prediction: {torch.argmax(outputs, dim=-1)}")
 | "Quality impact?" | Early exit: 1-2%. Pruning: <1%. Merging: 1-2%. Combined: 2-4%. Acceptable for most but validate. |
 | "Implementation?" | Dynamic batching harder (vLLM does it). Early exit easier (add classifiers). Merging moderate complexity. |
 
+## Real-World Examples
+
+### Document Summarization for RAG
+RAG: retrieve 10 documents (50K tokens). Summarize each to 1K tokens (5K total). Accuracy drop: 0.5%. Cost: 90% lower. Latency: 10-20% faster.
+
+### Smart Batching
+Mix short (10 tokens) and long (100 tokens) requests. Pad to max: wasteful. Smart batching: group by length, process separately. Throughput: +30%.
+
 ## Related Topics
 - [[continuous-batching]] — reduce padding, dynamic request scheduling
 - [[inference-optimization]] — broader optimization landscape
@@ -346,12 +353,17 @@ graph TD
 
 ## Interview Questions
 
-**Q: What's the core problem this concept solves?**
-*A: See the 'Core Intuition' section above for the fundamental problem and how this concept addresses it.*
+**Q: What's token optimization?**
+*A: Reduce token count without losing quality. Techniques: summarization (preprocess docs), token pruning (remove unimportant tokens), smart batching (group short requests). Goal: 10-50% reduction.*
 
-**Q: What are the main advantages and disadvantages?**
-*A: See 'Key Properties / Trade-offs' section for detailed comparison with alternatives.*
+**Q: How do you identify important tokens?**
+*A: Attention weights: tokens attended to are usually important. Gradient: tokens affecting loss prediction. Heuristic: first + last tokens important (contain info). Methods: remove low-attention tokens.*
 
-**Q: How do you implement this in practice?**
-*A: Refer to the corresponding Jupyter notebook in `llm/notebooks/` for working Python implementations and examples.*
+**Q: What's the trade-off between token reduction and accuracy?**
+*A: More reduction: lower cost but worse accuracy. 10% reduction: no accuracy loss. 50% reduction: 2-5% accuracy loss. Find breakeven for your task.*
 
+**Q: How does token optimization affect latency?**
+*A: Fewer tokens: faster inference. But: optimization overhead (pruning, summarization). Net: usually positive (inference time saves more than optimization cost).*
+
+**Q: When would you use token optimization?**
+*A: Cost-sensitive (pay per token). Large-scale (1M queries/day). Quality acceptable with slight degradation. Not: high-accuracy critical, streaming (can't buffer).*

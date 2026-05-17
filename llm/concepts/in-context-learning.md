@@ -179,6 +179,39 @@ Problem: generate Python function. Zero-shot: syntactically correct 40%. With 2 
 ### Cross-Lingual ICL
 English → Spanish translation. Zero-shot: 50% BLEU. 3 example translations: 70% BLEU. Model transfers knowledge across languages through in-context examples. No language-specific training.
 
+## Real-World Examples
+
+### ICL for Few-Shot Classification
+Task: sentiment analysis on tweets. Zero-shot: 45% accuracy. 3-example ICL: 72% accuracy. 10-example: 78%. Cost: $0.001 per example per query. No training needed. Deployed in real-time sentiment pipeline.
+
+### ICL for Code Generation
+Problem: generate Python function. Zero-shot: syntactically correct 40%. With 2 code examples: 65%. With 5 examples: 75%. Prompt size: 1-2K tokens. Used in Copilot-style suggestions.
+
+### Cross-Lingual ICL
+English → Spanish translation. Zero-shot: 50% BLEU. 3 example translations: 70% BLEU. Model transfers knowledge across languages through in-context examples. No language-specific training.
+
+## Real-World Examples
+
+### ICL for Few-Shot Classification
+Task: sentiment analysis on tweets. Zero-shot: 45% accuracy. 3-example ICL: 72% accuracy. 10-example: 78%. Cost: $0.001 per example per query. No training needed. Deployed in real-time sentiment pipeline.
+
+### ICL for Code Generation
+Problem: generate Python function. Zero-shot: syntactically correct 40%. With 2 code examples: 65%. With 5 examples: 75%. Prompt size: 1-2K tokens. Used in Copilot-style suggestions.
+
+### Cross-Lingual ICL
+English → Spanish translation. Zero-shot: 50% BLEU. 3 example translations: 70% BLEU. Model transfers knowledge across languages through in-context examples. No language-specific training.
+
+## Real-World Examples
+
+### ICL for Few-Shot Classification
+Task: sentiment analysis on tweets. Zero-shot: 45% accuracy. 3-example ICL: 72% accuracy. 10-example: 78%. Cost: $0.001 per example per query. No training needed. Deployed in real-time sentiment pipeline.
+
+### ICL for Code Generation
+Problem: generate Python function. Zero-shot: syntactically correct 40%. With 2 code examples: 65%. With 5 examples: 75%. Prompt size: 1-2K tokens. Used in Copilot-style suggestions.
+
+### Cross-Lingual ICL
+English → Spanish translation. Zero-shot: 50% BLEU. 3 example translations: 70% BLEU. Model transfers knowledge across languages through in-context examples. No language-specific training.
+
 ## Related Topics
 - [Few-Shot Learning](few-shot-learning.md) — similar concept, more formal definition
 - [Zero-Shot Learning](zero-shot-learning.md) — no examples, model must infer task

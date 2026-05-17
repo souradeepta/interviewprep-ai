@@ -217,6 +217,39 @@ General LLM fine-tuned to medical domain. LoRA rank-8 on 5K medical Q&A pairs. T
 ### QLoRA for Consumer Hardware
 Model: Llama 2 13B. Standard LoRA training: 40GB VRAM. QLoRA (quantized): 6GB VRAM. Achievable on RTX 3090. Result: 95% of full fine-tune accuracy. Cost: $200 hardware vs $10K cloud GPU. Used by independent researchers and small companies.
 
+## Real-World Examples
+
+### LoRA for Multi-Task Fine-Tuning
+Base model: Mistral 7B (quantized, 4GB). 10 downstream tasks (classification, NER, summarization). LoRA per task: 1M params each, 10M total. Training: 2 hours per task on consumer GPU. Deployment: 1 base model + 10 LoRA adapters = 4.5GB (vs 70GB×10). Dynamic routing based on task. Total accuracy: 85% average.
+
+### LoRA for Domain Adaptation
+General LLM fine-tuned to medical domain. LoRA rank-8 on 5K medical Q&A pairs. Training: 1 hour. Accuracy on medical MMLU: 42% → 68%. Deployed via API: base model serves 10 concurrent requests, LoRA loaded on-demand per request.
+
+### QLoRA for Consumer Hardware
+Model: Llama 2 13B. Standard LoRA training: 40GB VRAM. QLoRA (quantized): 6GB VRAM. Achievable on RTX 3090. Result: 95% of full fine-tune accuracy. Cost: $200 hardware vs $10K cloud GPU. Used by independent researchers and small companies.
+
+## Real-World Examples
+
+### LoRA for Multi-Task Fine-Tuning
+Base model: Mistral 7B (quantized, 4GB). 10 downstream tasks (classification, NER, summarization). LoRA per task: 1M params each, 10M total. Training: 2 hours per task on consumer GPU. Deployment: 1 base model + 10 LoRA adapters = 4.5GB (vs 70GB×10). Dynamic routing based on task. Total accuracy: 85% average.
+
+### LoRA for Domain Adaptation
+General LLM fine-tuned to medical domain. LoRA rank-8 on 5K medical Q&A pairs. Training: 1 hour. Accuracy on medical MMLU: 42% → 68%. Deployed via API: base model serves 10 concurrent requests, LoRA loaded on-demand per request.
+
+### QLoRA for Consumer Hardware
+Model: Llama 2 13B. Standard LoRA training: 40GB VRAM. QLoRA (quantized): 6GB VRAM. Achievable on RTX 3090. Result: 95% of full fine-tune accuracy. Cost: $200 hardware vs $10K cloud GPU. Used by independent researchers and small companies.
+
+## Real-World Examples
+
+### LoRA for Multi-Task Fine-Tuning
+Base model: Mistral 7B (quantized, 4GB). 10 downstream tasks (classification, NER, summarization). LoRA per task: 1M params each, 10M total. Training: 2 hours per task on consumer GPU. Deployment: 1 base model + 10 LoRA adapters = 4.5GB (vs 70GB×10). Dynamic routing based on task. Total accuracy: 85% average.
+
+### LoRA for Domain Adaptation
+General LLM fine-tuned to medical domain. LoRA rank-8 on 5K medical Q&A pairs. Training: 1 hour. Accuracy on medical MMLU: 42% → 68%. Deployed via API: base model serves 10 concurrent requests, LoRA loaded on-demand per request.
+
+### QLoRA for Consumer Hardware
+Model: Llama 2 13B. Standard LoRA training: 40GB VRAM. QLoRA (quantized): 6GB VRAM. Achievable on RTX 3090. Result: 95% of full fine-tune accuracy. Cost: $200 hardware vs $10K cloud GPU. Used by independent researchers and small companies.
+
 ## Related Topics
 - [Fine-tuning](finetuning.md) — LoRA is an efficient alternative to full fine-tuning
 - [Parameter-Efficient Fine-tuning](parameter-efficient-finetuning.md) — broader PEFT category

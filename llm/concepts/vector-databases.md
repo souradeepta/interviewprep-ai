@@ -58,13 +58,14 @@ Regular databases optimize for exact key lookups (e.g., "get user ID 42"). Vecto
 ### Workflow Flowchart
 
 ```mermaid
-graph LR
-    A["Input"] --> B["Vector Databases Process"]
-    B --> C["Output"]
-
-    style A fill:#e1f5ff
-    style B fill:#fff3e0
-    style C fill:#e8f5e9
+graph TD
+    A["Documents"] -->|Batch Embed| B["Embeddings"]
+    B -->|Index| C["Vector DB<br/>HNSW/IVF"]
+    D["Query"] -->|Embed| E["Query Vector"]
+    E -->|Search| C
+    C -->|Top-K Results| F["Ranked Output"]
+    style C fill:#e0f2f1
+    style F fill:#e8f5e9
 ```
 
 ## Key Properties / Trade-offs
@@ -163,6 +164,30 @@ print(indices, distances)
 | "Latency?" | Local FAISS: <1ms. Network latency adds 10-100ms. Cloud DBs: 10-100ms depending on index type. |
 | "Filtering?" | Pre-filter metadata before search (faster) or post-filter results (more accurate). Trade latency vs precision. |
 
+## Real-World Examples
+
+### Pinecone for Semantic Search
+Pinecone: serverless vector DB. Index: 10M product embeddings. Query latency: <50ms p99. Compare to: Redis (memory-intensive), Postgres (slow).
+
+### Milvus for Enterprise
+On-premise deployment: 100M embeddings. Multi-shard setup for scale. Accuracy: 99% (vs 95% IVF-only). Useful for compliance (no cloud data transfer).
+
+## Real-World Examples
+
+### Pinecone for Semantic Search
+Pinecone: serverless vector DB. Index: 10M product embeddings. Query latency: <50ms p99. Compare to: Redis (memory-intensive), Postgres (slow).
+
+### Milvus for Enterprise
+On-premise deployment: 100M embeddings. Multi-shard setup for scale. Accuracy: 99% (vs 95% IVF-only). Useful for compliance (no cloud data transfer).
+
+## Real-World Examples
+
+### Pinecone for Semantic Search
+Pinecone: serverless vector DB. Index: 10M product embeddings. Query latency: <50ms p99. Compare to: Redis (memory-intensive), Postgres (slow).
+
+### Milvus for Enterprise
+On-premise deployment: 100M embeddings. Multi-shard setup for scale. Accuracy: 99% (vs 95% IVF-only). Useful for compliance (no cloud data transfer).
+
 ## Related Topics
 - [Embeddings](embeddings.md) — what gets stored in vector DBs
 - [Semantic Search](semantic-search.md) — uses vector DBs for retrieval
@@ -189,12 +214,17 @@ graph TD
 
 ## Interview Questions
 
-**Q: What's the core problem this concept solves?**
-*A: See the 'Core Intuition' section above for the fundamental problem and how this concept addresses it.*
+**Q: What's a vector database and why not just use Postgres+embeddings?**
+*A: Vector DB: optimized for similarity search (HNSW, IVF indices), fast approximate search. Postgres: general-purpose, slower for similarity (full scan). At scale (1M docs): Postgres = 1s query, vector DB = 10ms query. For small datasets: Postgres fine.*
 
-**Q: What are the main advantages and disadvantages?**
-*A: See 'Key Properties / Trade-offs' section for detailed comparison with alternatives.*
+**Q: What's the difference between HNSW and IVF indexing?**
+*A: HNSW (Hierarchical Navigable Small World): graph-based, better quality but memory-intensive. IVF (Inverted File): cluster-based, faster but less accurate. Trade-off: quality vs speed. Most: hybrid (IVF + HNSW).*
 
-**Q: How do you implement this in practice?**
-*A: Refer to the corresponding Jupyter notebook in `llm/notebooks/` for working Python implementations and examples.*
+**Q: How do you handle real-time updates in vector DB?**
+*A: Append-only: add new docs constantly. Problem: old docs become stale. Solutions: 1) Rebuild index periodically. 2) Delete old docs (expensive). 3) TTL (time-to-live) for automatic expiration.*
 
+**Q: What's the relationship between vector dimension and accuracy?**
+*A: Higher dimension: more expressive (better accuracy). Lower dimension: faster search. Trade-off: 384 dims = 90% accuracy, 1536 dims = 95%. Most use 384-768 for balance.*
+
+**Q: How do you scale vector search to billions of documents?**
+*A: Sharding: split across multiple nodes. Index on each shard separately. Query: broadcast to all shards, merge results. Latency: scales, throughput scales.*

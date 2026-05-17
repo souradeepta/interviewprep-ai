@@ -210,6 +210,39 @@ English model: 90% accuracy. Same model + light multilingual tuning: 45% on non-
 ### Domain Evaluation
 General model on medical domain. MMLU-Medicine: 60%. Real doctor evaluation: accuracy clinically acceptable 92% (very critical tasks missed, needs review). Lesson: domain experts should evaluate.
 
+## Real-World Examples
+
+### Evaluation in Production LLM API
+Benchmark: MMLU 78%. Production eval: real customer queries. Problem: MMLU accuracy doesn't translate to user satisfaction. Added human eval: 100 random queries per week. Discovered: model good at benchmarks but verbose in practice.
+
+### Multilingual Evaluation Challenges
+English model: 90% accuracy. Same model + light multilingual tuning: 45% on non-English (not measured!). Added language-specific evals. Now: 85% across 10 languages (vs false impression of 90%).
+
+### Domain Evaluation
+General model on medical domain. MMLU-Medicine: 60%. Real doctor evaluation: accuracy clinically acceptable 92% (very critical tasks missed, needs review). Lesson: domain experts should evaluate.
+
+## Real-World Examples
+
+### Evaluation in Production LLM API
+Benchmark: MMLU 78%. Production eval: real customer queries. Problem: MMLU accuracy doesn't translate to user satisfaction. Added human eval: 100 random queries per week. Discovered: model good at benchmarks but verbose in practice.
+
+### Multilingual Evaluation Challenges
+English model: 90% accuracy. Same model + light multilingual tuning: 45% on non-English (not measured!). Added language-specific evals. Now: 85% across 10 languages (vs false impression of 90%).
+
+### Domain Evaluation
+General model on medical domain. MMLU-Medicine: 60%. Real doctor evaluation: accuracy clinically acceptable 92% (very critical tasks missed, needs review). Lesson: domain experts should evaluate.
+
+## Real-World Examples
+
+### Evaluation in Production LLM API
+Benchmark: MMLU 78%. Production eval: real customer queries. Problem: MMLU accuracy doesn't translate to user satisfaction. Added human eval: 100 random queries per week. Discovered: model good at benchmarks but verbose in practice.
+
+### Multilingual Evaluation Challenges
+English model: 90% accuracy. Same model + light multilingual tuning: 45% on non-English (not measured!). Added language-specific evals. Now: 85% across 10 languages (vs false impression of 90%).
+
+### Domain Evaluation
+General model on medical domain. MMLU-Medicine: 60%. Real doctor evaluation: accuracy clinically acceptable 92% (very critical tasks missed, needs review). Lesson: domain experts should evaluate.
+
 ## Related Topics
 - [Prompt Optimization](prompt-optimization.md) — evaluating changes to prompts
 - [Instruction Tuning](instruction-tuning.md) — training requires eval metrics

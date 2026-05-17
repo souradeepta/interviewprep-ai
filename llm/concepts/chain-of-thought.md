@@ -196,6 +196,39 @@ Problem: '2x + 5 = 13, solve for x'. Direct: 43% accuracy. CoT: 91% accuracy. Se
 ### CoT in Customer Support Routing
 Ticket: 'Order arrived damaged, want refund'. Direct: Assigns to 'Returns' (50%). CoT: 'Step 1) Assess urgency (high). Step 2) Identify need (refund + replacement). Step 3) Route to specialized team.' Assigns to 'High-Priority Returns' (90%). Reduces escalations by 35%.
 
+## Real-World Examples
+
+### CoT for Medical Diagnosis
+Input: Patient symptoms. Direct prompt: 'What's the diagnosis?' Accuracy: 61%. CoT prompt: 'Step 1) Symptom analysis. Step 2) Differential diagnosis. Step 3) Most likely condition.' Accuracy: 84%. Real hospital: gated behind doctor review, but used to highlight important differential diagnoses.
+
+### Self-Consistency for Math Homework Grading
+Problem: '2x + 5 = 13, solve for x'. Direct: 43% accuracy. CoT: 91% accuracy. Self-consistency (k=3): 96% accuracy. Used in educational platform: grade student work, identify common misconceptions. Cost: 3 inference calls per problem (acceptable for async grading).
+
+### CoT in Customer Support Routing
+Ticket: 'Order arrived damaged, want refund'. Direct: Assigns to 'Returns' (50%). CoT: 'Step 1) Assess urgency (high). Step 2) Identify need (refund + replacement). Step 3) Route to specialized team.' Assigns to 'High-Priority Returns' (90%). Reduces escalations by 35%.
+
+## Real-World Examples
+
+### CoT for Medical Diagnosis
+Input: Patient symptoms. Direct prompt: 'What's the diagnosis?' Accuracy: 61%. CoT prompt: 'Step 1) Symptom analysis. Step 2) Differential diagnosis. Step 3) Most likely condition.' Accuracy: 84%. Real hospital: gated behind doctor review, but used to highlight important differential diagnoses.
+
+### Self-Consistency for Math Homework Grading
+Problem: '2x + 5 = 13, solve for x'. Direct: 43% accuracy. CoT: 91% accuracy. Self-consistency (k=3): 96% accuracy. Used in educational platform: grade student work, identify common misconceptions. Cost: 3 inference calls per problem (acceptable for async grading).
+
+### CoT in Customer Support Routing
+Ticket: 'Order arrived damaged, want refund'. Direct: Assigns to 'Returns' (50%). CoT: 'Step 1) Assess urgency (high). Step 2) Identify need (refund + replacement). Step 3) Route to specialized team.' Assigns to 'High-Priority Returns' (90%). Reduces escalations by 35%.
+
+## Real-World Examples
+
+### CoT for Medical Diagnosis
+Input: Patient symptoms. Direct prompt: 'What's the diagnosis?' Accuracy: 61%. CoT prompt: 'Step 1) Symptom analysis. Step 2) Differential diagnosis. Step 3) Most likely condition.' Accuracy: 84%. Real hospital: gated behind doctor review, but used to highlight important differential diagnoses.
+
+### Self-Consistency for Math Homework Grading
+Problem: '2x + 5 = 13, solve for x'. Direct: 43% accuracy. CoT: 91% accuracy. Self-consistency (k=3): 96% accuracy. Used in educational platform: grade student work, identify common misconceptions. Cost: 3 inference calls per problem (acceptable for async grading).
+
+### CoT in Customer Support Routing
+Ticket: 'Order arrived damaged, want refund'. Direct: Assigns to 'Returns' (50%). CoT: 'Step 1) Assess urgency (high). Step 2) Identify need (refund + replacement). Step 3) Route to specialized team.' Assigns to 'High-Priority Returns' (90%). Reduces escalations by 35%.
+
 ## Related Topics
 - [Prompting](prompting.md) — structuring prompts for effectiveness
 - [Planning & Reasoning](../agentic-ai/concepts/planning-reasoning.md) — agents use similar decomposition

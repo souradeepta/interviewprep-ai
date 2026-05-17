@@ -49,12 +49,11 @@ BitFit          0.1%    90-95%          50x    50x
 
 ```mermaid
 graph LR
-    A["Input"] --> B["Parameter-Efficient Fine-tuning Process"]
-    B --> C["Output"]
-
-    style A fill:#e1f5ff
-    style B fill:#fff3e0
-    style C fill:#e8f5e9
+    A["Base Model<br/>100%"] -->|Freeze| B["7B Params<br/>Frozen"]
+    C["Add PEFT<br/>0.1-1%"] -->|Train| D["1-7M Params<br/>Trainable"]
+    E["Total"] -->|Compute| F["10-100x Cheaper"]
+    style D fill:#fff3e0
+    style F fill:#e8f5e9
 ```
 
 ## Key Properties / Trade-offs
@@ -141,6 +140,14 @@ merged_model.save_pretrained("./merged_model")
 | "Multi-task PEFT?" | Load different LoRAs for different tasks on same base. Flexible, efficient. |
 | "Deploy PEFT?" | Merge base + LoRA offline (save merged) or keep separate (load LoRA at inference). |
 
+## Real-World Examples
+
+### LoRA Multi-Task
+10 downstream tasks, LoRA per task. Total: 10M params (vs 70GB×10 for full models). Deployment: 1 base + 10 LoRA = 4.5GB.
+
+### QLoRA on Consumer GPU
+13B model with QLoRA: 6GB memory. RTX 3090 (24GB) trains comfortably. Enables researchers without cloud budget.
+
 ## Related Topics
 - [LoRA](lora.md) — specific PEFT variant
 - [Fine-tuning](finetuning.md) — full FT baseline
@@ -169,12 +176,17 @@ graph TD
 
 ## Interview Questions
 
-**Q: What's the core problem this concept solves?**
-*A: See the 'Core Intuition' section above for the fundamental problem and how this concept addresses it.*
+**Q: What's parameter-efficient fine-tuning (PEFT)?**
+*A: Train <1% of model parameters instead of 100%. Methods: LoRA (low-rank), Adapters (bottleneck), Prefix-tuning (learned tokens). Advantage: 10-100x cheaper, faster, fewer GPUs. Trade-off: slightly lower accuracy ceiling.*
 
-**Q: What are the main advantages and disadvantages?**
-*A: See 'Key Properties / Trade-offs' section for detailed comparison with alternatives.*
+**Q: How much parameter reduction do you get?**
+*A: LoRA rank-8: 0.1% params trainable. Adapters: 0.5-1% params. Prefix-tuning: 0.05%. All compress 100-1000x. For 7B model: 1-7M params instead of 7B.*
 
-**Q: How do you implement this in practice?**
-*A: Refer to the corresponding Jupyter notebook in `llm/notebooks/` for working Python implementations and examples.*
+**Q: When is PEFT sufficient vs when do you need full fine-tuning?**
+*A: PEFT: general tasks (classification, QA, summarization). Full: style transfer, major behavior change, science domain. Most tasks: PEFT sufficient. Full fine-tune: <5% of use cases.*
 
+**Q: How do you combine multiple PEFT methods?**
+*A: LoRA + quantization (QLoRA): reduce memory 4x further. Adapters + LoRA: more parameters, better accuracy. Trade-off: complexity.*
+
+**Q: How does PEFT affect inference?**
+*A: LoRA: merged for deployment (no overhead). Adapters: slight overhead (2-5% latency increase). Prefix: no overhead. Choice: LoRA for production (no inference cost).*

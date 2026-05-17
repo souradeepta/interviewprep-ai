@@ -171,6 +171,39 @@ Goal: make model understand company context (products, policies, customers). Fin
 ### Multi-Task Fine-Tuning
 One model for: classification, NER, summarization. Fine-tune on all three mixed. Shared representations improve transfer. Accuracy: 85% across all tasks (vs 88% individual models, but single model advantage).
 
+## Real-World Examples
+
+### LoRA Fine-Tuning for Domain Adaptation
+General LLM → Legal domain. Fine-tune on 5K legal documents + contracts. LoRA rank-8: 2 hours training. Result: 42% → 68% accuracy on legal tasks. Cost: $100 (vs $10K full fine-tune). Deployed as legal assistant.
+
+### Full Fine-Tuning for Company Chat
+Goal: make model understand company context (products, policies, customers). Fine-tune on 100K internal documents. Full fine-tuning (smaller model, 3B). Result: 95% accuracy on internal queries. Deployment: on-premise (compliance).
+
+### Multi-Task Fine-Tuning
+One model for: classification, NER, summarization. Fine-tune on all three mixed. Shared representations improve transfer. Accuracy: 85% across all tasks (vs 88% individual models, but single model advantage).
+
+## Real-World Examples
+
+### LoRA Fine-Tuning for Domain Adaptation
+General LLM → Legal domain. Fine-tune on 5K legal documents + contracts. LoRA rank-8: 2 hours training. Result: 42% → 68% accuracy on legal tasks. Cost: $100 (vs $10K full fine-tune). Deployed as legal assistant.
+
+### Full Fine-Tuning for Company Chat
+Goal: make model understand company context (products, policies, customers). Fine-tune on 100K internal documents. Full fine-tuning (smaller model, 3B). Result: 95% accuracy on internal queries. Deployment: on-premise (compliance).
+
+### Multi-Task Fine-Tuning
+One model for: classification, NER, summarization. Fine-tune on all three mixed. Shared representations improve transfer. Accuracy: 85% across all tasks (vs 88% individual models, but single model advantage).
+
+## Real-World Examples
+
+### LoRA Fine-Tuning for Domain Adaptation
+General LLM → Legal domain. Fine-tune on 5K legal documents + contracts. LoRA rank-8: 2 hours training. Result: 42% → 68% accuracy on legal tasks. Cost: $100 (vs $10K full fine-tune). Deployed as legal assistant.
+
+### Full Fine-Tuning for Company Chat
+Goal: make model understand company context (products, policies, customers). Fine-tune on 100K internal documents. Full fine-tuning (smaller model, 3B). Result: 95% accuracy on internal queries. Deployment: on-premise (compliance).
+
+### Multi-Task Fine-Tuning
+One model for: classification, NER, summarization. Fine-tune on all three mixed. Shared representations improve transfer. Accuracy: 85% across all tasks (vs 88% individual models, but single model advantage).
+
 ## Related Topics
 - [LoRA](lora.md) — parameter-efficient fine-tuning (cheaper alternative)
 - [Parameter-Efficient Fine-tuning](parameter-efficient-finetuning.md) — broader PEFT methods

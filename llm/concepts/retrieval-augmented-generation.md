@@ -46,12 +46,12 @@ User: "How many employees does Acme Corp have?"
 
 ```mermaid
 graph LR
-    A["Input"] --> B["Retrieval-Augmented Generation Process"]
-    B --> C["Output"]
-
-    style A fill:#e1f5ff
-    style B fill:#fff3e0
-    style C fill:#e8f5e9
+    A["Query"] -->|Embed| B["Vector"]
+    B -->|Search| C["Vector DB<br/>Top-K"]
+    C -->|Rerank| D["Top-5<br/>Docs"]
+    D -->|Context| E["LLM"]
+    E -->|Generate| F["Answer<br/>Grounded"]
+    style F fill:#e8f5e9
 ```
 
 ## Key Properties / Trade-offs
@@ -141,6 +141,14 @@ print(f"\nPrompt to LLM:\n{prompt}")
 | "Retrieval quality low?" | Check embedding model fit to domain, chunk segmentation, k value. Try dense + BM25 hybrid. |
 | "How to mitigate hallucination?" | Enforce citations to retrieved text, use grounding metrics, add re-ranker. |
 
+## Real-World Examples
+
+### Enterprise RAG for Support
+50K support docs. Query: retrieve top-5 docs, generate answer. User satisfaction: 70% (basic) → 90% (RAG). Reduced support tickets by 35%.
+
+### Medical RAG
+50K medical papers. Doctor input: patient symptoms. RAG retrieves literature, LLM synthesizes. Not for diagnosis (needs human), but research support.
+
 ## Related Topics
 - [Embeddings](embeddings.md) — how documents are encoded for retrieval
 - [Semantic Search](semantic-search.md) — the retrieval component of RAG
@@ -166,12 +174,17 @@ graph TD
 
 ## Interview Questions
 
-**Q: What's the core problem this concept solves?**
-*A: See the 'Core Intuition' section above for the fundamental problem and how this concept addresses it.*
+**Q: What's RAG and how does it reduce hallucinations?**
+*A: RAG: retrieve documents, feed as context, generate answer grounded in retrieved docs. Without RAG: model generates from memory (hallucinations). With RAG: facts grounded in documents. Hallucination rate: 30-50% lower.*
 
-**Q: What are the main advantages and disadvantages?**
-*A: See 'Key Properties / Trade-offs' section for detailed comparison with alternatives.*
+**Q: How do you structure a RAG pipeline?**
+*A: 1) Index: chunk docs, embed, store in vector DB. 2) Retrieve: embed query, get top-k docs. 3) Rerank (optional): cross-encoder scores. 4) Generate: LLM + docs → answer. Latency: retrieval 50ms + ranking 50ms + generation 1000ms.*
 
-**Q: How do you implement this in practice?**
-*A: Refer to the corresponding Jupyter notebook in `llm/notebooks/` for working Python implementations and examples.*
+**Q: What's dense vs sparse retrieval?**
+*A: Dense: embeddings (semantic, slow). Sparse: keywords (BM25, fast). Hybrid: both combined. Dense finds 'good service' for 'satisfied', sparse misses without keyword overlap. Use hybrid for best results.*
 
+**Q: When should you use reranking?**
+*A: Retrieval top-20 candidates. Reranker: scores all 20. Cost: +50-100ms. Gain: +5-10% accuracy. Worth if: quality matters, latency allows.*
+
+**Q: How do you handle knowledge base drift?**
+*A: Documents change, become stale. Solutions: 1) Periodic reindexing (cheap). 2) TTL (auto-expire old docs). 3) Versioning (keep history). Most: combine periodic reindex + TTL.*

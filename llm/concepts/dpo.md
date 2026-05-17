@@ -69,13 +69,14 @@ For each preference pair:
 ### Workflow Flowchart
 
 ```mermaid
-graph LR
-    A["Input"] --> B["DPO (Direct Preference Optimization) Process"]
-    B --> C["Output"]
-
-    style A fill:#e1f5ff
-    style B fill:#fff3e0
+graph TD
+    A["Preference Data<br/>A vs B"] -->|Standard| B["Train Reward<br/>Model"]
+    A -->|DPO| C["Direct Training<br/>No Reward Model"]
+    B -->|RLHF| D["RL Training<br/>Complex"]
+    C -->|DPO| E["Aligned Model<br/>Simple"]
+    style A fill:#e3f2fd
     style C fill:#e8f5e9
+    style E fill:#c8e6c9
 ```
 
 ## Key Properties / Trade-offs
@@ -203,6 +204,14 @@ dpo_trainer.train()
 | "Implicit reward model?" | DPO computes reward implicitly in loss function. Can't inspect/debug separately. Trade-off: simplicity vs interpretability. |
 | "When use DPO?" | When you have preference data and want speed/simplicity. RLHF if you need maximum quality and have compute budget. |
 
+## Real-World Examples
+
+### DPO for LLM Alignment
+Base model: 45% human preference. After DPO (10K preference pairs): 72% human preference. Training: 3 hours on 1 GPU. Improvement: better instruction following, fewer refusals. Cost: $100 (data annotation) + $50 (compute) vs $5K (RLHF).
+
+### DPO for Code Generation
+Base model: 40% correct solutions. Target: 70%. DPO on 5K (output, correct, incorrect) triplets. Result: 68% accuracy, 5% improvement. Faster than RLHF pipeline (RL training). Deployed in Copilot-style autocomplete.
+
 ## Related Topics
 - [[rlhf]] — traditional preference optimization approach (more complex)
 - [[fine-tuning]] — supervised fine-tuning baseline
@@ -227,12 +236,17 @@ graph TD
 
 ## Interview Questions
 
-**Q: What's the core problem this concept solves?**
-*A: See the 'Core Intuition' section above for the fundamental problem and how this concept addresses it.*
+**Q: What's DPO and how does it differ from RLHF?**
+*A: RLHF: train reward model, use for RL (complex, unstable). DPO: direct preference optimization, no reward model, just use preference pairs directly. Training: instead of 'maximize reward', use 'prefer chosen over rejected'. Simpler, more stable, comparable results.*
 
-**Q: What are the main advantages and disadvantages?**
-*A: See 'Key Properties / Trade-offs' section for detailed comparison with alternatives.*
+**Q: When would you use DPO vs RLHF?**
+*A: DPO: preference data available, want simpler pipeline, unstable RLHF. RLHF: reward model importance, have label budget for rewards. DPO getting popular because: easier to implement, no RL training needed, better results on benchmarks.*
 
-**Q: How do you implement this in practice?**
-*A: Refer to the corresponding Jupyter notebook in `llm/notebooks/` for working Python implementations and examples.*
+**Q: How do you collect preference data for DPO?**
+*A: Generate multiple outputs, have human raters choose best. 10K-100K preference pairs typical. Quality matters: bad labels → bad DPO model. Standard: binary choice (A vs B), can do ranking (order N outputs). Cost: 5-10x cheaper than RLHF (no reward model training).*
 
+**Q: What's the DPO loss function conceptually?**
+*A: Maximize probability of preferred over rejected: P(preferred) > P(rejected). During training: upweight preferred outputs, downweight rejected. Unlike RLHF: no explicit reward signal, implicit from comparisons.*
+
+**Q: How does DPO affect model behavior vs base model?**
+*A: Alignment shift: better instruction-following, fewer refusals on legitimate requests, more appropriate refusals on harmful. Similar to RLHF but achieved faster. Risk: potential jailbreak if preferences skewed toward harmful outputs.*

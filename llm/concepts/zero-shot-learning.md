@@ -117,6 +117,39 @@ Task: medical text classification. Model trained on general domain. Zero-shot: 4
 ### Zero-Shot Generalization Test
 Test model on completely unseen task (no fine-tuning, no examples). Success indicates good instruction following. Failure suggests task too specialized or model too narrow.
 
+## Real-World Examples
+
+### Zero-Shot Language Detection
+Model: multilingual. Task: detect language from text. No examples provided. Accuracy: 95% (works because language is distinct). vs few-shot: 98% (marginal gain, examples not needed).
+
+### Zero-Shot Domain Transfer
+Task: medical text classification. Model trained on general domain. Zero-shot: 45% accuracy (struggles with medical jargon). Few-shot (3 medical examples): 70%. Full fine-tune: 90%.
+
+### Zero-Shot Generalization Test
+Test model on completely unseen task (no fine-tuning, no examples). Success indicates good instruction following. Failure suggests task too specialized or model too narrow.
+
+## Real-World Examples
+
+### Zero-Shot Language Detection
+Model: multilingual. Task: detect language from text. No examples provided. Accuracy: 95% (works because language is distinct). vs few-shot: 98% (marginal gain, examples not needed).
+
+### Zero-Shot Domain Transfer
+Task: medical text classification. Model trained on general domain. Zero-shot: 45% accuracy (struggles with medical jargon). Few-shot (3 medical examples): 70%. Full fine-tune: 90%.
+
+### Zero-Shot Generalization Test
+Test model on completely unseen task (no fine-tuning, no examples). Success indicates good instruction following. Failure suggests task too specialized or model too narrow.
+
+## Real-World Examples
+
+### Zero-Shot Language Detection
+Model: multilingual. Task: detect language from text. No examples provided. Accuracy: 95% (works because language is distinct). vs few-shot: 98% (marginal gain, examples not needed).
+
+### Zero-Shot Domain Transfer
+Task: medical text classification. Model trained on general domain. Zero-shot: 45% accuracy (struggles with medical jargon). Few-shot (3 medical examples): 70%. Full fine-tune: 90%.
+
+### Zero-Shot Generalization Test
+Test model on completely unseen task (no fine-tuning, no examples). Success indicates good instruction following. Failure suggests task too specialized or model too narrow.
+
 ## Related Topics
 - [In-Context Learning](in-context-learning.md) — ICL includes both zero and few-shot
 - [Few-Shot Learning](few-shot-learning.md) — adding examples to zero-shot

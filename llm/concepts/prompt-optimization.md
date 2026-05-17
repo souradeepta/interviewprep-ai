@@ -285,6 +285,39 @@ Task: detect toxic content. V1: 'Is this toxic?' (45% recall). V2: 'Identify tox
 ### Code Generation Improvement
 Prompt v1: 'Write Python function' (40% correct). Prompt v2: Add type hints, docstring requirements (60%). Prompt v3: Add example functions (78%). Final prompt: 2K tokens vs 100 for basic.
 
+## Real-World Examples
+
+### Customer Support Chatbot Optimization
+Baseline: generic response template. Optimized: clear categorization + relevant examples + structured output (JSON). Accuracy: 70% → 85%. User satisfaction: 60% → 88%.
+
+### Content Moderation Prompt
+Task: detect toxic content. V1: 'Is this toxic?' (45% recall). V2: 'Identify toxic content: slurs, threats, harassment, ...' (72% recall). V3: Add examples (85%). Cost: same tokens.
+
+### Code Generation Improvement
+Prompt v1: 'Write Python function' (40% correct). Prompt v2: Add type hints, docstring requirements (60%). Prompt v3: Add example functions (78%). Final prompt: 2K tokens vs 100 for basic.
+
+## Real-World Examples
+
+### Customer Support Chatbot Optimization
+Baseline: generic response template. Optimized: clear categorization + relevant examples + structured output (JSON). Accuracy: 70% → 85%. User satisfaction: 60% → 88%.
+
+### Content Moderation Prompt
+Task: detect toxic content. V1: 'Is this toxic?' (45% recall). V2: 'Identify toxic content: slurs, threats, harassment, ...' (72% recall). V3: Add examples (85%). Cost: same tokens.
+
+### Code Generation Improvement
+Prompt v1: 'Write Python function' (40% correct). Prompt v2: Add type hints, docstring requirements (60%). Prompt v3: Add example functions (78%). Final prompt: 2K tokens vs 100 for basic.
+
+## Real-World Examples
+
+### Customer Support Chatbot Optimization
+Baseline: generic response template. Optimized: clear categorization + relevant examples + structured output (JSON). Accuracy: 70% → 85%. User satisfaction: 60% → 88%.
+
+### Content Moderation Prompt
+Task: detect toxic content. V1: 'Is this toxic?' (45% recall). V2: 'Identify toxic content: slurs, threats, harassment, ...' (72% recall). V3: Add examples (85%). Cost: same tokens.
+
+### Code Generation Improvement
+Prompt v1: 'Write Python function' (40% correct). Prompt v2: Add type hints, docstring requirements (60%). Prompt v3: Add example functions (78%). Final prompt: 2K tokens vs 100 for basic.
+
 ## Related Topics
 - [[prompting]] — general prompting principles and frameworks
 - [[few-shot-learning]] — in-context examples as optimization technique

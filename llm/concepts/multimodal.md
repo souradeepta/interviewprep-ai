@@ -148,12 +148,14 @@ PaliGemma:
 
 ```mermaid
 graph LR
-    A["Input"] --> B["Multimodal Process"]
-    B --> C["Output"]
-
-    style A fill:#e1f5ff
-    style B fill:#fff3e0
-    style C fill:#e8f5e9
+    A["Image"] -->|Vision Encoder<br/>CLIP| B["Image Embeddings"]
+    C["Text"] -->|Tokenize| D["Text Embeddings"]
+    B -->|Combine| E["Multimodal Representation"]
+    D -->|Combine| E
+    E -->|LLM| F["Output"]
+    style B fill:#e0f2f1
+    style D fill:#e3f2fd
+    style F fill:#e8f5e9
 ```
 
 ## Key Properties / Trade-offs
@@ -313,6 +315,30 @@ for images, captions in dataloader:
 | "Alignment problem?" | Images and text must be paired in training. Off-topic pairs confuse model. Curate data carefully. |
 | "Quality vs speed?" | Dense features (196 tokens): best quality. Pooled (100 tokens): balanced. Aggressive (32 tokens): fast, lower quality. |
 
+## Real-World Examples
+
+### GPT-4V Image Understanding
+Input: image of a recipe. Task: extract ingredients, instructions. Accuracy: 95%. vs OCR+NLP: 70% (misses context). Multimodal: understands layout, context.
+
+### Accessibility: Image Descriptions
+Generate captions for web images automatically. Model: vision encoder + language model. Coverage: 90% of web images can be described (manual: 10% due to cost).
+
+## Real-World Examples
+
+### GPT-4V Image Understanding
+Input: image of a recipe. Task: extract ingredients, instructions. Accuracy: 95%. vs OCR+NLP: 70% (misses context). Multimodal: understands layout, context.
+
+### Accessibility: Image Descriptions
+Generate captions for web images automatically. Model: vision encoder + language model. Coverage: 90% of web images can be described (manual: 10% due to cost).
+
+## Real-World Examples
+
+### GPT-4V Image Understanding
+Input: image of a recipe. Task: extract ingredients, instructions. Accuracy: 95%. vs OCR+NLP: 70% (misses context). Multimodal: understands layout, context.
+
+### Accessibility: Image Descriptions
+Generate captions for web images automatically. Model: vision encoder + language model. Coverage: 90% of web images can be described (manual: 10% due to cost).
+
 ## Related Topics
 - [[embeddings]] — vision embeddings and projection
 - [[transfer-learning]] — using pre-trained vision encoders
@@ -339,12 +365,17 @@ graph TD
 
 ## Interview Questions
 
-**Q: What's the core problem this concept solves?**
-*A: See the 'Core Intuition' section above for the fundamental problem and how this concept addresses it.*
+**Q: What's multimodal learning in LLMs?**
+*A: Process multiple input types: text, images, audio. Example: 'What's in this image?' Model sees image + question → generates answer. Enables: image understanding, video understanding, audio transcription.*
 
-**Q: What are the main advantages and disadvantages?**
-*A: See 'Key Properties / Trade-offs' section for detailed comparison with alternatives.*
+**Q: How do you handle image inputs with LLMs?**
+*A: Approach 1: use vision encoder (CLIP) → embeddings → feed to LLM. Approach 2: end-to-end training on image+text. CLIP approach more practical (separate vision, reusable).*
 
-**Q: How do you implement this in practice?**
-*A: Refer to the corresponding Jupyter notebook in `llm/notebooks/` for working Python implementations and examples.*
+**Q: What's the trade-off between image resolution and latency?**
+*A: High-res (1024×1024): better detail, slow. Low-res (224×224): fast, miss details. Typical: 256-512×256-512 (good balance).*
 
+**Q: How do you train multimodal models?**
+*A: Contrastive learning: image-text pairs, learn similar embeddings. Generative: generate captions from images. Alignment: learn shared representation. Data: millions of image-text pairs (LAION, etc).*
+
+**Q: When does multimodal fail?**
+*A: Hallucination: generate plausible but false image descriptions. Bias: reflect biases in training data. Understand: struggle with complex reasoning about images.*

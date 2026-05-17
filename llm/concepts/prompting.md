@@ -133,6 +133,39 @@ Single English prompt: works in English (90%), fails in Spanish (40%). Language-
 ### Adversarial Prompt Injection Defense
 Naive prompt: vulnerable to 'Ignore previous instructions'. Defended prompt: explicit rules, constraints, separation of data. Improves robustness against injection attacks by 95%.
 
+## Real-World Examples
+
+### Email Classification Prompts
+Generic: 'Classify email' (50% accuracy). With examples: 'Similar emails are classified as [examples shown]' (75%). With role: 'You are email expert' (78%). Final: +28% improvement.
+
+### Multi-Language Prompting
+Single English prompt: works in English (90%), fails in Spanish (40%). Language-aware prompt: includes language name, examples in that language, cultural context. 90% in both.
+
+### Adversarial Prompt Injection Defense
+Naive prompt: vulnerable to 'Ignore previous instructions'. Defended prompt: explicit rules, constraints, separation of data. Improves robustness against injection attacks by 95%.
+
+## Real-World Examples
+
+### Email Classification Prompts
+Generic: 'Classify email' (50% accuracy). With examples: 'Similar emails are classified as [examples shown]' (75%). With role: 'You are email expert' (78%). Final: +28% improvement.
+
+### Multi-Language Prompting
+Single English prompt: works in English (90%), fails in Spanish (40%). Language-aware prompt: includes language name, examples in that language, cultural context. 90% in both.
+
+### Adversarial Prompt Injection Defense
+Naive prompt: vulnerable to 'Ignore previous instructions'. Defended prompt: explicit rules, constraints, separation of data. Improves robustness against injection attacks by 95%.
+
+## Real-World Examples
+
+### Email Classification Prompts
+Generic: 'Classify email' (50% accuracy). With examples: 'Similar emails are classified as [examples shown]' (75%). With role: 'You are email expert' (78%). Final: +28% improvement.
+
+### Multi-Language Prompting
+Single English prompt: works in English (90%), fails in Spanish (40%). Language-aware prompt: includes language name, examples in that language, cultural context. 90% in both.
+
+### Adversarial Prompt Injection Defense
+Naive prompt: vulnerable to 'Ignore previous instructions'. Defended prompt: explicit rules, constraints, separation of data. Improves robustness against injection attacks by 95%.
+
 ## Related Topics
 - [Prompt Optimization](prompt-optimization.md) — iterative improvement
 - [In-Context Learning](in-context-learning.md) — how prompts teach

@@ -126,6 +126,39 @@ Task: match product descriptions to categories. Descriptions vary (informal, typ
 ### Multi-Language Few-Shot
 Translate task instructions to 10 languages. Few-shot examples in each language. Model generalizes zero-shot to other languages through few-shot anchoring. Accuracy: 75% (vs 40% direct translation).
 
+## Real-World Examples
+
+### Few-Shot for Customer Intent Classification
+Chatbot: classify support tickets. Examples: 'Refund request' → returns, 'Can't login' → technical, 'Feedback' → general. Zero-shot: 45% accuracy. Few-shot (3 examples): 72% accuracy. Deployed in Zendesk integration.
+
+### Few-Shot Semantic Matching
+Task: match product descriptions to categories. Descriptions vary (informal, typos, abbreviations). Few-shot with diverse examples: 88% accuracy. Cost: <$0.01 per classification vs. $0.50 with fine-tuning.
+
+### Multi-Language Few-Shot
+Translate task instructions to 10 languages. Few-shot examples in each language. Model generalizes zero-shot to other languages through few-shot anchoring. Accuracy: 75% (vs 40% direct translation).
+
+## Real-World Examples
+
+### Few-Shot for Customer Intent Classification
+Chatbot: classify support tickets. Examples: 'Refund request' → returns, 'Can't login' → technical, 'Feedback' → general. Zero-shot: 45% accuracy. Few-shot (3 examples): 72% accuracy. Deployed in Zendesk integration.
+
+### Few-Shot Semantic Matching
+Task: match product descriptions to categories. Descriptions vary (informal, typos, abbreviations). Few-shot with diverse examples: 88% accuracy. Cost: <$0.01 per classification vs. $0.50 with fine-tuning.
+
+### Multi-Language Few-Shot
+Translate task instructions to 10 languages. Few-shot examples in each language. Model generalizes zero-shot to other languages through few-shot anchoring. Accuracy: 75% (vs 40% direct translation).
+
+## Real-World Examples
+
+### Few-Shot for Customer Intent Classification
+Chatbot: classify support tickets. Examples: 'Refund request' → returns, 'Can't login' → technical, 'Feedback' → general. Zero-shot: 45% accuracy. Few-shot (3 examples): 72% accuracy. Deployed in Zendesk integration.
+
+### Few-Shot Semantic Matching
+Task: match product descriptions to categories. Descriptions vary (informal, typos, abbreviations). Few-shot with diverse examples: 88% accuracy. Cost: <$0.01 per classification vs. $0.50 with fine-tuning.
+
+### Multi-Language Few-Shot
+Translate task instructions to 10 languages. Few-shot examples in each language. Model generalizes zero-shot to other languages through few-shot anchoring. Accuracy: 75% (vs 40% direct translation).
+
 ## Related Topics
 - [In-Context Learning](in-context-learning.md) — broader ICL concept
 - [Zero-Shot Learning](zero-shot-learning.md) — no examples, just instructions
