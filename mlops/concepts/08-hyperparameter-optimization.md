@@ -42,6 +42,25 @@ Early Stopping:
   Saves 90% compute for bad configs
 ```
 
+```mermaid
+graph TB
+    A["Search Strategy Choice"] --> B{Team<br/>Setup?}
+    
+    B --> |"Small<br/>Quick Start"| C["Grid Search<br/>9 combinations<br/>Exhaustive<br/>Best when space small"]
+    B --> |"Medium<br/>Exploration"| D["Random Search<br/>20-50 samples<br/>Broad coverage<br/>Often beats grid"]
+    B --> |"Large<br/>Efficient"| E["Bayesian Opt<br/>50-100 trials<br/>Learns patterns<br/>Finds best result"]
+    B --> |"Cost<br/>Sensitive"| F["Hyperband<br/>Early stopping<br/>Prunes bad configs<br/>Saves compute"]
+    
+    C --> G["Run Trials"]
+    D --> G
+    E --> G
+    F --> G
+    
+    G --> |"Parallel"| H["Training<br/>Grid on GPU<br/>Across machines"]
+    H --> I["Best Config<br/>Found"]
+    I --> J["Retrain<br/>Full Dataset<br/>Test Set"]
+```
+
 ### HPO Workflow
 
 ```

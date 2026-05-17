@@ -49,6 +49,31 @@ Archive Previous Version
     └─ Retain weights for analysis
 ```
 
+```mermaid
+graph TD
+    A["Train<br/>Experiment"] --> |"Metrics OK?"| B{Accept?}
+    B --> |"No"| C["Iterate<br/>New params"]
+    C --> A
+    B --> |"Yes"| D["Register<br/>Model Registry<br/>v5"]
+    
+    D --> E["Staging<br/>Run tests<br/>Validate"]
+    E --> |"Pass?"| F{Tests OK?}
+    F --> |"No"| C
+    F --> |"Yes"| G["Approval<br/>Code review<br/>Metrics review"]
+    
+    G --> |"Approved?"| H{Ready?}
+    H --> |"No"| C
+    H --> |"Yes"| I["Deploy<br/>Canary 5%<br/>Monitor 24h"]
+    
+    I --> |"Good?"| J{Metrics OK?}
+    J --> |"No"| K["Rollback<br/>to v4"]
+    J --> |"Yes"| L["Expand<br/>25% → 50%<br/>→ 100%"]
+    
+    L --> |"Live"| M["Production<br/>v5 Active"]
+    K --> N["Archive<br/>v4 Previous"]
+    M --> N
+```
+
 ### Registry Entry Example
 
 ```yaml

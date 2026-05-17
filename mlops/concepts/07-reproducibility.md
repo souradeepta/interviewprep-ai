@@ -49,6 +49,37 @@ The operational challenge is maintaining reproducibility at scale. 1000 experime
 Given above: identical results ✓
 ```
 
+```mermaid
+graph TB
+    A["Reproducibility<br/>Requirements"] --> B["Code<br/>git commit<br/>abc123"]
+    A --> C["Data<br/>Version<br/>hash xyz"]
+    A --> D["Dependencies<br/>transformers==4.30<br/>pytorch==2.0"]
+    A --> E["Environment<br/>Python 3.9<br/>CUDA 11.8"]
+    A --> F["Seeds<br/>torch.seed=42<br/>np.seed=42"]
+    A --> G["Hyperparams<br/>lr=0.01<br/>batch=64"]
+    
+    B --> H["Training<br/>Script"]
+    C --> H
+    D --> H
+    E --> H
+    F --> H
+    G --> H
+    
+    H --> I["Model v1"]
+    I --> J["Accuracy<br/>0.95"]
+    
+    B --> K["Reproduction<br/>3 months later"]
+    C --> K
+    D --> K
+    E --> K
+    F --> K
+    G --> K
+    
+    K --> L["Training<br/>Script"]
+    L --> M["Model v1'"]
+    M --> N["Accuracy<br/>0.95 ✓"]
+```
+
 ### Reproduction Workflow
 
 ```
