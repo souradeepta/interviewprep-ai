@@ -3,6 +3,58 @@
 ## TL;DR
 Reduce model precision (float32 → int8, int4, or lower) to shrink memory and accelerate inference. Trade: memory/speed gain for small accuracy loss. Critical for deploying large models. Methods: Post-Training Quantization (PTQ), Quantization-Aware Training (QAT), mixed precision.
 
+
+## Model Quantization: Compression and Efficiency
+
+Quantization reduces model size and computational requirements by representing weights and activations using lower-precision data types. The fundamental insight: neural networks have redundancy that allows lower precision without significant accuracy loss.
+
+### Quantization Types and Mechanisms
+
+**1. Weight Quantization (Primary target for deployment)**
+- Reduces stored model size
+- Example: FP32 (4 bytes/param) → INT8 (1 byte/param) = 4× compression
+- Applied: offline, once per model
+
+**2. Activation Quantization (Less common, complex)**
+- Reduces runtime computation
+- Depends on input distribution
+- Applied: during inference
+
+**3. Bit-Width Variations**
+- FP32: Full precision (baseline)
+- FP16/BF16: Half precision (minimal loss)
+- INT8: 8-bit integer (1-2% loss)
+- INT4: 4-bit integer (1-3% loss)
+- INT2/INT1: Extreme (significant accuracy loss)
+
+### Calibration: The Critical Step
+
+Quantization requires calibration to determine appropriate scale factors:
+1. **Collect calibration data**: Run forward pass on representative inputs (first 100-500 batches)
+2. **Compute statistics**: Min/max values, percentiles (KL divergence, entropy)
+3. **Determine scales**: Map FP32 range to lower-bit range
+4. **Validate**: Check accuracy on validation set## Quantization Methods Comparison
+
+| Method | Training Time | Accuracy Loss | Speed Gain | Memory Reduction | Complexity | Production Ready |
+|--------|--------------|---------------|-----------|-----------------|-----------|-----------------|
+| **Post-Training INT8** | None (fast) | 1-2% | 2-3× | 4× | Low | ✅ Yes |
+| **Post-Training INT4** | None (fast) | 2-4% | 3-5× | 8× | Low | ✅ Yes (GPTQ) |
+| **QAT (INT8)** | Hours | 0.5-1% | 2-3× | 4× | High | ✅ Yes |
+| **QAT (INT4)** | Days | 1-2% | 3-5× | 8× | High | ⚠️ Emerging |
+| **Knowledge Distillation** | Days | Variable | 5-10× | 10-50× | Very High | ✅ Yes |
+| **Pruning + Quant** | Hours-Days | 2-3% | 5-10× | 10-20× | Medium | ✅ Yes |
+| **Sparsity** | Variable | 1-3% | 3-8× | 4-16× | Medium | ⚠️ Emerging |
+
+### Quantization Precision Trade-offs
+
+| Precision | Bytes/Param | Model Size (7B) | Typical Accuracy Loss | Deployment |
+|-----------|-----------|-----------------|----------------------|------------|
+| **FP32** | 4 | 28 GB | Baseline (0%) | GPU/CPU |
+| **FP16/BF16** | 2 | 14 GB | <0.5% | GPU |
+| **INT8** | 1 | 7 GB | 1-2% | GPU/CPU/Mobile |
+| **INT4 (GPTQ)** | 0.5 | 3.5 GB | 2-4% | Mobile/Edge |
+| **INT3** | 0.375 | 2.6 GB | 4-8% | Research |
+| **INT2/INT1** | 0.125-0.25 | 0.9-1.7 GB | 10-30% | Research |
 ## Core Intuition
 LLMs are huge (LLaMA 70B = 140GB in float32). Store weights in lower precision (8-bit, 4-bit) → same model, 4-16x smaller. Run inference on GPU/CPU with less memory → faster, cheaper. Small accuracy drop because LLM outputs are often robust to quantization noise.
 

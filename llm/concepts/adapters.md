@@ -3,6 +3,43 @@
 ## TL;DR
 Bottleneck modules (down-project → activation → up-project) inserted into transformer layers. Update only adapters, freeze base weights. 2-5% parameter overhead; achieves 96-98% of full FT quality. Alternative to LoRA with different architecture; can combine multiple adapters per task.
 
+
+## Detailed Overview
+
+Adapters represent a paradigm shift in efficient model adaptation. Rather than fine-tuning all parameters of a pre-trained model (which can be computationally expensive and memory-intensive), adapters introduce small, learnable modules that are inserted into the model architecture while keeping the base model weights frozen.
+
+### Architecture Details
+
+An adapter typically consists of:
+1. **Down-projection layer**: Projects from hidden dimension (e.g., 768) to a smaller bottleneck dimension (e.g., 64)
+2. **Non-linearity**: ReLU or GELU activation
+3. **Up-projection layer**: Projects back to original dimension
+
+This bottleneck design forces the adapter to learn a compressed representation of the task-specific knowledge. The total trainable parameters per adapter: roughly 2 × hidden_dim × bottleneck_dim, typically 500K-1M parameters.
+
+### Why This Matters
+
+For a 7B parameter model:
+- **Full fine-tuning**: Update all 7B parameters (28GB storage, days of training, GPU cost ~$5K)
+- **LoRA**: Update ~1M parameters in low-rank matrices (3-5GB storage, hours of training, GPU cost ~$500)
+- **Adapters**: Update ~1M parameters in bottleneck modules (3-5GB storage, hours of training, GPU cost ~$500)
+
+The adapter approach is particularly valuable in **multi-task learning scenarios** where you need different models for different tasks but want to share a common base model.## Comparison: Adapter Types and Alternatives
+
+| Method | Parameters Trained | Storage per Task | Training Speed | Inference Speed | Task Isolation | Multi-Task Support |
+|--------|-------------------|------------------|-----------------|-----------------|---------------|--------------------|
+| **Adapters (Bottleneck)** | 0.5-1M | 512KB - 1MB | Fast (1-2h) | Slight overhead (+2-3%) | Excellent | Excellent |
+| **LoRA** | 0.1-1M | 100KB - 1MB | Fast (1-2h) | No overhead | Excellent | Excellent |
+| **Prefix-Tuning** | 50-500K | 50-500KB | Very Fast | Minimal overhead | Good | Good |
+| **Full Fine-Tuning** | 7B | 28GB | Slow (24-48h) | No overhead | Perfect | Poor |
+| **BitFit** | 0.01% | Similar to adapters | Moderate | No overhead | Good | Good |
+| **Prompt Tuning** | 0.001% | Tiny | Fastest | No overhead | Limited | Limited |
+
+**Key Tradeoffs:**
+- **Inference latency**: LoRA (no overhead) > Adapters (2-3% slower) > other methods
+- **Multi-task**: Adapters and LoRA excellent; full fine-tuning requires separate models
+- **Accuracy ceiling**: Full fine-tuning > LoRA ≈ Adapters > others
+- **Memory efficiency during training**: Prefix-tuning > LoRA > Adapters > Full
 ## Core Intuition
 Like LoRA, adapters train small modules instead of full weights. But instead of low-rank matrix updates (AB^T), adapters use bottleneck feed-forward layers. Similar efficiency (1-3% params), different structure. Useful when you want architectural flexibility or specific layer patterns.
 

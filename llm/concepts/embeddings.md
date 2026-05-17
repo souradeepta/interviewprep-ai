@@ -3,6 +3,43 @@
 ## TL;DR
 Dense vector representations of tokens or text. Transform discrete symbols (words, sentences) into continuous space where semantically similar items are close. Foundation for similarity search, clustering, retrieval, and LLM input representations.
 
+
+## Comprehensive Embedding Systems
+
+Embeddings are continuous vector representations of text that capture semantic meaning in a high-dimensional space. Unlike one-hot encoding (which is sparse and doesn't capture meaning), embeddings are dense vectors where similarity in vector space corresponds to semantic similarity.
+
+### How Embeddings Capture Meaning
+
+Modern embeddings are learned through contrastive learning objectives:
+1. **Positive pairs**: Similar sentences → similar embeddings (high cosine similarity ~0.8-0.95)
+2. **Negative pairs**: Dissimilar sentences → dissimilar embeddings (low cosine similarity ~0.1-0.3)
+3. **Loss function**: Minimize distance between positive pairs, maximize distance between negative pairs
+
+This forces the model to learn a space where:
+- "good customer service" and "excellent support" are close (synonymous)
+- "good customer service" and "terrible experience" are far apart (opposite meaning)
+- "good customer service" and "weather today" are distant (unrelated)
+
+### Embedding Models Landscape
+
+The choice of embedding model significantly impacts downstream task performance. Different models are optimized for different properties.## Embedding Models Comparison
+
+| Model | Dimension | Params | Speed | Quality | Use Case | Training Data |
+|-------|-----------|--------|-------|---------|----------|---------------|
+| **all-MiniLM-L6-v2** | 384 | 22M | ⚡⚡⚡ Fast | ⭐⭐⭐ Good | General, edge devices | MS MARCO, NLI |
+| **all-mpnet-base-v2** | 768 | 109M | ⚡⚡ Medium | ⭐⭐⭐⭐ Very Good | Production systems | 215M sentence pairs |
+| **bge-large-en-v1.5** | 1024 | 335M | ⚡ Slow | ⭐⭐⭐⭐⭐ Excellent | High-accuracy needs | Massive web corpus |
+| **instructor-xl** | 768 | 335M | ⚡ Slow | ⭐⭐⭐⭐⭐ Excellent | Domain-specific | Instruction-tuned |
+| **text-embedding-3-small** | 512 | Proprietary | Medium | ⭐⭐⭐⭐ Very Good | OpenAI API users | OpenAI training |
+| **text-embedding-3-large** | 3072 | Proprietary | ⚡ Slow | ⭐⭐⭐⭐⭐ Excellent | Maximum quality | OpenAI training |
+| **multilingual-e5-base** | 768 | 109M | ⚡⚡ Medium | ⭐⭐⭐⭐ Very Good | 100+ languages | Translated pairs |
+| **jina-embeddings-v2** | 8192 | Proprietary | ⚡ Slow | ⭐⭐⭐⭐⭐ Excellent | Long context (8K) | Long-document data |
+
+**Selection Guidelines:**
+- **Latency-critical (<100ms)**: Use all-MiniLM (384-dim, 22M params)
+- **Accuracy-critical**: Use bge-large or instructor-xl (despite slower speed)
+- **Multilingual**: Use multilingual-e5 (supported language count crucial)
+- **Long documents (>512 tokens)**: Use jina-embeddings-v2 (8K context)
 ## Core Intuition
 Words are just labels—meaningless. Embeddings translate them into geometry. Two words mean similar things if their vectors are near each other (low distance). The embedding space captures semantic and syntactic structure learned from data.
 

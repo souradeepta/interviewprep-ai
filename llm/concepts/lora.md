@@ -3,6 +3,47 @@
 ## TL;DR
 Fine-tune LLMs by training only low-rank decomposition matrices, not all weights. Instead of updating W ∈ ℝ^(d × d), add A ∈ ℝ^(d × r) and B ∈ ℝ^(r × d) where r << d. Reduces parameters by 99%+, enables many task-specific models, minimal memory/compute cost.
 
+
+## LoRA (Low-Rank Adaptation) Deep Dive
+
+LoRA represents a mathematical insight that allows efficient fine-tuning through low-rank updates. The key innovation: instead of fine-tuning weight matrices W directly, we represent the weight update as ΔW = AB^T, where A and B are small low-rank matrices.
+
+### Mathematical Foundation
+
+For a weight matrix W ∈ R^{d_out × d_in}:
+- Standard fine-tuning: Update all d_out × d_in parameters
+- LoRA approach: Decompose update as ΔW = AB^T where:
+  - A ∈ R^{d_out × r} (r is rank, typically 4-8)
+  - B ∈ R^{d_in × r}
+  - Total parameters: r(d_out + d_in) << d_out × d_in
+
+**Example with GPT-3 (175B parameters, d=12288):**
+- Standard: 12288 × 12288 = 150M parameters per layer
+- LoRA (r=8): 8(12288 + 12288) = 196K parameters per layer
+- Compression: 766× reduction (150M → 196K)
+
+### Why Low-Rank Works
+
+Empirical evidence suggests that weight updates during fine-tuning are intrinsically low-rank. The model doesn't need to explore the full d × d dimensional space of possible updates; it primarily moves along a lower-dimensional manifold. LoRA exploits this structure.## LoRA Rank and Configuration Trade-offs
+
+| Rank | Parameters | Training Speed | Accuracy | Memory | Best For |
+|------|-----------|-----------------|----------|--------|----------|
+| **2** | 196K | ⚡⚡⚡ Fastest | ⭐⭐ Minimal | Lowest | Proof-of-concept |
+| **4** | 393K | ⚡⚡ Fast | ⭐⭐⭐ Good | Low | Resource-constrained |
+| **8** | 786K | ⚡ Medium | ⭐⭐⭐⭐ Very Good | Medium | **Standard choice** |
+| **16** | 1.5M | Medium | ⭐⭐⭐⭐ Very Good | Medium-High | Complex tasks |
+| **32** | 3M | ⚡ Slower | ⭐⭐⭐⭐⭐ Excellent | High | Precision-critical |
+| **64** | 6M | ⚡⚡ Much Slower | ⭐⭐⭐⭐⭐ Excellent | Very High | Approaching full FT |
+
+### LoRA Variants and Extensions
+
+| Variant | Description | Use Case | Trade-off |
+|---------|-------------|----------|-----------|
+| **Standard LoRA** | Rank-r matrices on Q,V projections | General | Baseline |
+| **QLoRA** | LoRA on quantized (INT4) base model | Memory-constrained | Slight accuracy loss |
+| **DoRA** | Weight-decomposed LoRA (separate magnitude) | Improved stability | +10% training cost |
+| **LoRA+** | Different LR for A vs B matrices | Fine-grained control | Hyperparameter tuning |
+| **LoRA Merge** | Combine multiple task LoRAs | Multi-task | Custom merging logic |
 ## Core Intuition
 Full fine-tuning updates all weights—expensive and redundant. The insight: weight changes during fine-tuning are low-rank. Store only the "directions of change" (r-rank factorization), not the full update. Recover full behavior with LoRA adapter on top of frozen base.
 
