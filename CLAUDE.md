@@ -4,15 +4,15 @@ This document captures the learnings from the LLM concept notebooks project. Fut
 
 ## Project Context
 
-**Goal:** Create comprehensive, production-ready learning materials for 32 core LLM concepts, focusing on interview preparation and practical implementation.
+**Goal:** Create comprehensive, production-ready learning materials for 148 core AI/ML concepts across three sections: AI Fundamentals (40), LLM (44), and Agentic AI (64), focusing on interview preparation and practical implementation.
 
 **Deliverables:**
-- 33 Jupyter notebooks (32 concepts + 1 master concept map)
-- 32 enhanced markdown files with theory, interview Q&A, best practices, common pitfalls
-- Concept mapping JSON with relationships and prerequisites
-- Production-grade Python implementations using HuggingFace libraries
+- 148 Jupyter notebooks with 3-level implementation (basic → advanced → real-world examples)
+- 148 enhanced markdown files with comprehensive explanations, interview Q&A, best practices, common pitfalls
+- 8-section markdown structure: Detailed Explanation, Core Intuition, How It Works, Architecture/Trade-offs, Interview Q&A, Best Practices, Common Pitfalls, Code Examples, Related Concepts
+- Production-grade Python implementations using real libraries (transformers, torch, sklearn, etc.)
 
-**Key Success Metric:** Materials enable candidates to both understand AND implement concepts after reading.
+**Key Success Metric:** Materials enable candidates to both understand AND implement concepts after reading. All content follows agentic-ai 8-section markdown + 12-cell notebook pattern.
 
 ---
 
@@ -266,22 +266,34 @@ Memories include:
 - **Feedback:** "Provide better real world implementations with real libraries"
 - **Fix:** Added production implementations using actual HuggingFace code
 
-### Iteration 3: Production Code (Current)
+### Iteration 3: Production Code
 - All notebooks now use real library imports and production patterns
 - Strong emphasis on code > theory in notebooks
 - Real-world examples show actual usage patterns
 - **Result:** Materials prepare candidates for both interviews and real implementation
 
+### Iteration 4: Curriculum Expansion & Enhancement (Session 8-9, Current)
+- Expanded from 32 LLM concepts to 148 total concepts (40 AI + 44 LLM + 64 Agentic-AI)
+- **Session 8:** Created all 148 concept files and 148 notebooks following agentic-ai pattern
+- **Session 9:** Enhanced all 40 AI fundamentals with comprehensive:
+  - Detailed Explanation (150-250 words): context, applications, challenges
+  - Core Intuition (2-3 sentences): memorable analogies for quick understanding
+- **Completion:** All 148 concepts now follow consistent 8-section markdown + 12-cell notebook pattern
+- **Result:** Comprehensive, interview-ready curriculum covering full AI/ML/LLM spectrum
+
 ---
 
 ## Quick Start for New Agents
 
-1. **Understand project:** Read `memory/llm_project_context.md`
-2. **Understand patterns:** Review `memory/implementation_patterns.md`
-3. **Structure new content:** Follow `memory/notebook_architecture.md`
-4. **Check guidelines:** Review sections above
-5. **Generate/test:** Use `scripts/generate_realworld_notebooks.py` and run tests
-6. **Validate:** Ensure all content passes quality checklist above
+1. **Understand project:** Read MEMORY.md index and relevant memory files
+   - `ai_fundamentals_enhancement.md` - Session 9 completion (all 40 AI concepts enhanced)
+   - `curriculum_expansion_complete.md` - Session 8 completion (148 concepts total)
+   - `implementation_patterns.md` - Real library patterns that work
+2. **Understand structure:** Follow agentic-ai pattern (8-section markdown, 12-cell notebooks)
+3. **Check guidelines:** Review sections above (Code Over Theory, Real Libraries, Production Patterns)
+4. **Content checklist:** Review "Content Structure Checklist" section above
+5. **Validate:** Ensure all content passes quality checklist above
+6. **Memory updates:** Update relevant memory files in `memory/` when completing work
 
 ---
 
