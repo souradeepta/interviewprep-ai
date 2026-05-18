@@ -31,18 +31,23 @@ Adam: fast, adaptive | RMSprop: simpler | SGD+momentum: stable
 
 ## Interview Q&A
 
-**Q: When would you use Optimization Algorithms?**
-A: Context-dependent, varies by problem type.
+**Q: When would you choose SGD over Adam?**
+A: Use SGD with momentum for computer vision tasks where generalization matters more than fast convergence — SGD often finds flatter minima that generalize better. Adam converges faster but can overfit, especially on small datasets. For production CV models (ResNets, VGGs), SGD+momentum+LR schedule is still the standard.
 
-**Q: What are the main trade-offs?**
-A: Refer to Architecture / Trade-offs section above.
+**Q: What's the difference between Adam and AdamW?**
+A: AdamW decouples weight decay from the gradient update, fixing a subtle bug in Adam where L2 regularization is scaled by the adaptive learning rate (effectively weakening regularization for parameters with large gradients). For transformers and modern architectures, always use AdamW over Adam when regularization matters.
 
-**Q: How do you choose hyperparameters?**
-A: Cross-validation, grid/random/Bayesian search, domain knowledge.
+**Q: Why does the learning rate interact with optimizer choice?**
+A: Each optimizer expects a different learning rate magnitude. Adam typically uses 1e-3 to 1e-4; SGD typically uses 0.01 to 0.1. Using Adam's typical LR with SGD would barely move the parameters; using SGD's LR with Adam would cause instability. Always re-tune LR when switching optimizers.
 
-**Q: What are common failure modes?**
-A: Refer to Common Pitfalls section below.
+**Q: What happens when you apply L2 regularization with Adam instead of AdamW?**
+A: The L2 penalty gets scaled by Adam's adaptive learning rate, meaning parameters with historically large gradients receive weaker regularization. This is mathematically inconsistent with the intended behavior. AdamW separates the weight decay step from the gradient update, restoring the correct regularization effect.
 
+**Q: How would you debug optimizer divergence (NaN loss)?**
+A: Check in order: (1) learning rate too high — reduce by 10x; (2) missing gradient clipping for RNNs/transformers — add clip_grad_norm_(1.0); (3) numerical instability in loss function (log of zero) — add epsilon; (4) exploding weights from bad initialization — check initial loss value. Log gradient norms to identify which layer is exploding.
+
+**Q: What's the intuition behind momentum in SGD?**
+A: Momentum accumulates a velocity vector in the direction of consistent gradients and dampens oscillations in directions with inconsistent gradients. Imagine rolling a ball down a loss landscape — momentum lets it build speed in consistent directions (valleys) and reduces zigzagging across ravines. Typical momentum=0.9 means 90% of previous velocity is retained each step.
 ## Best Practices
 
 - Use Adam as default

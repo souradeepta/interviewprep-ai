@@ -30,18 +30,23 @@ Trade-off 1 vs trade-off 2
 
 ## Interview Q&A
 
-**Q: When would you use Batch Normalization?**
-A: Context-dependent, varies by problem type.
+**Q: What problem does batch normalization solve, and why does it help training?**
+A: BN addresses "internal covariate shift" — the distribution of layer inputs changing during training as previous layers update, forcing each layer to continuously adapt. By normalizing activations to zero mean and unit variance, BN stabilizes training, allows higher learning rates (10x faster), and reduces sensitivity to initialization. The learnable γ and β parameters restore representational power while normalization provides stability.
 
-**Q: What are the main trade-offs?**
-A: Refer to Architecture / Trade-offs section above.
+**Q: What's the difference between batch normalization and layer normalization?**
+A: BatchNorm normalizes across the batch dimension (all samples, single feature) and maintains running statistics for inference. LayerNorm normalizes across the feature dimension (single sample, all features) and has no batch dependency. LayerNorm is preferred in transformers (variable-length sequences, small batches), RNNs, and any setting where batch statistics are unreliable. BatchNorm is standard for CNNs with large batches.
 
-**Q: How do you choose hyperparameters?**
-A: Cross-validation, grid/random/Bayesian search, domain knowledge.
+**Q: Why must you call model.eval() before inference when using batch normalization?**
+A: During training, BN uses current batch statistics (mean and variance). During inference, you want deterministic behavior independent of the current batch size. model.eval() switches BN to use running statistics accumulated during training. Without it, a batch size of 1 would use a single sample's statistics (very noisy), and results would vary between calls. This is one of the most common production bugs with neural networks.
 
-**Q: What are common failure modes?**
-A: Refer to Common Pitfalls section below.
+**Q: What happens when batch size is very small (1-4) with batch normalization?**
+A: With small batches, the batch statistics (mean, variance) are noisy estimates of the true statistics — normalizing by them adds significant noise to training. Batch size 1 is particularly bad since variance is undefined. Solutions: use LayerNorm (size-independent), Group Normalization (normalizes within feature groups), or Instance Normalization. For object detection with small batches, Group Normalization is the standard replacement.
 
+**Q: Where should batch normalization be placed — before or after the activation function?**
+A: Original paper: Conv → BN → Activation. Many subsequent papers found Conv → Activation → BN works similarly or better for some architectures. In practice, try both. The key insight is that BN before activation can cause the normalized input to the activation to be roughly zero-mean, which is good for tanh/sigmoid but doesn't matter much for ReLU. For residual networks, placing BN after the final convolution and before the residual addition is common.
+
+**Q: Can you use dropout and batch normalization together?**
+A: Yes, but the order matters and interactions are tricky. BN → Dropout (in that order) is typical. Applying dropout before BN is problematic because dropout changes the variance of activations, which BN then normalizes away, reducing dropout's regularization effect. Also note that in some architectures, BN already provides sufficient regularization — adding aggressive dropout on top may cause underfitting.
 ## Best Practices
 
 - Apply BatchNorm before the activation function (or after — results are similar, try both)

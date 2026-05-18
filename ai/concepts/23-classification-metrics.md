@@ -30,18 +30,23 @@ Trade-off 1 vs trade-off 2
 
 ## Interview Q&A
 
-**Q: When would you use Classification Metrics?**
-A: Context-dependent, varies by problem type.
+**Q: When should you use AUC-ROC vs AUC-PR?**
+A: Use AUC-ROC when the negative class matters (balanced or near-balanced datasets). Use AUC-PR (average precision) for imbalanced datasets — ROC is overly optimistic because it includes true negatives in the denominator, and rare positive predictions can look good by ROC but terrible by PR. As a rule of thumb: if positive class < 10% of data, AUC-PR is more meaningful. Both should be reported for imbalanced problems.
 
-**Q: What are the main trade-offs?**
-A: Refer to Architecture / Trade-offs section above.
+**Q: Why is accuracy a misleading metric for imbalanced datasets?**
+A: With 99% negative and 1% positive, a model that always predicts negative gets 99% accuracy — but is completely useless. Accuracy treats all errors equally and ignores class frequency. Use F1 (balances precision and recall for the positive class), AUC-PR, or Matthews Correlation Coefficient (MCC) which accounts for all four confusion matrix cells and gives credit for correctly identifying both classes.
 
-**Q: How do you choose hyperparameters?**
-A: Cross-validation, grid/random/Bayesian search, domain knowledge.
+**Q: How do you choose the right classification threshold?**
+A: The default threshold of 0.5 is arbitrary — it only makes sense when false positives and false negatives have equal cost. Define the business cost matrix (cost of FP vs FN), then find the threshold that minimizes expected cost: plot cost vs threshold and select the minimum. For medical diagnosis, FN (missed disease) costs more than FP (unnecessary test), so use a lower threshold. Use model.predict_proba() and threshold manually.
 
-**Q: What are common failure modes?**
-A: Refer to Common Pitfalls section below.
+**Q: How do you evaluate a classifier on multiclass problems?**
+A: Use classification_report() which shows per-class precision, recall, F1, and aggregate averages. Macro average treats all classes equally (good when class sizes are balanced). Weighted average weights by class size (penalizes poor performance on frequent classes more). For visualization, the confusion matrix shows which classes are confused with each other. Use the normalized confusion matrix (normalize='true') to see per-class recall regardless of class size.
 
+**Q: What does high precision but low recall mean in practice?**
+A: The model is conservative — it only predicts positive when very confident, so predictions are usually correct (high precision) but it misses many actual positives (low recall). Example: a fraud detection system that only flags obvious fraud has high precision (few false alarms) but low recall (lets subtle fraud through). Adjust the threshold downward to accept more false positives and improve recall. The trade-off is application-specific.
+
+**Q: How would you evaluate a ranking model or retrieval system differently from a classifier?**
+A: Ranking models need rank-aware metrics: NDCG (normalized discounted cumulative gain — rewards relevant items appearing earlier in the list), MAP (mean average precision — averages precision at each relevant item's position), and MRR (mean reciprocal rank — focuses on the first relevant result). These capture the quality of ordering, not just binary relevance. Scikit-learn doesn't include these natively; use ir_measures or trec_eval.
 ## Best Practices
 
 - Never use accuracy alone on imbalanced datasets — use F1, ROC-AUC, or PR-AUC

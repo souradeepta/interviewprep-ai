@@ -30,18 +30,23 @@ Trade-off 1 vs trade-off 2
 
 ## Interview Q&A
 
-**Q: When would you use Bayesian Inference?**
-A: Context-dependent, varies by problem type.
+**Q: What is the difference between a frequentist confidence interval and a Bayesian credible interval?**
+A: A 95% frequentist confidence interval means: if you repeated the experiment many times, 95% of the constructed intervals would contain the true parameter. It says nothing about the probability that this specific interval contains the true value. A 95% Bayesian credible interval means: given the observed data and prior, the probability that the parameter falls in this interval is 95%. The credible interval is more intuitively interpretable.
 
-**Q: What are the main trade-offs?**
-A: Refer to Architecture / Trade-offs section above.
+**Q: When would you choose Bayesian inference over frequentist methods?**
+A: Use Bayesian inference when: prior knowledge is meaningful and should be incorporated (rare disease prevalence, regulatory constraints); you need principled uncertainty quantification for decision-making (not just a point estimate); you have small datasets where regularization through priors matters; or you need sequential updating (updating beliefs as new data arrives, like online learning). Frequentist methods are simpler and sufficient when data is abundant.
 
-**Q: How do you choose hyperparameters?**
-A: Cross-validation, grid/random/Bayesian search, domain knowledge.
+**Q: What is MAP estimation and how does it relate to regularization?**
+A: Maximum A Posteriori (MAP) estimation finds the mode of the posterior: θ_MAP = argmax p(θ|D) = argmax p(D|θ)p(θ). With a Gaussian prior p(θ) ~ N(0, 1/λ), MAP is equivalent to L2 regularized MLE (Ridge regression). With a Laplace prior, it's equivalent to L1 regularization. This reveals a deep connection: regularization is implicit Bayesian inference with specific priors — the prior is the regularizer.
 
-**Q: What are common failure modes?**
-A: Refer to Common Pitfalls section below.
+**Q: What are conjugate priors and why are they useful?**
+A: A prior is conjugate to a likelihood if the posterior belongs to the same distribution family as the prior. Example: Beta prior + Binomial likelihood → Beta posterior. Conjugate priors allow analytical (closed-form) posterior computation — no MCMC needed. Useful for simple models (coin flips, Poisson processes, Gaussian observations) and as building blocks for more complex models. Non-conjugate models require approximate inference (MCMC or variational inference).
 
+**Q: What is MCMC and when do you need it instead of analytical solutions?**
+A: Markov Chain Monte Carlo samples from the posterior distribution by constructing a Markov chain whose stationary distribution equals the posterior. It's needed when the posterior has no closed-form solution (non-conjugate priors, complex likelihoods, hierarchical models). Modern MCMC (NUTS sampler in PyMC, Stan) scales to hundreds of parameters. For very large datasets or models, variational inference (approximates posterior with a simpler distribution) is faster but less accurate.
+
+**Q: How do you validate a Bayesian model?**
+A: (1) Prior predictive check: sample from the prior and check if simulated data looks plausible before seeing observations; (2) Posterior predictive check: generate data from the posterior and compare its distribution to real data — discrepancies reveal model misspecification; (3) MCMC diagnostics: R-hat < 1.01 (chain convergence), effective sample size > 400, trace plots show mixing; (4) Sensitivity analysis: check if conclusions change substantially with different reasonable priors.
 ## Best Practices
 
 - Use conjugate priors (Beta-Binomial, Normal-Normal) for analytical posteriors when possible

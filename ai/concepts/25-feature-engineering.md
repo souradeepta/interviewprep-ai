@@ -30,18 +30,23 @@ Trade-off 1 vs trade-off 2
 
 ## Interview Q&A
 
-**Q: When would you use Feature Engineering?**
-A: Context-dependent, varies by problem type.
+**Q: What is target encoding and why can it cause data leakage if done incorrectly?**
+A: Target encoding replaces a categorical value with the mean of the target for that category (e.g., "city=NYC" becomes the mean income of NYC residents in training data). If computed on the full dataset before CV, the validation fold's target values influence the encoding — this is leakage. Correct approach: fit target encoding only on the training folds inside each CV split, or use leave-one-out encoding which excludes the current sample.
 
-**Q: What are the main trade-offs?**
-A: Refer to Architecture / Trade-offs section above.
+**Q: When would you use one-hot encoding vs ordinal encoding for categorical features?**
+A: One-hot: for nominal categories with no order (color, city) and low cardinality (<20 values) — creates interpretable binary features. Ordinal: for ordered categories (education level, rating) or high-cardinality categories with tree-based models (trees handle ordinal efficiently). For high-cardinality nominal features (1000+ categories), use target encoding or embeddings — one-hot creates too many sparse features.
 
-**Q: How do you choose hyperparameters?**
-A: Cross-validation, grid/random/Bayesian search, domain knowledge.
+**Q: How do you handle a new category in production that wasn't in training data?**
+A: This is the "unseen category" or "cold start" problem. Solutions: (1) handle_unknown='ignore' in OneHotEncoder — maps unseen to zero vector; (2) handle_unknown='infrequent_if_exist' — maps rare/unseen to a special "other" bucket; (3) mean encoding fallback to global mean for unseen categories; (4) pre-define an "OTHER" category during training for any low-frequency categories. Always test your encoding pipeline on data with new categories.
 
-**Q: What are common failure modes?**
-A: Refer to Common Pitfalls section below.
+**Q: What's the difference between feature selection and dimensionality reduction?**
+A: Feature selection keeps a subset of original features unchanged — results are interpretable (you know which features matter). Dimensionality reduction (PCA) creates new features as linear combinations — more compact but harder to interpret. Use feature selection when interpretability matters (regulated industries, feature cost analysis). Use PCA when you need the most compact representation and don't care about feature interpretability.
 
+**Q: How do interaction features affect model complexity and when do you add them?**
+A: Interaction features (x1·x2) explicitly capture non-linear effects that linear models can't model from x1 and x2 separately. They increase dimensionality (p features → p² interactions), which can cause overfitting without regularization. Add them when domain knowledge suggests a multiplicative relationship (e.g., price × quantity = revenue), or when EDA reveals different slopes for x1 across x2 values. Tree-based models capture interactions implicitly — interaction features mainly help linear models.
+
+**Q: How would you handle a feature with 30% missing values?**
+A: First, understand the missingness mechanism: MCAR (missing completely at random — impute), MAR (missing at random given other features — impute with model-based imputation), MNAR (missing not at random — the missing indicator itself is informative, add as feature). Options: mean/median imputation for MCAR, KNN or iterative imputer for MAR, or add a binary "was_missing" feature to preserve the information that the value was missing, then impute.
 ## Best Practices
 
 - Create interaction features for known domain relationships before trying automated methods

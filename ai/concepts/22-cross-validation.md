@@ -30,18 +30,23 @@ Trade-off 1 vs trade-off 2
 
 ## Interview Q&A
 
-**Q: When would you use Cross-Validation?**
-A: Context-dependent, varies by problem type.
+**Q: What is data leakage in cross-validation and how do you prevent it?**
+A: Data leakage occurs when information from the test fold contaminates the training process. The most common form: fitting a scaler, imputer, or feature selector on the full dataset, then using those statistics in CV — the test fold's statistics influence the training preprocessing. Prevention: always wrap all preprocessing in a sklearn Pipeline so transformations are fit only on the training folds.
 
-**Q: What are the main trade-offs?**
-A: Refer to Architecture / Trade-offs section above.
+**Q: When should you use stratified k-fold vs regular k-fold?**
+A: Use StratifiedKFold whenever the target class distribution matters — classification problems, especially with imbalanced classes. Regular KFold can produce folds with very different class ratios (especially for rare classes), making CV estimates noisy. For regression, regular KFold is standard; optionally use KFold with shuffle=True to ensure random fold assignment.
 
-**Q: How do you choose hyperparameters?**
-A: Cross-validation, grid/random/Bayesian search, domain knowledge.
+**Q: Why does nested cross-validation give a more honest performance estimate?**
+A: Standard CV with hyperparameter tuning optimistically biases performance — you select hyperparameters based on validation performance, which inflates the estimate. Nested CV uses an outer CV loop for performance estimation and an inner CV loop for hyperparameter tuning, ensuring no hyperparameter choice information leaks into the outer performance estimate. The difference between nested and non-nested CV scores reveals the optimism bias.
 
-**Q: What are common failure modes?**
-A: Refer to Common Pitfalls section below.
+**Q: How many folds should you use and what are the trade-offs?**
+A: k=5 or k=10 are the standard choices. Large k (e.g., LOOCV): low bias (each test set is one point, training set is nearly full), high variance (highly variable scores), computationally expensive. Small k (e.g., k=2): high bias (training on only half the data), lower variance. k=5-10 balances bias, variance, and compute for most datasets. Use LOOCV only for very small datasets (<50 samples).
 
+**Q: How does cross-validation for time-series differ from standard k-fold?**
+A: Standard k-fold shuffles data, allowing future data to appear in the training fold — this is leakage for time-series. TimeSeriesSplit (sklearn) always trains on past data and tests on future: fold 1 trains on months 1-2, tests on month 3; fold 2 trains on months 1-3, tests on month 4; etc. This correctly simulates deployment: you predict future from past. Also consider gap periods between train and test to avoid autocorrelation.
+
+**Q: What is the difference between CV for model selection vs CV for performance estimation?**
+A: CV for model selection: compare multiple models or hyperparameter settings using the same CV splits — choose the model with the best mean CV score. CV for performance estimation: estimate how well the chosen model will generalize — report the CV score as the expected performance. If you use the same CV for both, you need nested CV to avoid optimistic bias in the performance estimate.
 ## Best Practices
 
 - Use StratifiedKFold for classification to preserve class ratios across folds

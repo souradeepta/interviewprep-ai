@@ -30,18 +30,23 @@ Trade-off 1 vs trade-off 2
 
 ## Interview Q&A
 
-**Q: When would you use Regression Metrics?**
-A: Context-dependent, varies by problem type.
+**Q: When should you prefer MAE over RMSE and vice versa?**
+A: Use RMSE when large errors are especially costly (financial loss prediction, safety-critical systems) — its squared error term penalizes outliers heavily. Use MAE when all errors should be treated proportionally (demand forecasting, general metrics) — it's more robust to outliers and directly interpretable in the target's units. Report both: if RMSE >> MAE, you have large outliers; understanding this matters for model diagnosis.
 
-**Q: What are the main trade-offs?**
-A: Refer to Architecture / Trade-offs section above.
+**Q: What does R² actually measure, and when is it misleading?**
+A: R² = 1 - SS_res/SS_tot measures the proportion of variance in y explained by the model. It's misleading when: (1) used for non-linear models without checking residuals (high R² doesn't mean good fit); (2) compared across datasets with different y variance (R² depends on y variance, not just model quality); (3) reported on training data without cross-validation; (4) negative on test data — means the model is worse than predicting the mean, which is a red flag.
 
-**Q: How do you choose hyperparameters?**
-A: Cross-validation, grid/random/Bayesian search, domain knowledge.
+**Q: How would you diagnose heteroscedasticity and why does it matter?**
+A: Plot residuals vs fitted values — heteroscedasticity shows as a funnel shape (variance grows with predicted values). It violates OLS assumptions, making confidence intervals and p-values unreliable (not the predictions themselves). Fix options: log-transform the target (if residuals have positive skew), use weighted least squares, or use robust regression (Huber regressor). Models like GBM are naturally robust to heteroscedasticity.
 
-**Q: What are common failure modes?**
-A: Refer to Common Pitfalls section below.
+**Q: Why is MAPE problematic for certain prediction tasks?**
+A: MAPE = mean |error|/|actual| blows up when actual values are near zero (e.g., demand forecasting with some zero-demand days), making it meaningless. It also asymmetrically penalizes over-prediction vs under-prediction. Use SMAPE (symmetric MAPE) for near-zero values, or simply use MAE with a note about the target scale. For demand forecasting, WMAPE (weighted MAPE, weighted by actual volume) is more stable.
 
+**Q: How do you evaluate a regression model when the target is log-transformed?**
+A: Transform predictions back to original scale before computing metrics: exp(y_pred) → original scale. Compute RMSE and MAE in original scale for interpretability. Log-transformed predictions tend to underestimate large values (log compression), so check residuals at both extremes of the target range. Don't compare RMSE in log-space vs original-space across models — always use the same scale.
+
+**Q: What additional diagnostics would you run beyond standard metrics?**
+A: (1) Residual histogram — should be roughly Gaussian for OLS assumptions; (2) QQ plot — check normality of residuals; (3) Residuals vs feature values — detect non-linear relationships not captured by the model; (4) Cook's distance — identify influential outliers that disproportionately affect coefficients; (5) Autocorrelation of residuals (Durbin-Watson test) for time-series data — residual correlation indicates missing temporal structure.
 ## Best Practices
 
 - Always plot residuals vs fitted values to check for patterns (non-linearity, heteroscedasticity)

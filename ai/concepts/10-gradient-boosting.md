@@ -30,18 +30,23 @@ Trade-off 1 vs trade-off 2
 
 ## Interview Q&A
 
-**Q: When would you use Gradient Boosting?**
-A: Context-dependent, varies by problem type.
+**Q: Why does gradient boosting use shallow trees rather than deep ones?**
+A: Shallow trees (max_depth=3-6) are "weak learners" — slightly better than random. Boosting's power comes from sequentially adding many weak learners, each correcting the previous ensemble's errors. Deep trees would be strong learners that fit noise, causing overfitting early. The combination of many small corrections is more generalizable than fewer large corrections.
 
-**Q: What are the main trade-offs?**
-A: Refer to Architecture / Trade-offs section above.
+**Q: What's the role of the learning rate in gradient boosting?**
+A: The learning rate (eta/shrinkage) scales each tree's contribution: F_t = F_{t-1} + η·h_t. Small η (0.01-0.1) requires more trees but generalizes better because each update is conservative. High η converges faster but overfits. The key insight: n_estimators and learning_rate are inversely related — halving learning rate roughly requires doubling n_estimators for similar performance.
 
-**Q: How do you choose hyperparameters?**
-A: Cross-validation, grid/random/Bayesian search, domain knowledge.
+**Q: How does XGBoost differ from sklearn's GradientBoostingClassifier?**
+A: XGBoost adds second-order gradient information (Newton boosting), built-in L1/L2 regularization on leaf weights, column/row subsampling for variance reduction, and efficient sparse matrix handling. It's typically 10-100x faster than sklearn's GBM due to parallel tree building and cache-aware access patterns. XGBoost and LightGBM are the standard choices for production; sklearn's GBM is mainly for teaching.
 
-**Q: What are common failure modes?**
-A: Refer to Common Pitfalls section below.
+**Q: When would you NOT use gradient boosting?**
+A: When interpretability is critical (single decision tree is more explainable), when data is very high-dimensional and sparse (linear models or SVMs may be better), when you need very low latency predictions and can't afford the sequential tree traversal cost, or when you have very little data (<500 samples) and need the regularization benefits of simpler models.
 
+**Q: What is early stopping and why is it important for gradient boosting?**
+A: Early stopping monitors a validation metric during training and stops adding trees when the metric stops improving for `early_stopping_rounds` rounds. Without it, you must manually tune n_estimators — too few underfit, too many overfit. Early stopping automates this: set n_estimators=10000 and let early stopping find the optimal count. Always use a separate eval_set, not the training set.
+
+**Q: How would you explain a gradient boosting prediction to a non-technical stakeholder?**
+A: GBM builds a sequence of simple decision rules that each fix the mistakes of the previous rules, similar to a committee of experts where each new expert focuses on the cases the previous experts got wrong. The final prediction is the sum of all experts' weighted opinions. For individual predictions, use SHAP values to show which features pushed the prediction higher or lower.
 ## Best Practices
 
 - Use small learning_rate (0.05-0.1) with more estimators for better generalization

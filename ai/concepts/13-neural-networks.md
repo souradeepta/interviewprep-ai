@@ -30,18 +30,23 @@ Trade-off 1 vs trade-off 2
 
 ## Interview Q&A
 
-**Q: When would you use Neural Networks?**
-A: Context-dependent, varies by problem type.
+**Q: What is the vanishing gradient problem and which architectures are vulnerable?**
+A: In deep networks, gradients are multiplied by the activation derivative at each layer during backpropagation. Sigmoid and tanh saturate (derivative ≈ 0 at extremes), so gradients shrink exponentially with depth. For a 10-layer network with sigmoid activations, gradients at the first layer can be 10^-10 smaller than at the output. ReLU networks, BatchNorm, residual connections (ResNets), and proper initialization all mitigate this.
 
-**Q: What are the main trade-offs?**
-A: Refer to Architecture / Trade-offs section above.
+**Q: Why are deep networks better than wide shallow networks for the same parameter count?**
+A: Deep networks learn hierarchical representations — early layers learn simple features (edges, textures), deeper layers compose them into complex patterns (objects, concepts). A shallow network would need exponentially more neurons to represent the same function. Practically, depth provides a powerful inductive bias for structured data (images, text, sequences) that matches how those signals are actually generated.
 
-**Q: How do you choose hyperparameters?**
-A: Cross-validation, grid/random/Bayesian search, domain knowledge.
+**Q: How would you diagnose whether your neural network is underfitting or overfitting?**
+A: Plot training vs validation loss curves. Large gap (train loss low, val loss high) = overfitting — add regularization (dropout, weight decay), reduce model size, or get more data. Both losses high = underfitting — increase model capacity, train longer, reduce regularization. If val loss decreases then increases, use the checkpoint from minimum val loss.
 
-**Q: What are common failure modes?**
-A: Refer to Common Pitfalls section below.
+**Q: What's the intuition behind batch size selection?**
+A: Large batches give more accurate gradient estimates but: (1) use more memory, (2) converge to sharp minima that generalize worse (known as the "generalization gap" effect). Small batches add noise that acts as regularization and often find flatter minima. Practical range: 32-256 for most tasks. With large batch training, you must increase LR proportionally (linear scaling rule) to maintain training speed.
 
+**Q: When would you use a neural network vs gradient boosting for tabular data?**
+A: Gradient boosting typically outperforms neural networks on tabular data (structured features, heterogeneous types). Neural networks excel when: data is very large (>1M rows), features have spatial/temporal structure, transfer learning is available, or you need joint training with other modalities. For most tabular tasks up to ~10M rows, XGBoost/LightGBM is the baseline to beat.
+
+**Q: What is the universal approximation theorem, and what are its practical limitations?**
+A: The theorem states that a single hidden layer with enough neurons can approximate any continuous function to arbitrary accuracy. However, it says nothing about how many neurons are needed (could be exponential), how to find the weights (training), or how well the network generalizes. In practice, depth is more efficient than width, and generalization requires regularization — the theorem is theoretically important but practically misleading.
 ## Best Practices
 
 - Use ReLU for hidden layers as default; LeakyReLU or ELU if dying ReLU is a problem

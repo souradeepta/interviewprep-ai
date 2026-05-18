@@ -30,18 +30,23 @@ Trade-off 1 vs trade-off 2
 
 ## Interview Q&A
 
-**Q: When would you use Decision Trees?**
-A: Context-dependent, varies by problem type.
+**Q: Why do decision trees overfit, and what are the main ways to prevent it?**
+A: Unpruned trees can grow to depth n-1 (one leaf per training point), perfectly memorizing labels. The fix is controlling capacity: set max_depth (3-6), min_samples_leaf (5-20), or min_impurity_decrease. These hyperparameters should be tuned with cross-validation. Alternatively, use tree ensembles (Random Forest, GBM) which inherently reduce overfitting through averaging.
 
-**Q: What are the main trade-offs?**
-A: Refer to Architecture / Trade-offs section above.
+**Q: When would you prefer a decision tree over a Random Forest?**
+A: When interpretability is critical — a single shallow tree (depth 3-4) is fully explainable to non-technical stakeholders and can be printed as a flowchart. Decision trees are also faster to train and predict, and better for rule extraction (convert tree to if-else rules). For predictive performance, Random Forests almost always win; for transparency, single trees are preferred.
 
-**Q: How do you choose hyperparameters?**
-A: Cross-validation, grid/random/Bayesian search, domain knowledge.
+**Q: What is the difference between Gini impurity and entropy as splitting criteria?**
+A: Both measure class impurity and usually yield very similar trees. Gini is slightly faster to compute (no log). Entropy (information gain) can sometimes create more balanced splits. In practice the difference is negligible — sklearn uses Gini by default. Choose entropy if you want information-theoretic interpretability; otherwise Gini is fine.
 
-**Q: What are common failure modes?**
-A: Refer to Common Pitfalls section below.
+**Q: How are decision trees biased toward certain feature types?**
+A: Trees are biased toward features with many possible split points (high-cardinality continuous features) and features with many unique values, because they offer more chances for a high-information-gain split purely by chance. This inflates their apparent importance. Use permutation importance instead of Gini importance to get unbiased feature rankings.
 
+**Q: How would you debug a decision tree that performs well on training but poorly on validation?**
+A: The tree is overfitting. Check tree depth (if unlimited, start by setting max_depth=5); check if training accuracy is near 100% while validation is much lower; plot validation accuracy vs max_depth (should peak then decline). Also check for data leakage — a feature that's a proxy for the target will look great in training but fail in production.
+
+**Q: Can decision trees handle missing values natively?**
+A: Standard CART (sklearn's implementation) cannot — you must impute before fitting. However, some implementations like XGBoost and LightGBM handle missing values natively by learning the best direction to send missing values at each split. If using sklearn trees, impute with median (numeric) or mode (categorical), or add a missing indicator feature.
 ## Best Practices
 
 - Set max_depth (3-6) or min_samples_leaf to prevent overfitting

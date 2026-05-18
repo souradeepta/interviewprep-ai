@@ -30,18 +30,23 @@ Trade-off 1 vs trade-off 2
 
 ## Interview Q&A
 
-**Q: When would you use Linear Regression?**
-A: Context-dependent, varies by problem type.
+**Q: When would you choose Ridge over Lasso, and vice versa?**
+A: Choose Ridge when you expect most features to contribute (correlated features), since it shrinks all coefficients toward zero smoothly. Choose Lasso when you want sparse solutions — it drives some coefficients exactly to zero, performing implicit feature selection. Use Elastic Net when you want both: sparsity with grouping effect for correlated features.
 
-**Q: What are the main trade-offs?**
-A: Refer to Architecture / Trade-offs section above.
+**Q: Why is the closed-form Normal Equation not used for large datasets?**
+A: The Normal Equation requires computing (XᵀX)⁻¹, which is O(p³) in the number of features and O(np²) to form XᵀX. For n=1M rows and p=10k features, this is computationally prohibitive and XᵀX may not fit in memory. Gradient descent scales linearly with data and features, making it the practical choice beyond ~10k features.
 
-**Q: How do you choose hyperparameters?**
-A: Cross-validation, grid/random/Bayesian search, domain knowledge.
+**Q: What does a violation of linear regression assumptions look like, and how do you fix it?**
+A: Heteroscedasticity (variance of residuals increases with fitted values) shows as a fan pattern in residuals vs fitted plot — fix with log transformation of the target. Non-linearity shows as curved residual patterns — add polynomial or interaction terms. Multicollinearity shows as large standard errors on coefficients — fix with Ridge or remove correlated features.
 
-**Q: What are common failure modes?**
-A: Refer to Common Pitfalls section below.
+**Q: How do you interpret coefficients when features have different scales?**
+A: Raw coefficients reflect the unit scale of each feature, making them incomparable. To compare feature importance, standardize all features first — then coefficients represent the change in y per standard deviation of x. Always standardize before interpreting coefficient magnitudes, especially when features have different units.
 
+**Q: What's the difference between p-values and regularization for feature selection?**
+A: P-values test whether a coefficient is statistically different from zero given the data — they depend heavily on sample size and can be misleading with correlated features. Regularization (Lasso) penalizes complexity and drives irrelevant coefficients to zero in a way that's more robust to collinearity. For feature selection, Lasso regularization is more reliable than p-value filtering.
+
+**Q: How does adding more features affect linear regression?**
+A: Adding irrelevant features adds noise to the model and reduces generalization, though training error keeps falling. With p > n features the system is underdetermined and requires regularization. More features also increase multicollinearity risk. Always validate with cross-validation — training R² improvement doesn't mean generalization improvement.
 ## Best Practices
 
 - Always scale features before regression

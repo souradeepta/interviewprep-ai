@@ -30,18 +30,23 @@ Trade-off 1 vs trade-off 2
 
 ## Interview Q&A
 
-**Q: When would you use Activation Functions?**
-A: Context-dependent, varies by problem type.
+**Q: What is the dying ReLU problem and how do you fix it?**
+A: ReLU outputs zero for any negative input, and its gradient is also zero there. If a neuron's weights are updated such that its pre-activation is always negative for all training examples, that neuron will never activate and its weights will never be updated — it's "dead". Causes: too large learning rate, bad initialization. Fixes: LeakyReLU (small negative slope), ELU (smooth negative region), or careful LR and initialization tuning.
 
-**Q: What are the main trade-offs?**
-A: Refer to Architecture / Trade-offs section above.
+**Q: Why is ReLU preferred over sigmoid for hidden layers?**
+A: Sigmoid saturates at both extremes (output near 0 or 1), where the derivative approaches 0 — this causes vanishing gradients in deep networks. ReLU has constant gradient of 1 for positive inputs, so gradients flow easily through deep networks. ReLU also has sparser activations (many zeros), which can be computationally efficient. Sigmoid is still used for binary output layers where a probability interpretation is needed.
 
-**Q: How do you choose hyperparameters?**
-A: Cross-validation, grid/random/Bayesian search, domain knowledge.
+**Q: What is GELU and why is it used in transformers?**
+A: GELU (Gaussian Error Linear Unit) computes x·Φ(x) where Φ is the standard Gaussian CDF. Unlike ReLU which has a sharp cutoff at 0, GELU smoothly gates inputs based on their value relative to the distribution. Empirically, GELU provides small but consistent accuracy gains in transformers (BERT, GPT use it). The smooth gradient may help optimization in attention-heavy architectures.
 
-**Q: What are common failure modes?**
-A: Refer to Common Pitfalls section below.
+**Q: When would you use softmax vs sigmoid for the output layer?**
+A: Sigmoid for binary classification (single output, probability of positive class) or multi-label classification where classes are independent (each label can be independently 0 or 1). Softmax for mutually exclusive multiclass classification where probabilities must sum to 1. Never use softmax in hidden layers — it kills gradient flow by squashing all activations to compete against each other.
 
+**Q: How does activation function choice affect weight initialization?**
+A: He initialization (variance = 2/n_in) is designed for ReLU, which zeroes half its inputs — the factor of 2 compensates for this. Xavier initialization (variance = 2/(n_in + n_out)) is for symmetric activations like tanh and sigmoid. Using the wrong pairing (e.g., Xavier with ReLU) causes the variance to shrink with depth, slowing convergence. Always match initialization to activation.
+
+**Q: What is the exploding gradient problem and how does it differ from vanishing gradients?**
+A: Exploding gradients occur when gradient magnitudes grow exponentially with depth, causing parameter updates that are too large and destabilize training (loss diverges to NaN). Most common in RNNs with long sequences. Fix: gradient clipping (clip_grad_norm_(1.0)). Vanishing gradients cause parameters in early layers to barely update, preventing deep networks from learning hierarchical features. Both arise from multiplying many values during backprop.
 ## Best Practices
 
 - Use ReLU as default for hidden layers in feedforward networks

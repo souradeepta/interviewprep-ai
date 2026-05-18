@@ -30,18 +30,23 @@ Trade-off 1 vs trade-off 2
 
 ## Interview Q&A
 
-**Q: When would you use Dimensionality Reduction?**
-A: Context-dependent, varies by problem type.
+**Q: When should you use PCA vs t-SNE vs UMAP?**
+A: PCA: for preprocessing before ML models (linear, preserves global variance), interpretable components, fast. t-SNE: for visualization only (2D/3D) — it's non-parametric (can't transform new points) and distances between clusters are not meaningful. UMAP: better than t-SNE for visualization (preserves more global structure, faster, can transform new points). Never use t-SNE/UMAP features as input to other models — use PCA for preprocessing.
 
-**Q: What are the main trade-offs?**
-A: Refer to Architecture / Trade-offs section above.
+**Q: What does explained variance ratio tell you in PCA?**
+A: Each principal component's explained_variance_ratio_ is that component's eigenvalue divided by the sum of all eigenvalues — it's the fraction of total variance captured by that component. A cumulative explained variance of 95% means you've captured 95% of the information with far fewer dimensions. Plot the cumulative curve (scree plot) and select the "knee" or use the 95% rule to choose n_components.
 
-**Q: How do you choose hyperparameters?**
-A: Cross-validation, grid/random/Bayesian search, domain knowledge.
+**Q: How do you choose the number of components for PCA used as preprocessing?**
+A: Use cross-validation: fit a pipeline (PCA → model) and evaluate CV performance for n_components in [0.8, 0.9, 0.95, 0.99] (fraction of variance) or a range of integers. More components = less information loss but slower downstream model. Common shortcut: use 95% explained variance as a starting point, then tune. Never just pick a number without validating on downstream model performance.
 
-**Q: What are common failure modes?**
-A: Refer to Common Pitfalls section below.
+**Q: What are the limitations of PCA for non-linear data?**
+A: PCA only finds linear projections — it can't capture non-linear manifolds (e.g., Swiss roll data). If the data lies on a curved manifold, PCA will project it to a hyperplane, potentially mixing different classes. Solutions: kernel PCA (uses kernel trick to implicitly map to higher dimensions), autoencoders (neural network-based non-linear reduction), or UMAP/t-SNE for visualization. For most practical preprocessing, PCA still works surprisingly well.
 
+**Q: How is t-SNE different from PCA in terms of what it preserves?**
+A: PCA preserves global structure (maximizes variance, preserves large pairwise distances) — far-apart points in high dimensions stay far apart. t-SNE preserves local structure — it keeps nearby points together but distorts global distances, so clusters in t-SNE plots may be closer or farther than they actually are. Never interpret t-SNE cluster separation distances as meaningful. t-SNE also uses a probabilistic model (KL divergence between high-dim and 2D neighbor distributions).
+
+**Q: What is the curse of dimensionality and how does dimensionality reduction help?**
+A: In high dimensions: (1) all distances become approximately equal — nearest neighbors are not meaningful; (2) volume grows exponentially — data becomes sparse; (3) many features are redundant or noisy — they add variance without signal. Dimensionality reduction removes these redundant/noisy dimensions, making distance metrics meaningful again. For KNN and SVMs, PCA before the model often improves performance significantly.
 ## Best Practices
 
 - Always scale features before PCA (StandardScaler)

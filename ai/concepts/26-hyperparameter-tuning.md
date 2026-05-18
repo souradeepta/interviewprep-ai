@@ -30,18 +30,23 @@ Trade-off 1 vs trade-off 2
 
 ## Interview Q&A
 
-**Q: When would you use Hyperparameter Tuning?**
-A: Context-dependent, varies by problem type.
+**Q: What is the difference between hyperparameter tuning and model selection?**
+A: Model selection chooses between fundamentally different algorithm types (SVM vs Random Forest vs GBM). Hyperparameter tuning optimizes the configuration of a chosen model type (max_depth, learning_rate). They are distinct tasks and should be separated: first do model selection on default hyperparameters, then tune the winner. Conflating them by tuning all models simultaneously wastes compute and can lead to overfitting the validation set.
 
-**Q: What are the main trade-offs?**
-A: Refer to Architecture / Trade-offs section above.
+**Q: Why is random search often better than grid search for large hyperparameter spaces?**
+A: Grid search evaluates every combination — with 5 hyperparameters × 5 values each, that's 5^5=3125 evaluations. Random search samples randomly from the joint distribution and, critically, each evaluation is independent — if some hyperparameters are unimportant, random search doesn't waste evaluations on their grid points. With the same compute budget, random search typically finds better configurations than grid search for spaces with ≥3 hyperparameters.
 
-**Q: How do you choose hyperparameters?**
-A: Cross-validation, grid/random/Bayesian search, domain knowledge.
+**Q: How does Bayesian optimization improve on random search?**
+A: Bayesian optimization builds a surrogate model (typically a Gaussian process) of the objective function, updated with each new evaluation. An acquisition function (Expected Improvement) guides the next evaluation toward regions likely to improve on the current best. This uses past evaluations to intelligently explore the space — exploiting promising regions while still exploring. It typically requires 5-10x fewer evaluations than random search to find good configurations.
 
-**Q: What are common failure modes?**
-A: Refer to Common Pitfalls section below.
+**Q: How do you avoid overfitting the validation set during hyperparameter tuning?**
+A: Use k-fold cross-validation for each configuration evaluation (not a single train/val split), and keep a completely separate test set that is only evaluated once at the very end. The more configurations you evaluate, the higher the chance of getting lucky on the validation set. Use nested CV to get an honest performance estimate that accounts for hyperparameter selection optimism.
 
+**Q: What is early stopping in hyperparameter search (successive halving) and when does it help?**
+A: Successive halving allocates a small budget (few training epochs or data fraction) to many configurations initially, then doubles the budget and keeps only the top fraction, iterating until one winner remains. It's useful when evaluating a full configuration is expensive — instead of fully training 1000 models, train all 1000 for 10 epochs, keep top 333, train for 30 epochs, keep top 111, etc. sklearn's HalvingRandomSearchCV implements this.
+
+**Q: Which hyperparameters matter most to tune for gradient boosting?**
+A: In rough priority order: (1) learning_rate + n_estimators (use early stopping to auto-tune n_estimators for a given LR); (2) max_depth (3-8 range, use lower for noisy data); (3) subsample and colsample_bytree for stochastic boosting (0.6-0.9); (4) min_child_weight / min_samples_leaf for regularization; (5) reg_lambda / reg_alpha for L2/L1 regularization. Start with LR=0.1, use early stopping, then tune depth.
 ## Best Practices
 
 - Tune hyperparameters in order of importance: learning rate first, then capacity (depth, width), then regularization

@@ -30,18 +30,23 @@ Trade-off 1 vs trade-off 2
 
 ## Interview Q&A
 
-**Q: When would you use Support Vector Machines?**
-A: Context-dependent, varies by problem type.
+**Q: What is the kernel trick, and why is it powerful?**
+A: The kernel trick allows SVM to find non-linear decision boundaries without explicitly computing the high-dimensional feature transformation φ(x). Instead, it computes the inner product K(xᵢ, xⱼ) = φ(xᵢ)·φ(xⱼ) directly, which can be done efficiently even when φ maps to infinite dimensions (RBF kernel). This gives SVMs the power of neural networks in some settings without the computational cost of explicit feature maps.
 
-**Q: What are the main trade-offs?**
-A: Refer to Architecture / Trade-offs section above.
+**Q: What does the C parameter control, and how do you tune it?**
+A: C controls the trade-off between maximizing the margin and minimizing training errors. Small C (large margin): allows more misclassifications, more regularization, better generalization on noisy data. Large C (small margin): fits training data closely, lower bias but higher variance. Tune C on log scale (0.001, 0.01, 0.1, 1, 10, 100) with cross-validation. For RBF kernel, tune C and gamma jointly.
 
-**Q: How do you choose hyperparameters?**
-A: Cross-validation, grid/random/Bayesian search, domain knowledge.
+**Q: When would SVM outperform Random Forest or Gradient Boosting?**
+A: SVMs often excel on small datasets with clear margins, high-dimensional data (text classification, genomics), and when the kernel function is well-matched to the data structure. For text, the linear kernel SVM is extremely competitive with deep learning methods. SVMs also have strong theoretical guarantees. However, for most tabular datasets with n > 10k, GBM typically wins.
 
-**Q: What are common failure modes?**
-A: Refer to Common Pitfalls section below.
+**Q: Why does SVM training scale poorly with dataset size?**
+A: SVM solves a quadratic programming problem with O(n²) memory (kernel matrix) and O(n²-n³) compute. For n=100k samples, the kernel matrix alone is 80GB. Solutions: use LinearSVC (O(n) solve using SGD), subsample the data, use approximate kernels (Nyström approximation), or switch to a gradient boosting model which scales to millions of samples easily.
 
+**Q: What's the difference between hard margin and soft margin SVM?**
+A: Hard margin SVM requires all training points to be correctly classified with margin ≥ 1 — only works when data is linearly separable. Soft margin SVM introduces slack variables ξᵢ ≥ 0 that allow points to violate the margin, penalized by C·Σξᵢ in the objective. In practice, data is almost never perfectly separable, so soft margin (with C tuning) is always used.
+
+**Q: How does multiclass SVM work?**
+A: SVM is inherently binary. For k classes, two strategies: One-vs-One (OvO) trains k(k-1)/2 binary classifiers, predicts by majority vote — sklearn default; One-vs-Rest (OvR) trains k binary classifiers, predicts the class with highest decision score. OvO is more accurate but slower to train; OvR is faster. For large k (>10 classes), consider switching to a neural network or GBM.
 ## Best Practices
 
 - Always scale features — SVMs are distance-based and scale-sensitive

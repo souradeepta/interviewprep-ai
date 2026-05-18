@@ -30,18 +30,23 @@ Trade-off 1 vs trade-off 2
 
 ## Interview Q&A
 
-**Q: When would you use Logistic Regression?**
-A: Context-dependent, varies by problem type.
+**Q: Why is logistic regression preferred over linear regression for classification?**
+A: Linear regression can predict values outside [0,1] which are uninterpretable as probabilities, and minimizing MSE on binary labels is suboptimal. Logistic regression directly models P(y=1|x) using the sigmoid function, ensures outputs are valid probabilities, and optimizes cross-entropy which is the proper loss for Bernoulli-distributed outcomes.
 
-**Q: What are the main trade-offs?**
-A: Refer to Architecture / Trade-offs section above.
+**Q: What happens when classes are perfectly linearly separable?**
+A: Without regularization, gradient descent pushes the decision boundary to infinity — coefficients grow unbounded because the loss can always decrease by making predictions more extreme (0 or 1). In sklearn, the solver will issue a convergence warning. Fix by adding regularization (C parameter) which penalizes large coefficients and keeps the model bounded.
 
-**Q: How do you choose hyperparameters?**
-A: Cross-validation, grid/random/Bayesian search, domain knowledge.
+**Q: How do you handle a highly imbalanced dataset (1% positive class)?**
+A: Set class_weight='balanced' to upweight minority class in the loss, or resample (oversample minority with SMOTE or undersample majority). Evaluate with PR-AUC or F1, not accuracy — a model predicting all negatives gets 99% accuracy but is useless. Tune the decision threshold based on the precision-recall trade-off for your application's cost structure.
 
-**Q: What are common failure modes?**
-A: Refer to Common Pitfalls section below.
+**Q: When does logistic regression fail even with good features?**
+A: Logistic regression assumes a linear decision boundary in the feature space. It fails when the true boundary is non-linear (e.g., XOR pattern). Solutions: add polynomial/interaction features manually, or switch to a kernel SVM or tree-based model. If the features are linearly separable but with complex decision boundaries, logistic regression will underfit.
 
+**Q: What's the difference between L1 and L2 regularization in logistic regression?**
+A: L2 (default C parameter in sklearn) shrinks all coefficients toward zero but keeps all features — good when all features contribute. L1 (penalty='l1') drives some coefficients exactly to zero, performing feature selection — good for high-dimensional sparse data. Elastic Net combines both. The C parameter is the inverse of regularization strength (smaller C = more regularization).
+
+**Q: How would you extend binary logistic regression to multiclass?**
+A: Two approaches: One-vs-Rest (OvR) trains k binary classifiers (one per class) and predicts the class with highest confidence; Softmax (multinomial) learns a single model with k output nodes using softmax normalization, ensuring probabilities sum to 1. Softmax is more principled and better when classes overlap; OvR can be faster for large k.
 ## Best Practices
 
 - Scale features — logistic regression is sensitive to feature magnitude

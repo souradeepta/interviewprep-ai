@@ -30,18 +30,23 @@ Trade-off 1 vs trade-off 2
 
 ## Interview Q&A
 
-**Q: When would you use Weight Initialization?**
-A: Context-dependent, varies by problem type.
+**Q: Why does zero initialization fail for neural networks?**
+A: If all weights start at zero, every neuron in a layer computes identical outputs (symmetry), receives identical gradients during backprop, and updates identically — they never differentiate. The network effectively has only one neuron per layer regardless of width. Breaking symmetry requires random initialization. Biases can be zero because the weight randomness already breaks symmetry.
 
-**Q: What are the main trade-offs?**
-A: Refer to Architecture / Trade-offs section above.
+**Q: What is the intuition behind He and Xavier initialization?**
+A: Both aim to keep activation variance stable across layers: Var(output) ≈ Var(input). If variance grows, activations saturate or explode; if it shrinks, gradients vanish. Xavier assumes symmetric activations (tanh) where the full neuron output is used. He accounts for ReLU zeroing ~half its inputs, requiring twice the variance to compensate (factor of 2/n_in instead of 1/n_in).
 
-**Q: How do you choose hyperparameters?**
-A: Cross-validation, grid/random/Bayesian search, domain knowledge.
+**Q: How would you diagnose a weight initialization problem in a deep network?**
+A: After the first forward pass (before any training), inspect activation statistics: (1) plot histogram of activations in each layer — should be roughly Gaussian, centered near zero; (2) check for all-zero layers (dead ReLU from bad init) or all-saturated layers (sigmoid/tanh with too-large init); (3) check gradient norms — should be similar magnitude across layers. Frameworks like PyTorch autograd make this easy.
 
-**Q: What are common failure modes?**
-A: Refer to Common Pitfalls section below.
+**Q: What special initialization do transformers use and why?**
+A: Transformers often use truncated normal with std=0.02 (GPT-2, BERT). The output projections of attention and MLP blocks are sometimes initialized with 1/√(2·n_layers) scaling to prevent the residual stream variance from growing with depth (similar to how GPT-2 scales by 1/√n). This "depth scaling" is critical for training very deep transformers (12-96 layers) stably.
 
+**Q: When does initialization matter less?**
+A: With batch normalization or layer normalization, initialization matters much less because normalization rescales activations at each layer — the network can recover from poor initialization more easily. With modern adaptive optimizers (Adam) and normalization layers, training is relatively robust to initialization choice. Initialization matters most for plain networks (no BN) or networks trained with SGD.
+
+**Q: What is orthogonal initialization and when is it used?**
+A: Orthogonal initialization sets weight matrices to random orthogonal matrices (preserving Euclidean distance), which ensures singular values are all 1 — neither amplifying nor suppressing signals. It's used for RNNs to help gradient flow through many time steps without exploding or vanishing. Also used for some transformer experiments as it provides strong theoretical guarantees about gradient propagation.
 ## Best Practices
 
 - Use He initialization for ReLU networks; Xavier/Glorot for tanh/sigmoid

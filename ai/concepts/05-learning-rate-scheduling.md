@@ -29,18 +29,23 @@ Step decay: simple | Exponential: smooth | Cosine: theoretically motivated
 
 ## Interview Q&A
 
-**Q: When would you use Learning Rate Scheduling?**
-A: Context-dependent, varies by problem type.
+**Q: Why use learning rate warmup at all? Can you just start with the target LR?**
+A: For large models and transformers, starting with a high LR causes unstable updates in early training when parameters are far from any good optimum. The gradient magnitudes are large and inconsistent, so large updates thrash rather than converge. Warmup lets the model first move to a reasonable region, then apply the full LR. For small models trained from scratch, warmup is often unnecessary.
 
-**Q: What are the main trade-offs?**
-A: Refer to Architecture / Trade-offs section above.
+**Q: What's the difference between cosine annealing and step decay in practice?**
+A: Step decay drops LR abruptly at fixed intervals, which can cause instability at each drop. Cosine annealing smoothly reduces LR following a cosine curve, which typically produces smoother convergence. In practice, cosine annealing often achieves comparable or better final accuracy without requiring tuning of when to drop. Step decay is still used in image classification benchmarks where exact training protocols are replicated.
 
-**Q: How do you choose hyperparameters?**
-A: Cross-validation, grid/random/Bayesian search, domain knowledge.
+**Q: When would you use ReduceLROnPlateau vs a fixed schedule?**
+A: ReduceLROnPlateau is adaptive — it reduces LR when validation loss stops improving for `patience` epochs. Use it when you don't know the optimal training duration or want automatic adaptation. Fixed schedules (cosine, step) are better for reproducibility and hyperparameter tuning since the schedule doesn't depend on training dynamics. For large-scale training with a fixed budget, use a fixed schedule.
 
-**Q: What are common failure modes?**
-A: Refer to Common Pitfalls section below.
+**Q: How does learning rate interact with batch size?**
+A: When you increase batch size by k, the gradient estimate is k times more accurate (lower variance), so you can safely increase LR by approximately √k (linear scaling rule for large k). This is why papers report "LR 0.1 with batch size 256" — doubling batch to 512 suggests LR ~0.14. Ignoring this causes undertraining with large batches.
 
+**Q: What is cyclic learning rate and when does it help?**
+A: Cyclic LR (CLR) alternates between a minimum and maximum LR on a fixed cycle, allowing the optimizer to periodically escape local minima and explore the loss landscape. It often reduces training time by 2-5x because the model doesn't need extensive LR search — a range test to find min/max LR is sufficient. Works particularly well for CNNs; less commonly used for transformers where cosine with warmup dominates.
+
+**Q: How would you find a good initial learning rate without extensive grid search?**
+A: Use the LR range test (Leslie Smith, 2017): train for 1-2 epochs with LR increasing exponentially from 1e-7 to 10, log loss vs LR, pick the LR just before loss starts diverging (steepest decline region). This typically identifies a good LR in 5-10 minutes. Tools: fastai's lr_find(), PyTorch Lightning's lr_finder.
 ## Best Practices
 
 - Use warmup (5-10%)

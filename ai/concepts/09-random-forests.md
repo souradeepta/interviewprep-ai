@@ -30,18 +30,23 @@ Trade-off 1 vs trade-off 2
 
 ## Interview Q&A
 
-**Q: When would you use Random Forests?**
-A: Context-dependent, varies by problem type.
+**Q: Why does random feature subsampling (max_features) in Random Forests reduce variance?**
+A: If all trees use the same features, they'll learn similar patterns and be highly correlated — averaging correlated predictors barely reduces variance. By forcing each split to consider only a random subset of features (√p for classification), trees are decorrelated, so averaging them gives a much larger variance reduction. The randomness creates diversity which is the source of Random Forest's power.
 
-**Q: What are the main trade-offs?**
-A: Refer to Architecture / Trade-offs section above.
+**Q: When does adding more trees stop helping in a Random Forest?**
+A: After ~100-500 trees, the out-of-bag error stabilizes and additional trees provide negligible variance reduction while adding compute and memory cost. The law of diminishing returns applies — the first 100 trees provide most of the benefit. Monitor OOB error convergence to find the practical stopping point for your dataset.
 
-**Q: How do you choose hyperparameters?**
-A: Cross-validation, grid/random/Bayesian search, domain knowledge.
+**Q: How would you use a Random Forest for feature selection?**
+A: Compute feature_importances_ from the trained forest (mean decrease in Gini). However, this is biased toward high-cardinality and correlated features. More reliable: use permutation importance (sklearn's permutation_importance), which measures how much performance drops when each feature is randomly shuffled. Keep top k features by permutation importance and retrain.
 
-**Q: What are common failure modes?**
-A: Refer to Common Pitfalls section below.
+**Q: What's the difference between Random Forest and Gradient Boosting — when do you choose each?**
+A: Random Forest trains trees in parallel (independent) — faster, easier to parallelize, more robust to hyperparameter choices. Gradient Boosting trains trees sequentially (each corrects the previous) — usually higher accuracy but slower, more sensitive to hyperparameters, needs careful LR tuning. Random Forest for quick baselines and when robustness matters; GBM for competition-level accuracy.
 
+**Q: Why is the Out-of-Bag (OOB) error useful?**
+A: Each bootstrap sample leaves out ~37% of training points, which serve as an implicit validation set for that tree. Aggregating OOB predictions across all trees gives a nearly unbiased generalization estimate without requiring a separate holdout set. This is particularly valuable for small datasets. OOB error closely tracks cross-validation error in practice.
+
+**Q: How does Random Forest handle class imbalance?**
+A: Poorly by default — it optimizes Gini which can be dominated by the majority class. Solutions: class_weight='balanced_subsample' reweights splits in each tree; class_weight='balanced' weights globally; or use stratified bootstrap sampling. Additionally, you can lower the classification threshold on predict_proba to improve minority class recall.
 ## Best Practices
 
 - Start with n_estimators=100-500 (more is rarely worse, just slower)

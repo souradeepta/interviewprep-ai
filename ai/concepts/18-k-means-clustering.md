@@ -30,18 +30,23 @@ Trade-off 1 vs trade-off 2
 
 ## Interview Q&A
 
-**Q: When would you use K-Means Clustering?**
-A: Context-dependent, varies by problem type.
+**Q: What are the main failure modes of k-means and when does it break down?**
+A: K-means assumes spherical, equal-size, equal-density clusters. It fails on: elongated clusters (use DBSCAN or GMM), clusters of very different sizes (small clusters get absorbed), non-convex shapes (concentric rings), and data with very different feature scales (must standardize first). A single outlier can pull a centroid far from its cluster, effectively emptying it.
 
-**Q: What are the main trade-offs?**
-A: Refer to Architecture / Trade-offs section above.
+**Q: How does k-means++ initialization differ from random initialization, and why does it matter?**
+A: Random initialization can place multiple centroids in the same dense region, leaving other clusters unrepresented. K-means++ chooses each centroid with probability proportional to its squared distance from the nearest existing centroid — spreading centroids to cover the data space. This reduces the chance of poor convergence, improves final inertia by 2-5x on average, and is the sklearn default (init='k-means++').
 
-**Q: How do you choose hyperparameters?**
-A: Cross-validation, grid/random/Bayesian search, domain knowledge.
+**Q: How would you determine the optimal k for a dataset?**
+A: Use the elbow method (plot inertia vs k, find the "elbow" where the curve flattens — diminishing returns) and silhouette score (ranges from -1 to 1; higher is better; peaks at the optimal k). Use both together: inertia always decreases with more k (never use it alone), while silhouette penalizes poor cluster separation. For domain problems, also consider the business interpretation of k clusters.
 
-**Q: What are common failure modes?**
-A: Refer to Common Pitfalls section below.
+**Q: What is the time complexity of k-means, and how do you scale it to large datasets?**
+A: Standard k-means: O(n·k·d·i) per iteration where n=samples, k=clusters, d=features, i=iterations. For large datasets, MiniBatchKMeans processes random batches of size b per iteration: O(b·k·d·i) — typically 3-10x faster with similar quality. For very large k or d, consider approximate methods or dimensionality reduction before clustering.
 
+**Q: Why must features be scaled before applying k-means?**
+A: K-means uses Euclidean distance. A feature with range 0-1000 will dominate over a feature with range 0-1, regardless of their actual importance. Scaling ensures each feature contributes proportionally. Use StandardScaler (zero mean, unit variance) or MinMaxScaler. Failing to scale is one of the most common mistakes — clusters will primarily reflect the high-magnitude features.
+
+**Q: How would you evaluate the quality of k-means clusters when you have no ground truth labels?**
+A: Use intrinsic metrics: silhouette score (cohesion vs separation — higher is better), Calinski-Harabasz index (ratio of between-cluster to within-cluster variance — higher is better), Davies-Bouldin index (average similarity of each cluster to its most similar cluster — lower is better). Also visualize in 2D with PCA or t-SNE, and check if clusters make semantic sense in the domain.
 ## Best Practices
 
 - Always run k-means++ initialization (default in sklearn) — much better than random

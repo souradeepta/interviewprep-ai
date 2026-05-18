@@ -30,18 +30,23 @@ Trade-off 1 vs trade-off 2
 
 ## Interview Q&A
 
-**Q: When would you use Regularization?**
-A: Context-dependent, varies by problem type.
+**Q: What is the difference between L1 and L2 regularization in terms of the solution they produce?**
+A: L2 (Ridge) penalizes the sum of squared weights — it shrinks all weights toward zero but rarely to exactly zero, producing dense solutions. L1 (Lasso) penalizes the sum of absolute values — it produces sparse solutions with many weights exactly zero because the gradient of |w| is constant (not proportional to w), creating a tendency to eliminate small weights entirely. L1 is better for feature selection; L2 for general regularization.
 
-**Q: What are the main trade-offs?**
-A: Refer to Architecture / Trade-offs section above.
+**Q: Why does dropout work as a regularizer?**
+A: Dropout prevents co-adaptation: neurons can't rely on specific other neurons always being present, so each learns more robust, independent features. This approximates training an ensemble of 2^n different architectures (all subnetworks of the full network), and using all weights at inference (scaled by 1-p) approximates averaging their predictions. The regularization effect is similar to noise injection and weight sharing.
 
-**Q: How do you choose hyperparameters?**
-A: Cross-validation, grid/random/Bayesian search, domain knowledge.
+**Q: When should you use early stopping vs explicit regularization (L2/dropout)?**
+A: Use early stopping as a free baseline — it's always safe and costs nothing. Add L2/dropout when early stopping alone isn't sufficient. Early stopping is coarser (controls total training steps), while L2/dropout control model capacity more precisely. For deep learning, combine all three: use dropout in the architecture, L2 (weight_decay) in the optimizer, and early stopping to select the best checkpoint.
 
-**Q: What are common failure modes?**
-A: Refer to Common Pitfalls section below.
+**Q: How does the dropout rate affect training vs inference behavior?**
+A: During training, each neuron is dropped with probability p — effectively training a different subnetwork each step. During inference, dropout is disabled (model.eval()) and weights are scaled by (1-p) to maintain expected activation magnitude. Forgetting model.eval() is a common bug that adds noise to inference predictions. Higher dropout (0.5) gives more regularization but requires more training; lower (0.1-0.2) is standard for CNNs.
 
+**Q: What is weight decay and how does it relate to L2 regularization?**
+A: Weight decay directly multiplies weights by (1 - α·λ) at each step: w ← (1-λ)w - α·∇L. L2 regularization adds λ‖w‖²/2 to the loss, which produces a gradient -λw, giving the same update with standard optimizers (SGD). However, with adaptive optimizers like Adam, L2 regularization gets scaled by the adaptive learning rate, weakening its effect — hence AdamW implements true weight decay separately from gradient updates.
+
+**Q: How would you choose the regularization strength (lambda/C)?**
+A: Always use cross-validation on a log scale (1e-5, 1e-4, ..., 1, 10). Plot val error vs lambda to find the sweet spot — too small: overfitting; too large: underfitting. For neural networks, start with weight_decay=1e-4 and dropout=0.2-0.5 as defaults. Monitor the training-validation gap: if large, increase regularization; if small but both losses are high, decrease regularization.
 ## Best Practices
 
 - Start with L2 (weight decay) — it's differentiable and works well with Adam

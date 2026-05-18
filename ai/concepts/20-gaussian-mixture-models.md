@@ -30,18 +30,23 @@ Trade-off 1 vs trade-off 2
 
 ## Interview Q&A
 
-**Q: When would you use Gaussian Mixture Models?**
-A: Context-dependent, varies by problem type.
+**Q: What is the key difference between k-means and GMM clustering?**
+A: K-means makes hard assignments — each point belongs to exactly one cluster. GMM makes soft assignments — each point has a probability of belonging to each cluster. GMM also models the shape of clusters through covariance matrices (can capture elongated, correlated clusters), while k-means assumes spherical, equal-size clusters. GMM generalizes k-means: k-means is a special case of GMM with spherical covariances and hard assignments.
 
-**Q: What are the main trade-offs?**
-A: Refer to Architecture / Trade-offs section above.
+**Q: What is the EM algorithm and why might it fail to find the global optimum?**
+A: The Expectation-Maximization algorithm alternates between computing soft assignments (E-step) and updating parameters to maximize the likelihood given those assignments (M-step). It's guaranteed to converge to a local maximum of the likelihood but not the global maximum, because the likelihood surface is non-convex with many local optima. Always run multiple random restarts (n_init=5-10) and keep the solution with the highest log-likelihood.
 
-**Q: How do you choose hyperparameters?**
-A: Cross-validation, grid/random/Bayesian search, domain knowledge.
+**Q: How do you choose the number of components in a GMM?**
+A: Use BIC (Bayesian Information Criterion) or AIC (Akaike Information Criterion): BIC = -2·log(L) + k·log(n). BIC penalizes complexity more than AIC. Fit GMMs for k=1..15, plot BIC vs k, choose k at the minimum (or where the curve starts to flatten for AIC). BIC typically selects more parsimonious models than AIC. BIC is preferred when model selection is the goal; AIC when predictive performance matters.
 
-**Q: What are common failure modes?**
-A: Refer to Common Pitfalls section below.
+**Q: What are the different covariance types in GMM and when do you use each?**
+A: 'full' — each component has its own full covariance matrix (most flexible, most parameters); 'tied' — all components share one covariance matrix (good if clusters have similar shape); 'diag' — diagonal covariance (faster, fewer parameters, assumes feature independence within clusters); 'spherical' — single variance per component (equivalent to k-means with EM). Start with 'full' for flexibility; use 'diag' if high-dimensional.
 
+**Q: When would you use GMM for density estimation rather than clustering?**
+A: GMM is a parametric density estimator: p(x) = Σₖ πₖ·N(x|μₖ,Σₖ). Use it for anomaly detection (low-probability regions under the fitted density are anomalies), generative modeling (sample from the fitted distribution), and likelihood-based model comparison. Unlike k-means, GMM gives a proper probability density, enabling log-likelihood evaluation on new data. This makes GMM useful as a prior in Bayesian models.
+
+**Q: How does a GMM differ from a standard Gaussian (single component) in practice?**
+A: A single Gaussian assumes unimodal, symmetric data — if data has multiple clusters or non-symmetric distribution, it fits poorly. GMM is a universal density approximator: with enough components, it can approximate any continuous distribution. In practice, even 2-5 components can dramatically improve fit for multimodal data. Score the fit on held-out data with log_prob() and compare single Gaussian vs GMM.
 ## Best Practices
 
 - Use BIC (lower is better) or AIC to select number of components — plot for k=1..15

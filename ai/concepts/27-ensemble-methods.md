@@ -30,18 +30,23 @@ Trade-off 1 vs trade-off 2
 
 ## Interview Q&A
 
-**Q: When would you use Ensemble Methods?**
-A: Context-dependent, varies by problem type.
+**Q: Why is diversity important in ensemble methods?**
+A: If all models make identical predictions, averaging them doesn't help — the ensemble error equals the individual error. Diversity (uncorrelated errors) is what makes ensembles powerful: when models make different mistakes, averaging cancels out errors. Random Forests create diversity via feature subsampling; boosting creates diversity via sequential error-correction. An ensemble of 3 diverse models often outperforms an ensemble of 100 correlated models.
 
-**Q: What are the main trade-offs?**
-A: Refer to Architecture / Trade-offs section above.
+**Q: When does stacking improve over simple averaging?**
+A: Stacking learns the optimal weighting (and interactions) between base models, while averaging assigns equal weight. Stacking helps when base models have different strengths on different parts of the input space — the meta-learner learns to route predictions. Simple averaging is sufficient when models are similar in quality and errors. Stacking often provides 0.5-2% accuracy gains in competitions but adds complexity in production.
 
-**Q: How do you choose hyperparameters?**
-A: Cross-validation, grid/random/Bayesian search, domain knowledge.
+**Q: What is the key risk in stacking implementation?**
+A: Training the meta-learner on base model predictions generated from the same training data causes data leakage — the base models have memorized the training labels, so their training predictions are too optimistic. The meta-learner then learns to trust overfitted base models. Fix: generate meta-features using out-of-fold cross-validation predictions — base models are never evaluated on their own training data.
 
-**Q: What are common failure modes?**
-A: Refer to Common Pitfalls section below.
+**Q: When would you NOT use an ensemble?**
+A: When inference latency is critical (k models = k× prediction time); when model interpretability is required (stacked ensemble is a black box even if components are interpretable); when the dataset is too small (ensembles need diverse errors to be beneficial, hard with limited data); when you need to deploy, monitor, and retrain a single model (operational complexity multiplies with ensemble size).
 
+**Q: How does boosting reduce bias while bagging reduces variance?**
+A: Bagging trains models independently on bootstrap samples and averages — averaging reduces variance (reduces sensitivity to training data noise) without affecting bias. Boosting trains models sequentially, each correcting the previous model's errors — each iteration focuses the model on hard examples, reducing the bias (systematic underfitting) of the combined model. Boosting uses very shallow weak learners (stumps) to avoid adding variance.
+
+**Q: What is model blending vs stacking?**
+A: Blending trains base models on the full training set, generates predictions on a held-out validation set, and trains the meta-learner on those predictions. Stacking uses cross-validation to generate meta-features, so all training data is used and overfitting risk is lower. Blending is simpler and faster but wastes data (the held-out set isn't used for base model training). In competitions, stacking is preferred; in production, blending's simplicity often wins.
 ## Best Practices
 
 - Use soft voting (probability averaging) over hard voting when models are calibrated

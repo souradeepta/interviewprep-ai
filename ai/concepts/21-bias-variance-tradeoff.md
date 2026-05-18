@@ -30,18 +30,23 @@ Trade-off 1 vs trade-off 2
 
 ## Interview Q&A
 
-**Q: When would you use Bias-Variance Tradeoff?**
-A: Context-dependent, varies by problem type.
+**Q: How do you diagnose whether your model has high bias or high variance from learning curves?**
+A: Plot training and validation error vs training set size. High bias (underfitting): both training and validation error are high and converge to a high value — adding more data won't help, need more complex model. High variance (overfitting): large gap between low training error and high validation error — adding more data helps (curves converge), or add regularization.
 
-**Q: What are the main trade-offs?**
-A: Refer to Architecture / Trade-offs section above.
+**Q: Why does the bias-variance tradeoff differ between classical ML and modern deep learning?**
+A: In classical ML, increasing model complexity monotonically increases variance and decreases bias (U-shaped test error curve). Modern deep learning exhibits "double descent" — after the classical overfitting peak, continuing to increase model size causes test error to decrease again. Very overparameterized models (GPT-3: 175B params for millions of training examples) can generalize well due to implicit regularization from gradient descent.
 
-**Q: How do you choose hyperparameters?**
-A: Cross-validation, grid/random/Bayesian search, domain knowledge.
+**Q: What's the effect of ensemble methods on bias and variance?**
+A: Bagging (Random Forest): reduces variance by averaging uncorrelated trees — bias stays the same. Boosting (GBM): primarily reduces bias by sequentially correcting errors — slight variance increase. Stacking: can reduce both. This is why Random Forests excel when single trees overfit (high variance), and boosting excels when base models underfit (high bias, weak learners).
 
-**Q: What are common failure modes?**
-A: Refer to Common Pitfalls section below.
+**Q: How does regularization affect the bias-variance tradeoff?**
+A: Strong regularization increases bias (constrains model predictions toward simple functions) and decreases variance (model is less sensitive to training data noise). Zero regularization: low bias, potentially high variance (overfit). Too much regularization: high bias, low variance (underfit). The regularization hyperparameter (lambda, C, dropout rate) directly controls where on the bias-variance curve the model sits.
 
+**Q: What is irreducible error and why can't it be eliminated?**
+A: Irreducible error (Bayes error) is the noise in the labels themselves — if two identical input examples have different labels due to measurement noise, label ambiguity, or missing features, no model can predict correctly. It represents the minimum achievable error rate. You can reduce it by collecting better features, cleaning labels, or reducing measurement noise in the data collection process — not by improving the model.
+
+**Q: How does cross-validation relate to the bias-variance tradeoff?**
+A: Cross-validation gives an estimate of test error that includes both bias and variance components of the model. The mean CV score estimates the expected performance (inversely related to bias for a fixed model class), while the variance across folds estimates the sensitivity to training data choice. Highly variable CV scores indicate a high-variance model that needs regularization.
 ## Best Practices
 
 - Plot learning curves (train vs val vs training set size) to diagnose bias vs variance
