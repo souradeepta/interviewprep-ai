@@ -2,15 +2,15 @@
 
 ## Detailed Explanation
 
-Actor-Critic methods combine two neural networks: an actor that learns the policy (which actions to take) and a critic that learns the value function (how good a state is). This hybrid approach leverages the strengths of both policy gradient and value-based methods while addressing their individual weaknesses.
+Actor-Critic methods combine policy gradients (actor: learns what action to take) with value functions (critic: evaluates quality of states/actions), balancing high variance of policy gradients with bias of value functions. The actor (policy network) generates actions; the critic (value network) estimates how good those actions were (temporal difference error). The actor uses critic's estimates to reduce variance in policy gradients. Advantage Actor-Critic (A2C) and Asynchronous A3C are practical algorithms combining both.
 
-The actor uses policy gradients to improve the policy, but instead of using the full episode return as the reward signal, it uses the critic's value estimate, which significantly reduces variance in gradient estimates. The critic learns to accurately estimate state values using temporal difference learning, providing low-variance training signals to the actor. This mutual improvement creates a powerful learning dynamic: the critic provides better training signal to the actor, while the actor's improved policy helps the critic learn better value estimates.
+The actor-critic architecture mirrors human decision-making: the actor (conscious decision) is guided by the critic (evaluation/reward). Training uses two loss functions: actor loss (improve policy toward actions the critic values highly) and critic loss (make value estimates accurate). Entropy regularization encourages exploration by adding bonus for diverse policies. The advantage function (actual return - estimated value) reduces variance: tells actor which actions are better than average, focusing learning on important decisions.
 
-Actor-Critic methods are fundamental to modern deep reinforcement learning (A3C, PPO, TRPO) and excel at both discrete and continuous control. They balance the stability of value methods with the flexibility of policy gradients. Understanding actor-critic is essential because it demonstrates how neural networks can simultaneously solve multiple related problems and how bootstrapping (using value estimates as targets) enables efficient learning in continuous domains.
+Actor-Critic methods are widely used because they balance sample efficiency (value functions guide learning) with flexibility (policy gradients handle continuous actions). Understanding the actor-critic decomposition helps recognize similar architectures elsewhere: many modern systems combine prediction networks (critic) with generation networks (actor). Challenges include stable learning (both networks must improve together), function approximation errors in critic affecting actor, and tuning trade-offs between actor/critic learning rates.
 
 ## Core Intuition
 
-The actor is the decision-maker (policy), choosing which actions to take based on learned experience. The critic is the evaluator, estimating how good each state is. The critic tells the actor 'that action led to a better outcome than expected' (or worse), helping the actor learn faster. Together, they're like a student and teacher: the student learns actions, the teacher provides feedback.
+Actor-Critic methods are like having a performer (actor) and a coach (critic): the actor tries different performances, the coach evaluates each attempt and gives feedback. The actor improves based on feedback, and the coach improves at evaluating performances. Together they become better than either alone.
 
 ## How It Works
 

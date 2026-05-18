@@ -2,15 +2,15 @@
 
 ## Detailed Explanation
 
-Q-Learning is a foundational reinforcement learning algorithm that enables agents to learn optimal decision-making policies through trial-and-error interaction with an environment. Unlike supervised learning, Q-Learning doesn't require labeled examples—instead, the agent learns by receiving rewards or penalties for its actions and updating its understanding of which state-action pairs are valuable.
+Q-Learning is a foundational off-policy RL algorithm that learns optimal decision-making by estimating Q-values: expected cumulative reward for taking action a in state s. The algorithm is simple but powerful: repeatedly take action, observe reward and next state, update Q(s,a) ← Q(s,a) + α[r + γ max Q(s',a') - Q(s,a)], then repeat. Off-policy means it learns the optimal policy while following a different exploratory policy, making it sample-efficient.
 
-The core insight is that every state-action pair has a Q-value representing the expected cumulative future reward. By iteratively updating these values based on observed rewards and the maximum future value of the next state, the algorithm converges to an optimal policy that maximizes long-term reward. Q-Learning is off-policy, meaning it can learn the optimal policy while following a different exploratory policy, making it sample-efficient in many domains.
+The core insight is that Q-values can be learned iteratively: the value of a state-action pair improves by comparing actual return (immediate reward + discounted future value) with current estimate, then moving toward the better estimate. Exploration-exploitation trade-off is managed with ε-greedy: explore with probability ε, exploit with probability 1-ε. Deep Q-Networks (DQN) use neural networks as function approximators for large state spaces, combined with experience replay (storing and sampling past experiences) and target networks (slowly updated copies) for stability.
 
-Q-Learning powers practical systems from game-playing agents (Atari) to robotic control and recommendation systems. It's crucial to understand because it bridges the gap between simple reactive agents and sophisticated planning systems. The algorithm introduces key concepts like exploration-exploitation tradeoff, value iteration, and temporal difference learning that extend to modern deep reinforcement learning.
+Q-Learning is crucial to understand because it bridges simple models and deep RL. The algorithm introduces concepts (value iteration, off-policy learning, temporal difference learning) that appear throughout modern RL. Limitations include overestimation bias (which Double Q-Learning addresses) and difficulty with continuous action spaces. Most modern practical RL uses variants or alternatives, but Q-Learning concepts remain fundamental.
 
 ## Core Intuition
 
-Imagine learning to play chess by experimenting with moves and remembering how good each position turned out to be. Q-Learning is exactly that: the agent tries actions, gets rewards/penalties, and remembers the value of each state-action pair. Over time, it learns which moves lead to good outcomes without being explicitly taught the rules.
+Q-Learning is like learning which chess moves are good by playing repeatedly: estimate value of each (position, move) pair, try moves, see results, update estimates toward observed outcomes. The value estimate improves by bootstrapping: using estimated values of future positions to improve current estimates. It's learning value through iterative comparison of expectations vs. reality.
 
 ## How It Works
 

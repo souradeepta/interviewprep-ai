@@ -2,15 +2,15 @@
 
 ## Detailed Explanation
 
-Policy Gradient methods learn decision-making policies directly by adjusting the parameters of a neural network that outputs actions. Unlike value-based methods like Q-Learning that estimate future rewards and then act greedily, policy gradients use the gradient of expected reward with respect to policy parameters to update the policy towards better actions.
+Policy Gradient methods directly optimize the policy (probability distribution over actions) by computing gradients with respect to policy parameters. Rather than learning value functions then deriving policies (value-based RL), policy-gradient methods directly improve the policy. The core idea: compute how policy parameters affect expected return, then take steps to increase that return. REINFORCE is the simplest algorithm: sample trajectories, compute returns, scale policy gradients by returns.
 
-The fundamental idea is to increase the probability of actions that led to high rewards and decrease the probability of actions that led to low rewards. This is expressed as a gradient: ∇J(θ) = E[∇log π(a|s) R], which means we move the policy parameters in the direction that increases the log-probability of good actions scaled by their returns.
+Policy gradients handle continuous action spaces naturally (policy outputs action probabilities or mean/variance of action distribution), unlike Q-Learning which requires discrete actions or complex approximations. Variance is high (samples are noisy) so variance reduction techniques are crucial: baselines subtract an estimate of value (reduces variance without changing gradient), advantage functions estimate how much better an action is than average. Actor-Critic methods combine policy gradients (actor: which action to take) with value functions (critic: how good is this state).
 
-Policy gradients have several advantages: they handle continuous action spaces naturally (by outputting means and variances), they converge to local optima directly (not approximating values), and they support stochastic policies (useful for exploration). They power systems from robotic control to game-playing agents. The trade-off is higher variance in gradient estimates compared to value methods, requiring careful learning rate tuning and variance reduction techniques.
+Policy gradients form the foundation of modern RL: Proximal Policy Optimization (PPO), Trust Region Policy Optimization (TRPO), and others. Understanding the policy gradient theorem (gradient of expected return = expected gradient of return) is important for understanding the landscape. Limitations include high variance (needs many samples) and local optima (hill-climbing in policy space). Modern methods add techniques like entropy regularization (encourages exploration) and clipped policy updates for stability.
 
 ## Core Intuition
 
-Instead of learning the value of each chess position, directly learn which moves are good in each position. The policy gradient approach adjusts move probabilities: if a move sequence led to victory, increase those move probabilities; if it led to defeat, decrease them. It's like a coach watching your game and saying 'do that move more often, do that move less often'.
+Policy gradients are like tweaking a recipe based on how good the food turns out: if dish tastes good, increase likelihood of parameters that led to it; if bad, decrease likelihood. It's directly improving the decision-making strategy (policy) based on observed outcomes, not learning values.
 
 ## How It Works
 

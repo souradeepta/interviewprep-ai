@@ -2,15 +2,15 @@
 
 ## Detailed Explanation
 
-Probabilistic Graphical Models (PGMs) represent probability distributions using graph structure where nodes are random variables and edges encode conditional dependencies. They enable efficient reasoning about uncertainty in complex systems by exploiting conditional independence—the fact that some variables don't directly influence others given intermediate information.
+Probabilistic Graphical Models (PGMs) represent joint probability distributions using graphs: nodes are variables, edges indicate dependencies (compact representation). Bayesian Networks (directed graphs) encode conditional independence: ancestors influence descendants; unrelated variables are independent given parents. Markov Networks (undirected graphs) encode Markov blankets: variables are independent of non-neighbors given neighbors. PGMs enable efficient inference and learning even with many variables.
 
-Bayesian Networks (DAGs) encode causal or temporal relationships, while Markov Random Fields (undirected graphs) encode symmetric relationships. The graphical structure determines how we can decompose the joint probability distribution into tractable factors, enabling efficient inference even in high-dimensional problems. Algorithms like variable elimination and belief propagation use the graph structure to compute probabilities by passing messages rather than enumerating all possibilities.
+Inference (computing probabilities) in PGMs uses algorithms exploiting structure: belief propagation (message-passing on trees/DAGs) computes probabilities exactly in polynomial time; loopy belief propagation (on graphs with cycles) is approximate. Variable elimination orders variables and eliminates them sequentially, reducing computation. Sampling methods (MCMC) approximate posteriors. Learning parameters (given structure) is often tractable; learning structure (which edges to include) is harder. Latent Variable Models (where some variables are unobserved) add complexity but enable discovering hidden factors.
 
-PGMs are foundational because they make explicit the assumptions about how variables relate to each other, enabling principled probabilistic reasoning. They power applications from medical diagnosis (Bayesian Networks) to computer vision (Markov Random Fields). Understanding PGMs requires thinking about independence and factorization, and appreciates that many complex systems can be understood through structured conditional independence.
+PGMs are foundational for probabilistic reasoning: HMMs (Markov chains with observations), Kalman filters (continuous state spaces), Topic models (LDA). Modern deep learning often replaces PGMs for large, complex data, but PGMs remain valuable for interpretability, structured reasoning, and when data is limited. Understanding PGM principles helps recognize that many modern methods (attention mechanisms, diffusion models) implicitly use graphical model concepts. Challenges include scalability (inference is NP-hard in general), model selection, and computational efficiency on large graphs.
 
 ## Core Intuition
 
-Think of a graph where each circle is a variable and edges show 'this variable affects this one'. By understanding these relationships, you can reason about what happens when you observe new information. If you learn it's raining, that explains why the grass is wet AND why the sidewalk is wet—but wet grass and wet sidewalk become less surprising to you once you know it's raining. The graph captures this: rain causes both, so they're dependent unless you condition on rain.
+Probabilistic Graphical Models are like family trees showing genetic inheritance: parents influence children, siblings are correlated through parents. If you know the parents' genetics, you don't need parents' parents' genetics—that's the independence structure. Different connections mean different influences, enabling efficient computation.
 
 ## How It Works
 

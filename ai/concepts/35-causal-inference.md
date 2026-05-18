@@ -2,15 +2,15 @@
 
 ## Detailed Explanation
 
-Causal inference is the science of determining cause-and-effect relationships from data, distinguishing between correlation and causation. While traditional machine learning predicts patterns, causal inference answers intervention questions: 'What happens if we change X?' rather than just 'What is X correlated with?' This distinction is crucial for decision-making in medicine, business, and policy.
+Causal inference determines which variables cause which outcomes (beyond correlation), crucial for understanding mechanisms and making effective interventions. The fundamental problem: from observational data, we only see correlations, but correlation doesn't imply causation (A correlated with B could mean A→B, B→A, or C→A,C→B). Causal inference uses graphical models (DAGs: directed acyclic graphs) to encode causal assumptions, then applies adjustment strategies to estimate effects of interventions.
 
-Causal inference uses directed acyclic graphs (causal diagrams) to encode assumptions about how variables influence each other, then uses statistical techniques to estimate causal effects even from observational (non-experimental) data. Methods like propensity score matching, instrumental variables, and causal forests allow analysts to estimate the effect of an intervention on an outcome, accounting for confounding variables. The core insight is that randomized experiments automatically balance confounders, while observational data requires careful statistical control.
+Randomized controlled trials (RCTs) estimate causal effects by randomly assigning interventions (breaks all back-door paths from intervention to outcome). However, RCTs are expensive/unethical for many questions. Observational methods use causal graphs to identify confounders (variables affecting both intervention and outcome) and use adjustment (conditioning on confounders) or methods like instrumental variables (variables affecting outcome only through intervention) to estimate causal effects. The do-calculus (Pearl's framework) determines whether a causal effect is identifiable from observational data given a causal model.
 
-Causal reasoning is essential for any decisions beyond prediction: Should we deploy this model? How will this policy change affect outcomes? Does this correlation indicate a business opportunity? Understanding causality prevents costly mistakes from mistaking correlation for causation and enables principled decision-making under uncertainty. It's becoming increasingly important as organizations move from 'what will happen' (prediction) to 'what should we do' (decision-making).
+Causal inference is increasingly important for policy decisions (what intervention improves outcomes?), medicine (does treatment cause cure?), and fairness (does algorithm discriminate?). Understanding that correlation ≠ causation is critical. Challenges include model misspecification (assumed causal graph might be wrong), hidden confounders, and multiple intervention pathways. Modern methods combine causal reasoning with machine learning for estimation, but understanding the principles is essential for responsible conclusions.
 
 ## Core Intuition
 
-Correlation means two things happen together; causation means one causes the other. Ice cream sales correlate with drowning deaths, but ice cream doesn't cause drowning—summer causes both. Causal inference is the detective work of determining which relationships are real causes. It uses data patterns and logical reasoning to answer 'if we change this variable, what actually changes as a result'.
+Causal inference is like detective work: you observe correlations (X and Y are often together), but you need to figure out the mechanism (X causes Y, Y causes X, or both caused by Z). Causal graphs show your theories about mechanisms, and different techniques extract causal effects from data depending on those theories.
 
 ## How It Works
 

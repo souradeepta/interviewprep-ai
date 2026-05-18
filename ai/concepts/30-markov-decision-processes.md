@@ -2,11 +2,15 @@
 
 ## Detailed Explanation
 
-Formalize sequential decision-making as MDPs with states, actions, transitions, and rewards
+Markov Decision Processes (MDPs) formalize sequential decision-making problems where outcomes depend on the current state and action but not on history. The Markov property (memorylessness) means the future is independent of the past given the current state, enabling efficient algorithms. MDPs model many real-world problems: navigation (state = position, action = move direction), finance (state = portfolio, action = buy/sell), game-playing (state = board configuration, action = move).
+
+An MDP is defined by: states S, actions A, transition probabilities P(s'|s,a) (where we end up), rewards R(s,a,s') (what we receive), and discount factor γ (future vs immediate value). The discount factor balances short-term and long-term rewards: γ=0 cares only about immediate reward, γ=1 treats all times equally (can diverge), γ=0.9 is typical. Value iteration (Bellman equations) provides optimal policies by bootstrapping: value of state = immediate reward + discounted value of next state.
+
+MDPs are the mathematical foundation for RL and planning algorithms. Understanding the Markov property helps recognize when it applies (often violated in practice: Partially Observable MDPs, game history matters). The Bellman equations are intellectually important even if rarely implemented directly. Modern practitioners use approximate value functions (neural networks) to handle large state spaces, but understanding exact algorithms clarifies how approximations work.
 
 ## Core Intuition
 
-Formalize sequential decision-making as MDPs with states, actions, transitions, and rewards Core idea: understand the fundamental principle and how it applies.
+MDPs are like a board game: each position (state) has possible moves (actions), each move leads to the next position (transition probability), and at each position you earn points (reward). The goal is choosing moves that maximize total points. The Markov property means your next position depends only on current position and move, not how you got there.
 
 ## How It Works
 
