@@ -52,43 +52,43 @@ A: Refer to Common Pitfalls section below.
 
 ## Code Examples
 
-### Example 1: Basic Implementation
+### Example 1: Basic GMM
 
 ```python
-import numpy as np
-from sklearn import datasets
-from sklearn.model_selection import train_test_split
+from sklearn.mixture import GaussianMixture
 
-# Generate sample data
-X, y = datasets.make_classification(n_samples=200, n_features=10, random_state=42)
-X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.2, random_state=42)
-print(f"Training set: {X_train.shape}, Test set: {X_test.shape}")
+gmm = GaussianMixture(n_components=3, random_state=42)
+gmm.fit(X)
+
+labels = gmm.predict(X)
+probs = gmm.predict_proba(X)
+
+print(f"BIC: {gmm.bic(X):.2f}")
+print(f"Soft assignments shape: {probs.shape}
 ```
 
-### Example 2: Model Training
+### Example 2: Choosing k with BIC
 
 ```python
-from sklearn.preprocessing import StandardScaler
+bics = []
+for k in range(1, 10):
+    gmm = GaussianMixture(n_components=k)
+    gmm.fit(X)
+    bics.append(gmm.bic(X))
 
-# Scale features
-scaler = StandardScaler()
-X_train = scaler.fit_transform(X_train)
-X_test = scaler.transform(X_test)
-
-# Model training would go here
-# model = SomeModel()
-# model.fit(X_train, y_train)
+plt.plot(range(1, 10), bics, 'o-')
+plt.xlabel('Components'), plt.ylabel('BIC')
+plt.show()
 ```
 
-### Example 3: Evaluation
+### Example 3: Soft vs Hard Clustering
 
 ```python
-from sklearn.metrics import accuracy_score, classification_report
+hard_labels = gmm.predict(X)
+soft_probs = gmm.predict_proba(X)
 
-# Evaluation would go here
-# y_pred = model.predict(X_test)
-# print(f"Accuracy: {accuracy_score(y_test, y_pred):.4f}")
-# print(classification_report(y_test, y_pred))
+print(f"Hard assignment example: {hard_labels[0]}")
+print(f"Soft assignment example: {soft_probs[0]}")
 ```
 
 ## Related Concepts

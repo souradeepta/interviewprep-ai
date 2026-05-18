@@ -52,43 +52,63 @@ A: Refer to Common Pitfalls section below.
 
 ## Code Examples
 
-### Example 1: Basic Implementation
+### Example 1: Activation Functions Comparison
 
 ```python
 import numpy as np
-from sklearn import datasets
-from sklearn.model_selection import train_test_split
+import matplotlib.pyplot as plt
 
-# Generate sample data
-X, y = datasets.make_classification(n_samples=200, n_features=10, random_state=42)
-X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.2, random_state=42)
-print(f"Training set: {X_train.shape}, Test set: {X_test.shape}")
+z = np.linspace(-5, 5, 100)
+
+relu = np.maximum(0, z)
+sigmoid = 1 / (1 + np.exp(-z))
+tanh = np.tanh(z)
+elu = np.where(z > 0, z, 0.1 * (np.exp(z) - 1))
+
+plt.figure(figsize=(12, 4))
+plt.plot(z, relu, label='ReLU')
+plt.plot(z, sigmoid, label='Sigmoid')
+plt.plot(z, tanh, label='Tanh')
+plt.plot(z, elu, label='ELU')
+plt.xlabel('z'), plt.ylabel('f(z)')
+plt.legend(), plt.title('Activation Functions')
+plt.grid(), plt.show()
 ```
 
-### Example 2: Model Training
+### Example 2: Dying ReLU Problem
 
 ```python
-from sklearn.preprocessing import StandardScaler
+# Demonstrate dying ReLU
+X_biased = X - 10  # Shift to negative region
 
-# Scale features
-scaler = StandardScaler()
-X_train = scaler.fit_transform(X_train)
-X_test = scaler.transform(X_test)
+relu_layer = nn.ReLU()
+sigmoid_layer = nn.Sigmoid()
 
-# Model training would go here
-# model = SomeModel()
-# model.fit(X_train, y_train)
+with torch.no_grad():
+    X_torch = torch.FloatTensor(X_biased)
+    relu_out = relu_layer(X_torch)
+    sigmoid_out = sigmoid_layer(X_torch)
+
+relu_dead = (relu_out == 0).sum() / relu_out.numel()
+print(f"Dead ReLU percentage: {relu_dead:.1%}")
+print(f"Sigmoid output min: {sigmoid_out.min():.4f}, max: {sigmoid_out.max():.4f}")
 ```
 
-### Example 3: Evaluation
+### Example 3: LeakyReLU vs ReLU
 
 ```python
-from sklearn.metrics import accuracy_score, classification_report
+from torch.nn import LeakyReLU
 
-# Evaluation would go here
-# y_pred = model.predict(X_test)
-# print(f"Accuracy: {accuracy_score(y_test, y_pred):.4f}")
-# print(classification_report(y_test, y_pred))
+leaky_relu = LeakyReLU(negative_slope=0.1)
+relu = nn.ReLU()
+
+X_test_negative = torch.FloatTensor(X_biased)
+relu_out = relu(X_test_negative)
+leaky_out = leaky_relu(X_test_negative)
+
+print(f"ReLU dead neurons: {(relu_out == 0).sum()}")
+print(f"LeakyReLU dead neurons: {(leaky_out == 0).sum()}")
+print(f"LeakyReLU allows gradients for negative inputs!")
 ```
 
 ## Related Concepts

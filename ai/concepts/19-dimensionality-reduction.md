@@ -52,43 +52,40 @@ A: Refer to Common Pitfalls section below.
 
 ## Code Examples
 
-### Example 1: Basic Implementation
+### Example 1: PCA
 
 ```python
-import numpy as np
-from sklearn import datasets
-from sklearn.model_selection import train_test_split
+from sklearn.decomposition import PCA
 
-# Generate sample data
-X, y = datasets.make_classification(n_samples=200, n_features=10, random_state=42)
-X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.2, random_state=42)
-print(f"Training set: {X_train.shape}, Test set: {X_test.shape}")
+pca = PCA(n_components=2)
+X_reduced = pca.fit_transform(X)
+
+print(f"Explained variance: {pca.explained_variance_ratio_}")
+print(f"Total: {pca.explained_variance_ratio_.sum():.2%}")
 ```
 
-### Example 2: Model Training
+### Example 2: t-SNE
 
 ```python
-from sklearn.preprocessing import StandardScaler
+from sklearn.manifold import TSNE
 
-# Scale features
-scaler = StandardScaler()
-X_train = scaler.fit_transform(X_train)
-X_test = scaler.transform(X_test)
+tsne = TSNE(n_components=2, random_state=42)
+X_tsne = tsne.fit_transform(X)
 
-# Model training would go here
-# model = SomeModel()
-# model.fit(X_train, y_train)
+plt.scatter(X_tsne[:, 0], X_tsne[:, 1], c=y, cmap='viridis')
+plt.title('t-SNE Visualization'), plt.show()
 ```
 
-### Example 3: Evaluation
+### Example 3: UMAP
 
 ```python
-from sklearn.metrics import accuracy_score, classification_report
+from umap import UMAP
 
-# Evaluation would go here
-# y_pred = model.predict(X_test)
-# print(f"Accuracy: {accuracy_score(y_test, y_pred):.4f}")
-# print(classification_report(y_test, y_pred))
+umap_reducer = UMAP(n_components=2, random_state=42)
+X_umap = umap_reducer.fit_transform(X)
+
+plt.scatter(X_umap[:, 0], X_umap[:, 1], c=y, cmap='viridis')
+plt.title('UMAP Visualization'), plt.show()
 ```
 
 ## Related Concepts

@@ -52,43 +52,69 @@ A: Refer to Common Pitfalls section below.
 
 ## Code Examples
 
-### Example 1: Basic Implementation
+### Example 1: Xavier Initialization
 
 ```python
 import numpy as np
-from sklearn import datasets
-from sklearn.model_selection import train_test_split
 
-# Generate sample data
-X, y = datasets.make_classification(n_samples=200, n_features=10, random_state=42)
-X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.2, random_state=42)
-print(f"Training set: {X_train.shape}, Test set: {X_test.shape}")
+def xavier_init(n_in, n_out):
+    limit = np.sqrt(6 / (n_in + n_out))
+    return np.random.uniform(-limit, limit, (n_in, n_out))
+
+# Compare variance with different initializations
+n_layers = 10
+n_neurons = 100
+
+random_std = 0.01
+random_init = [np.random.randn(n_neurons, n_neurons) * random_std for _ in range(n_layers)]
+
+xavier_init_weights = [xavier_init(n_neurons, n_neurons) for _ in range(n_layers)]
+
+# Check activation variance through layers
+random_activations = [np.random.randn(1000, n_neurons)]
+xavier_activations = [np.random.randn(1000, n_neurons)]
+
+for i in range(n_layers - 1):
+    random_activations.append(np.maximum(0, random_activations[-1] @ random_init[i]))
+    xavier_activations.append(np.maximum(0, xavier_activations[-1] @ xavier_init_weights[i]))
+
+print("Random init - Activation variance per layer:", [np.var(a) for a in random_activations[:3]])
+print("Xavier init - Activation variance per layer:", [np.var(a) for a in xavier_activations[:3]])
 ```
 
-### Example 2: Model Training
+### Example 2: He Initialization for ReLU
 
 ```python
-from sklearn.preprocessing import StandardScaler
+def he_init(n_in):
+    return np.random.randn(n_in, n_in) * np.sqrt(2 / n_in)
 
-# Scale features
-scaler = StandardScaler()
-X_train = scaler.fit_transform(X_train)
-X_test = scaler.transform(X_test)
+he_weights = [he_init(n_neurons) for _ in range(n_layers)]
+he_activations = [np.random.randn(1000, n_neurons)]
 
-# Model training would go here
-# model = SomeModel()
-# model.fit(X_train, y_train)
+for i in range(n_layers - 1):
+    he_activations.append(np.maximum(0, he_activations[-1] @ he_weights[i]))
+
+print("He init - Activation variance per layer:", [np.var(a) for a in he_activations[:5]])
 ```
 
-### Example 3: Evaluation
+### Example 3: Impact on Training
 
 ```python
-from sklearn.metrics import accuracy_score, classification_report
+# Show impact on gradient flow
+W_small = np.random.randn(100, 100) * 0.001
+W_large = np.random.randn(100, 100) * 10
+W_proper = np.random.randn(100, 100) * np.sqrt(2/100)
 
-# Evaluation would go here
-# y_pred = model.predict(X_test)
-# print(f"Accuracy: {accuracy_score(y_test, y_pred):.4f}")
-# print(classification_report(y_test, y_pred))
+X_sample = np.random.randn(1, 100)
+
+# Forward pass
+z_small = X_sample @ W_small
+z_large = X_sample @ W_large
+z_proper = X_sample @ W_proper
+
+print(f"Small init - z std: {np.std(z_small):.6f}")
+print(f"Large init - z std: {np.std(z_large):.4f}")
+print(f"Proper init - z std: {np.std(z_proper):.4f}")
 ```
 
 ## Related Concepts

@@ -52,43 +52,71 @@ A: Refer to Common Pitfalls section below.
 
 ## Code Examples
 
-### Example 1: Basic Implementation
+### Example 1: Closed-form OLS
 
 ```python
-import numpy as np
-from sklearn import datasets
-from sklearn.model_selection import train_test_split
+def ols_regression(X, y):
+    # Add intercept
+    X_with_intercept = np.c_[np.ones(len(X)), X]
+    # θ = (X^T X)^-1 X^T y
+    theta = np.linalg.lstsq(X_with_intercept, y, rcond=None)[0]
+    return theta
 
-# Generate sample data
-X, y = datasets.make_classification(n_samples=200, n_features=10, random_state=42)
+theta = ols_regression(X, y)
+y_pred = np.c_[np.ones(len(X)), X] @ theta
+mse = np.mean((y_pred - y)**2)
+print(f"OLS MSE: {mse:.4f}")
+print(f"Learned weights: {theta}
+```
+
+### Example 2: Ridge Regression (L2)
+
+```python
+def ridge_regression(X, y, lambda_reg=0.1):
+    X_with_intercept = np.c_[np.ones(len(X)), X]
+    # θ = (X^T X + λI)^-1 X^T y
+    n_features = X_with_intercept.shape[1]
+    theta = np.linalg.solve(X_with_intercept.T @ X_with_intercept + lambda_reg * np.eye(n_features),
+                            X_with_intercept.T @ y)
+    return theta
+
+# Test different regularization strengths
+lambdas = [0.0, 0.01, 0.1, 1.0, 10.0]
+ridge_mses = []
+for lam in lambdas:
+    theta = ridge_regression(X, y, lam)
+    y_pred = np.c_[np.ones(len(X)), X] @ theta
+    ridge_mses.append(np.mean((y_pred - y)**2))
+
+plt.plot(lambdas, ridge_mses, 'o-')
+plt.xlabel('λ (regularization)'), plt.ylabel('MSE')
+plt.xscale('log'), plt.title('Ridge Regression: Effect of λ')
+plt.show()
+```
+
+### Example 3: Using sklearn
+
+```python
+from sklearn.linear_model import LinearRegression, Ridge, Lasso
+
 X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.2, random_state=42)
-print(f"Training set: {X_train.shape}, Test set: {X_test.shape}")
-```
 
-### Example 2: Model Training
+# OLS
+ols = LinearRegression().fit(X_train, y_train)
+ols_score = ols.score(X_test, y_test)
 
-```python
-from sklearn.preprocessing import StandardScaler
+# Ridge
+ridge = Ridge(alpha=0.1).fit(X_train, y_train)
+ridge_score = ridge.score(X_test, y_test)
 
-# Scale features
-scaler = StandardScaler()
-X_train = scaler.fit_transform(X_train)
-X_test = scaler.transform(X_test)
+# Lasso
+lasso = Lasso(alpha=0.01).fit(X_train, y_train)
+lasso_score = lasso.score(X_test, y_test)
 
-# Model training would go here
-# model = SomeModel()
-# model.fit(X_train, y_train)
-```
-
-### Example 3: Evaluation
-
-```python
-from sklearn.metrics import accuracy_score, classification_report
-
-# Evaluation would go here
-# y_pred = model.predict(X_test)
-# print(f"Accuracy: {accuracy_score(y_test, y_pred):.4f}")
-# print(classification_report(y_test, y_pred))
+print(f"OLS R²: {ols_score:.4f}")
+print(f"Ridge R²: {ridge_score:.4f}")
+print(f"Lasso R²: {lasso_score:.4f}")
+print(f"Lasso sparsity: {np.sum(lasso.coef_ == 0)} zeros out of {len(lasso.coef_)}")
 ```
 
 ## Related Concepts

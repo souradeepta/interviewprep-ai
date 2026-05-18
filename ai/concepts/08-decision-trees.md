@@ -52,43 +52,62 @@ A: Refer to Common Pitfalls section below.
 
 ## Code Examples
 
-### Example 1: Basic Implementation
+### Example 1: CART Algorithm with Gini
 
 ```python
-import numpy as np
+from sklearn.tree import DecisionTreeClassifier, plot_tree
 from sklearn import datasets
-from sklearn.model_selection import train_test_split
+import matplotlib.pyplot as plt
 
-# Generate sample data
-X, y = datasets.make_classification(n_samples=200, n_features=10, random_state=42)
-X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.2, random_state=42)
-print(f"Training set: {X_train.shape}, Test set: {X_test.shape}")
+X, y = datasets.load_iris(return_X_y=True)
+X, y = X[:, :2], y  # Use first 2 features for visualization
+
+# Train decision tree
+dt = DecisionTreeClassifier(max_depth=3, criterion='gini', random_state=42)
+dt.fit(X, y)
+
+# Feature importance
+print("Feature importances:")
+for i, imp in enumerate(dt.feature_importances_):
+    print(f"  Feature {i}: {imp:.4f}")
+
+# Visualize tree
+plt.figure(figsize=(20, 10))
+plot_tree(dt, feature_names=['SepalLength', 'SepalWidth'], class_names=['Setosa', 'Versicolor', 'Virginica'])
+plt.show()
 ```
 
-### Example 2: Model Training
+### Example 2: Pruning to Prevent Overfitting
 
 ```python
-from sklearn.preprocessing import StandardScaler
+from sklearn.tree import DecisionTreeClassifier
 
-# Scale features
-scaler = StandardScaler()
-X_train = scaler.fit_transform(X_train)
-X_test = scaler.transform(X_test)
+# Train unpruned tree
+dt_deep = DecisionTreeClassifier(random_state=42)
+dt_deep.fit(X, y)
 
-# Model training would go here
-# model = SomeModel()
-# model.fit(X_train, y_train)
+# Train pruned tree
+dt_pruned = DecisionTreeClassifier(max_depth=5, min_samples_leaf=5, random_state=42)
+dt_pruned.fit(X, y)
+
+train_score_deep = dt_deep.score(X, y)
+train_score_pruned = dt_pruned.score(X, y)
+
+print(f"Deep tree - Depth: {dt_deep.get_depth()}, Train accuracy: {train_score_deep:.4f}")
+print(f"Pruned tree - Depth: {dt_pruned.get_depth()}, Train accuracy: {train_score_pruned:.4f}")
 ```
 
-### Example 3: Evaluation
+### Example 3: Classification Tree
 
 ```python
-from sklearn.metrics import accuracy_score, classification_report
+from sklearn.tree import DecisionTreeClassifier
+from sklearn.model_selection import cross_val_score
 
-# Evaluation would go here
-# y_pred = model.predict(X_test)
-# print(f"Accuracy: {accuracy_score(y_test, y_pred):.4f}")
-# print(classification_report(y_test, y_pred))
+dt = DecisionTreeClassifier(max_depth=4, min_samples_leaf=2, random_state=42)
+scores = cross_val_score(dt, X, y, cv=5)
+
+print(f"5-fold CV scores: {scores}")
+print(f"Mean accuracy: {scores.mean():.4f} ± {scores.std():.4f}")
 ```
 
 ## Related Concepts

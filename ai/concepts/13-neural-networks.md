@@ -52,43 +52,61 @@ A: Refer to Common Pitfalls section below.
 
 ## Code Examples
 
-### Example 1: Basic Implementation
+### Example 1: Simple MLP with PyTorch
 
 ```python
-import numpy as np
-from sklearn import datasets
-from sklearn.model_selection import train_test_split
+import torch
+import torch.nn as nn
 
-# Generate sample data
-X, y = datasets.make_classification(n_samples=200, n_features=10, random_state=42)
-X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.2, random_state=42)
-print(f"Training set: {X_train.shape}, Test set: {X_test.shape}")
+class SimpleNN(nn.Module):
+    def __init__(self):
+        super().__init__()
+        self.fc1 = nn.Linear(4, 10)
+        self.fc2 = nn.Linear(10, 3)
+
+    def forward(self, x):
+        x = torch.relu(self.fc1(x))
+        return self.fc2(x)
+
+model = SimpleNN()
+X_tensor = torch.FloatTensor(X_train)
+y_tensor = torch.LongTensor(y_train)
+
+outputs = model(X_tensor)
+print(f"Input shape: {X_tensor.shape}, Output shape: {outputs.shape}")
 ```
 
-### Example 2: Model Training
+### Example 2: Training Loop
 
 ```python
-from sklearn.preprocessing import StandardScaler
+import torch
+import torch.nn as nn
+import torch.optim as optim
 
-# Scale features
-scaler = StandardScaler()
-X_train = scaler.fit_transform(X_train)
-X_test = scaler.transform(X_test)
+model = SimpleNN()
+criterion = nn.CrossEntropyLoss()
+optimizer = optim.Adam(model.parameters(), lr=0.001)
 
-# Model training would go here
-# model = SomeModel()
-# model.fit(X_train, y_train)
+for epoch in range(100):
+    optimizer.zero_grad()
+    outputs = model(X_tensor)
+    loss = criterion(outputs, y_tensor)
+    loss.backward()
+    optimizer.step()
+
+print(f"Final loss: {loss.item():.4f}")
 ```
 
-### Example 3: Evaluation
+### Example 3: Prediction
 
 ```python
-from sklearn.metrics import accuracy_score, classification_report
+with torch.no_grad():
+    X_test_tensor = torch.FloatTensor(X_test)
+    outputs = model(X_test_tensor)
+    _, predicted = torch.max(outputs, 1)
 
-# Evaluation would go here
-# y_pred = model.predict(X_test)
-# print(f"Accuracy: {accuracy_score(y_test, y_pred):.4f}")
-# print(classification_report(y_test, y_pred))
+accuracy = (predicted.numpy() == y_test).mean()
+print(f"Test accuracy: {accuracy:.4f}")
 ```
 
 ## Related Concepts

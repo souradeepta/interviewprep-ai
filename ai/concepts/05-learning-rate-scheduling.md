@@ -56,43 +56,62 @@ A: Refer to Common Pitfalls section below.
 
 ## Code Examples
 
-### Example 1: Basic Implementation
+### Example 1: Cosine Annealing
 
 ```python
-import numpy as np
-from sklearn import datasets
-from sklearn.model_selection import train_test_split
+def cosine_annealing(epoch, T_max=100, lr_max=0.1):
+    return lr_max * 0.5 * (1 + np.cos(np.pi * epoch / T_max))
 
-# Generate sample data
-X, y = datasets.make_classification(n_samples=200, n_features=10, random_state=42)
-X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.2, random_state=42)
-print(f"Training set: {X_train.shape}, Test set: {X_test.shape}")
+def warmup_cosine(epoch, warmup_epochs=10, T_max=100, lr_max=0.1):
+    if epoch < warmup_epochs:
+        return lr_max * (epoch / warmup_epochs)
+    return cosine_annealing(epoch - warmup_epochs, T_max - warmup_epochs, lr_max)
+
+epochs = 100
+schedules = {
+    'constant': [0.1] * epochs,
+    'exponential': [0.1 * (0.95 ** e) for e in range(epochs)],
+    'cosine': [cosine_annealing(e) for e in range(epochs)],
+    'warmup_cosine': [warmup_cosine(e) for e in range(epochs)]
+}
+
+plt.figure(figsize=(12, 5))
+for name, lrs in schedules.items():
+    plt.plot(lrs, label=name, linewidth=2)
+plt.xlabel('Epoch'), plt.ylabel('Learning Rate')
+plt.legend(), plt.title('Learning Rate Schedules')
+plt.show()
 ```
 
-### Example 2: Model Training
+### Example 2: Step Decay
 
 ```python
-from sklearn.preprocessing import StandardScaler
+def step_decay(epoch, initial_lr=0.1, drop=0.5, drop_every=20):
+    return initial_lr * (drop ** (epoch // drop_every))
 
-# Scale features
-scaler = StandardScaler()
-X_train = scaler.fit_transform(X_train)
-X_test = scaler.transform(X_test)
-
-# Model training would go here
-# model = SomeModel()
-# model.fit(X_train, y_train)
+lrs = [step_decay(e) for e in range(100)]
+plt.plot(lrs, 'o-', markersize=3)
+plt.xlabel('Epoch'), plt.ylabel('Learning Rate')
+plt.title('Step Decay Schedule (drop=0.5 every 20 epochs)')
+plt.show()
 ```
 
-### Example 3: Evaluation
+### Example 3: Training with Scheduler
 
 ```python
-from sklearn.metrics import accuracy_score, classification_report
+optimizer = AdamOptimizer(lr=0.1)
+scheduler = lambda e: warmup_cosine(e)
+theta = np.random.randn(5) * 0.01
+losses = []
 
-# Evaluation would go here
-# y_pred = model.predict(X_test)
-# print(f"Accuracy: {accuracy_score(y_test, y_pred):.4f}")
-# print(classification_report(y_test, y_pred))
+for epoch in range(100):
+    lr = scheduler(epoch)
+    pred = X @ theta
+    grad = (2/len(y)) * X.T @ (pred - y)
+    theta -= lr * grad
+    losses.append(np.mean((pred - y)**2))
+
+print(f"Loss progression: {losses[0]:.4f} -> {losses[-1]:.4f}")
 ```
 
 ## Related Concepts

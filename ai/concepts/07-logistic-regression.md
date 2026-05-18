@@ -52,43 +52,90 @@ A: Refer to Common Pitfalls section below.
 
 ## Code Examples
 
-### Example 1: Basic Implementation
+### Example 1: Sigmoid and Cross-Entropy
 
 ```python
-import numpy as np
-from sklearn import datasets
-from sklearn.model_selection import train_test_split
+def sigmoid(z):
+    return 1 / (1 + np.exp(-np.clip(z, -500, 500)))
 
-# Generate sample data
-X, y = datasets.make_classification(n_samples=200, n_features=10, random_state=42)
-X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.2, random_state=42)
-print(f"Training set: {X_train.shape}, Test set: {X_test.shape}")
+def cross_entropy_loss(y_true, y_pred):
+    y_pred = np.clip(y_pred, 1e-7, 1 - 1e-7)
+    return -np.mean(y_true * np.log(y_pred) + (1 - y_true) * np.log(1 - y_pred))
+
+# Binary classification data
+from sklearn.datasets import make_classification
+X, y = make_classification(n_samples=200, n_features=5, n_informative=3, random_state=42)
+X = (X - X.mean(axis=0)) / X.std(axis=0)
+
+# Gradient descent
+theta = np.zeros(X.shape[1])
+lr = 0.1
+losses = []
+
+for epoch in range(100):
+    z = X @ theta
+    p = sigmoid(z)
+    grad = X.T @ (p - y) / len(y)
+    theta -= lr * grad
+    losses.append(cross_entropy_loss(y, sigmoid(X @ theta)))
+
+plt.plot(losses)
+plt.xlabel('Epoch'), plt.ylabel('Cross-Entropy Loss')
+plt.title('Logistic Regression Training')
+plt.show()
 ```
 
-### Example 2: Model Training
+### Example 2: Decision Boundary
 
 ```python
-from sklearn.preprocessing import StandardScaler
+# Visualize decision boundary
+y_pred_proba = sigmoid(X @ theta)
+y_pred = (y_pred_proba > 0.5).astype(int)
 
-# Scale features
-scaler = StandardScaler()
-X_train = scaler.fit_transform(X_train)
-X_test = scaler.transform(X_test)
+# For 2D visualization, use first 2 features
+plt.figure(figsize=(10, 6))
+plt.scatter(X[y == 0, 0], X[y == 0, 1], label='Class 0', alpha=0.6)
+plt.scatter(X[y == 1, 0], X[y == 1, 1], label='Class 1', alpha=0.6)
 
-# Model training would go here
-# model = SomeModel()
-# model.fit(X_train, y_train)
+# Decision boundary: θ0*x0 + θ1*x1 + ... = 0.5
+x0_range = np.linspace(X[:, 0].min(), X[:, 0].max(), 100)
+x1_boundary = (0.5 - theta[0] - theta[2:] @ X[:50, 2:].mean(axis=0) - theta[1] * x0_range) / theta[1]
+plt.plot(x0_range, x1_boundary, 'k--', label='Decision Boundary')
+plt.xlabel('Feature 1'), plt.ylabel('Feature 2')
+plt.legend(), plt.title('Logistic Regression Decision Boundary')
+plt.show()
 ```
 
-### Example 3: Evaluation
+### Example 3: Multiclass with Softmax
 
 ```python
-from sklearn.metrics import accuracy_score, classification_report
+def softmax(z):
+    exp_z = np.exp(z - np.max(z, axis=1, keepdims=True))
+    return exp_z / np.sum(exp_z, axis=1, keepdims=True)
 
-# Evaluation would go here
-# y_pred = model.predict(X_test)
-# print(f"Accuracy: {accuracy_score(y_test, y_pred):.4f}")
-# print(classification_report(y_test, y_pred))
+# 3-class classification
+X_multi, y_multi = make_classification(n_samples=200, n_features=5, n_classes=3,
+                                        n_informative=4, random_state=42)
+X_multi = (X_multi - X_multi.mean(axis=0)) / X_multi.std(axis=0)
+
+# Weight matrix: (n_features, n_classes)
+W = np.random.randn(X_multi.shape[1], 3) * 0.01
+b = np.zeros(3)
+
+for epoch in range(100):
+    z = X_multi @ W + b
+    probs = softmax(z)
+
+    # Cross-entropy for multiclass
+    loss = -np.mean(np.log(probs[np.arange(len(y_multi)), y_multi] + 1e-7))
+
+    # Gradient
+    grad_z = probs.copy()
+    grad_z[np.arange(len(y_multi)), y_multi] -= 1
+    W -= 0.1 * X_multi.T @ grad_z / len(y_multi)
+    b -= 0.1 * np.sum(grad_z, axis=0) / len(y_multi)
+
+print(f"Softmax multiclass final loss: {loss:.4f}")
 ```
 
 ## Related Concepts

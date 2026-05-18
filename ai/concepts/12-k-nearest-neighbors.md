@@ -52,43 +52,51 @@ A: Refer to Common Pitfalls section below.
 
 ## Code Examples
 
-### Example 1: Basic Implementation
+### Example 1: Basic KNN
 
 ```python
-import numpy as np
-from sklearn import datasets
-from sklearn.model_selection import train_test_split
+from sklearn.neighbors import KNeighborsClassifier
 
-# Generate sample data
-X, y = datasets.make_classification(n_samples=200, n_features=10, random_state=42)
-X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.2, random_state=42)
-print(f"Training set: {X_train.shape}, Test set: {X_test.shape}")
+knn = KNeighborsClassifier(n_neighbors=5)
+knn.fit(X_train, y_train)
+
+print(f"Train: {knn.score(X_train, y_train):.4f}")
+print(f"Test: {knn.score(X_test, y_test):.4f}")
 ```
 
-### Example 2: Model Training
+### Example 2: Tuning k
 
 ```python
-from sklearn.preprocessing import StandardScaler
+k_values = range(1, 20)
+train_scores = []
+test_scores = []
 
-# Scale features
-scaler = StandardScaler()
-X_train = scaler.fit_transform(X_train)
-X_test = scaler.transform(X_test)
+for k in k_values:
+    knn = KNeighborsClassifier(n_neighbors=k)
+    knn.fit(X_train, y_train)
+    train_scores.append(knn.score(X_train, y_train))
+    test_scores.append(knn.score(X_test, y_test))
 
-# Model training would go here
-# model = SomeModel()
-# model.fit(X_train, y_train)
+plt.plot(k_values, train_scores, label='Train')
+plt.plot(k_values, test_scores, label='Test')
+plt.xlabel('k'), plt.ylabel('Accuracy')
+plt.legend(), plt.title('KNN Performance vs k')
+plt.show()
 ```
 
-### Example 3: Evaluation
+### Example 3: Distance Metrics
 
 ```python
-from sklearn.metrics import accuracy_score, classification_report
+from sklearn.neighbors import KNeighborsClassifier
 
-# Evaluation would go here
-# y_pred = model.predict(X_test)
-# print(f"Accuracy: {accuracy_score(y_test, y_pred):.4f}")
-# print(classification_report(y_test, y_pred))
+knn_euclidean = KNeighborsClassifier(n_neighbors=5, metric='euclidean')
+knn_manhattan = KNeighborsClassifier(n_neighbors=5, metric='manhattan')
+
+knn_euclidean.fit(X_train, y_train)
+knn_manhattan.fit(X_train, y_train)
+
+print(f"Euclidean: {knn_euclidean.score(X_test, y_test):.4f}")
+print(f"Manhattan: {knn_manhattan.score(X_test, y_test):.4f}")
 ```
 
 ## Related Concepts

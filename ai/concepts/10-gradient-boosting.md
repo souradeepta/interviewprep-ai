@@ -52,43 +52,49 @@ A: Refer to Common Pitfalls section below.
 
 ## Code Examples
 
-### Example 1: Basic Implementation
+### Example 1: XGBoost Classifier
 
 ```python
-import numpy as np
-from sklearn import datasets
+import xgboost as xgb
 from sklearn.model_selection import train_test_split
 
-# Generate sample data
-X, y = datasets.make_classification(n_samples=200, n_features=10, random_state=42)
+X, y = datasets.load_iris(return_X_y=True)
 X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.2, random_state=42)
-print(f"Training set: {X_train.shape}, Test set: {X_test.shape}")
+
+# XGBoost classifier
+xgb_model = xgb.XGBClassifier(n_estimators=100, max_depth=3, learning_rate=0.1, random_state=42)
+xgb_model.fit(X_train, y_train, eval_set=[(X_test, y_test)], verbose=False)
+
+train_score = xgb_model.score(X_train, y_train)
+test_score = xgb_model.score(X_test, y_test)
+print(f"Train: {train_score:.4f}, Test: {test_score:.4f}")
 ```
 
-### Example 2: Model Training
+### Example 2: Early Stopping
 
 ```python
-from sklearn.preprocessing import StandardScaler
+xgb_early = xgb.XGBClassifier(n_estimators=1000, max_depth=3, random_state=42)
+xgb_early.fit(X_train, y_train,
+              eval_set=[(X_test, y_test)],
+              early_stopping_rounds=10,
+              verbose=False)
 
-# Scale features
-scaler = StandardScaler()
-X_train = scaler.fit_transform(X_train)
-X_test = scaler.transform(X_test)
-
-# Model training would go here
-# model = SomeModel()
-# model.fit(X_train, y_train)
+print(f"Best iteration: {xgb_early.best_iteration}")
+print(f"Final test score: {xgb_early.score(X_test, y_test):.4f}")
 ```
 
-### Example 3: Evaluation
+### Example 3: Feature Importance
 
 ```python
-from sklearn.metrics import accuracy_score, classification_report
+import matplotlib.pyplot as plt
 
-# Evaluation would go here
-# y_pred = model.predict(X_test)
-# print(f"Accuracy: {accuracy_score(y_test, y_pred):.4f}")
-# print(classification_report(y_test, y_pred))
+feature_names = ['SepalLength', 'SepalWidth', 'PetalLength', 'PetalWidth']
+importances = xgb_model.feature_importances_
+
+plt.barh(feature_names, importances)
+plt.xlabel('Importance')
+plt.title('XGBoost Feature Importance')
+plt.show()
 ```
 
 ## Related Concepts

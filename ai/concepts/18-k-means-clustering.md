@@ -52,43 +52,50 @@ A: Refer to Common Pitfalls section below.
 
 ## Code Examples
 
-### Example 1: Basic Implementation
+### Example 1: Basic K-Means
 
 ```python
-import numpy as np
+from sklearn.cluster import KMeans
 from sklearn import datasets
-from sklearn.model_selection import train_test_split
 
-# Generate sample data
-X, y = datasets.make_classification(n_samples=200, n_features=10, random_state=42)
-X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.2, random_state=42)
-print(f"Training set: {X_train.shape}, Test set: {X_test.shape}")
+X = datasets.load_iris()[0]
+
+kmeans = KMeans(n_clusters=3, random_state=42)
+labels = kmeans.fit_predict(X)
+
+print(f"Cluster sizes: {np.bincount(labels)}")
+print(f"Inertia: {kmeans.inertia_:.2f}")
 ```
 
-### Example 2: Model Training
+### Example 2: Elbow Method
 
 ```python
-from sklearn.preprocessing import StandardScaler
+inertias = []
+for k in range(1, 10):
+    kmeans = KMeans(n_clusters=k, random_state=42)
+    kmeans.fit(X)
+    inertias.append(kmeans.inertia_)
 
-# Scale features
-scaler = StandardScaler()
-X_train = scaler.fit_transform(X_train)
-X_test = scaler.transform(X_test)
-
-# Model training would go here
-# model = SomeModel()
-# model.fit(X_train, y_train)
+plt.plot(range(1, 10), inertias, 'o-')
+plt.xlabel('k'), plt.ylabel('Inertia')
+plt.title('Elbow Method'), plt.show()
 ```
 
-### Example 3: Evaluation
+### Example 3: K-Means++ Initialization
 
 ```python
-from sklearn.metrics import accuracy_score, classification_report
+from sklearn.cluster import KMeans
 
-# Evaluation would go here
-# y_pred = model.predict(X_test)
-# print(f"Accuracy: {accuracy_score(y_test, y_pred):.4f}")
-# print(classification_report(y_test, y_pred))
+# Standard k-means
+km_random = KMeans(n_clusters=3, init='random', n_init=1, random_state=42)
+km_random.fit(X)
+
+# K-Means++
+km_kpp = KMeans(n_clusters=3, init='k-means++', n_init=10, random_state=42)
+km_kpp.fit(X)
+
+print(f"Random init inertia: {km_random.inertia_:.2f}")
+print(f"K-means++ inertia: {km_kpp.inertia_:.2f}")
 ```
 
 ## Related Concepts

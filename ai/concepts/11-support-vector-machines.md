@@ -52,43 +52,45 @@ A: Refer to Common Pitfalls section below.
 
 ## Code Examples
 
-### Example 1: Basic Implementation
+### Example 1: Linear SVM
 
 ```python
-import numpy as np
-from sklearn import datasets
-from sklearn.model_selection import train_test_split
+from sklearn.svm import SVC
 
-# Generate sample data
-X, y = datasets.make_classification(n_samples=200, n_features=10, random_state=42)
 X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.2, random_state=42)
-print(f"Training set: {X_train.shape}, Test set: {X_test.shape}")
+
+svm_linear = SVC(kernel='linear', C=1.0, random_state=42)
+svm_linear.fit(X_train, y_train)
+
+print(f"Support vectors: {svm_linear.n_support_}")
+print(f"Train: {svm_linear.score(X_train, y_train):.4f}")
+print(f"Test: {svm_linear.score(X_test, y_test):.4f}")
 ```
 
-### Example 2: Model Training
+### Example 2: RBF Kernel SVM
 
 ```python
-from sklearn.preprocessing import StandardScaler
+from sklearn.svm import SVC
 
-# Scale features
-scaler = StandardScaler()
-X_train = scaler.fit_transform(X_train)
-X_test = scaler.transform(X_test)
+svm_rbf = SVC(kernel='rbf', C=1.0, gamma='scale', random_state=42)
+svm_rbf.fit(X_train, y_train)
 
-# Model training would go here
-# model = SomeModel()
-# model.fit(X_train, y_train)
+print(f"Linear kernel score: {svm_linear.score(X_test, y_test):.4f}")
+print(f"RBF kernel score: {svm_rbf.score(X_test, y_test):.4f}")
 ```
 
-### Example 3: Evaluation
+### Example 3: Tuning C Parameter
 
 ```python
-from sklearn.metrics import accuracy_score, classification_report
+from sklearn.model_selection import GridSearchCV
 
-# Evaluation would go here
-# y_pred = model.predict(X_test)
-# print(f"Accuracy: {accuracy_score(y_test, y_pred):.4f}")
-# print(classification_report(y_test, y_pred))
+param_grid = {'C': [0.1, 1, 10, 100]}
+grid = GridSearchCV(SVC(kernel='rbf'), param_grid, cv=5)
+grid.fit(X_train, y_train)
+
+print(f"Best C: {grid.best_params_['C']}")
+print(f"Best CV score: {grid.best_score_:.4f}")
+print(f"Test score: {grid.score(X_test, y_test):.4f}")
 ```
 
 ## Related Concepts

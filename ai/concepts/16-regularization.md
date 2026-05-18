@@ -52,43 +52,56 @@ A: Refer to Common Pitfalls section below.
 
 ## Code Examples
 
-### Example 1: Basic Implementation
+### Example 1: L1 vs L2 Regularization
 
 ```python
-import numpy as np
-from sklearn import datasets
-from sklearn.model_selection import train_test_split
+from sklearn.linear_model import Ridge, Lasso
 
-# Generate sample data
-X, y = datasets.make_classification(n_samples=200, n_features=10, random_state=42)
 X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.2, random_state=42)
-print(f"Training set: {X_train.shape}, Test set: {X_test.shape}")
+
+ridge = Ridge(alpha=0.1).fit(X_train, y_train)
+lasso = Lasso(alpha=0.01).fit(X_train, y_train)
+
+print("Ridge weights:", ridge.coef_)
+print("Lasso weights:", lasso.coef_)
+print(f"Lasso sparsity: {np.sum(lasso.coef_ == 0)} zeros")
+print(f"Ridge - Train: {ridge.score(X_train, y_train):.4f}, Test: {ridge.score(X_test, y_test):.4f}")
+print(f"Lasso - Train: {lasso.score(X_train, y_train):.4f}, Test: {lasso.score(X_test, y_test):.4f}")
 ```
 
-### Example 2: Model Training
+### Example 2: Dropout in PyTorch
 
 ```python
-from sklearn.preprocessing import StandardScaler
+import torch.nn as nn
 
-# Scale features
-scaler = StandardScaler()
-X_train = scaler.fit_transform(X_train)
-X_test = scaler.transform(X_test)
+class RegularizedNN(nn.Module):
+    def __init__(self, dropout_p=0.5):
+        super().__init__()
+        self.fc1 = nn.Linear(4, 10)
+        self.dropout = nn.Dropout(dropout_p)
+        self.fc2 = nn.Linear(10, 3)
 
-# Model training would go here
-# model = SomeModel()
-# model.fit(X_train, y_train)
+    def forward(self, x):
+        x = torch.relu(self.fc1(x))
+        x = self.dropout(x)  # Random deactivation during training
+        return self.fc2(x)
+
+model = RegularizedNN(dropout_p=0.5)
+model.train()  # Dropout active
+model.eval()   # Dropout inactive (testing)
 ```
 
-### Example 3: Evaluation
+### Example 3: Early Stopping
 
 ```python
-from sklearn.metrics import accuracy_score, classification_report
+from sklearn.neural_network import MLPClassifier
 
-# Evaluation would go here
-# y_pred = model.predict(X_test)
-# print(f"Accuracy: {accuracy_score(y_test, y_pred):.4f}")
-# print(classification_report(y_test, y_pred))
+mlp = MLPClassifier(hidden_layer_sizes=(100,), early_stopping=True,
+                    validation_fraction=0.2, n_iter_no_change=20)
+mlp.fit(X_train, y_train)
+
+print(f"Training epochs: {mlp.n_iter_}")
+print(f"Test score: {mlp.score(X_test, y_test):.4f}")
 ```
 
 ## Related Concepts

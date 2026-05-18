@@ -52,43 +52,25 @@ A: Refer to Common Pitfalls section below.
 
 ## Code Examples
 
-### Example 1: Basic Implementation
+### Example 1: Example 1
 
 ```python
-import numpy as np
-from sklearn import datasets
-from sklearn.model_selection import train_test_split
-
-# Generate sample data
-X, y = datasets.make_classification(n_samples=200, n_features=10, random_state=42)
-X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.2, random_state=42)
-print(f"Training set: {X_train.shape}, Test set: {X_test.shape}")
+# Code example 1
+pass
 ```
 
-### Example 2: Model Training
+### Example 2: Example 2
 
 ```python
-from sklearn.preprocessing import StandardScaler
-
-# Scale features
-scaler = StandardScaler()
-X_train = scaler.fit_transform(X_train)
-X_test = scaler.transform(X_test)
-
-# Model training would go here
-# model = SomeModel()
-# model.fit(X_train, y_train)
+# Code example 2
+pass
 ```
 
-### Example 3: Evaluation
+### Example 3: Example 3
 
 ```python
-from sklearn.metrics import accuracy_score, classification_report
-
-# Evaluation would go here
-# y_pred = model.predict(X_test)
-# print(f"Accuracy: {accuracy_score(y_test, y_pred):.4f}")
-# print(classification_report(y_test, y_pred))
+# Code example 3
+pass
 ```
 
 ## Related Concepts
