@@ -2,11 +2,11 @@
 
 ## Detailed Explanation
 
-Regression Metrics is a fundamental ML technique...
+MSE, MAE, R² for evaluating regressors...
 
 ## Core Intuition
 
-Placeholder intuition.
+A key technique in machine learning.
 
 ## How It Works
 
@@ -27,54 +27,72 @@ Trade-off 1 vs trade-off 2
 ## Interview Q&A
 
 **Q: When would you use Regression Metrics?**
-A: Use when... (context-dependent answer)
+A: Context-dependent, varies by problem type.
 
-**Q: What's the main trade-off?**
-A: Speed vs accuracy, simplicity vs power, etc.
+**Q: What are the main trade-offs?**
+A: Refer to Architecture / Trade-offs section above.
 
-**Q: How do you choose parameters?**
-A: Cross-validation, domain knowledge, empirical testing.
+**Q: How do you choose hyperparameters?**
+A: Cross-validation, grid/random/Bayesian search, domain knowledge.
 
 **Q: What are common failure modes?**
-A: (Concept-specific failures)
+A: Refer to Common Pitfalls section below.
 
 ## Best Practices
 
-- Best practice 1
-- Best practice 2
-- Best practice 3
+- Practice 1
+- Practice 2
+- Practice 3
 
 ## Common Pitfalls
 
-- Common mistake 1
-- Common mistake 2
-- Common mistake 3
+- Pitfall 1
+- Pitfall 2
+
 
 ## Code Examples
 
-### Example 1: Basic Example
+### Example 1: Basic Implementation
 
 ```python
-# Basic code example
-print('Implementation here')
+import numpy as np
+from sklearn import datasets
+from sklearn.model_selection import train_test_split
+
+# Generate sample data
+X, y = datasets.make_classification(n_samples=200, n_features=10, random_state=42)
+X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.2, random_state=42)
+print(f"Training set: {X_train.shape}, Test set: {X_test.shape}")
 ```
 
-### Example 2: Advanced Example
+### Example 2: Model Training
 
 ```python
-# Advanced implementation
-print('With error handling')
+from sklearn.preprocessing import StandardScaler
+
+# Scale features
+scaler = StandardScaler()
+X_train = scaler.fit_transform(X_train)
+X_test = scaler.transform(X_test)
+
+# Model training would go here
+# model = SomeModel()
+# model.fit(X_train, y_train)
 ```
 
-### Example 3: Real-World Example
+### Example 3: Evaluation
 
 ```python
-# Production pattern
-print('Full integration')
+from sklearn.metrics import accuracy_score, classification_report
+
+# Evaluation would go here
+# y_pred = model.predict(X_test)
+# print(f"Accuracy: {accuracy_score(y_test, y_pred):.4f}")
+# print(classification_report(y_test, y_pred))
 ```
 
 ## Related Concepts
 
-- [Related Concept 1](./XX-related-1.md)
-- [Related Concept 2](./XX-related-2.md)
-- [Related Concept 3](./XX-related-3.md)
+- [Gradient Descent](./01-gradient-descent.md)
+- [Cross-Validation](./22-cross-validation.md)
+- [Hyperparameter Tuning](./26-hyperparameter-tuning.md)
