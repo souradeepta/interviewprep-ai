@@ -18,8 +18,13 @@ Core ML system design pattern for production.
 - Mistake 2
 
 ## Best Practices
-- Practice 1
-- Practice 2
+- Define RPO (Recovery Point Objective) and RTO (Recovery Time Objective) before designing recovery
+- Test recovery procedures quarterly — untested backups often fail
+- Store backups in a different geographic region from primary
+- Automate failover — manual failover during incidents is slow and error-prone
+- Practice chaos engineering to validate recovery before disasters happen
+- Document step-by-step recovery runbooks with owner assignments
+- Keep shadow warm standby systems for critical ML inference endpoints
 
 ## Interview Quick-Reference
 | Question | What to say |

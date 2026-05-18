@@ -40,14 +40,20 @@ A: Refer to Common Pitfalls section below.
 
 ## Best Practices
 
-- Practice 1
-- Practice 2
-- Practice 3
+- Start with L2 (weight decay) — it's differentiable and works well with Adam
+- Use dropout rate 0.1-0.3 for convolutional layers, 0.3-0.5 for dense layers
+- Combine early stopping + L2 for best generalization
+- Set weight_decay in optimizer (AdamW) rather than adding L2 manually
+- Use data augmentation as implicit regularization for images and text
+- Apply gradient clipping (max_norm=1.0) alongside regularization for RNNs
+- Monitor train-val gap — large gap = underregularized, small gap but high loss = overregularized
 
 ## Common Pitfalls
 
-- Pitfall 1
-- Pitfall 2
+- Adding L1 regularization to Adam breaks adaptive learning rates — use AdamW with L2 instead
+- Dropout during inference without model.eval() adds noise to predictions
+- Too high regularization causes underfitting — tune with cross-validation
+- Applying dropout before batch norm breaks the normalization statistics
 
 
 ## Code Examples

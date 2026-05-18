@@ -40,14 +40,20 @@ A: Refer to Common Pitfalls section below.
 
 ## Best Practices
 
-- Practice 1
-- Practice 2
-- Practice 3
+- Always normalize features before KNN — Euclidean distance is scale-sensitive
+- Choose k with cross-validation (plot CV error vs k)
+- Use KD-tree or Ball-tree for datasets <100k — much faster than brute force
+- Compute distances in lower-dimensional space after PCA for high-dim data
+- Weight neighbors by distance (weights='distance') for smoother boundaries
+- Use leaf_size parameter to tune tree-build vs query speed trade-off
+- Consider approximate nearest neighbors (FAISS, ANNOY) at large scale
 
 ## Common Pitfalls
 
-- Pitfall 1
-- Pitfall 2
+- Slow at prediction time — O(n·d) per query with brute force
+- Suffers from curse of dimensionality — distances become meaningless in high dimensions
+- Sensitive to irrelevant features — feature selection helps
+- No model to inspect — completely non-parametric, hard to interpret
 
 
 ## Code Examples

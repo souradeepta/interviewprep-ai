@@ -40,14 +40,20 @@ A: Refer to Common Pitfalls section below.
 
 ## Best Practices
 
-- Practice 1
-- Practice 2
-- Practice 3
+- Always plot residuals vs fitted values to check for patterns (non-linearity, heteroscedasticity)
+- Use RMSE when large errors are especially bad (it penalizes them more)
+- Use MAE when you want a robust metric less sensitive to outliers
+- Use MAPE only when target values are always positive and far from zero
+- Report multiple metrics — RMSE and MAE together reveal outlier influence
+- Check residual distribution for normality (QQ plot) if confidence intervals are needed
+- Use adjusted R² when comparing models with different numbers of features
 
 ## Common Pitfalls
 
-- Pitfall 1
-- Pitfall 2
+- MAPE blows up when true values are near zero — use SMAPE or MAE instead
+- High R² doesn't mean the model generalizes — check on held-out data
+- Evaluating on training data only — always use cross-validation or a test set
+- Assuming residuals are normally distributed without checking
 
 
 ## Code Examples

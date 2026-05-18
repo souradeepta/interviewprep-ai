@@ -40,14 +40,20 @@ A: Refer to Common Pitfalls section below.
 
 ## Best Practices
 
-- Practice 1
-- Practice 2
-- Practice 3
+- Always scale features before regression
+- Use Ridge over OLS when features are correlated (multicollinearity)
+- Plot residuals vs fitted values to detect non-linearity
+- Check VIF (Variance Inflation Factor) to diagnose multicollinearity
+- Use adjusted R² not R² for comparing models with different feature counts
+- Consider log-transforming skewed targets
+- Validate homoscedasticity with Breusch-Pagan test
 
 ## Common Pitfalls
 
-- Pitfall 1
-- Pitfall 2
+- Including highly correlated features causes unstable coefficients (multicollinearity)
+- Forgetting to scale features makes coefficient magnitudes incomparable
+- Assuming linearity when the true relationship is non-linear (check residual plots)
+- Evaluating on training data only — always hold out a test set
 
 
 ## Code Examples

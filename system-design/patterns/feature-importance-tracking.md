@@ -18,8 +18,13 @@ Core ML system design pattern for production.
 - Mistake 2
 
 ## Best Practices
-- Practice 1
-- Practice 2
+- Track feature importances across model versions to detect distribution shift in inputs
+- Alert when a previously unimportant feature becomes top-ranked — often indicates data issues
+- Combine multiple importance methods (permutation, SHAP, gradient) for robustness
+- Track feature importance stability across cross-validation folds
+- Use importance tracking to guide feature engineering for the next model iteration
+- Visualize importance trends over time, not just point-in-time values
+- Separate importance from model version metadata
 
 ## Interview Quick-Reference
 | Question | What to say |

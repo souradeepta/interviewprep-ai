@@ -40,14 +40,20 @@ A: Refer to Common Pitfalls section below.
 
 ## Best Practices
 
-- Practice 1
-- Practice 2
-- Practice 3
+- Tune hyperparameters in order of importance: learning rate first, then capacity (depth, width), then regularization
+- Use log-scale for learning rates and regularization strengths
+- Start with RandomizedSearchCV (30-100 iterations) before refining with GridSearch
+- Use HalvingRandomSearchCV or Optuna for large search spaces
+- Always tune inside cross-validation, not on a single val split
+- Set n_jobs=-1 for parallel search
+- Document the search space — easy to forget why you chose specific ranges
 
 ## Common Pitfalls
 
-- Pitfall 1
-- Pitfall 2
+- Tuning on the test set and reporting test performance as final — use a separate final eval
+- Grid search exponentially expensive in high dimensions — use random or Bayesian instead
+- Overfitting to the validation set through many tuning iterations — use separate test set
+- Forgetting that hyperparameter sensitivity varies by dataset size
 
 
 ## Code Examples

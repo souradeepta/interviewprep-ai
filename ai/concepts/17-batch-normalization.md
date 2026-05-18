@@ -40,14 +40,20 @@ A: Refer to Common Pitfalls section below.
 
 ## Best Practices
 
-- Practice 1
-- Practice 2
-- Practice 3
+- Apply BatchNorm before the activation function (or after — results are similar, try both)
+- Use smaller learning rates without BN; with BN can use 10x higher LR
+- Disable BN (model.eval()) during inference — uses running statistics not batch stats
+- Use LayerNorm instead of BatchNorm for NLP/transformers and small batch sizes
+- Use GroupNorm for object detection/segmentation with small batches
+- Keep default momentum=0.1 — rarely needs tuning
+- Don't use BN after dropout — the noise disrupts normalization
 
 ## Common Pitfalls
 
-- Pitfall 1
-- Pitfall 2
+- Using BN with batch_size=1 — variance is undefined for single samples
+- Forgetting model.eval() at inference — batch stats from test data leak
+- BN + dropout ordering matters — wrong order hurts performance
+- BN requires synchronization across GPUs in distributed training (use SyncBatchNorm)
 
 
 ## Code Examples

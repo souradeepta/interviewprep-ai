@@ -40,14 +40,20 @@ A: Refer to Common Pitfalls section below.
 
 ## Best Practices
 
-- Practice 1
-- Practice 2
-- Practice 3
+- Always scale features — SVMs are distance-based and scale-sensitive
+- Use RBF kernel as default; only use linear kernel for text/very high-dimensional data
+- Tune C and gamma together on log-scale grid
+- Use probability=True only when calibrated probabilities needed (it's slower)
+- For n > 50k samples consider LinearSVC or SGDClassifier instead
+- Use class_weight='balanced' for imbalanced data
+- Cache kernel computations with cache_size=2000 for large datasets
 
 ## Common Pitfalls
 
-- Pitfall 1
-- Pitfall 2
+- Forgetting to scale features completely breaks SVM performance
+- Training O(n²) to O(n³) makes vanilla SVM impractical beyond ~50k samples
+- Tuning C and gamma independently — they interact and need joint grid search
+- Using probability=True adds Platt scaling overhead — avoid when not needed
 
 
 ## Code Examples

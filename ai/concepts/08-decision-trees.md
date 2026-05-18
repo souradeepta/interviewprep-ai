@@ -40,14 +40,20 @@ A: Refer to Common Pitfalls section below.
 
 ## Best Practices
 
-- Practice 1
-- Practice 2
-- Practice 3
+- Set max_depth (3-6) or min_samples_leaf to prevent overfitting
+- Use feature importances to identify noisy features
+- Prune trees post-training for interpretability
+- Visualize with sklearn.tree.plot_tree or export_graphviz
+- Use Gini for classification speed, entropy when you need information gain interpretation
+- Always validate depth with cross-validation, not just training accuracy
+- Use min_impurity_decrease to stop splits below a threshold
 
 ## Common Pitfalls
 
-- Pitfall 1
-- Pitfall 2
+- Unpruned trees perfectly memorize training data (max depth=None means overfit)
+- Biased toward high-cardinality features in splitting criteria
+- Unstable — small data changes create very different trees
+- Single trees are weak learners — use ensembles (RF, GBM) in production
 
 
 ## Code Examples

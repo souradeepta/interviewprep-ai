@@ -40,14 +40,20 @@ A: Refer to Common Pitfalls section below.
 
 ## Best Practices
 
-- Practice 1
-- Practice 2
-- Practice 3
+- Use BIC (lower is better) or AIC to select number of components — plot for k=1..15
+- Always run multiple restarts (n_init=5-10) — GMM can converge to local optima
+- Use covariance_type='full' for flexibility but 'diag' for speed on high-dim data
+- Initialize GMM with k-means centroids for better convergence
+- Validate with held-out log-likelihood, not just training BIC
+- Use soft assignments (predict_proba) when downstream task benefits from uncertainty
+- Add regularization_covar=1e-6 to prevent covariance matrices from becoming singular
 
 ## Common Pitfalls
 
-- Pitfall 1
-- Pitfall 2
+- EM algorithm is not guaranteed to find global optimum — always use multiple restarts
+- Too many components can overfit — use BIC/AIC to penalize complexity
+- Full covariance matrix with high-dimensional data requires many samples to estimate reliably
+- Doesn't handle heavy-tailed distributions well — consider t-mixture models
 
 
 ## Code Examples

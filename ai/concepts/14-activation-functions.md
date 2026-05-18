@@ -40,14 +40,20 @@ A: Refer to Common Pitfalls section below.
 
 ## Best Practices
 
-- Practice 1
-- Practice 2
-- Practice 3
+- Use ReLU as default for hidden layers in feedforward networks
+- Use GELU for transformers and attention-based models (standard in BERT/GPT)
+- Use sigmoid only for binary output layer probabilities
+- Use softmax only for multiclass output layer
+- Use tanh for RNNs where negative outputs matter
+- Monitor dead neuron rate (fraction with zero gradient) when using ReLU
+- Try Swish/Mish if ReLU is causing issues — often small accuracy gains
 
 ## Common Pitfalls
 
-- Pitfall 1
-- Pitfall 2
+- Using sigmoid in hidden layers of deep networks — vanishing gradient kills learning
+- Dead ReLU neurons (always outputting 0) caused by high learning rates or bad initialization
+- Applying softmax in hidden layers instead of output — it squashes gradients
+- Forgetting that activation choice affects initialization — must pair ReLU with He init
 
 
 ## Code Examples

@@ -40,14 +40,20 @@ A: Refer to Common Pitfalls section below.
 
 ## Best Practices
 
-- Practice 1
-- Practice 2
-- Practice 3
+- Use StratifiedKFold for classification to preserve class ratios across folds
+- For time-series data always use TimeSeriesSplit — never shuffle
+- Use nested CV for unbiased hyperparameter tuning AND performance estimation
+- Report mean ± std across folds, not just mean
+- Use k=5 or k=10 as default — LOOCV only for very small datasets (<50 samples)
+- Pipeline preprocessing inside CV to prevent data leakage
+- Use cross_val_score with n_jobs=-1 for parallelism
 
 ## Common Pitfalls
 
-- Pitfall 1
-- Pitfall 2
+- Fitting scaler/imputer on all data before CV — leaks statistics from test folds
+- Using regular KFold on time-series data — future data leaks into training
+- Picking the best fold's score instead of the mean — optimistic bias
+- Treating the CV estimate as exact — it has variance, report confidence intervals
 
 
 ## Code Examples

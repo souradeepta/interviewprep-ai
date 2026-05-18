@@ -40,14 +40,20 @@ A: Refer to Common Pitfalls section below.
 
 ## Best Practices
 
-- Practice 1
-- Practice 2
-- Practice 3
+- Use ReLU for hidden layers as default; LeakyReLU or ELU if dying ReLU is a problem
+- Initialize with He init for ReLU, Xavier for tanh/sigmoid
+- Always use batch normalization before or after non-linearities in deep networks
+- Use dropout (0.2-0.5) in fully connected layers for regularization
+- Start with Adam optimizer, switch to SGD+momentum for final fine-tuning
+- Monitor gradient norms — exploding/vanishing signals architecture problems
+- Use learning rate warmup for large networks
 
 ## Common Pitfalls
 
-- Pitfall 1
-- Pitfall 2
+- Using sigmoid/tanh in deep networks — leads to vanishing gradients
+- Not normalizing inputs causes slow or failed convergence
+- Too large batch size reduces generalization (sharp minima)
+- No validation monitoring — can't detect overfitting early
 
 
 ## Code Examples

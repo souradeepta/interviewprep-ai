@@ -40,14 +40,20 @@ A: Refer to Common Pitfalls section below.
 
 ## Best Practices
 
-- Practice 1
-- Practice 2
-- Practice 3
+- Never use accuracy alone on imbalanced datasets — use F1, ROC-AUC, or PR-AUC
+- Use PR-AUC (average precision) for heavily imbalanced problems — more informative than ROC-AUC
+- Report confusion matrix alongside scalar metrics
+- Tune threshold based on business cost matrix (FP cost vs FN cost)
+- Use macro-averaged F1 for multiclass when all classes equally important
+- Use weighted F1 when class frequencies should influence the metric
+- Monitor calibration (reliability diagram) when predicted probabilities matter
 
 ## Common Pitfalls
 
-- Pitfall 1
-- Pitfall 2
+- Using accuracy on 99/1 imbalanced data — predicting all majority gets 99% accuracy
+- ROC-AUC is optimistic with severe imbalance — use PR-AUC instead
+- Default threshold 0.5 is rarely optimal — always evaluate threshold vs metric curves
+- Reporting only training metrics — models memorize training data
 
 
 ## Code Examples

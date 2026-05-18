@@ -18,8 +18,13 @@ Core ML system design pattern for production.
 - Mistake 2
 
 ## Best Practices
-- Practice 1
-- Practice 2
+- Route 100% of production traffic to shadow model — don't subsample if data volume allows
+- Compare distributions of predictions, not just aggregate metrics
+- Set a fixed time window for shadow evaluation (1-2 weeks) before deciding
+- Measure shadow model latency independently — it must meet production SLA
+- Log shadow model outputs with the same schema as production
+- Run shadow evaluation for full business cycles (weekdays + weekends, seasonality)
+- Define promotion criteria upfront, not after seeing shadow results
 
 ## Interview Quick-Reference
 | Question | What to say |

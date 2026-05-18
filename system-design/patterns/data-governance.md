@@ -18,8 +18,13 @@ Core ML system design pattern for production.
 - Mistake 2
 
 ## Best Practices
-- Practice 1
-- Practice 2
+- Classify all data assets by sensitivity (PII, confidential, public) before building pipelines
+- Document data lineage from source through transformations to model features
+- Implement access controls at the data layer, not just application layer
+- Audit all data access for compliance — log who accessed what and when
+- Define data retention policies and automate deletion
+- Version datasets like code — immutable snapshots with metadata
+- Conduct regular data quality audits and alert on schema drift
 
 ## Interview Quick-Reference
 | Question | What to say |

@@ -40,14 +40,20 @@ A: Refer to Common Pitfalls section below.
 
 ## Best Practices
 
-- Practice 1
-- Practice 2
-- Practice 3
+- Always run k-means++ initialization (default in sklearn) — much better than random
+- Run multiple restarts (n_init=10) and keep best inertia
+- Scale features before clustering — Euclidean distance is scale-sensitive
+- Use elbow method + silhouette score together to pick k
+- For large datasets use MiniBatchKMeans — similar results, 10-100x faster
+- Visualize clusters in 2D after PCA/t-SNE for sanity check
+- Set random_state for reproducibility
 
 ## Common Pitfalls
 
-- Pitfall 1
-- Pitfall 2
+- k-means assumes spherical, equal-size clusters — fails on elongated or irregular shapes
+- Sensitive to outliers — one outlier can pull a centroid far from the cluster
+- Number of clusters k must be specified — no automatic determination
+- Results depend on initialization — always use k-means++ and multiple restarts
 
 
 ## Code Examples

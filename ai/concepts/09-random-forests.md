@@ -40,14 +40,20 @@ A: Refer to Common Pitfalls section below.
 
 ## Best Practices
 
-- Practice 1
-- Practice 2
-- Practice 3
+- Start with n_estimators=100-500 (more is rarely worse, just slower)
+- Use oob_score=True for free validation without a holdout set
+- Feature importances via feature_importances_ — but prefer permutation importance for correlated features
+- Tune max_features first (sqrt for classification, log2 or 0.3 for regression)
+- Use n_jobs=-1 for parallel training
+- For imbalanced data use class_weight='balanced_subsample'
+- Set random_state for reproducibility
 
 ## Common Pitfalls
 
-- Pitfall 1
-- Pitfall 2
+- Feature importances are biased toward high-cardinality and correlated features
+- Extrapolation is poor — trees can't predict beyond training range
+- Memory-intensive for large n_estimators + deep trees
+- Ignoring correlation structure in feature importance leads to misleading rankings
 
 
 ## Code Examples

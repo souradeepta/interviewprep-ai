@@ -40,14 +40,20 @@ A: Refer to Common Pitfalls section below.
 
 ## Best Practices
 
-- Practice 1
-- Practice 2
-- Practice 3
+- Use conjugate priors (Beta-Binomial, Normal-Normal) for analytical posteriors when possible
+- Encode prior beliefs with weak priors (high variance) unless domain knowledge is strong
+- Use MCMC (PyMC, Stan) for non-conjugate models
+- Check posterior predictive distributions — not just point estimates
+- Compare models with WAIC or LOO cross-validation, not just likelihood
+- Use half-Normal or Exponential priors for scale parameters (must be positive)
+- Visualize prior vs posterior to verify data is updating beliefs as expected
 
 ## Common Pitfalls
 
-- Pitfall 1
-- Pitfall 2
+- Using flat (improper) priors in MCMC can cause sampling problems — use weakly informative priors instead
+- Ignoring prior sensitivity — results should be robust to reasonable prior changes
+- Confusing MAP estimate with the full posterior — MAP loses uncertainty information
+- MCMC convergence must be checked (R-hat < 1.01, trace plots) before trusting results
 
 
 ## Code Examples

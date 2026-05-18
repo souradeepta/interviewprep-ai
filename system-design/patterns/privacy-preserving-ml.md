@@ -18,8 +18,13 @@ Core ML system design pattern for production.
 - Mistake 2
 
 ## Best Practices
-- Practice 1
-- Practice 2
+- Apply differential privacy with epsilon < 1.0 for high-sensitivity data
+- Use federated learning when data cannot leave client devices
+- Anonymize training data before use — pseudonymization is not anonymization
+- Apply privacy budget tracking across multiple model versions
+- Use secure aggregation in federated settings to prevent server from seeing individual updates
+- Conduct privacy audits using membership inference attack benchmarks
+- Encrypt model weights at rest and in transit for sensitive domains
 
 ## Interview Quick-Reference
 | Question | What to say |

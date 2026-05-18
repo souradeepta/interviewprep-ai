@@ -40,14 +40,20 @@ A: Refer to Common Pitfalls section below.
 
 ## Best Practices
 
-- Practice 1
-- Practice 2
-- Practice 3
+- Use small learning_rate (0.05-0.1) with more estimators for better generalization
+- Set subsample=0.8 (stochastic GBM) to reduce overfitting and speed up
+- Tune max_depth=3-6 first, then learning_rate
+- Use early_stopping_rounds in XGBoost/LightGBM to find optimal n_estimators
+- Use LightGBM for datasets >100k rows — much faster than sklearn GBM
+- Monitor train vs validation loss curves to detect overfitting
+- Use scale_pos_weight for imbalanced binary classification in XGBoost
 
 ## Common Pitfalls
 
-- Pitfall 1
-- Pitfall 2
+- Learning rate too high causes poor generalization
+- Not using early stopping wastes compute on too many estimators
+- Over-tuning on validation set — use a separate final test set
+- LightGBM default grows leaf-wise trees which need min_child_samples tuning to avoid overfit
 
 
 ## Code Examples

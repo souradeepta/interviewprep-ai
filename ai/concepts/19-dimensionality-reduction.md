@@ -40,14 +40,20 @@ A: Refer to Common Pitfalls section below.
 
 ## Best Practices
 
-- Practice 1
-- Practice 2
-- Practice 3
+- Always scale features before PCA (StandardScaler)
+- Use explained_variance_ratio_ to pick n_components (aim for 90-95% explained variance)
+- Use PCA for preprocessing before ML models, t-SNE/UMAP only for visualization
+- Set perplexity=30-50 for t-SNE on most datasets
+- UMAP is faster than t-SNE and preserves more global structure — prefer it for large datasets
+- Use PCA to remove noise before applying t-SNE (reduces compute)
+- Set random_state for reproducibility of t-SNE/UMAP
 
 ## Common Pitfalls
 
-- Pitfall 1
-- Pitfall 2
+- t-SNE is non-parametric — you can't transform new points, only fit_transform
+- t-SNE distances between clusters are not meaningful — don't interpret cluster separation as distance
+- PCA loses non-linear structure — use kernel PCA or autoencoders for non-linear reduction
+- Using too many components defeats the purpose — check scree plot
 
 
 ## Code Examples

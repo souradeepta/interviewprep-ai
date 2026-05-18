@@ -18,8 +18,13 @@ Core ML system design pattern for production.
 - Mistake 2
 
 ## Best Practices
-- Practice 1
-- Practice 2
+- Pin all library versions in requirements.txt or conda environment file
+- Set random seeds everywhere — Python, NumPy, PyTorch, TensorFlow
+- Use deterministic algorithms when available (PyTorch: torch.use_deterministic_algorithms)
+- Store training data snapshots as versioned artifacts, not live queries
+- Record hardware specs — GPU type affects floating point results
+- Containerize the training environment with Docker
+- Automate full reproduction pipeline from data → trained model → metrics
 
 ## Interview Quick-Reference
 | Question | What to say |

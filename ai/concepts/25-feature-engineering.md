@@ -40,14 +40,20 @@ A: Refer to Common Pitfalls section below.
 
 ## Best Practices
 
-- Practice 1
-- Practice 2
-- Practice 3
+- Create interaction features for known domain relationships before trying automated methods
+- Use log transformation for right-skewed features and targets
+- Bin continuous features (age groups, income brackets) when non-linear boundaries are expected
+- Use target encoding carefully — always apply within cross-validation folds to prevent leakage
+- Compute feature importances first to identify what to engineer
+- Apply polynomial features only up to degree 2 for most tabular tasks
+- Document every feature transformation for reproducibility
 
 ## Common Pitfalls
 
-- Pitfall 1
-- Pitfall 2
+- Target encoding without cross-validation causes severe data leakage
+- Creating polynomial features on unscaled data creates numerically unstable large values
+- Feature selection on the full dataset before CV leaks information
+- Forgetting to apply the same transformations to test/inference data
 
 
 ## Code Examples

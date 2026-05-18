@@ -40,14 +40,20 @@ A: Refer to Common Pitfalls section below.
 
 ## Best Practices
 
-- Practice 1
-- Practice 2
-- Practice 3
+- Use soft voting (probability averaging) over hard voting when models are calibrated
+- Stack with a simple meta-learner (logistic regression, ridge) — complex meta-learners overfit
+- Use out-of-fold predictions to generate meta-features for stacking
+- Ensure base models are diverse (different algorithms, feature subsets) — correlated models don't help
+- Use cross_val_predict with cv=5 for stacking meta-features
+- Blend models trained on different data subsets or preprocessing pipelines
+- Monitor whether ensemble improves over best single model — overhead may not be worth it
 
 ## Common Pitfalls
 
-- Pitfall 1
-- Pitfall 2
+- Blending base models trained on the full training set — meta-learner overfits to training predictions
+- Stacking many similar models doesn't add diversity — only reduces variance marginally
+- Ensemble overhead at inference — 10 models = 10x prediction cost
+- Forgetting to calibrate probabilities before soft voting averages them
 
 
 ## Code Examples

@@ -40,14 +40,20 @@ A: Refer to Common Pitfalls section below.
 
 ## Best Practices
 
-- Practice 1
-- Practice 2
-- Practice 3
+- Plot learning curves (train vs val vs training set size) to diagnose bias vs variance
+- Use cross-validation to estimate true generalization error
+- High bias → more complex model, more features, lower regularization
+- High variance → more data, more regularization, simpler model, ensemble methods
+- Use bootstrap resampling to empirically measure variance
+- Don't rely on a single train/test split — variance across splits is informative
+- Use ensemble methods (random forests, boosting) to reduce variance without increasing bias
 
 ## Common Pitfalls
 
-- Pitfall 1
-- Pitfall 2
+- Treating bias and variance as independent — increasing model complexity reduces bias but increases variance simultaneously
+- Overfitting the validation set through repeated hyperparameter tuning — use nested CV
+- Assuming more data always helps — high bias models (underfitting) benefit little from more data
+- Ignoring irreducible error — perfect fit is impossible with noisy labels
 
 
 ## Code Examples

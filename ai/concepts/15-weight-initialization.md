@@ -40,14 +40,19 @@ A: Refer to Common Pitfalls section below.
 
 ## Best Practices
 
-- Practice 1
-- Practice 2
-- Practice 3
+- Use He initialization for ReLU networks; Xavier/Glorot for tanh/sigmoid
+- Use PyTorch defaults (Kaiming He) — they are already correct for most architectures
+- Never use zero initialization for weights — breaks symmetry and all neurons learn identically
+- Small random noise initialization works for shallow networks but fails for deep ones
+- Initialize biases to zero — this is fine
+- For transformers, follow architecture-specific init (often truncated normal with std=0.02)
 
 ## Common Pitfalls
 
-- Pitfall 1
-- Pitfall 2
+- Zero initialization: all neurons compute identical outputs and receive identical gradients — complete training failure
+- Too large initial weights cause exploding activations and NaN loss
+- Too small initial weights cause vanishing gradients in deep networks
+- Mismatching initialization to activation (e.g., Xavier with ReLU) leads to suboptimal variance scaling
 
 
 ## Code Examples

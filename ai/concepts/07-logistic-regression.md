@@ -40,14 +40,20 @@ A: Refer to Common Pitfalls section below.
 
 ## Best Practices
 
-- Practice 1
-- Practice 2
-- Practice 3
+- Scale features — logistic regression is sensitive to feature magnitude
+- Use class_weight='balanced' for imbalanced datasets
+- Tune regularization C with cross-validation (log scale: 0.001 to 100)
+- Use predict_proba not predict for ranking/scoring tasks
+- Check calibration curve — logistic regression is well-calibrated by default
+- Monitor log-loss not just accuracy
+- Use L1 regularization for feature selection
 
 ## Common Pitfalls
 
-- Pitfall 1
-- Pitfall 2
+- Using accuracy on imbalanced classes hides poor performance on minority class
+- Assuming predicted probabilities are perfectly calibrated without checking
+- Forgetting to handle class imbalance (use class_weight or resample)
+- Using default threshold 0.5 without considering business costs of FP vs FN
 
 
 ## Code Examples
