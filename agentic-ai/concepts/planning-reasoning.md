@@ -1,33 +1,197 @@
-# Planning & Reasoning
+# Planning Agents
 
-## TL;DR
-Structured approaches for agents to break down goals into steps and reason through solutions. Methods: decomposition (break task into subtasks), chain-of-thought (show reasoning steps), tree-of-thought (explore multiple paths), MCTS (Monte Carlo tree search). Better planning → fewer tool calls, lower cost, higher reliability.
+## Detailed Explanation
+
+Planning agents decompose long-horizon tasks into multi-step plans before execution. Unlike reactive agents that respond step-by-step, planning agents think ahead: "To accomplish goal X, I need to do A, then B, then C. A has prerequisites P1, P2. Should I do P1 first or P2?" Planning involves: (1) goal decomposition—break goal into subgoals, (2) ordering constraints—identify dependencies (B can only run after A), (3) resource allocation—estimate cost/time per step, (4) contingency—handle failures. Planning agents excel at complex tasks (multi-step workflows, project planning, logistics) but struggle with unforeseen obstacles (rigid plans break easily). The key challenge: planning must account for partial observability (don't know full world state upfront) and stochasticity (real-world is unpredictable). Solutions: hierarchical planning (decompose recursively), reactive replanning (replan when environment changes), and contingency planning (include fallbacks). Planning is the opposite of pure reactivity: reactivity is fast and adaptive but shortsighted; planning is strategic but brittle. Best agents combine both: plan at high level, react at low level.
 
 ## Core Intuition
-Humans solve complex problems by breaking them down ("I need to: 1) gather info, 2) analyze, 3) decide"). Agents should do the same. Instead of jumping to action, agents reason through a plan first. More thinking upfront → better actions → fewer mistakes.
+
+Imagine organizing a road trip. Reactive approach: "Drive wherever looks good." Terrible—you'll waste fuel, miss attractions, arrive late. Planning approach: (1) Define destination, (2) Research route options, (3) Book hotels, gas stops, (4) Plan daily drives, (5) Execute plan, (6) If road closed, replan around it. This is what planning agents do: think ahead, reduce surprises, but stay flexible for real-world changes.
 
 ## How It Works
 
-**No Planning (Naive):**
-```
-Task: "Book a flight"
-LLM: "I'll call book_flight_api"
-Result: Failed (didn't check dates, no budget, etc.)
+Planning operates through decomposition and ordering:
+
+1. **State Representation** — Current state of world and agent
+2. **Goal Definition** — What needs to be achieved
+3. **Action Decomposition** — Break goal into subgoals recursively
+4. **Constraint Identification** — Which actions have dependencies
+5. **Ordering** — Topological sort to determine execution sequence
+6. **Execution** — Run plan step by step
+7. **Monitoring & Replanning** — Check if assumptions hold; replan if not
+
+```mermaid
+graph TD
+    A["Goal: Build House"] --> B["Decompose"]
+    B --> C["Subgoal: Foundation"]
+    B --> D["Subgoal: Frame"]
+    B --> E["Subgoal: Interior"]
+    C --> F["Action: Excavate"]
+    C --> G["Action: Pour Concrete"]
+    F -->|prereq| G
+    D -->|requires| G
+    E -->|requires| D
+    G --> H["Order: Excavate→Concrete→Frame→Interior"]
+    H --> I["Execute"]
+    I -->|Monitor| J{"Plan Valid?"}
+    J -->|No| B
+    J -->|Yes| K["Done"]
 ```
 
-**With Planning:**
-```
-Task: "Book a flight"
-LLM thinks: "I need to: 
-  1) Ask user for preferences (dates, budget, destination)
-  2) Search flights matching criteria
-  3) Check user budget against options
-  4) Confirm before booking
-  5) Book the selected flight"
-Then executes step-by-step with feedback.
+## Architecture / Trade-offs
+
+**Planning Strategies:**
+1. **Hierarchical Planning** — Decompose goal recursively. Simple plans at high level.
+2. **Graph Planning** — Build action graph, find solution path. Flexible but expensive.
+3. **Temporal Planning** — Account for timing constraints. Necessary for real-world.
+
+**Trade-off:** Detail vs Speed. Detailed plans are better but slower to generate. Sparse plans are fast but brittle.
+
+## Interview Q&A
+
+**Q: When plan vs when react?**
+A: Plan for complex multi-step tasks where thinking ahead saves time. React for simple, fast-changing environments. Best agents: hierarchical planning (decompose), reactive execution (adapt to surprises).
+
+**Q: What breaks plans?**
+A: Unforeseen obstacles, changing goals, resource constraints. Solutions: (1) Contingency branches (if X fails, do Y), (2) Frequent replanning (replan every 5 steps), (3) Robust actions (choose actions that work across scenarios).
+
+**Q: How to handle uncertainty in planning?**
+A: Explicitly model uncertainty. Use probabilities: "Action A succeeds 90% of time." Build contingencies: "If A fails, try B." Use Markov Decision Processes (MDPs) for optimal planning under uncertainty.
+
+**Q: How do you avoid over-planning?**
+A: Set time budgets. Plan only as much detail as needed. "If I can't decide now, plan at execution time." Not every decision needs pre-thinking. High-level plan often enough.
+
+**Q: Multi-agent planning—how does coordination work?**
+A: Shared plan representation. Agent 1 knows Agent 2 will do X at time T. Coordination points: where agents must synchronize (Agent 1 waits for Agent 2 to finish). Backup plans if coordination fails.
+
+## Best Practices
+
+1. **Hierarchical Decomposition** — Break into achievable subgoals, not micro-actions.
+2. **Identify Hard Constraints First** — Some orderings are mandatory; identify upfront.
+3. **Plan to Detail Needed** — Don't over-plan. High-level plan often sufficient.
+4. **Build Contingencies** — Plan for top 2-3 failure modes.
+5. **Monitor Assumptions** — If assumptions break, replan.
+6. **Bounded Replanning** — Don't replan constantly; only when needed.
+7. **Track Commitment Points** — Decisions that are hard to undo; make these carefully.
+8. **Parallel Planning** — Start next subgoal's planning while previous executes.
+
+## Common Pitfalls
+
+**Pitfall 1: Over-Detailed Plans**
+Issue: Plan every micro-action. Takes forever to plan, plan is brittle.
+Fix: Plan at appropriate abstraction. High-level action = many low-level actions.
+
+**Pitfall 2: No Replanning**
+Issue: Environment changes. Original plan is invalid, agent doesn't adapt.
+Fix: Monitor assumptions. If assumption breaks, replan.
+
+**Pitfall 3: No Contingencies**
+Issue: First obstacle breaks plan, agent fails.
+Fix: Plan for top failure modes. "If X unavailable, use Y" branches.
+
+**Pitfall 4: Planning Paralysis**
+Issue: Agent spends 10 seconds planning, world changes, plan is obsolete.
+Fix: Time-box planning. Commit to best plan so far after N seconds.
+
+**Pitfall 5: Ignoring Execution Feedback**
+Issue: Plan assumes A will succeed, A fails, agent doesn't notice.
+Fix: Explicit assertions during execution: "A should succeed. If not, replan."
+
+## Code Examples
+
+### Example 1: Hierarchical Planning
+
+```python
+class HierarchicalPlanner:
+    def decompose(self, goal: str) -> list:
+        decomposition = {
+            "build_house": ["foundation", "frame", "interior"],
+            "foundation": ["excavate", "pour_concrete"],
+            "frame": ["raise_walls", "add_roof"]
+        }
+        return decomposition.get(goal, [goal])
+    
+    def order_tasks(self, subgoals: list) -> list:
+        dependencies = {
+            "frame": ["foundation"],
+            "interior": ["frame"],
+            "pour_concrete": ["excavate"]
+        }
+        ordered = []
+        visited = set()
+        
+        def visit(goal):
+            if goal in visited:
+                return
+            for dep in dependencies.get(goal, []):
+                visit(dep)
+            visited.add(goal)
+            ordered.append(goal)
+        
+        for goal in subgoals:
+            visit(goal)
+        return ordered
+    
+    def plan(self, goal: str) -> list:
+        subgoals = self.decompose(goal)
+        return self.order_tasks(subgoals)
 ```
 
-**Chain-of-Thought (CoT):**
+### Example 2: Reactive Replanning
+
+```python
+class ReactivePlanner:
+    def __init__(self):
+        self.plan = []
+        self.assumptions = {}
+    
+    def plan_with_assumptions(self, goal: str):
+        self.plan = self.decompose(goal)
+        self.assumptions = {"resources": True, "no_delays": True}
+        return self.plan
+    
+    def execute_with_monitoring(self):
+        for step in self.plan:
+            result = self.execute_step(step)
+            if not result["success"]:
+                if result["recoverable"]:
+                    self.plan = self.replan_from_current()
+                else:
+                    raise Exception(f"Failed at {step}")
+```
+
+### Example 3: Contingency Planning
+
+```python
+class ContingencyPlanner:
+    def plan_with_contingencies(self, goal: str):
+        main_plan = self.generate_plan(goal)
+        contingencies = {
+            "resource_fail": self.generate_alt_plan(),
+            "time_exceed": self.generate_faster_plan(),
+            "obstacle": self.generate_detour_plan()
+        }
+        return {"main": main_plan, "contingencies": contingencies}
+    
+    def execute_with_fallback(self):
+        for step in self.main_plan:
+            try:
+                self.execute_step(step)
+            except Exception as e:
+                contingency = self.contingencies.get(e.type)
+                if contingency:
+                    self.execute_contingency(contingency)
+                else:
+                    raise
+```
+
+## Related Concepts
+
+- **Goal Decomposition** — Breaking goals into subgoals
+- **Hierarchical Agents** — Multi-level agent organization
+- **Reactive Agents** — Contrast: fast response vs strategic planning
+- **MCTS** — Search-based planning
+- **Error Recovery** — Handling plan failures
 ```
 Prompt: "What's the answer to: If John has 3 apples and buys 2 more, how many does he have?"
 
