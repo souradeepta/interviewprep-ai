@@ -2,11 +2,15 @@
 
 ## Detailed Explanation
 
-Compare popular frameworks (LangChain, AutoGen, ReAct) for building and deploying agents
+Multiple agent frameworks exist with different philosophies, capabilities, and trade-offs: LangChain (flexible, composable), AutoGen (multi-agent orchestration), OpenAI Assistants API (managed infrastructure), Anthropic Claude API (direct model access), and domain-specific frameworks (AgentGPT, Taskweaver). Each represents different points in the spectrum: flexibility (control everything yourself) vs. abstraction (platform handles complexity).
+
+Key comparison dimensions: (1) Level of abstraction (does platform handle agent loop or do you?), (2) Multi-agent capabilities (can agents coordinate?), (3) Integration breadth (what tools/APIs supported?), (4) Cost structure (per-API-call or managed service?), (5) Flexibility (can you customize reasoning?), (6) Learning curve (easy to start or requires system design understanding?). No framework is universally best—selection depends on use case: building a simple chatbot (Assistants API), complex multi-step systems (LangChain), multi-agent coordination (AutoGen), research/prototyping (direct API access).
+
+Understanding framework trade-offs is crucial because choosing wrong creates unnecessary complexity (over-engineered simple systems) or insufficient capability (frameworks too limited for your needs). Evaluating frameworks requires clarity about your requirements: Do you need multi-agent coordination? How much customization? What integrations matter?
 
 ## Core Intuition
 
-Compare popular frameworks (LangChain, AutoGen, ReAct) for building and deploying agents Understanding this concept enables better system design and problem-solving.
+Frameworks are like restaurants: some offer full service (staff handles everything, you just order), some are buffet (you pick what you want from available options), some are ingredient suppliers (you cook yourself). Different situations call for different approaches—not about good or bad restaurants.
 
 ## How It Works
 

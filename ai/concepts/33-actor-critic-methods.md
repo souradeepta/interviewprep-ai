@@ -2,11 +2,15 @@
 
 ## Detailed Explanation
 
-Combine policy gradient (actor) and value function (critic) for stable and sample-efficient learning
+Actor-Critic methods combine two neural networks: an actor that learns the policy (which actions to take) and a critic that learns the value function (how good a state is). This hybrid approach leverages the strengths of both policy gradient and value-based methods while addressing their individual weaknesses.
+
+The actor uses policy gradients to improve the policy, but instead of using the full episode return as the reward signal, it uses the critic's value estimate, which significantly reduces variance in gradient estimates. The critic learns to accurately estimate state values using temporal difference learning, providing low-variance training signals to the actor. This mutual improvement creates a powerful learning dynamic: the critic provides better training signal to the actor, while the actor's improved policy helps the critic learn better value estimates.
+
+Actor-Critic methods are fundamental to modern deep reinforcement learning (A3C, PPO, TRPO) and excel at both discrete and continuous control. They balance the stability of value methods with the flexibility of policy gradients. Understanding actor-critic is essential because it demonstrates how neural networks can simultaneously solve multiple related problems and how bootstrapping (using value estimates as targets) enables efficient learning in continuous domains.
 
 ## Core Intuition
 
-Combine policy gradient (actor) and value function (critic) for stable and sample-efficient learning Understanding this concept enables better system design and problem-solving.
+The actor is the decision-maker (policy), choosing which actions to take based on learned experience. The critic is the evaluator, estimating how good each state is. The critic tells the actor 'that action led to a better outcome than expected' (or worse), helping the actor learn faster. Together, they're like a student and teacher: the student learns actions, the teacher provides feedback.
 
 ## How It Works
 

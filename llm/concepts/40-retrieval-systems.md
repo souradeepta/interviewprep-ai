@@ -2,11 +2,15 @@
 
 ## Detailed Explanation
 
-Efficiently search and retrieve relevant information from large document collections
+Retrieval systems find relevant documents or information snippets matching a query, forming the backbone of modern search, question-answering, and retrieval-augmented generation (RAG). Unlike generation models that produce text from parameters alone, retrieval systems complement language models by finding relevant context, enabling them to answer questions about external knowledge without retraining on new data.
+
+Key components: (1) Text encoding (converting documents and queries to dense vectors using embedding models), (2) Indexing (organizing millions of vectors for fast search using approximate nearest neighbor methods like HNSW or locality-sensitive hashing), (3) Ranking (efficiently finding top-k most relevant documents from billions), (4) Integration (combining retrieval with generation for end-to-end QA). The challenge is balancing speed (returning results in milliseconds) against relevance (finding documents that genuinely answer the question). Techniques like dense passage retrieval, cross-encoders for re-ranking, and hybrid methods combining keyword and semantic search address these trade-offs.
+
+Retrieval systems are crucial for scaling language models to external knowledge without retraining, enabling applications from search engines to specialized QA systems. Understanding them requires knowledge of vector similarity, approximate nearest neighbor search, and the distinction between recall (finding relevant documents) and precision (ensuring found documents are relevant).
 
 ## Core Intuition
 
-Efficiently search and retrieve relevant information from large document collections Understanding this concept enables better system design and problem-solving.
+When answering a question about current events, you don't have that knowledge in your head. Instead, you'd search for articles, read them, then answer the question based on what you found. Retrieval systems work exactly this way: they find relevant documents, the language model reads them, and generates an answer. This separates knowledge storage (documents) from reasoning (language model).
 
 ## How It Works
 

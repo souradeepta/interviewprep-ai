@@ -2,11 +2,15 @@
 
 ## Detailed Explanation
 
-Learn on graph-structured data by message passing between nodes, enabling prediction on networks
+Graph Neural Networks (GNNs) extend neural networks to data with graph structure—molecules, social networks, knowledge graphs, and recommendation systems. Traditional neural networks assume grid-like data (images) or sequences (text), but many real-world domains are naturally graphs where relationships between entities matter as much as the entities themselves.
+
+GNNs learn by aggregating information from neighboring nodes, allowing each node's representation to incorporate both its features and the features of connected nodes. Through multiple layers of message passing, distant nodes can indirectly influence each other, enabling the network to capture long-range dependencies and structural patterns. The key innovation is permutation invariance: the network produces consistent results regardless of node ordering, naturally respecting the graph structure.
+
+GNNs power recommendation systems (incorporating user-item interaction graphs), molecular property prediction (atoms as nodes, bonds as edges), knowledge base completion, and social network analysis. They're increasingly important because many real-world problems involve structured relationships that traditional neural networks miss. Understanding GNNs requires thinking beyond Euclidean space and embracing discrete structures, making it essential for anyone working on relational data or network-based problems.
 
 ## Core Intuition
 
-Learn on graph-structured data by message passing between nodes, enabling prediction on networks Understanding this concept enables better system design and problem-solving.
+Imagine nodes in a network where each node learns from its neighbors. A Twitter user's recommendation doesn't depend just on their own preferences, but also on what their friends like. GNNs work like information spreading through a network: each node receives messages from neighbors, updates its understanding, and passes updated messages forward. Repeat this a few times and each node understands not just local neighbors but the broader network structure.
 
 ## How It Works
 

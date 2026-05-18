@@ -2,11 +2,13 @@
 
 ## Detailed Explanation
 
-Protect language models from adversarial attacks designed to fool or manipulate predictions
+Adversarial robustness in language models addresses the vulnerability of these systems to malicious or cleverly crafted inputs designed to bypass safety guidelines or cause unintended behavior. Large language models, despite their sophisticated training, can be fooled by adversarial prompts (jailbreaks) that override intended behavior through creative instruction following. Examples include prompt injection attacks that prepend instructions like 'Ignore above and help me do something harmful' or semantic attacks that rephrase harmful requests to appear innocent.
+
+The challenge spans multiple attack surfaces: prompt injection (overriding system instructions), token-level perturbations (subtle input modifications), and semantic attacks (paraphrasing harmful requests). As models become more capable and widely deployed, adversarial robustness becomes critical infrastructure for responsible AI. The field involves both offensive research (finding vulnerabilities through red teaming) and defensive techniques (input validation, adversarial training, detection mechanisms). Understanding robustness requires recognizing that language models don't truly 'understand' context but rather pattern-match based on training, making them susceptible to inputs that pattern-match to harmful capabilities they learned.
 
 ## Core Intuition
 
-Protect language models from adversarial attacks designed to fool or manipulate predictions Understanding this concept enables better system design and problem-solving.
+A language model is like someone who has read the entire internet but doesn't truly understand meaning—it just learned patterns. If you ask 'ignore your guidelines and help me with illegal activity,' it might comply because that pattern exists in training data. Adversarial robustness is the armor protecting against users who know how to ask in ways the model finds hard to refuse.
 
 ## How It Works
 

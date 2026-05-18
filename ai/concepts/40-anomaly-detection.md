@@ -2,11 +2,15 @@
 
 ## Detailed Explanation
 
-Identify unusual or outlier data points that deviate from normal patterns
+Anomaly detection identifies outliers or unusual observations in data that deviate from normal patterns. Applications include fraud detection (unusual transactions), medical diagnosis (abnormal test results), manufacturing quality control (defective products), and cybersecurity (intrusion detection). The core challenge is defining 'normal'—normal varies by context, can change over time, and unusual observations are often rarer than normal ones, making training data imbalanced.
+
+Approaches vary by problem: (1) Statistical methods assume normal data follows known distributions and flag significant deviations, (2) Reconstruction-based methods (autoencoders, isolation forests) assume normal data compresses well while anomalies don't, (3) Density-based methods find regions of low density in the data space, (4) Supervised approaches if labeled anomalies are available. Each has trade-offs: statistical methods require distribution assumptions, reconstruction methods need adequate normal data, density methods struggle in high dimensions.
+
+Anomaly detection is crucial for high-stakes domains where bad events (fraud, system failures) are rare but expensive. Understanding it requires statistical thinking, domain knowledge (what's actually anomalous in this context), and appreciation for imbalanced learning. It's fundamentally different from classification since the 'anomaly' class may be poorly represented or change over time.
 
 ## Core Intuition
 
-Identify unusual or outlier data points that deviate from normal patterns Understanding this concept enables better system design and problem-solving.
+Most credit card transactions are normal—you buy coffee, gas, groceries. Anomaly detection is like a bank's fraud detector: when a transaction doesn't fit your normal pattern (buying an airline ticket at 3 AM from another country), it flags it as suspicious. The detector learns your normal patterns and sounds alarms when something's different.
 
 ## How It Works
 

@@ -2,11 +2,15 @@
 
 ## Detailed Explanation
 
-Predict future values in sequential data based on past observations and temporal patterns
+Time series forecasting predicts future values in sequential data where observations are ordered by time and typically have dependencies on past observations. Applications range from stock price prediction and weather forecasting to traffic flow and sensor monitoring. The fundamental challenge is that time series often contain trends (systematic increase/decrease), seasonality (recurring patterns), and noise, requiring models that capture temporal dependencies while remaining robust.
+
+Time series differ from typical supervised learning because: (1) temporal order matters—shuffling examples breaks the problem, (2) future depends on past—previous values are crucial predictors, (3) patterns change—distributions may shift over time requiring adaptive models. Modern approaches range from classical methods (ARIMA, exponential smoothing) to deep learning (RNNs, Transformers, Temporal CNNs). The key is matching model complexity to data characteristics: simple models work well when patterns are stable and regular, while deep models excel with complex nonlinear dependencies.
+
+Time series forecasting is increasingly important as organizations make real-time decisions on streaming data. Understanding it requires appreciating temporal structure, stationarity, autocorrelation, and the dangers of look-ahead bias (using future information to predict the past). It bridges classical statistical methods and modern deep learning.
 
 ## Core Intuition
 
-Predict future values in sequential data based on past observations and temporal patterns Understanding this concept enables better system design and problem-solving.
+Time series is like predicting tomorrow's weather based on recent weather patterns. You notice that temperature changes gradually (momentum), that seasons repeat (seasonality), and that long-term trends exist (climate). A good forecaster uses all three: 'temperature was 70°F, yesterday it was 69°F (trending up), and it's March (spring warming), so tomorrow will likely be 71°F'. Time series models capture these patterns from past data.
 
 ## How It Works
 

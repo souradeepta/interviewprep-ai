@@ -2,11 +2,15 @@
 
 ## Detailed Explanation
 
-Measure agent performance comprehensively including success rate, cost, latency, and quality
+Evaluating agents is fundamentally different from evaluating models because agents are judged not just on output quality but on whether they achieve goals reliably, efficiently, and safely. Standard metrics (BLEU, ROUGE) measure text quality but don't capture whether an agent successfully completed tasks. Agent evaluation requires: goal achievement (did the agent accomplish the task?), efficiency (how many steps? how much cost?), safety (did it avoid harmful actions?), and robustness (does it work on varied inputs?).
+
+Evaluation approaches include: (1) Task completion rates (what fraction of tasks succeed), (2) Step efficiency (how many agent steps to complete tasks), (3) Token efficiency (how many tokens consumed), (4) Cost metrics (API cost, human review cost), (5) Human evaluation (did humans rate outputs as helpful?), (6) Benchmark datasets (standardized tasks). Challenges include: benchmarks may not reflect real distributions (agents overfit to benchmark patterns), human evaluation is expensive, and metrics can conflict (fast often means less accurate). Developing robust agent evaluation is active research because it's crucial for building trustworthy systems.
+
+Understanding agent evaluation requires systems thinking and appreciation for complex trade-offs. You can't optimize one metric (speed) at the expense of others (accuracy, safety) without careful measurement.
 
 ## Core Intuition
 
-Measure agent performance comprehensively including success rate, cost, latency, and quality Understanding this concept enables better system design and problem-solving.
+Evaluating a student isn't just grading test answers—it's asking: do they solve real problems? Are they efficient? Do they think safely? Evaluating agents similarly requires measuring whether they achieve goals, how many steps they take, whether they waste resources, and whether they make dangerous decisions.
 
 ## How It Works
 

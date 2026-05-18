@@ -2,11 +2,15 @@
 
 ## Detailed Explanation
 
-Represent complex probability distributions using graphs where nodes are variables and edges show dependencies
+Probabilistic Graphical Models (PGMs) represent probability distributions using graph structure where nodes are random variables and edges encode conditional dependencies. They enable efficient reasoning about uncertainty in complex systems by exploiting conditional independence—the fact that some variables don't directly influence others given intermediate information.
+
+Bayesian Networks (DAGs) encode causal or temporal relationships, while Markov Random Fields (undirected graphs) encode symmetric relationships. The graphical structure determines how we can decompose the joint probability distribution into tractable factors, enabling efficient inference even in high-dimensional problems. Algorithms like variable elimination and belief propagation use the graph structure to compute probabilities by passing messages rather than enumerating all possibilities.
+
+PGMs are foundational because they make explicit the assumptions about how variables relate to each other, enabling principled probabilistic reasoning. They power applications from medical diagnosis (Bayesian Networks) to computer vision (Markov Random Fields). Understanding PGMs requires thinking about independence and factorization, and appreciates that many complex systems can be understood through structured conditional independence.
 
 ## Core Intuition
 
-Represent complex probability distributions using graphs where nodes are variables and edges show dependencies Understanding this concept enables better system design and problem-solving.
+Think of a graph where each circle is a variable and edges show 'this variable affects this one'. By understanding these relationships, you can reason about what happens when you observe new information. If you learn it's raining, that explains why the grass is wet AND why the sidewalk is wet—but wet grass and wet sidewalk become less surprising to you once you know it's raining. The graph captures this: rain causes both, so they're dependent unless you condition on rain.
 
 ## How It Works
 

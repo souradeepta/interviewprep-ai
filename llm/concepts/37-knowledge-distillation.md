@@ -2,11 +2,15 @@
 
 ## Detailed Explanation
 
-Transfer knowledge from large teacher models to smaller student models for efficiency
+Knowledge distillation transfers knowledge from a large, complex teacher model to a smaller, faster student model by training the student to mimic the teacher's outputs. This enables deploying capable models on resource-constrained devices (phones, edge servers) while maintaining reasonable performance. The key insight is that the teacher's soft predictions (probability distributions) contain more information than just the hard labels, teaching the student not just what to predict but the confidence and uncertainty of the teacher.
+
+The training objective combines two losses: (1) matching the teacher's soft predictions (using temperature-scaled softmax to extract fine-grained probability information), (2) matching true labels (preserving task performance). The temperature parameter controls the softness of predictions—higher temperature reveals more about the teacher's reasoning patterns. Distillation works because teachers learn rich internal representations that capture task structure; students trained to mimic these patterns learn more efficiently than from scratch.
+
+Knowledge distillation is crucial for practical deployment of modern large models. It enables building systems that are fast enough for real-time use while retaining much of the capable model's knowledge. Understanding it requires appreciating the difference between hard labels and soft probability distributions, and recognizing that simpler models can learn sophisticated behavior by studying complex teachers.
 
 ## Core Intuition
 
-Transfer knowledge from large teacher models to smaller student models for efficiency Understanding this concept enables better system design and problem-solving.
+A master chess player coaching a student doesn't just say 'move the knight here.' Instead, they explain 'the knight move is good because it attacks three pieces while staying protected, and here's why that's stronger than the other moves I considered.' The student learns faster by understanding the master's reasoning. Knowledge distillation teaches student models the 'reasoning' of teacher models.
 
 ## How It Works
 

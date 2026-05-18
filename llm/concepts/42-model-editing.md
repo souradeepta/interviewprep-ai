@@ -2,11 +2,15 @@
 
 ## Detailed Explanation
 
-Update specific facts or behaviors in trained models without full retraining
+Model editing updates specific knowledge or behaviors in trained language models without full retraining. As models become larger and more capable, retraining to fix errors or update knowledge becomes prohibitively expensive. Model editing provides lightweight alternatives: targeted interventions that modify model behavior for specific inputs or concepts while preserving overall capabilities. Applications include correcting factual errors ('Paris is the capital of France' if the model says otherwise), updating outdated information, or removing harmful capabilities.
+
+Techniques vary in scope: (1) In-context learning (adding corrected information to the prompt), (2) Fine-tuning (training on small correction datasets), (3) Weight editing (directly modifying parameters based on analysis of model internals), and (4) Representation editing (changing activations in intermediate layers). Trade-offs differ: in-context is simple but uses context length, fine-tuning is reliable but may cause forgetting or shift other behaviors, weight editing is efficient but requires understanding model internals. Recent work has focused on locating where specific knowledge is stored in models, enabling surgical edits.
+
+Model editing is increasingly important as models become deployed and new facts emerge or errors are discovered. Understanding it requires appreciation for how knowledge is distributed across model parameters, the dangers of side effects (editing one fact unintentionally breaks another), and the difference between fixing surface behaviors and underlying knowledge.
 
 ## Core Intuition
 
-Update specific facts or behaviors in trained models without full retraining Understanding this concept enables better system design and problem-solving.
+If you were a giant library and someone discovered we got one historical date wrong, you'd want to fix just that one piece of knowledge rather than reorganize the entire library. Model editing is like precision surgery: instead of rebuilding the model, we reach in and fix specific wrong knowledge, hopefully without breaking anything else.
 
 ## How It Works
 

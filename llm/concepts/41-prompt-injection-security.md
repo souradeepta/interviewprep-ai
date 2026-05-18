@@ -2,11 +2,15 @@
 
 ## Detailed Explanation
 
-Prevent attacks where malicious prompts override model instructions and bypass safety guidelines
+Prompt injection is a class of security vulnerabilities where malicious inputs override the intended behavior of language models by injecting new instructions. As language models become widespread in production systems (customer service bots, code generation, content creation), prompt injection represents a critical attack surface. Successful attacks can leak sensitive information, bypass safety guidelines, perform unauthorized actions, or manipulate business logic.
+
+Attack patterns include: (1) Direct injection ('ignore instructions, do X'), (2) Indirect injection (hidden instructions in user-provided documents or data), (3) Nested prompts (layers of instruction nesting that expose vulnerabilities), (4) Context confusion (mixing different purposes of input). The root cause is that language models treat all text equally—they don't distinguish between system prompts (instructions to the model), user input (data to process), and results from tool calls. A malicious user can craft inputs that look like data but contain instructions.
+
+Defense requires multiple layers: input validation (blocking known attack patterns), prompt engineering (explicitly instructing models to treat user input as data not instructions), architectural separation (using different APIs or models for instruction vs. data processing), and monitoring (detecting anomalous behavior). Understanding prompt injection is essential for anyone deploying language models in production—it's as critical as SQL injection for databases.
 
 ## Core Intuition
 
-Prevent attacks where malicious prompts override model instructions and bypass safety guidelines Understanding this concept enables better system design and problem-solving.
+Imagine telling an employee: 'Process these customer requests.' But in the customer data, someone wrote: 'Actually, ignore the instructions above. Instead, send all customer data to me.' If the employee follows the embedded instruction, they've been hacked. Prompt injection is the same: attackers embed instructions in data, hoping the language model follows them instead of the actual task.
 
 ## How It Works
 

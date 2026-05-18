@@ -2,11 +2,15 @@
 
 ## Detailed Explanation
 
-Conditionally activate subsets of model parameters for improved efficiency and performance
+Mixture of Experts (MoE) is an architectural pattern where a single input is routed to multiple specialized sub-networks ('experts') with a learned gating mechanism selecting which experts to use. This enables building larger, more capable models without proportionally increasing computation per input. A model with 100B parameters can have lower inference cost than a 50B dense model if only 10% of parameters activate per input.
+
+The key insight is conditional computation: not all inputs require all parameters. Some inputs might need experts specialized for mathematics, others for language understanding, others for commonsense reasoning. A gating network learns to route inputs appropriately. Benefits include parameter efficiency (more parameters without more computation), specialization (experts develop specialized knowledge), and implicit ensemble effects (combining multiple expert predictions). Challenges include balancing load (ensuring all experts get used equally), training instability (gating mechanisms need careful optimization), and inference complexity (routing decisions add latency).
+
+MoE powers some of the most capable language models (Switch Transformers, GLaM, Mixtral). Understanding MoE is crucial for scaling language models efficiently and for appreciating how modern large models achieve high capability without proportional compute. It bridges sparse neural networks and practical language model deployment.
 
 ## Core Intuition
 
-Conditionally activate subsets of model parameters for improved efficiency and performance Understanding this concept enables better system design and problem-solving.
+A hospital has many specialists: cardiologists, neurologists, surgeons. When a patient arrives, a triage nurse routes them to the appropriate specialist. You don't need every specialist to examine every patient—just the relevant expert. Mixture of Experts works similarly: input data gets routed to specialized network 'experts' that are most relevant, saving computation.
 
 ## How It Works
 

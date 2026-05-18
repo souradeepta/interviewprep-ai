@@ -2,11 +2,15 @@
 
 ## Detailed Explanation
 
-Deploy agents to production with containerization, scaling, monitoring, and reliability
+Agent deployment patterns address the challenges of running multi-step, tool-using AI systems in production where traditional deployment patterns don't directly apply. Agents are different from standard models: they make decisions about whether to use tools, how to interpret tool results, and when to stop—creating non-deterministic behavior, variable latency, and potential failure modes. Production deployment requires patterns for: error handling (what if a tool call fails?), state management (tracking agent progress), cost control (preventing expensive infinite loops), and observability (understanding why the agent made decisions).
+
+Deployment patterns include: (1) Request-response with timeout (agent runs for fixed time), (2) Streaming output (showing agent steps as they happen), (3) Asynchronous with webhooks (long-running agents), (4) Agent pools (load balancing across multiple agent instances), (5) Staged rollout (deploying to a fraction of traffic first). Key decisions include where to run agents (cloud API, on-premise for latency), how to handle failures (retry with different tools? escalate to human?), and how to monitor behavior (are agents reliably achieving goals?).
+
+Understanding agent deployment patterns is crucial as agent-based systems move from research to production. It requires systems thinking about infrastructure, reliability, and observability—recognizing that agents differ fundamentally from stateless model inference.
 
 ## Core Intuition
 
-Deploy agents to production with containerization, scaling, monitoring, and reliability Understanding this concept enables better system design and problem-solving.
+Deploying a model is like deploying a calculator: stateless, deterministic, fast. Deploying an agent is like deploying an employee who needs to think, make decisions, and use various tools. That's harder: you need to manage their work progress, handle when tools fail, ensure they don't get stuck, and understand their decision-making process.
 
 ## How It Works
 

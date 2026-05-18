@@ -2,11 +2,15 @@
 
 ## Detailed Explanation
 
-Directly optimize the policy by taking gradient steps to maximize expected reward
+Policy Gradient methods learn decision-making policies directly by adjusting the parameters of a neural network that outputs actions. Unlike value-based methods like Q-Learning that estimate future rewards and then act greedily, policy gradients use the gradient of expected reward with respect to policy parameters to update the policy towards better actions.
+
+The fundamental idea is to increase the probability of actions that led to high rewards and decrease the probability of actions that led to low rewards. This is expressed as a gradient: ∇J(θ) = E[∇log π(a|s) R], which means we move the policy parameters in the direction that increases the log-probability of good actions scaled by their returns.
+
+Policy gradients have several advantages: they handle continuous action spaces naturally (by outputting means and variances), they converge to local optima directly (not approximating values), and they support stochastic policies (useful for exploration). They power systems from robotic control to game-playing agents. The trade-off is higher variance in gradient estimates compared to value methods, requiring careful learning rate tuning and variance reduction techniques.
 
 ## Core Intuition
 
-Directly optimize the policy by taking gradient steps to maximize expected reward Understanding this concept enables better system design and problem-solving.
+Instead of learning the value of each chess position, directly learn which moves are good in each position. The policy gradient approach adjusts move probabilities: if a move sequence led to victory, increase those move probabilities; if it led to defeat, decrease them. It's like a coach watching your game and saying 'do that move more often, do that move less often'.
 
 ## How It Works
 

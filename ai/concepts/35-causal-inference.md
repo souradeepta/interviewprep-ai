@@ -2,11 +2,15 @@
 
 ## Detailed Explanation
 
-Learn causal relationships between variables, enabling prediction of interventions and counterfactuals
+Causal inference is the science of determining cause-and-effect relationships from data, distinguishing between correlation and causation. While traditional machine learning predicts patterns, causal inference answers intervention questions: 'What happens if we change X?' rather than just 'What is X correlated with?' This distinction is crucial for decision-making in medicine, business, and policy.
+
+Causal inference uses directed acyclic graphs (causal diagrams) to encode assumptions about how variables influence each other, then uses statistical techniques to estimate causal effects even from observational (non-experimental) data. Methods like propensity score matching, instrumental variables, and causal forests allow analysts to estimate the effect of an intervention on an outcome, accounting for confounding variables. The core insight is that randomized experiments automatically balance confounders, while observational data requires careful statistical control.
+
+Causal reasoning is essential for any decisions beyond prediction: Should we deploy this model? How will this policy change affect outcomes? Does this correlation indicate a business opportunity? Understanding causality prevents costly mistakes from mistaking correlation for causation and enables principled decision-making under uncertainty. It's becoming increasingly important as organizations move from 'what will happen' (prediction) to 'what should we do' (decision-making).
 
 ## Core Intuition
 
-Learn causal relationships between variables, enabling prediction of interventions and counterfactuals Understanding this concept enables better system design and problem-solving.
+Correlation means two things happen together; causation means one causes the other. Ice cream sales correlate with drowning deaths, but ice cream doesn't cause drowning—summer causes both. Causal inference is the detective work of determining which relationships are real causes. It uses data patterns and logical reasoning to answer 'if we change this variable, what actually changes as a result'.
 
 ## How It Works
 

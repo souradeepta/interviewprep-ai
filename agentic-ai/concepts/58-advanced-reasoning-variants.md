@@ -2,11 +2,15 @@
 
 ## Detailed Explanation
 
-Enhance agent reasoning with variants of chain-of-thought including tree search, self-consistency, and ensemble methods
+Advanced reasoning variants extend basic agent frameworks with enhanced decision-making capabilities: Chain-of-Thought (showing reasoning steps), Tree-of-Thought (exploring multiple reasoning paths), Self-Critique (agent reviews and improves its own output), Metacognition (agent thinking about its own thinking), and Debate (multiple agents arguing to reach better conclusions). These variants address the fact that the initial agent output is often suboptimal—iteration and alternative perspectives improve results.
+
+Each variant trades computation for quality: Chain-of-Thought requires longer outputs but improves reasoning clarity. Tree-of-Thought explores multiple paths (expensive) but finds better solutions. Self-Critique adds a review pass. Debate uses multiple agents (N× computation). The key insight is that just like humans solve complex problems by thinking out loud, trying multiple approaches, and reconsidering, AI agents benefit from similar reflection. However, these variants multiply inference cost, creating a trade-off between solution quality and computational expense.
+
+Advanced reasoning variants are becoming standard in complex agent applications because they demonstrably improve outcomes. Understanding them requires appreciating that single-pass inference often produces suboptimal results, and that cost of thinking is worth paying for important decisions.
 
 ## Core Intuition
 
-Enhance agent reasoning with variants of chain-of-thought including tree search, self-consistency, and ensemble methods Understanding this concept enables better system design and problem-solving.
+A math student solving a hard problem doesn't just write the first answer—they work through multiple approaches, check their work, reconsider. Advanced reasoning variants let agents work similarly: try multiple solutions, think through their reasoning, critique and improve. This costs more time/compute but gives better answers.
 
 ## How It Works
 

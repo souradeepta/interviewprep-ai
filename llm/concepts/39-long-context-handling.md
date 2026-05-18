@@ -2,11 +2,15 @@
 
 ## Detailed Explanation
 
-Process very long documents (100K+ tokens) beyond typical context windows
+Long context handling addresses the fundamental limitation that transformers have O(n²) memory and computation complexity in sequence length, making them unable to efficiently process very long documents (books, codebases, long conversations). This is increasingly important as applications demand understanding of extensive context: legal documents, medical records, scientific papers, and multi-turn conversations spanning many turns. Current models are typically limited to 2-8K tokens; handling 100K+ tokens requires rethinking architecture, inference, and training.
+
+Approaches to handle long contexts include: (1) Sparse attention patterns (attending to only important positions instead of all positions), (2) Hierarchical processing (summarizing chunks, then attending between summaries), (3) Retrieval-based methods (finding relevant portions rather than processing everything), (4) Sliding window (attending only to recent context), and (5) New architectures (Mamba, state-space models) that replace self-attention with more efficient mechanisms. Each trades off different properties: sparse attention maintains expressiveness but needs careful pattern design, retrieval-based methods need fast search mechanisms, while new architectures need retraining from scratch.
+
+Long context is crucial for real-world applications where complete context matters. Understanding it requires appreciating computational constraints, the trade-off between context length and inference speed, and recognizing that not all positions are equally important (recent tokens and relevant earlier information matter most).
 
 ## Core Intuition
 
-Process very long documents (100K+ tokens) beyond typical context windows Understanding this concept enables better system design and problem-solving.
+A person can barely remember a 100-page document in detail but recalls key points and important sections. Transformers face similar challenge: remember everything takes too much brain power. Long context solutions work like humans: attend carefully to what matters (recent messages, relevant previous context), skim less important parts, or look up specific information when needed.
 
 ## How It Works
 

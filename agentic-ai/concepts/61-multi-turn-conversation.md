@@ -2,11 +2,15 @@
 
 ## Detailed Explanation
 
-Manage long-running conversations with coherent context, turn-taking, and state tracking
+Multi-turn conversations involve back-and-forth exchanges where context from previous turns influences interpretation of current turns. This is natural for humans but challenging for AI systems: maintaining conversation coherence, tracking what's been established, handling contradictions, and managing growing context. Multi-turn interactions reveal weaknesses invisible in single-turn systems: inconsistency (contradicting earlier statements), context loss (forgetting discussed facts), and repetition (answering the same question multiple times).
+
+Challenges include: (1) Context window limitations (can't keep entire conversation history as it grows), (2) Context relevance (not all previous turns matter equally), (3) Inconsistency (model might give conflicting responses in different turns), (4) User expectations (users expect agents to remember everything discussed). Solutions involve: context summarization (condensing older turns), selective retrieval (finding relevant past turns), coherence monitoring (detecting inconsistencies), and explicit state tracking (maintaining facts established during conversation).
+
+Multi-turn conversation is central to practical agent applications—almost no real interaction is single-turn. Understanding it requires recognizing that conversation is collaborative meaning-making, not isolated exchanges. It's harder than single-turn because context compounds the complexity.
 
 ## Core Intuition
 
-Manage long-running conversations with coherent context, turn-taking, and state tracking Understanding this concept enables better system design and problem-solving.
+A phone customer support representative in their first call can look up everything. But a customer service agent working with a returning customer must remember they discussed this issue last week, their account details, their preferences. Multi-turn conversation is managing this growing, interconnected context.
 
 ## How It Works
 

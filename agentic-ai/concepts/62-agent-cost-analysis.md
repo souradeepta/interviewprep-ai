@@ -2,11 +2,15 @@
 
 ## Detailed Explanation
 
-Analyze and optimize the financial cost of running agents including token usage and API calls
+Agent cost analysis quantifies the expenses of running agent-based systems, which differs from standard inference costs because agents perform variable amounts of computation depending on task complexity. A simple task might complete in one step (minimal cost), while complex tasks might involve multiple tool calls, retries, and long context windows (expensive). Understanding and controlling costs is crucial for viability: an agent system that works perfectly but costs $10 per query isn't commercially viable.
+
+Cost components include: (1) LLM API calls (primary cost, varies by model size and tokens), (2) Tool usage (external APIs, data retrieval), (3) Retrieval operations (searching knowledge bases), (4) Token overhead (prompt structure, examples), (5) Failures requiring retry (wasted computation). Cost optimization strategies include: model selection (use smaller models when sufficient), step reduction (design agents to take fewer steps), tool efficiency (fast tools are cheaper), and caching (avoid redundant computations). Some systems use tiered approaches: cheap fast agents for simple queries, expensive capable agents only for complex queries.
+
+Understanding agent cost analysis requires systems thinking about the economics of AI systems. Many novel agents are technically impressive but economically unviable. Cost considerations should drive architecture decisions, not be an afterthought.
 
 ## Core Intuition
 
-Analyze and optimize the financial cost of running agents including token usage and API calls Understanding this concept enables better system design and problem-solving.
+Imagine an employee who must make a decision: they can choose to spend 5 minutes thinking and decide, or spend 2 hours researching and decide better. Agents have similar choices: fast but potentially wrong (cheap), or slow and careful (expensive). Cost analysis is choosing the right level of effort for each decision.
 
 ## How It Works
 

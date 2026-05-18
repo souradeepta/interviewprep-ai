@@ -2,11 +2,15 @@
 
 ## Detailed Explanation
 
-Reduce O(n²) complexity of standard attention to enable longer sequences
+Efficient attention mechanisms address the O(n²) complexity bottleneck of standard self-attention, which prevents transformers from handling very long sequences. Since attention requires computing similarity between every position and every other position, sequences longer than a few thousand tokens become prohibitively expensive. Modern applications demand longer contexts: document understanding (legal documents, books), code understanding (entire files or repositories), multi-turn conversations with history.
+
+Approaches to efficient attention include: (1) Sparse attention (limiting which positions attend to which, e.g., sliding window only attends to nearby positions), (2) Approximate methods (using clever tricks to approximate the attention matrix without computing it fully), (3) Linear attention (rewriting attention computation to avoid the quadratic term), (4) Hierarchical approaches (attending first within chunks, then between chunks). Each trades computation against expressiveness: sparse attention is fast but might miss long-range dependencies, linear attention is efficient but loses the ability to select which previous tokens matter most.
+
+Efficient attention is fundamental to scaling transformers beyond current limits. Understanding it requires mathematical sophistication (understanding how attention computation can be reorganized) and awareness of the specific bottleneck: computing the full attention matrix is O(n²), and efficient methods avoid computing or storing this full matrix.
 
 ## Core Intuition
 
-Reduce O(n²) complexity of standard attention to enable longer sequences Understanding this concept enables better system design and problem-solving.
+Standard attention is like having a person remember every detail they've ever heard about the topic, comparing current input to every past fact. That's exhausting for long memories. Efficient attention is like having a person remember key facts and recent context, quickly skipping irrelevant details. Different efficient methods skip details differently—some remember recency, others remember importance, others remember specific structural patterns.
 
 ## How It Works
 

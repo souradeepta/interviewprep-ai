@@ -2,11 +2,15 @@
 
 ## Detailed Explanation
 
-Execute agent code safely in isolated environments to prevent malicious or buggy code from causing harm
+Agent security sandboxing constrains the actions agents can take, preventing them from accessing sensitive data, making dangerous API calls, or performing unauthorized operations. Unlike model-only systems where the model's output is reviewed before taking action, agents autonomously call tools, creating security risks if not carefully controlled. Sandboxing creates isolation: agents operate in constrained environments where their tool access is limited to safe operations.
+
+Sandboxing approaches include: (1) Capability restrictions (agents can only access specific APIs), (2) Resource limits (rate limiting, timeouts, cost caps), (3) Input/output filtering (scrubbing sensitive data from agent inputs/outputs), (4) Approval workflows (requiring human approval for certain actions), (5) Execution containers (running agent code in isolated VMs), (6) Monitoring (detecting suspicious patterns). The key tension is between safety (more restrictions) and usefulness (more capabilities). A heavily sandboxed agent is safe but limited; an unrestricted agent is useful but dangerous.
+
+Agent security sandboxing is crucial as agents gain more capabilities and operate in higher-stakes domains. Understanding it requires security thinking and appreciation for threat models—what could go wrong if agents misbehave, and what controls prevent those failures.
 
 ## Core Intuition
 
-Execute agent code safely in isolated environments to prevent malicious or buggy code from causing harm Understanding this concept enables better system design and problem-solving.
+Giving someone access to your bank account is risky. A security sandbox is like giving them access to a limited, monitored account: they can perform safe operations, but can't drain all funds or access sensitive information. Each agent should work in such a 'sandbox' appropriate to their trustworthiness and the risks they could cause.
 
 ## How It Works
 

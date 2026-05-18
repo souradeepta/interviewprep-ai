@@ -2,11 +2,15 @@
 
 ## Detailed Explanation
 
-Maintain persistent state across agent interactions including memory, context, and execution history
+Agent state management handles the complexity that agents are stateful systems: they maintain conversation history, memory of past decisions, intermediate results, and tool outputs across multiple turns. Unlike stateless model inference (input → output), agents maintain context that influences future decisions. This creates challenges: what state should persist? How long? How much does state grow? When should state be purged? How do you recover from failures mid-execution?
+
+State components include: (1) Conversation history (what was discussed), (2) Memory (facts the agent has learned or been told), (3) Intermediate results (outputs from tool calls), (4) Execution context (current task, progress). Design decisions include: persistent storage (database) vs. ephemeral (in-memory), what to remember long-term (core facts) vs. short-term (latest turn), and how to bound memory size. Some systems implement vector memory (embedding-based semantic search for relevant facts) while others use explicit memory slots ('what is the user's name?'). The key is balancing available context (more state helps reasoning) against retrieval cost and potential confusion (irrelevant old context might distract).
+
+Understanding agent state management requires systems thinking about persistence, memory bounds, and the interaction between short-term working memory and long-term knowledge. It's crucial for building agents that learn from experience and improve over time.
 
 ## Core Intuition
 
-Maintain persistent state across agent interactions including memory, context, and execution history Understanding this concept enables better system design and problem-solving.
+Humans maintain memory: we remember facts about people, lessons learned, facts discussed. Conversations rely on this memory—you don't re-explain your job to friends repeatedly. Agents need similar memory: remembering what happened, what worked, facts about the user. State management is how agents maintain and use this memory effectively without getting confused by too much old information.
 
 ## How It Works
 
