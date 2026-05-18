@@ -2,11 +2,15 @@
 
 ## Detailed Explanation
 
-Backpropagation is the algorithm for computing gradients in neural networks using the chain rule. Given a loss function, it propagates error signals backward through the network layer-by-layer, computing how much each weight contributed to the error. This enables efficient gradient computation in O(n) time instead of numerical approximation. Critical for training deep networks. Modern frameworks (PyTorch, TensorFlow) implement backprop automatically via automatic differentiation, but understanding the math is essential for debugging.
+Backpropagation is the algorithm for computing gradients in neural networks, enabling gradient descent training. Given a complex network with many layers, backpropagation uses the chain rule to efficiently compute how each parameter affects the final loss. Without backpropagation, computing gradients would require re-evaluating the entire network for each parameter (prohibitively expensive), but backpropagation reuses intermediate calculations to compute all gradients in a single backward pass.
+
+The algorithm works by propagating error information backward through the network: starting from the loss function, compute how the loss changes with respect to each layer's outputs, then use those signals to compute gradients with respect to that layer's weights. The key insight is that this backward pass mirrors the forward computation, reusing the same connectivity structure. Two critical problems can occur: vanishing gradients (gradient signals become too small in deep networks) and exploding gradients (signals grow exponentially). Modern techniques like batch normalization, careful weight initialization, and skip connections address these issues.
+
+Backpropagation is the algorithmic foundation of deep learning. Understanding it helps explain why some architectures work (skip connections help gradients flow) and why some don't (very deep networks suffer from vanishing gradients). It's less about implementing it (frameworks like PyTorch do this) and more about understanding its limitations and how to work around them.
 
 ## Core Intuition
 
-A chain of dominoes: pushing one at the end affects all before it. Backprop traces backward which dominoes to blame for the final outcome.
+Imagine water flowing backward through a pipe system from the output (leak) back to the input. The water flow represents error signals. At each junction, water splits proportionally (chain rule), and you can measure how much water came from each upstream pipe. That's backpropagation: tracing error signals backward to find which weights caused the error.
 
 ## How It Works
 

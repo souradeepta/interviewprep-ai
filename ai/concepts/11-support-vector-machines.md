@@ -2,11 +2,15 @@
 
 ## Detailed Explanation
 
-Finds maximum-margin hyperplane with kernel trick...
+Support Vector Machines find the maximum-margin hyperplane separating two classes, treating classification as a geometric problem. The 'margin' is the distance from the decision boundary to the nearest data points (support vectors). Maximizing margin provides generalization: confident separations from data tend to generalize well to new data. The SVM can be reformulated to use a kernel trick, applying implicit non-linear transformations without explicitly computing high-dimensional features.
+
+Linear SVMs are interpretable: weights show which features matter and in which direction. Non-linear SVMs (via kernels) handle complex decision boundaries but are less interpretable. The kernel trick is mathematically elegant: comparing high-dimensional transformed data is done implicitly, avoiding exponential computation. Common kernels are linear (for linear problems), RBF (universal approximator for non-linear), polynomial. The C parameter controls margin-error trade-off: high C enforces margins perfectly (may overfit), low C allows violations (generalizes better).
+
+SVMs are theoretically elegant and work well on many problems, especially with moderate amounts of data. However, they don't scale as well as tree-based methods on large datasets and require feature scaling. The kernel trick is intellectually important (demonstrated non-linear capacity through clever mathematics) even though deep learning has largely superseded SVMs in practice. Understanding SVMs helps explain margins, regularization concepts, and the importance of decision boundaries in classification.
 
 ## Core Intuition
 
-A key technique in machine learning.
+SVMs are like drawing the thickest possible 'safe zone' around your decision boundary to separate two groups. The kernel trick is like secretly transforming data to a higher dimension where a simple line can separate them, but doing the math without explicitly computing the transformation.
 
 ## How It Works
 

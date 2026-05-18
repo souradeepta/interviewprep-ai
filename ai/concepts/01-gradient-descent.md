@@ -2,11 +2,15 @@
 
 ## Detailed Explanation
 
-Gradient descent is an iterative optimization algorithm that minimizes a loss function by taking steps proportional to the negative gradient. The algorithm computes the gradient (direction of steepest increase) and moves in the opposite direction to find the minimum. Variants include batch gradient descent (all data), stochastic (one sample), and mini-batch (subset). Learning rate controls step size: too high causes oscillation, too low causes slow convergence. Critical for training neural networks and solving regression problems.
+Gradient descent is the foundational optimization algorithm used to train nearly all neural networks and many machine learning models. The core idea is deceptively simple: to minimize a loss function, repeatedly take small steps in the direction of steepest descent (opposite to the gradient). This iterative approach works because it's guaranteed to eventually reach a local minimum if the learning rate is chosen appropriately.
+
+The algorithm comes in three main variants: Batch gradient descent uses all training data to compute the gradient (slow but stable), Stochastic gradient descent (SGD) uses one sample at a time (fast but noisy), and Mini-batch gradient descent uses small batches (best of both worlds, standard in practice). The learning rate is critical: too high and the algorithm oscillates and diverges, too low and training is prohibitively slow. Adaptive methods like Adam adjust the learning rate per parameter, often outperforming fixed-rate approaches.
+
+Understanding gradient descent is essential because nearly every deep learning model training uses it. Recognizing why training plateaus or diverges often comes down to understanding gradient descent mechanics. Modern practitioners rarely implement it from scratch but understanding the algorithm is crucial for debugging training failures and making architectural decisions.
 
 ## Core Intuition
 
-Walking downhill in fog: you feel the ground slope beneath you and step in the downhill direction. Repeat until reaching the bottom.
+Imagine you're at the top of a mountain in the dark and want to reach the valley below. You can't see far ahead, but you can feel the slope beneath your feet. Gradient descent is like repeatedly taking steps downhill: feel the slope (compute gradient), take a step in that direction (update weights). Eventually you reach the bottom, though you might get stuck in local valleys.
 
 ## How It Works
 

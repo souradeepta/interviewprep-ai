@@ -2,11 +2,15 @@
 
 ## Detailed Explanation
 
-Combines multiple trees via bagging for robustness...
+Random forests train many decision trees on random subsets of data, then average their predictions to reduce overfitting. Bootstrap sampling (sampling with replacement) creates diverse training sets for each tree. Random feature selection at each split adds further diversity. The diversity means different trees make different mistakes, and averaging cancels out errors—the ensemble is far more stable and accurate than any individual tree.
+
+The algorithm trades interpretability for accuracy: you can't easily explain why the ensemble makes a prediction (unlike a single tree), but accuracy usually improves substantially. Out-of-bag (OOB) error estimates generalization performance without needing a separate validation set. Feature importance can be computed by tracking how much each feature decreases impurity across all trees, providing some interpretability. Random forests handle non-linear relationships, missing values somewhat gracefully, and are robust to outliers. They're one of the first methods to try for tabular data.
+
+Random forests demonstrate the power of ensemble learning: combining weak learners (trees prone to overfitting) creates a strong learner (ensemble that generalizes well). Understanding how diversity reduces error helps explain why other ensembles work. Practical practitioners rarely tune random forests heavily—default hyperparameters often work well. The simplicity, robustness, and good out-of-the-box performance makes random forests a go-to baseline.
 
 ## Core Intuition
 
-A key technique in machine learning.
+Random forests are like hiring a committee of diverse experts (trees) who each make slightly different mistakes. By averaging their votes, mistakes cancel out. A single expert might be biased or miss things, but a diverse committee is usually smarter than any individual member.
 
 ## How It Works
 

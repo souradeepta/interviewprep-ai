@@ -2,11 +2,15 @@
 
 ## Detailed Explanation
 
-Recursively partitions feature space with axis-aligned splits...
+Decision trees recursively split data into increasingly homogeneous subsets, building a tree where each node represents a split decision and leaves represent predictions. Trees are human-interpretable, require minimal preprocessing, and handle non-linear relationships automatically. However, they easily overfit (can grow to memorize training data), have high variance (small data changes produce very different trees), and suffer from greedy splitting (local optimization, not global).
+
+The algorithm recursively finds the feature and threshold that best separates data. Splitting criterion is usually Gini impurity (how mixed are the classes) or information gain (reduction in entropy). Controlling tree depth prevents overfitting: shallow trees have high bias but low variance, deep trees have low bias but high variance. Minimum samples per leaf and maximum depth are the key hyperparameters. Trees are often used as base learners in ensembles (random forests, gradient boosting) rather than standalone because ensembles address the variance problem.
+
+Decision trees are conceptually simple but powerful as building blocks. Understanding how they work explains random forests and gradient boosting (which combine many trees). Single trees rarely win modern competitions, but understanding trees helps you debug ensemble models. The interpretability of trees makes them valuable for explaining predictions in business settings, even if other models might be slightly more accurate.
 
 ## Core Intuition
 
-A key technique in machine learning.
+Decision trees are like a flowchart of yes/no questions: 'Is feature A > threshold?' If yes, go left; if no, go right. Keep asking questions until you reach a leaf (prediction). Each path through the tree is an interpretable rule like 'if age > 30 AND income > $50k, then approve loan'.
 
 ## How It Works
 

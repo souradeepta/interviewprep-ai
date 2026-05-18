@@ -2,11 +2,15 @@
 
 ## Detailed Explanation
 
-Combines prior beliefs with data via Bayes' theorem...
+Bayesian inference computes posterior probabilities P(parameters|data) using Bayes' rule: posterior ∝ likelihood × prior. Unlike frequentist estimation (point estimates), Bayesian inference provides full probability distributions. Prior encodes domain knowledge (ignorant priors have minimal influence); likelihood comes from data; posterior combines both. Interpretation is intuitive: posterior probability directly answers 'given data, what's likely true?'. For Bayesian neural networks, weights become distributions, providing uncertainty estimates.
+
+The posterior distribution is often intractable (can't compute analytically), requiring approximation. Variational inference approximates with a tractable distribution. Markov Chain Monte Carlo (MCMC) samples from the posterior (Metropolis-Hastings, Gibbs sampling). Approximate Bayesian Computation (ABC) circumvents likelihood computation. Laplace approximation uses local Gaussian approximation around the mode. Each method trades accuracy, computational cost, and applicability differently.
+
+Bayesian inference is intellectually elegant (principled combination of prior knowledge and data) but computationally expensive. The uncertainty quantification (probabilities for all parameters, not just point estimates) is valuable for decision-making. In deep learning, full Bayesian neural networks are expensive; approximations (variational, dropout as approximate Bayesian, SWAG) are practical. Bayesian reasoning about calibration (do probabilities match actual frequencies?) is important for deployment. Practitioners often use Bayesian methods for principled uncertainty without fully understanding the mathematics; understanding helps avoid misinterpretation.
 
 ## Core Intuition
 
-A key technique in machine learning.
+Bayesian inference is like updating your beliefs as you gather evidence: prior belief + new evidence → updated belief. The posterior probability distribution quantifies your uncertainty: high peak = confident, wide distribution = uncertain. It's formalizing how humans naturally update beliefs.
 
 ## How It Works
 

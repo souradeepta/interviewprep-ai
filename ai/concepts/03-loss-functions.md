@@ -2,11 +2,15 @@
 
 ## Detailed Explanation
 
-Loss functions quantify how far predictions are from ground truth. Different problems need different losses: MSE for regression measures squared error, cross-entropy for classification measures probability divergence, hinge loss for SVMs enforces margin. The choice of loss function directly impacts what the model learns. Custom losses can encode domain knowledge (e.g., weighted loss for imbalanced data).
+Loss functions quantify how wrong a model's predictions are, providing the signal that gradient descent uses to improve the model. Different tasks require different loss functions because they encode different assumptions about what 'wrong' means. Mean squared error (MSE) penalizes large errors quadratically, making it sensitive to outliers. Cross-entropy loss is the standard for classification, directly related to probability distributions. Hinge loss for SVMs encodes the margin concept. Custom loss functions can encode domain knowledge about which errors are most costly.
+
+Choosing the right loss function is crucial because it directly shapes what the model learns. A model trained with MSE will be quite different from one trained with mean absolute error (which is outlier-robust), even on identical data. Some loss functions have nice theoretical properties (cross-entropy is information-theoretically justified for classification), others are pragmatic choices. Weighted loss functions can address class imbalance by making the model care more about minority class errors. The loss function you choose is saying 'these are the errors I care about most.'
+
+Loss functions are often overlooked but are equally important as architecture choices. Understanding why certain loss functions work better for certain problems is crucial for effective machine learning. Modern deep learning frameworks make it easy to swap loss functions, but understanding their properties helps debug models that aren't learning properly.
 
 ## Core Intuition
 
-Report card grading: loss measures how wrong you are. MSE harshly punishes big mistakes; cross-entropy gently penalizes confident wrong predictions.
+Loss functions are like a teacher grading papers differently depending on the subject. A math teacher cares about exact answers (squared error). A spelling teacher cares about making mistakes (absolute error). A doctor might care most about catching disease (high penalty for missed positives). Each 'grading rubric' guides what the model learns.
 
 ## How It Works
 

@@ -2,11 +2,15 @@
 
 ## Detailed Explanation
 
-Introduces nonlinearity enabling deep learning...
+Activation functions introduce non-linearity into neural networks, without which stacking layers would just compute linear functions (composition of linear functions is linear). ReLU (Rectified Linear Unit, max(0,x)) is the modern standard due to computational simplicity and good gradient properties. Sigmoid squashes to [0,1], historically standard but has vanishing gradient problem in deep networks. Tanh is similar to sigmoid but squashes to [-1,1]. GELU (Gaussian Error Linear Unit) is smooth and often works better than ReLU.
+
+The choice of activation affects: (1) gradient flow (does gradient signal propagate well backward?), (2) computational cost (ReLU is simplest), (3) interpretability (different activations encode different assumptions about data). Dying ReLU problem (neurons becoming inactive) can be fixed with leaky ReLU or ELU. Output activation depends on task: sigmoid for binary classification, softmax for multi-class, linear for regression, tanh for outputs in [-1,1]. Using wrong output activation is a common mistake that's trivial to fix but causes problems.
+
+Activation functions are often treated as design choices to try (ReLU usually works, try others if stuck) rather than something to understand deeply. However, understanding gradient flow through activations helps explain training problems. Vanishing gradients through many sigmoid layers is why deep networks were hard to train before ReLU. The choice of activation is usually not the bottleneck but understanding trade-offs helps when debugging.
 
 ## Core Intuition
 
-A key technique in machine learning.
+Activation functions are like on-off switches (ReLU) or volume knobs (sigmoid) that add non-linearity. Without them, neural networks would just be linear models no matter how deep. ReLU is like 'pass through if positive, kill if negative'. Sigmoid is like 'gradually ramp up from 0 to 1'. Both add complexity that allows learning non-linear patterns.
 
 ## How It Works
 

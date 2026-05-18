@@ -2,11 +2,15 @@
 
 ## Detailed Explanation
 
-Precision, recall, F1, ROC-AUC for evaluating classifiers...
+Classification metrics quantify prediction quality differently based on the problem. Accuracy (fraction correct) is intuitive but misleading with class imbalance. Precision (of positive predictions, what fraction correct) matters when false positives are costly. Recall (fraction of positives found) matters when false negatives are costly. F1-score (harmonic mean of precision and recall) balances both. ROC-AUC (Area Under the Receiver Operating Characteristic curve) plots true positive rate vs false positive rate, measuring ranking quality. PR-curve (Precision-Recall) is better than ROC for imbalanced data.
+
+Different metrics encode different priorities: medical diagnosis values recall (catch all diseases) over precision (some false positives ok). Spam detection values precision (false positive = delete real mail) over recall. The confusion matrix shows all four categories (TP, FP, TN, FN), revealing which errors are made. Metrics aren't chosen arbitrarily—they should align with actual costs. Optimizing wrong metrics is a common mistake: accuracy can improve by predicting majority class regardless of actual improvements.
+
+Choosing appropriate metrics is as important as choosing models. Understanding which errors matter (false positives? negatives?) determines which metrics to optimize. Reporting multiple metrics (accuracy, precision, recall, F1) gives a complete picture. Threshold choice (confidence needed to predict positive) affects precision-recall trade-off. Practitioners often fixate on single metrics without understanding what they measure, leading to misleading conclusions about model quality.
 
 ## Core Intuition
 
-A key technique in machine learning.
+Classification metrics are like different report cards for a student: accuracy is overall score, precision is 'of questions they answered yes to, how many were actually yes', recall is 'of all yes questions, how many did they answer yes to'. Different metrics reveal different strengths/weaknesses.
 
 ## How It Works
 

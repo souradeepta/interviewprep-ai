@@ -2,11 +2,15 @@
 
 ## Detailed Explanation
 
-Instance-based learning using nearest neighbors...
+K-nearest neighbors (KNN) predicts based on the k nearest training examples, using majority vote for classification or averaging for regression. It's a non-parametric, lazy algorithm: no training phase, computation happens at prediction time. Simple to understand (look at k similar past examples) but computationally expensive and suffers from curse of dimensionality (in high dimensions, notion of 'nearby' becomes less meaningful).
+
+Key choice is k: small k (1-3) has low bias but high variance (single outliers influence predictions), large k (all training data) has high bias but low variance. Distance metric matters: Euclidean distance works for continuous features, other metrics for different data types. Feature scaling is critical because unscaled features with large ranges dominate distances. KNN is often used as a baseline because it's parameter-free (only k to tune) and non-parametric (no distributional assumptions).
+
+KNN is conceptually the simplest classification algorithm and often serves as a baseline. Understanding it clarifies why distance, scale, and dimensionality matter. In practice, KNN is usually outperformed by parametric methods (trees, linear models) on most problems, but for certain applications (few training examples, non-standard data) it remains useful. The computational cost of exact KNN (computing distances to all training points) led to approximate nearest neighbor algorithms crucial for modern large-scale systems.
 
 ## Core Intuition
 
-A key technique in machine learning.
+KNN is like making a prediction based on your k nearest neighbors' experiences: 'What did people like you do?' If most of your 5 nearest neighbors succeeded, you probably will too. It relies entirely on similarity—things that are similar tend to behave similarly.
 
 ## How It Works
 

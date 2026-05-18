@@ -2,11 +2,15 @@
 
 ## Detailed Explanation
 
-MSE, MAE, R² for evaluating regressors...
+Regression metrics quantify prediction error for continuous targets. Mean Absolute Error (MAE) is interpretable (average |prediction - actual| error in same units as target) and robust to outliers. Mean Squared Error (MSE) penalizes large errors quadratically (outlier-sensitive). Root Mean Squared Error (RMSE) is back in original units, comparable to MAE but penalizes large errors more. R² (proportion of variance explained) ranges [0,1] with 1 = perfect, 0 = just predicting mean. R² is scale-independent, making comparisons across datasets possible.
+
+The trade-off between MAE and MSE: MSE is differentiable and has nice mathematical properties (used in derivations, fast computation), but MAE is interpretable and outlier-robust. Median Absolute Error (MedianAE) is even more robust but less standard. Mean Absolute Percentage Error (MAPE) is useful when relative error matters, but undefined when actuals are zero. Custom metrics can encode domain knowledge about relative importance of different errors.
+
+Choosing metrics should reflect what matters in the application: predicting demand (small errors acceptable?) vs. medical dosing (large errors very costly?). Residual analysis (plotting errors vs fitted values, checking for patterns) is crucial: systematic patterns reveal model misspecification. Multiple metrics paint different pictures (model A has lower MSE, model B has lower MAE). R² can be misleading (R² = 0.9 sounds great but might be unimpressive depending on domain). Practitioners often report only one metric without understanding what it really tells them.
 
 ## Core Intuition
 
-A key technique in machine learning.
+Regression metrics are different ways to measure 'how wrong you were': MAE is like average distance from target (dollar amount off), MSE penalizes big mistakes heavily, R² is like 'what fraction of the variation did you explain'. Different metrics suit different situations.
 
 ## How It Works
 

@@ -2,11 +2,15 @@
 
 ## Detailed Explanation
 
-Creates useful representations of raw data...
+Feature engineering creates new features from raw data to improve model performance. Domain knowledge often reveals good features: for time series, lagged values and rolling statistics; for text, word counts and TF-IDF. Polynomial features create non-linear combinations; interactions capture synergies. Scaling features (standardization, normalization) is essential for algorithms sensitive to feature magnitude. Encoding categorical variables (one-hot, ordinal, target encoding) transforms non-numeric data.
+
+Feature engineering is problem-specific—no universal rules exist. The goal is creating features that expose patterns to the model. Well-engineered features can enable simpler models to outperform complex models on poorly-engineered features. Dimensionality (too many features) causes overfitting; too few features causes underfitting. Feature selection (choosing important features) reduces dimensionality and interpretability. Automated feature engineering (searching over potential combinations) is appealing but requires careful validation to avoid overfitting to training data structure.
+
+Feature engineering is often cited as 'where domain experts contribute' (not something to automate), and it's where careful practitioners gain advantages over default pipelines. Understanding which features matter for your problem is crucial. Good features need less model capacity (simpler model), train faster (fewer features), and generalize better (noise is low-dimensional). Modern deep learning aims to learn features automatically (representation learning) but explicit feature engineering remains valuable for tabular data.
 
 ## Core Intuition
 
-A key technique in machine learning.
+Feature engineering is like translating raw ingredients (raw data) into measured ingredients (features) that make cooking easier. Raw eggs are hard to use; cracked eggs are easier. Flour needs to be sifted. Butter needs to be at room temperature. Same with data—transforming it into useful forms helps the 'recipe' (model) work better.
 
 ## How It Works
 

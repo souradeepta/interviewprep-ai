@@ -2,11 +2,15 @@
 
 ## Detailed Explanation
 
-Prevents overfitting via L1, L2, dropout, early stopping...
+Regularization prevents overfitting by penalizing model complexity, encouraging simpler models that generalize better. L2 regularization (ridge) adds penalty proportional to squared weights, shrinking large weights but keeping all features. L1 regularization (lasso) adds penalty proportional to absolute weights, driving some weights exactly to zero (feature selection). L1 produces sparse solutions; L2 produces small but non-zero weights. Dropout randomly zeros activations during training (preventing co-adaptation), then scales by dropout rate at test time to compensate. Early stopping stops training when validation performance plateaus.
+
+The regularization-generalization connection is fundamental: more parameters fit training data better but generalize worse. Regularization trades training performance for generalization. The regularization strength λ is a hyperparameter: high λ enforces strong regularization (underfitting risk), low λ weak regularization (overfitting risk). Different problems need different λ values; empirically finding the right trade-off is crucial. Dropout is applied per-layer and acts somewhat like averaging ensemble predictions, explaining its regularization effect.
+
+Regularization is one of the most important tools in machine learning, yet often underappreciated. The difference between a model that overfits (memorizes) and one that generalizes is often just the right regularization. Understanding the L1 vs L2 distinction helps choose: use L1 for automatic feature selection, L2 for smoother regularization. Dropout is particularly important in deep learning—modern networks often require dropout to generalize. Practitioners should understand that regularization isn't just a technical detail but a core concept in machine learning.
 
 ## Core Intuition
 
-A key technique in machine learning.
+Regularization is like penalizing complexity: L2 is like 'keep weights small', L1 is like 'remove unnecessary features entirely', dropout is like 'hide random neurons to prevent over-reliance on specific features'. All prevent the model from memorizing training data by constraining what it can learn.
 
 ## How It Works
 

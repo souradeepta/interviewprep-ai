@@ -2,11 +2,15 @@
 
 ## Detailed Explanation
 
-Stacks layers of parameterized transformations...
+Neural networks are compositions of simple functions (neurons) arranged in layers, enabling non-linear function approximation. A single neuron computes a weighted sum of inputs plus a bias, then applies an activation function. Multiple neurons in a layer compute multiple features in parallel. Stacking layers creates depth, enabling learning of hierarchical representations. The universal approximation theorem guarantees that a sufficiently wide two-layer network can approximate any function, though it says nothing about learnability or depth efficiency.
+
+The XOR problem (which linear models can't solve) is solvable by a two-layer network, illustrating why non-linearity is necessary. Deeper networks can be more parameter-efficient than shallow ones (learning same function with fewer parameters), but are harder to train (vanishing/exploding gradients). Modern best practices include ReLU activations (simpler and more gradient-friendly than sigmoids), batch normalization, skip connections, and careful initialization. Neural networks are "just function approximators" but the composition enables learning rich, hierarchical representations.
+
+Neural networks are the foundation of deep learning. Understanding the basic unit (neuron = weighted sum + non-linearity) and how stacking creates expressiveness helps demystify deep learning. Many practitioners use frameworks without fully understanding the underlying mechanics, but understanding how gradients flow through layers is crucial for debugging training issues. The universality theorem is intellectually important but practically misleading (doesn't mean networks learn efficiently).
 
 ## Core Intuition
 
-A key technique in machine learning.
+Neural networks are like stacking transparent sheets with hand-drawn features: the first layer detects edges, the second layer combines edges into corners, the third layer combines corners into shapes, etc. Each layer transforms the representation slightly. Stacking enables detecting increasingly complex patterns.
 
 ## How It Works
 

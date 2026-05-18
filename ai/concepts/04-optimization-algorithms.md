@@ -2,11 +2,15 @@
 
 ## Detailed Explanation
 
-Beyond basic gradient descent, modern optimizers adapt learning rates per parameter or maintain momentum across iterations. Adam combines momentum and adaptive learning rates, RMSprop adapts per-parameter learning rates using gradient history, Adagrad accumulates squared gradients to decrease learning rates for frequent features. These algorithms drastically improve convergence speed and stability, especially on non-convex loss surfaces common in deep learning.
+Beyond basic gradient descent, many optimization algorithms adaptively adjust learning rates and incorporate momentum to accelerate convergence and improve stability. Momentum methods (like SGD with momentum) accumulate gradients over time, helping escape shallow local minima and plateaus. Adam combines momentum with adaptive per-parameter learning rates, automatically scaling step sizes. RMSprop divides learning rates by the root mean square of accumulated gradients. AdamW (Adam with weight decay) adds L2 regularization, crucial for neural networks.
+
+Each optimizer has different properties: SGD with momentum is simple and reliable but requires careful learning rate tuning. Adam is often the default choice—less sensitive to learning rate and usually requires minimal tuning. RMSprop works well when gradients are sparse. Different optimizers can converge to different final solutions because they navigate loss landscapes differently. Modern practice usually starts with Adam, but understanding the alternatives helps when Adam gets stuck.
+
+Optimization algorithms are the engines driving neural network training. They matter as much as architecture choices for final performance. Knowing which optimizer to try when training isn't working is a practical debugging skill. Most importantly, understanding that all these algorithms are solving the same problem (minimizing loss) with different strategies helps you predict which might work best for a given problem.
 
 ## Core Intuition
 
-Different optimizers are like different drivers: vanilla GD is careful but slow, momentum is aggressive and pushes through valleys, Adam is adaptive and learns the terrain as it goes.
+Optimization algorithms are like different navigation strategies on a road trip. Basic gradient descent is like following the steepest downhill path (works but slow on flat terrain). Momentum is like having momentum that helps you push through flat areas. Adam is like an intelligent navigator that adjusts your pace based on the terrain (steep = slower, flat = faster). Different strategies reach the destination at different speeds.
 
 ## How It Works
 

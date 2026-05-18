@@ -2,11 +2,15 @@
 
 ## Detailed Explanation
 
-Fits hyperplane to data minimizing prediction error...
+Linear regression predicts continuous values by fitting a line (or plane/hyperplane in high dimensions) to minimize squared prediction errors. The mathematical elegance is that the optimal solution has a closed-form formula (normal equation), making it computationally efficient. However, the closed form requires inverting a matrix which becomes numerically unstable with many features, so gradient descent is often used instead despite being iterative.
+
+The model assumes target = linear combination of features + noise, which is rarely exactly true but is often a good approximation. Regularization (ridge regression adds L2 penalty, lasso adds L1 penalty) prevents overfitting by penalizing large coefficients. Ridge keeps all features (shrinking coefficients) while lasso zeros out some features entirely (feature selection). The interpretation of coefficients is straightforward: coefficient = change in target per unit change in feature (holding others fixed), making linear regression highly interpretable.
+
+Linear regression is often considered 'simple' but remains incredibly valuable because it's interpretable, efficient, and often performs as well as complex methods on real data. Understanding when linear assumptions are reasonable helps you choose whether to use linear regression or move to more complex methods. It's also the foundation for understanding more complex models—many advanced techniques can be viewed as non-linear extensions of linear regression.
 
 ## Core Intuition
 
-A key technique in machine learning.
+Linear regression is like fitting a straight line through scatter plot points to predict future values. The line minimizes total vertical distances from points to the line. It's simple but powerful: if the relationship is roughly linear, a straight line often predicts better than a complex curve would (avoiding overfitting).
 
 ## How It Works
 

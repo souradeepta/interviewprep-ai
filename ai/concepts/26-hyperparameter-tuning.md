@@ -2,11 +2,15 @@
 
 ## Detailed Explanation
 
-Grid, random, Bayesian search for optimal parameters...
+Hyperparameters (learning rate, regularization strength, tree depth, etc.) are set before training and significantly affect model performance. Grid search exhaustively tries all combinations in a specified grid (expensive, few values per hyperparameter). Random search samples combinations randomly (efficient, can explore wider ranges). Bayesian optimization models performance as a function of hyperparameters, intelligently choosing which to try next (efficient but more complex). Early stopping (monitoring validation performance) provides regularization without additional hyperparameters.
+
+The search space defines reasonable ranges: learning rate 1e-5 to 1e-1 on log scale, tree depth 3-20, regularization 1e-4 to 1e2. Too narrow ranges miss optimal values; too wide ranges waste computation. The number of hyperparameters (curse of dimensionality in hyperparameter space) grows exponentially. Focused tuning (fixing unimportant hyperparameters, tuning important ones) is practical. Warm-starting from good previous runs accelerates tuning. Cross-validation during tuning avoids overfitting to validation data.
+
+Hyperparameter tuning is often where practitioners spend too much effort. Often default hyperparameters work well, and careful feature engineering matters more. However, tuning the top 1-2 important hyperparameters often improves performance noticeably. Knowing which hyperparameters matter for your problem (algorithm-dependent) helps focus effort. Modern AutoML tools automate tuning but require careful validation. Tuning can be expensive computationally, so frameworks supporting parallel/distributed search are valuable.
 
 ## Core Intuition
 
-A key technique in machine learning.
+Hyperparameter tuning is like adjusting oven temperature, baking time, and ingredient ratios: too hot/fast burns the cake, too cool/slow leaves it raw, too much salt/sugar ruins flavor. You experiment to find the sweet spot. Some parameters matter more (temperature) than others (minor ingredient amounts).
 
 ## How It Works
 

@@ -2,11 +2,15 @@
 
 ## Detailed Explanation
 
-Normalizes layer inputs for stable training...
+Batch normalization normalizes layer activations to have mean ≈ 0 and variance ≈ 1 during training, stabilizing training and enabling higher learning rates. Internal covariate shift (the problem it solves) is when layer input distributions change during training, requiring earlier layers to keep adapting. BN prevents this by fixing downstream layer's input distribution. At inference, BN uses running statistics (not minibatch statistics) computed during training.
+
+BN provides several benefits: allows higher learning rates (training is more stable), reduces dependence on initialization, acts as regularization (noise from using minibatch statistics), and often improves generalization. Layer normalization (normalize across features rather than batch) works better for sequential models where batch dimension is small. Group norm (normalize across groups of features) is middle ground. BN has trainable parameters (scale and shift) that let it undo normalization if useful, providing flexibility.
+
+Batch normalization is a practical workhorse in deep learning, often essential for training deep networks. Understanding why it helps (internal covariate shift) explains why architectures with BN train faster. The training vs inference distinction (using minibatch statistics during training, running statistics during inference) is important for correct implementation. BN can interact unexpectedly with dropout and other stochastic techniques, requiring careful design. Despite its empirical success, theoretical understanding of why BN works remains incomplete.
 
 ## Core Intuition
 
-A key technique in machine learning.
+Batch normalization is like normalizing test scores to mean 0, variance 1 before grading: ensures all layers see similar input distributions, making training more stable. It's like calibrating instruments in an assembly line so each station works with standardized input ranges.
 
 ## How It Works
 

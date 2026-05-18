@@ -2,11 +2,15 @@
 
 ## Detailed Explanation
 
-Finds lower-dimensional representation via PCA, t-SNE, UMAP...
+Dimensionality reduction maps high-dimensional data to lower dimensions while preserving important structure. Principal Component Analysis (PCA) finds orthogonal directions of maximum variance. t-SNE creates 2D visualizations by preserving local structure (nearby points stay nearby) but can't extrapolate beyond training data. UMAP is faster than t-SNE and more faithful to global structure. These methods address curse of dimensionality (in high dimensions, distances become less meaningful) and enable visualization.
+
+PCA is linear (rotation to maximum-variance directions); t-SNE and UMAP are non-linear. PCA is deterministic and interpretable (principal components are weighted combinations of original features); t-SNE and UMAP involve randomness and are less interpretable. PCA is fast and scalable; t-SNE/UMAP are slower. Explained variance ratio measures how much information PCA preserves (cumulative explained variance guides choosing number of components). Feature scaling is critical for PCA.
+
+Dimensionality reduction is useful for visualization (understanding data structure) and sometimes for preprocessing (reducing computational cost, reducing noise by dropping low-variance dimensions). PCA is the classical choice and remains useful. t-SNE is excellent for visualization but can be misleading about global structure. Understanding that different methods preserve different properties helps choose: use PCA for interpretability, t-SNE for visualization, UMAP for balance. Practitioners often apply reduction for visualization without realizing it changes apparent structure.
 
 ## Core Intuition
 
-A key technique in machine learning.
+Dimensionality reduction is like taking a high-dimensional photo and printing a 2D picture: some information is lost, but key structures (who's near whom, overall grouping) are preserved. PCA is like rotating to the best viewing angle. t-SNE is like artistic rendering emphasizing details you find interesting.
 
 ## How It Works
 

@@ -2,11 +2,15 @@
 
 ## Detailed Explanation
 
-Partitions data minimizing within-cluster sum of squares...
+K-means partitions data into k clusters by iteratively assigning points to nearest centroids and updating centroids to be cluster means. It's the most widely used clustering algorithm due to simplicity and efficiency. The algorithm converges to a local optimum (not necessarily global), so initialization matters. K-means++ initialization selects initial centroids that are far apart, improving solution quality without much additional cost. The main limitation is that k must be specified (unknown in truly unsupervised settings).
+
+Determining optimal k is non-trivial. Elbow method plots intra-cluster variance versus k and looks for an 'elbow' (diminishing returns point). Silhouette score measures cluster quality (higher is better). BIC/AIC are information-theoretic measures balancing fit and complexity. In practice, domain knowledge often suggests reasonable k values. K-means assumes clusters are roughly spherical and similarly sized, which isn't always true. K-means++ improves quality; mini-batch variants enable large-scale clustering. K-means is non-probabilistic; soft clustering (like Gaussian Mixture Models) provides probabilities.
+
+K-means is a quick way to discover patterns in unlabeled data. Understanding its limitations (local optima, spherical assumption, need to specify k) helps choose alternatives. K-means++ is a simple modification that dramatically improves solution quality. Most practitioners use sklearn or similar implementations but understanding the algorithm helps debug unexpected cluster assignments or identify when assumptions are violated.
 
 ## Core Intuition
 
-A key technique in machine learning.
+K-means is like organizing people into k friend groups: initially pick k random people, then repeatedly ask 'who are your closest friends?' and recompute centers. Eventually you reach groups where everyone's closest friends are in their group. It's a natural way to partition data by proximity.
 
 ## How It Works
 

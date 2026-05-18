@@ -2,11 +2,15 @@
 
 ## Detailed Explanation
 
-Extends linear regression to classification via sigmoid...
+Logistic regression predicts probabilities for classification by applying a sigmoid function to a linear model, squashing outputs into the [0,1] range. Despite its name, it's a classification algorithm (not regression), and it's arguably the most important baseline in machine learning. If logistic regression doesn't work well on a problem, more complex methods likely won't either (garbage in, garbage out). It's the first algorithm to try for binary classification.
+
+The model outputs a probability via σ(w·x + b), where σ is the sigmoid function. This probability is interpreted as P(y=1|x), making the model interpretable: coefficients show log-odds changes. Training uses cross-entropy loss, which is information-theoretically justified and works better than squared error for classification. Regularization prevents overfitting, especially important when features vastly outnumber samples. Logistic regression extends naturally to multi-class via softmax.
+
+Logistic regression is remarkably effective in practice because many real-world classification problems are approximately linear in the input space. Its interpretability (you can read off which features matter and in which direction) makes it invaluable for high-stakes applications. Understanding logistic regression helps you grasp how neural networks (which are logistic regression + nonlinearity + depth) work. It's also computationally efficient, making it suitable for deployment.
 
 ## Core Intuition
 
-A key technique in machine learning.
+Logistic regression is like drawing a decision boundary (straight line) through scatter plot points to separate two classes. The probability near the boundary is uncertain (near 0.5), far from boundary is confident (near 0 or 1). It's the simplest way to turn a linear model into a probabilistic classifier.
 
 ## How It Works
 

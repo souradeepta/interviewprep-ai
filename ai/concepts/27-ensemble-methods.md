@@ -2,11 +2,15 @@
 
 ## Detailed Explanation
 
-Combines multiple models via bagging, boosting, stacking...
+Ensemble methods combine multiple models to improve robustness and performance. Bagging (bootstrap aggregation) trains models on random data subsets independently, then averages predictions. Boosting trains sequentially, with each model learning to correct previous models' errors. Stacking trains a meta-learner on outputs of base learners. Voting (simple averaging) is simplest. Weights can be learned (weighted average, meta-learner) for better combinations. Diversity among ensemble members is key: ensembles of identical models provide no benefit.
+
+The bias-variance perspective explains ensembles: averaging independent, high-variance models reduces variance while bias remains constant (or increases slightly). This is the fundamental mechanism. Different base learners (some shallow, some deep; some linear, some non-linear) capture different patterns. Stacking can learn when to trust which model. Bagging is parallelizable (train on different subsets); boosting is sequential. Random forests are a bagged ensemble of trees; gradient boosting is a boosted ensemble.
+
+Ensembles are one of the most practical and underappreciated techniques. Simple averaging of multiple trained models often improves performance noticeably with minimal additional cost. Understanding what makes good ensemble members (diverse, uncorrelated errors) helps design ensembles. Practical practitioners create ensembles by training multiple models with different initializations, hyperparameters, or architectures. The trade-off is inference cost: k times the model cost but often k times the accuracy improvement.
 
 ## Core Intuition
 
-A key technique in machine learning.
+Ensembles are like hiring multiple experts to make a decision: individual experts make different mistakes, but averaging their votes reduces error. A committee of diverse experts is usually smarter than any individual expert. The key is diversity—a committee of identical people is useless.
 
 ## How It Works
 

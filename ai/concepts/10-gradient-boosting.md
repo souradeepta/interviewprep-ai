@@ -2,11 +2,15 @@
 
 ## Detailed Explanation
 
-Trains trees sequentially, focusing on previous errors...
+Gradient boosting builds trees sequentially, where each new tree learns to correct errors made by previous trees. Unlike random forests (parallel independent trees), boosting is sequential—each tree targets the residuals of the ensemble so far. This sequential correction process is powerful but requires careful tuning to avoid overfitting. XGBoost and LightGBM are optimized implementations used heavily in competitions and industry.
+
+The algorithm starts with a base prediction (usually the mean), then fits a tree to residuals. Each new tree is scaled by a learning rate (small step sizes prevent overfitting). Early stopping (stop after validation error plateaus) prevents memorizing training data. Key hyperparameters are tree depth (shallow trees = regularization), number of boosting rounds (more = more capacity), and learning rate (lower = slower but more careful learning). Unlike random forests, gradient boosting requires careful tuning but often achieves state-of-the-art accuracy on tabular data.
+
+Gradient boosting is the most effective algorithm for tabular/structured data in practice, winning most Kaggle competitions. Understanding the sequential error correction concept helps explain why boosting works: each successive tree is easier to fit because it only needs to capture the previous ensemble's errors, not the full complexity. XGBoost and LightGBM are industry standards, though both are complex to tune optimally. Starting with default hyperparameters and adjusting based on validation performance is practical.
 
 ## Core Intuition
 
-A key technique in machine learning.
+Gradient boosting is like learning by mistakes: your first prediction is rough (tree 1), you see where you were wrong (residuals), and train a second model to correct those specific mistakes. Then you see the remaining errors and train a third model, etc. Each model learns from the collective mistakes of all previous models.
 
 ## How It Works
 

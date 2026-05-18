@@ -2,11 +2,15 @@
 
 ## Detailed Explanation
 
-K-fold CV estimates performance without wasting data...
+Cross-validation estimates generalization performance by repeatedly splitting data into training and validation folds. K-fold splits data into k subsets, trains on k-1 subsets, tests on the held-out subset, repeating k times. Final performance is the average across folds. This provides robust estimates using all data for both training and testing (unlike single train/test split which wastes data). Stratified K-fold maintains class distribution in each fold, critical for imbalanced datasets.
+
+Different fold choices exist: time-series data requires ordered splits (don't train on future predicting past), grouped data requires keeping groups together (don't split group across folds), high-variance problems benefit from more folds (5-10 typical). Computational cost is k × training cost. Nested cross-validation (CV inside CV) provides unbiased hyperparameter selection but is expensive. Leave-one-out cross-validation tests on single samples repeatedly (expensive but unbiased for small datasets).
+
+Cross-validation is the standard for evaluating model performance, providing more reliable estimates than a single train/test split. Understanding when standard CV is inappropriate (time series, grouped data) prevents mistakes. Stratified CV is crucial for imbalanced classification but many practitioners forget. The variance across folds (how much does performance vary?) indicates stability: low variance = robust performance, high variance = unreliable. Modern practice often uses cross-validation early to validate that models actually work before deployment.
 
 ## Core Intuition
 
-A key technique in machine learning.
+Cross-validation is like testing a recipe by cooking it multiple times with slightly different ingredients each time: instead of one expensive test, you get multiple data points about whether the recipe is good. Averaging across tests gives a better estimate than a single test would.
 
 ## How It Works
 

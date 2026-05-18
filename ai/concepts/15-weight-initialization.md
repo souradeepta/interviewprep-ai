@@ -2,11 +2,15 @@
 
 ## Detailed Explanation
 
-Careful initialization prevents vanishing/exploding gradients...
+Neural networks are sensitive to initialization: poor initialization can cause vanishing/exploding gradients even with good architectures and learning rates. Xavier initialization (also Glorot) scales initial weights inversely to the number of inputs, maintaining gradient magnitudes. He initialization is similar but scaled for ReLU activations. Bad initialization (too large) causes exploding gradients, (too small) causes vanishing gradients. Biases are typically initialized to zero.
+
+The intuition is that initial weights should preserve gradient variance: if x has variance σ², then w·x should have similar variance. With fanin inputs, weights should have variance ≈ 1/fanin. Modern frameworks default to sensible initialization, but understanding this explains why networks fail to train sometimes. Orthogonal initialization (weights are orthogonal matrices) is elegant but less commonly used. Layer normalization makes initialization less critical by normalizing activations to fixed statistics.
+
+Weight initialization is one of those details often overlooked because frameworks handle it. However, understanding why it matters explains training failures. Initialization affects how long the network takes to converge and sometimes whether it converges at all. Combined with batch normalization and ReLU activations, initialization is less critical, but understanding the principles helps debug networks that aren't training.
 
 ## Core Intuition
 
-A key technique in machine learning.
+Weight initialization is like starting a game with different initial conditions: too heavy initial weights lead to extreme predictions immediately (exploding gradients), too light initial weights lead to barely-moving outputs (vanishing gradients). Proper initialization keeps gradients flowing smoothly so the network can learn.
 
 ## How It Works
 

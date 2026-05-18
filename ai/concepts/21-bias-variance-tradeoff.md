@@ -2,11 +2,15 @@
 
 ## Detailed Explanation
 
-Error decomposes into bias + variance + noise...
+The bias-variance decomposition decomposes expected test error into three components: bias (errors from wrong assumptions), variance (sensitivity to training data changes), and irreducible noise. High bias (underfitting) means the model is too simple to capture the true pattern. High variance (overfitting) means the model fits training data so closely it doesn't generalize. The trade-off is fundamental: simpler models (high bias, low variance) vs. complex models (low bias, high variance).
+
+Model complexity controls the trade-off: low complexity → high bias, low variance; high complexity → low bias, high variance. With infinite training data, complexity can increase without increasing variance (each model fits data well), so variance only matters in finite-data regimes. Regularization moves the complexity slider: more regularization → simpler model → higher bias, lower variance. Empirical validation (train/test curves) reveals whether a model suffers from bias (high error on both sets) or variance (low train error, high test error).
+
+The bias-variance trade-off is one of the most fundamental concepts in machine learning, applicable to all learning algorithms. Understanding this decomposition helps diagnose model problems: high training error suggests bias (need more capacity), high gap between training and test error suggests variance (need regularization or more data). Many practitioners struggle to distinguish between these, leading to ineffective fixes. Learning curves (error vs. training set size) reveal the nature of the problem: variance-limited problems improve with more data, bias-limited problems don't.
 
 ## Core Intuition
 
-A key technique in machine learning.
+The bias-variance tradeoff is like target shooting: bias is systematic error (aiming wrong), variance is noise (inconsistent aim). A gun with consistent but wrong aim has high bias, low variance. A gun with inconsistent aim all over the place has low bias, high variance. The best gun balances accuracy (low bias) with consistency (low variance).
 
 ## How It Works
 
