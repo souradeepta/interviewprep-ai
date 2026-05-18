@@ -10,43 +10,21 @@ Training produces a model artifact. Serving puts it to work: accept requests, re
 
 **Serving Patterns:**
 
-**1. Batch Serving (Offline):**
+```mermaid
+graph TD
+    A["1. Batch Serving<br/>Nightly: Predict 1M users<br/>Store in Cache<br/>App: Instant lookup<br/>Cheap & High throughput"] -.->|vs| B["2. Online Serving<br/>Per-request: Extract features<br/>Run inference<br/>Return in <100ms<br/>Fresh & Personalizable"]
+    B -.->|vs| C["3. Streaming<br/>Continuous: Process events<br/>Update predictions<br/>Always up-to-date<br/>Complex infrastructure"]
+    
+    style A fill:#e1f5ff
+    style B fill:#fff3e0
+    style C fill:#f3e5f5
 ```
-Data → Model → Precomputed Predictions → Storage → Retrieve
-  
-Timeline:
-  - Nightly: run batch job on 1M users → predict churn scores
-  - Store in database/cache
-  - Next day: app queries cached predictions (instant lookup)
-```
-- **Pros:** cheap (compute once), high throughput, offline optimization (can use expensive model)
-- **Cons:** stale predictions (not fresh), latency for new users, requires storage
 
-**2. Online Serving (Real-time):**
-```
-Request → Load Model → Extract Features → Predict → Response
-  
-Timeline:
-  - User visits app
-  - Request hits prediction service
-  - Service loads model, runs inference
-  - Returns prediction in <100ms
-  - Next user gets different prediction (real-time)
-```
-- **Pros:** fresh predictions, no storage, personalizable
-- **Cons:** high latency (compute on-demand), expensive (scale with requests), requires fast inference
+**Pattern Details:**
 
-**3. Streaming:**
-```
-Event Stream → Model → Update Predictions → External System
-  
-Timeline:
-  - Kafka topic: user interactions
-  - Stream processor: apply model continuously
-  - Output: updated scores (e.g., ranking scores for feed)
-```
-- **Pros:** always up-to-date, high volume
-- **Cons:** complex infrastructure, higher latency
+- **Batch Serving:** Run nightly on all users → compute churn scores → store in DB/cache → app queries (instant). Cheap, high throughput, but predictions are stale (24 hours old).
+- **Online Serving:** User requests → extract live features → inference → <100ms response. Fresh and personalizable, but expensive (scale with request volume) and requires fast inference.
+- **Streaming:** Kafka topics (user actions) → Stream processor (apply model) → update scores. Always up-to-date, handles high volume, but complex infrastructure.
 
 **Serving Frameworks:**
 
@@ -103,6 +81,16 @@ TPU/Accelerator:
   - Cost: moderate-high
   - Latency: <10ms for optimized models
 ```
+
+## Best Practices
+
+- **Match the serving pattern to requirements:** Batch for low-latency-tolerance use cases (off-peak reports), online for <100ms requirements, streaming for continuous updates.
+- **Always version models:** Tag with git commit hash. Serve multiple versions in parallel; switch via config (no redeployment needed).
+- **Enforce preprocessing parity:** Use identical preprocessing for training and serving. Version preprocessing code with models.
+- **Implement comprehensive health checks:** Liveness (is process alive), readiness (is model loaded and responsive), deep health (are all dependencies reachable).
+- **Use containerization + orchestration:** Docker containers for reproducibility, Kubernetes for autoscaling and rollback capabilities.
+- **Batch requests:** Group inference into batches (32-256) for 10-100x throughput improvement vs. single-request inference.
+- **Monitor serving metrics:** Latency, throughput, prediction distribution, error rates. Alert on latency degradation or distribution shift.
 
 ## Common Mistakes / Gotchas
 

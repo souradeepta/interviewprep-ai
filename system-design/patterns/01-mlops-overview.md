@@ -7,22 +7,31 @@ ML engineering: not just training. Covers data pipelines, model serving, monitor
 ML systems are fragile. Code, data, models all evolve. MLOps manages this: CI/CD for ML, automated retraining, monitoring.
 
 ## How It Works
-```
-Data → Pipeline → Training → Evaluation → Serving → Monitoring
-                                              ↓
-                                        Drift detected?
-                                              ↓
-                                          Retrain
+
+```mermaid
+graph LR
+    A[Data Source] -->|ETL| B[Feature Store]
+    B --> C[Training Pipeline]
+    C --> D[Model Registry]
+    D --> E[Deployment]
+    E --> F[Serving]
+    F --> G[Monitoring]
+    G -->|Drift Detected| H{Retrain?}
+    H -->|Yes| C
+    H -->|No| G
+    C --> I[Experiment Tracking]
+    I --> D
 ```
 
 **Key components:**
-- Data pipeline (ETL)
-- Feature store
-- Model registry
-- Experiment tracking
-- Automated retraining
-- Monitoring + alerting
-- Deployment orchestration
+- **Data Pipeline (ETL):** Ingest, transform, validate data
+- **Feature Store:** Centralized feature management and versioning
+- **Experiment Tracking:** Log hyperparameters, metrics, models (MLflow, Weights & Biases)
+- **Model Registry:** Version models, manage deployment states
+- **Deployment Orchestration:** Automate model promotion (dev → staging → prod)
+- **Serving:** Inference API with batching, caching, GPU management
+- **Monitoring & Alerting:** Track performance drift, prediction quality, latency
+- **Retraining Pipeline:** Automated retraining on schedule or drift trigger
 
 ## Common Mistakes / Gotchas
 - **Manual processes:** retraining by hand is error-prone. Automate.
@@ -45,6 +54,154 @@ A: Minimum: (1) version control for code and model artifacts, (2) automated retr
 
 **Q: What is the ROI calculation for investing in MLOps infrastructure?**
 A: Quantify: engineer hours spent debugging production issues (monitoring reduces this), time to retrain and deploy models (CI/CD reduces this), models that failed silently before monitoring caught them (value of prevented failures). Typical improvements: 3-5x faster model deployment, 50-70% reduction in production incidents, 2-3x more models maintained per engineer. The investment pays off when the cost of infrastructure is less than the cost of the manual work it replaces, usually at 3-5 production models.
+
+## Best Practices
+
+- **Version everything:** Code, data, models, configs. Use DVC for datasets, model registries for artifacts.
+- **Separate environments:** Dev, staging, production. Never train in prod. Use blue-green deployments for rollback.
+- **Automate retraining:** Trigger on schedule (hourly/daily) or drift detection (Kolmogorov-Smirnov test on prediction distribution).
+- **Monitor early, monitor often:** Track prediction distribution, input feature distribution, model latency, prediction errors.
+- **Start minimal:** MLflow + GitHub Actions + CloudRun covers 80% of use cases. Add complexity only when you hit pain points.
+- **Test data pipelines:** Unit tests on ETL, integration tests on feature computation, validation tests on output schema.
+- **Document model lineage:** Track which training data, which hyperparameters, which commit created each model.
+
+## Code Examples
+
+### Example 1: MLOps Pipeline with MLflow
+
+```python
+import mlflow
+from sklearn.model_selection import train_test_split
+from sklearn.ensemble import RandomForestClassifier
+import pandas as pd
+
+# Set MLflow tracking
+mlflow.set_experiment("mlops-example")
+
+def train_pipeline(data_path, test_size=0.2, n_estimators=100, max_depth=10):
+    # Load data
+    data = pd.read_csv(data_path)
+    X, y = data.drop('target', axis=1), data['target']
+    X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=test_size)
+    
+    # Start MLflow run
+    with mlflow.start_run(description="Random Forest baseline"):
+        # Log hyperparameters
+        mlflow.log_params({
+            "n_estimators": n_estimators,
+            "max_depth": max_depth,
+            "test_size": test_size
+        })
+        
+        # Train
+        model = RandomForestClassifier(n_estimators=n_estimators, max_depth=max_depth)
+        model.fit(X_train, y_train)
+        
+        # Evaluate
+        train_score = model.score(X_train, y_train)
+        test_score = model.score(X_test, y_test)
+        
+        # Log metrics
+        mlflow.log_metrics({
+            "train_accuracy": train_score,
+            "test_accuracy": test_score
+        })
+        
+        # Log model
+        mlflow.sklearn.log_model(model, "model")
+        
+        print(f"Train: {train_score:.3f}, Test: {test_score:.3f}")
+
+# Run training
+train_pipeline("data.csv", n_estimators=100, max_depth=10)
+
+# Later: Load best model
+best_run = mlflow.search_runs(order_by=["metrics.test_accuracy DESC"]).iloc[0]
+best_model = mlflow.sklearn.load_model(f"runs:/{best_run.run_id}/model")
+```
+
+### Example 2: Data Drift Detection
+
+```python
+import numpy as np
+from scipy.stats import ks_2samp
+
+class DriftDetector:
+    def __init__(self, baseline_data, threshold=0.05):
+        self.baseline = baseline_data
+        self.threshold = threshold
+    
+    def check_drift(self, current_data, feature_name):
+        """Detect if feature distribution shifted significantly"""
+        statistic, p_value = ks_2samp(self.baseline[feature_name], current_data[feature_name])
+        
+        drifted = p_value < self.threshold
+        return {
+            "feature": feature_name,
+            "p_value": p_value,
+            "drifted": drifted,
+            "action": "Trigger retraining" if drifted else "Continue monitoring"
+        }
+
+# Usage
+detector = DriftDetector(baseline_data=pd.read_csv("baseline.csv"))
+batch_data = pd.read_csv("recent_predictions.csv")
+
+for feature in batch_data.columns:
+    result = detector.check_drift(batch_data, feature)
+    print(result)
+```
+
+### Example 3: Model Registry Pattern
+
+```python
+import json
+from datetime import datetime
+from pathlib import Path
+
+class ModelRegistry:
+    def __init__(self, registry_path="./model_registry"):
+        self.registry_path = Path(registry_path)
+        self.registry_path.mkdir(exist_ok=True)
+    
+    def register_model(self, model_name, model_path, metrics, commit_hash):
+        """Register a model with metadata"""
+        metadata = {
+            "model_name": model_name,
+            "model_path": str(model_path),
+            "metrics": metrics,
+            "commit": commit_hash,
+            "timestamp": datetime.now().isoformat(),
+            "status": "staging"  # staging -> production after validation
+        }
+        
+        registry_file = self.registry_path / f"{model_name}_registry.json"
+        with open(registry_file, 'w') as f:
+            json.dump(metadata, f, indent=2)
+        
+        print(f"Model registered: {registry_file}")
+    
+    def promote_model(self, model_name, target_status="production"):
+        """Promote model from staging to production"""
+        registry_file = self.registry_path / f"{model_name}_registry.json"
+        
+        with open(registry_file, 'r') as f:
+            metadata = json.load(f)
+        
+        metadata["status"] = target_status
+        metadata["promoted_at"] = datetime.now().isoformat()
+        
+        with open(registry_file, 'w') as f:
+            json.dump(metadata, f, indent=2)
+        
+        print(f"Model promoted to {target_status}")
+
+# Usage
+registry = ModelRegistry()
+registry.register_model("fraud_detector", "./models/fraud_v1.pkl", 
+                       {"accuracy": 0.95, "auc": 0.92}, "abc123def456")
+registry.promote_model("fraud_detector", "production")
+```
 
 ## Interview Quick-Reference
 **MLOps?** Entire ML system: pipelines, training, serving, monitoring, retraining. Automation is key.
