@@ -25,7 +25,25 @@ graph TD
 
 ## Architecture / Trade-offs
 
-Trade-off 1 vs trade-off 2 — consider context and requirements.
+### Multimodal Fusion Architecture
+
+| Component | Role | Trade-off |
+|-----------|------|-----------|
+| **Core** | Primary functionality | Complexity vs effectiveness |
+| **Support** | Auxiliary systems | Overhead vs robustness |
+
+### Design Considerations
+
+- **Scalability:** System scales with data and model size
+- **Efficiency:** Computational and memory trade-offs
+- **Flexibility:** Adaptability to different tasks
+- **Robustness:** Handling edge cases and failures
+
+### Implementation Strategy
+
+- **Baseline:** Start with simple approach
+- **Iterate:** Measure and optimize bottlenecks
+- **Validate:** Test on representative data
 
 ## Interview Q&A
 
