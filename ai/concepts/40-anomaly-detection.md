@@ -30,8 +30,95 @@ graph TD
 
 ## Architecture / Trade-offs
 
-Key trade-offs and design considerations for this concept.
+### Anomaly Detection Approaches
 
+```mermaid
+graph TD
+    A["Anomaly Detection Methods"] -->|Statistical| B["Gaussian distribution<br/>Isolation Forest"]
+    A -->|Distance-based| C["K-NN distance<br/>Local Outlier Factor"]
+    A -->|Reconstruction| D["Autoencoder<br/>VAE"]
+    A -->|Supervised| E["Classification<br/>Random Forest"]
+    A -->|Density-based| F["Kernel Density<br/>One-class SVM"]
+
+    B -->|Best for| G["Known distribution<br/>Univariate data"]
+    C -->|Best for| H["Local anomalies<br/>High-dimensional"]
+    D -->|Best for| I["Complex patterns<br/>Unsupervised"]
+    E -->|Best for| J["Labeled anomalies<br/>Production systems"]
+    F -->|Best for| K["Non-parametric<br/>Complex boundaries"]
+
+    style G fill:#e1f5ff
+    style H fill:#fff3e0
+    style I fill:#f3e5f5
+```
+
+### Supervised vs Unsupervised
+
+| Aspect | Unsupervised | Supervised |
+|--------|-------------|-----------|
+| **Labels needed** | None | Full anomaly labels |
+| **Class imbalance** | N/A (no labels) | Extreme (1-10% anomalies) |
+| **False positive cost** | May be high | Controllable |
+| **False negative cost** | May miss anomalies | Controllable |
+| **Adaptability** | Good (learns normal) | Fixed to training anomalies |
+| **Deployment** | Immediate | Need labeled data |
+| **Interpretability** | May be unclear | Can explain why anomalous |
+
+### Batch vs Online Detection
+
+```mermaid
+graph TD
+    A["Anomaly Detection Setup"] -->|Batch| B["Process entire dataset<br/>Compute statistics once"]
+    A -->|Online/Streaming| C["Process stream<br/>Update model continuously"]
+
+    B -->|Pros| D["More data for thresholds<br/>Better statistics"]
+    B -->|Cons| E["No real-time detection<br/>Offline only"]
+
+    C -->|Pros| F["Real-time alerts<br/>Immediate response"]
+    C -->|Cons| G["Limited history<br/>Concept drift challenges"]
+
+    D -->|Use| H["Historical analysis<br/>Post-hoc investigation"]
+    F -->|Use| I["Production systems<br/>Real-time monitoring"]
+
+    style D fill:#e1f5ff
+    style F fill:#e8f5e9
+```
+
+### Point vs Contextual Anomalies
+
+| Type | Definition | Detection | Challenge |
+|------|-----------|-----------|-----------|
+| **Point anomaly** | Single value far from distribution | Easy (statistical) | Simple cases only |
+| **Contextual anomaly** | Value unusual in context | Hard (requires context) | Context-dependent threshold |
+| **Collective anomaly** | Group of values unusual together | Very hard (collective) | Need multi-variate model |
+
+### Threshold Selection Methods
+
+```mermaid
+graph LR
+    A["Setting Anomaly Threshold"] -->|Statistical| B["Standard deviations<br/>e.g., 3σ for Gaussian"]
+    A -->|Percentile| C["Top 1% or 5% of scores<br/>Model-independent"]
+    A -->|ROC/PR curve| D["Optimize F1 or precision<br/>Needs labeled validation"]
+    A -->|Isolation Forest| E["Anomaly score<br/>Interpretation unclear"]
+    A -->|Reconstruction error| F["Threshold on error magnitude<br/>Adaptive possible"]
+
+    B -->|Best for| G["Gaussian data"]
+    C -->|Best for| H["Unknown distribution"]
+    D -->|Best for| I["Labeled anomalies"]
+    F -->|Best for| J["Learned models"]
+
+    style D fill:#e8f5e9
+```
+
+### Imbalanced Learning Solutions
+
+| Solution | How It Works | Pros | Cons |
+|----------|------------|------|------|
+| **Threshold moving** | Change decision boundary | Simple | May not transfer |
+| **Class weighting** | Higher weight for anomalies | Natural | Requires tuning |
+| **Oversampling anomalies** | Duplicate anomaly samples | Increases data | Can overfit |
+| **Undersampling normals** | Reduce normal samples | Faster training | Loss of information |
+| **Ensemble methods** | Combine multiple models | Robust | More complex |
+| **One-class learning** | Learn normal only | Natural fit | Harder to train |
 ## Interview Q&A
 
 

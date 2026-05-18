@@ -30,8 +30,95 @@ graph TD
 
 ## Architecture / Trade-offs
 
-Key trade-offs and design considerations for this concept.
+### Two-Network Architecture
 
+```mermaid
+graph TB
+    subgraph "Actor-Critic System"
+        A["Shared Features<br/>Feature Extractor"]
+
+        A --> B["Actor Network<br/>π(a|s;θ_actor)"]
+        A --> C["Critic Network<br/>V(s;θ_critic)"]
+
+        D["Environment"] -->|State s, Reward r| E["TD Error<br/>δ = r + γV(s') - V(s)"]
+
+        B -->|Action a| D
+        C -->|Value estimate| E
+
+        E -->|TD signal| B
+        E -->|Value target| C
+
+        B -->|Probability| D
+
+        style B fill:#fff3e0
+        style C fill:#e1f5ff
+        style E fill:#f3e5f5
+    end
+```
+
+### Actor vs Critic Responsibilities
+
+| Component | Actor | Critic |
+|-----------|-------|--------|
+| **What it learns** | Policy π(a\|s) | Value function V(s) |
+| **Output** | Action probabilities/means | Scalar value |
+| **Loss function** | Policy gradient × TD error | TD loss (V(s) - target)² |
+| **Training signal** | Critic's TD error | Ground truth return |
+| **Role** | Decides what to do | Evaluates how good decision is |
+| **Failure mode** | Policies underexplore | Overestimates/underestimates values |
+
+### Architecture Variants
+
+```mermaid
+graph LR
+    A["Actor-Critic Base"] --> B["Advantage Actor-Critic<br/>A3C"]
+    A --> C["Asynchronous A3C<br/>Parallel workers"]
+    A --> D["Deep Deterministic<br/>Policy Gradient<br/>DDPG"]
+    A --> E["Soft Actor-Critic<br/>SAC"]
+
+    B -->|Use| F["Discrete actions"]
+    D -->|Use| G["Continuous actions"]
+    E -->|Use| G
+
+    style B fill:#e1f5ff
+    style D fill:#fff3e0
+    style E fill:#f3e5f5
+```
+
+### Bias-Variance Trade-off
+
+| Aspect | Lower Bias (Critic) | Higher Bias (Advantage) |
+|--------|-------------------|------------------------|
+| **TD Target** | Full episode return (unbiased) | Critic prediction (biased) |
+| **Variance** | High (entire episode affects gradient) | Low (critic reduces noise) |
+| **Convergence speed** | Slow | Fast |
+| **When to use** | Small variance in environment | Complex tasks with noise |
+| **Stability** | More stable | Less stable |
+
+### Multi-Step Learning
+
+```mermaid
+graph TD
+    A["One-Step TD"] -->|δ = r + γV(s')| B["Low bias, High variance<br/>Fast learning, Unstable"]
+    A -->|n-Step| C["n-Step TD<br/>δ = r + γr' + ... + γ^n V(s_n)"]
+    A -->|∞-Step| D["Monte Carlo<br/>Use full return"]
+    C -->|Balanced| E["Good trade-off<br/>n=3 or 4 typical"]
+
+    style B fill:#fff3e0
+    style E fill:#e1f5ff
+    style D fill:#f3e5f5
+```
+
+### Trade-offs: Synchronous vs Asynchronous
+
+| Property | Synchronous A3C | Asynchronous A3C |
+|----------|-----------------|------------------|
+| **Training** | Single worker, sequential | Multiple workers, parallel |
+| **Convergence speed** | Slower | Faster (more samples) |
+| **Complexity** | Simple | Complex (threading, locking) |
+| **Hardware** | Single machine | Multi-core/GPU |
+| **Stability** | Less stable | More stable (diverse experience) |
+| **Memory** | Lower | Higher (multiple workers) |
 ## Interview Q&A
 
 

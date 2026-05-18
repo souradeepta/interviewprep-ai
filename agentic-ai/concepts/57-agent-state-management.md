@@ -30,8 +30,32 @@ graph TD
 
 ## Architecture / Trade-offs
 
-Key trade-offs and design considerations for this concept.
+### State Storage Architecture
 
+```mermaid
+graph TD
+    A["Current Turn"] -->|Short-term| B["Working Memory<br/>Current conversation"]
+    B -->|Retrieve relevant| C["Long-term Store<br/>Database"]
+    C -->|Vector search| D["Semantic Memory<br/>Embeddings"]
+    C -->|Exact lookup| E["Fact Store<br/>Structured"]
+    
+    F["Context Limit"] -->|Overflow| G["Summarize old turns<br/>Keep important facts"]
+    G -->|Update| C
+
+    style B fill:#fff3e0
+    style C fill:#e1f5ff
+    style D fill:#f3e5f5
+```
+
+### Memory Type Trade-offs
+
+| Type | Capacity | Speed | Query | Retention |
+|------|----------|-------|-------|-----------|
+| **Working memory** | Small (context) | Very fast | Direct index | Current turn |
+| **Semantic memory** | Large | Medium | Vector search | Long-term |
+| **Episodic memory** | Large | Slow | Sequential search | Full history |
+| **Fact store** | Medium | Fast | Exact match | Verified facts |
+| **Summary** | Small | Very fast | Direct | Key points |
 ## Interview Q&A
 
 

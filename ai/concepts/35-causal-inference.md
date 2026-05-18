@@ -30,8 +30,92 @@ graph TD
 
 ## Architecture / Trade-offs
 
-Key trade-offs and design considerations for this concept.
+### Causal vs Observational Reasoning
 
+```mermaid
+graph TD
+    A["Data Analysis Goal"] -->|Predict| B["Prediction<br/>P(Y|X)"]
+    A -->|Intervene| C["Causal Inference<br/>P(Y|do(X))"]
+
+    B -->|Methods| D["Standard ML<br/>Regression, Classification"]
+    C -->|Methods| E["Causal Methods<br/>IV, Matching, Causal Forests"]
+
+    D -->|Answer| F["What will happen?<br/>Correlation-based"]
+    E -->|Answer| G["What if we change X?<br/>Causation-based"]
+
+    style B fill:#fff3e0
+    style C fill:#f3e5f5
+    style F fill:#e1f5ff
+    style G fill:#e8f5e9
+```
+
+### Causal Identification Methods
+
+| Method | Assumptions | Data Type | Bias |
+|--------|-------------|-----------|------|
+| **Randomized Experiment** | None (gold standard) | Experimental | Unbiased |
+| **Propensity Score Matching** | Unconfoundedness | Observational | Biased if unobserved confounders |
+| **Instrumental Variables** | Valid instrument exists | Observational | Unbiased (if valid) |
+| **Regression Adjustment** | No hidden confounders | Observational | Biased if confounders missed |
+| **Causal Forests** | Unconfoundedness | Observational | Unbiased under assumptions |
+| **Synthetic Control** | Parallel trends | Panel data | Biased if assumption violated |
+
+### Confounder Adjustment
+
+```mermaid
+graph TD
+    A["Confounder Z"] -->|Affects| B["Treatment X"]
+    A -->|Affects| C["Outcome Y"]
+    B -->|Affects| C
+
+    D["Naive Comparison<br/>Corr(X,Y)"] -->|Biased| E["Confounded estimate<br/>Includes Z→Y effect"]
+
+    F["Adjusted Comparison<br/>Corr(X,Y|Z)"] -->|Unbiased| G["Causal estimate<br/>Removes Z effect"]
+
+    style A fill:#f3e5f5
+    style D fill:#ffebee
+    style F fill:#e8f5e9
+```
+
+### Methods Comparison
+
+| Approach | Causal Assumption | Handles Hidden Confounders | Handles Feedback | Scalability |
+|----------|-------------------|---------------------------|------------------|-------------|
+| **Randomization** | No confounders (by design) | Yes | Yes | Limited |
+| **Adjustment** | No hidden confounders | No | No | High |
+| **Matching** | Unconfoundedness | No | No | Medium |
+| **IV methods** | Instrument validity | Partial | No | Medium |
+| **Causal Discovery** | None (learns from data) | Difficult | Can identify | High |
+
+### Causal DAG Example
+
+```mermaid
+graph LR
+    Z["Confounder<br/>Socioeconomic Status"]
+    X["Treatment<br/>Education Level"]
+    Y["Outcome<br/>Income"]
+    U["Unobserved<br/>Ability"]
+
+    Z -->|Confounds| X
+    Z -->|Affects| Y
+    X -->|Causes| Y
+    U -->|Affects| X
+    U -->|Affects| Y
+
+    style Z fill:#f3e5f5
+    style U fill:#ffebee
+    style X fill:#fff3e0
+    style Y fill:#e1f5ff
+```
+
+### Trade-offs: Strong Assumptions vs Flexibility
+
+| Approach | Assumptions | Flexibility | Robustness |
+|----------|-------------|-------------|-----------|
+| **Randomization** | Very strict (need control group) | Low (fixed design) | Very high |
+| **Causal Discovery** | Minimal (structure learning) | High (data-driven) | Low (can identify wrong structure) |
+| **Domain Expert DAG** | Moderate (expert knowledge) | Moderate (expert-guided) | Depends on expertise |
+| **Multiple Robustness Checks** | Weak (sensitivity testing) | Very high | High (if checks pass) |
 ## Interview Q&A
 
 

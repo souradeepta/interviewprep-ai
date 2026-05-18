@@ -30,8 +30,73 @@ graph TD
 
 ## Architecture / Trade-offs
 
-Key trade-offs and design considerations for this concept.
+### Core Architecture
 
+```mermaid
+graph TD
+    A["Agent State<br/>s(t)"] -->|Choose Action| B["Epsilon-Greedy<br/>Policy"]
+    B -->|Action a| C["Environment"]
+    C -->|Reward r<br/>New State s'| D["Q-Table Update<br/>Q(s,a) ← Q(s,a) + α[r + γ max Q(s',a') - Q(s,a)]"]
+    D -->|Store Q-values| E["Q-Value Function<br/>Dictionary or Network"]
+    E -->|Lookup| B
+
+    style A fill:#e1f5ff
+    style E fill:#fff3e0
+    style D fill:#f3e5f5
+```
+
+### Off-Policy vs On-Policy
+
+| Aspect | Q-Learning (Off-Policy) | REINFORCE (On-Policy) |
+|--------|-------------------------|----------------------|
+| **What learns** | Optimal policy Q* | Current policy π |
+| **Sample efficiency** | High (learn from any trajectory) | Low (must learn from current policy) |
+| **Stability** | Overestimation bias | More stable |
+| **Implementation** | Simpler | More complex |
+| **Convergence** | Guaranteed with conditions | Convergent but slower |
+| **Use case** | Learning from diverse experience | Immediate policy improvement |
+
+### Tabular vs Function Approximation
+
+| Approach | Tabular Q-Learning | Deep Q-Network (DQN) |
+|----------|-------------------|----------------------|
+| **State space** | Small, discrete | Large, continuous |
+| **Memory** | O(|S| × |A|) | O(network parameters) |
+| **Scalability** | Limited to small domains | Scales to complex domains |
+| **Convergence** | Guaranteed | Not guaranteed |
+| **Generalization** | No generalization | Generalizes across similar states |
+| **Stability** | Inherently stable | Requires tricks (target network, replay buffer) |
+| **Best for** | Toy problems, simple games | Atari, robotics, real-world tasks |
+
+### Key Design Trade-offs
+
+**Exploration Rate (ε)**
+- High ε (0.5+): More exploration, slower convergence, discovers rare good actions
+- Low ε (0.01): Fast convergence, may get stuck in local optima
+- Decay ε over time: Best approach, explore early, exploit later
+
+**Learning Rate (α)**
+- High α (0.5+): Fast learning, unstable, overshoots optima
+- Low α (0.01): Slow learning, stable, requires many iterations
+- Optimal: Decay α over time or use adaptive methods (decreasing with update count)
+
+**Discount Factor (γ)**
+- γ close to 0: Myopic, only cares about immediate reward
+- γ close to 1: Long-term planning, slower convergence, can be unstable
+- Typical: 0.9-0.99 for most problems
+
+### Addressing Overestimation
+
+```mermaid
+graph LR
+    A["Standard Q-Learning<br/>Overestimation"] -->|Problem| B["Uses max from<br/>same network"]
+    C["Double Q-Learning"] -->|Solution 1| D["Two networks:<br/>one selects, one evaluates"]
+    E["Target Network"] -->|Solution 2| F["Slowly updated<br/>copy of Q-network"]
+
+    style A fill:#ffebee
+    style C fill:#e8f5e9
+    style E fill:#e8f5e9
+```
 ## Interview Q&A
 
 

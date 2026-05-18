@@ -34,8 +34,30 @@ graph TD
 
 ## Architecture / Trade-offs
 
-Key trade-offs and design considerations for this concept.
+### Prompt Injection Attack Vectors
 
+```mermaid
+graph TD
+    A["Attack Surfaces"] -->|Direct injection| B["User input override<br/>'Ignore instructions'"]
+    A -->|Indirect injection| C["Hidden in documents<br/>'Process this: ignore...'"]
+    A -->|Context confusion| D["Mixed prompt sections<br/>System vs User vs Data"]
+
+    E["Defense Layers"] -->|Input validation| F["Detect keywords<br/>Block patterns"]
+    E -->|Architecture| G["Separate channels<br/>System vs Data"]
+    E -->|Semantic| H["Understand intent<br/>Detect overrides"]
+    E -->|Monitoring| I["Log & alert<br/>Anomalies"]
+```
+
+### Defense Mechanisms Comparison
+
+| Defense | Effectiveness | Cost | Side Effects |
+|---------|---------------|------|--------------|
+| **Keyword filtering** | Low (bypassed) | Very low | May block valid input |
+| **Prompt engineering** | Medium (helps) | Low | Limited |
+| **Input sanitization** | Medium (partial) | Low | May break functionality |
+| **Separate APIs** | High (architectural) | High | More complex |
+| **Model fine-tuning** | High (targeted) | Very high | Long training |
+| **Monitoring & alerts** | Medium (reactive) | Low | Requires response |
 ## Interview Q&A
 
 

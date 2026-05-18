@@ -31,8 +31,95 @@ graph TD
 
 ## Architecture / Trade-offs
 
-Key trade-offs and design considerations for this concept.
+### VAE Architecture
 
+```mermaid
+graph TD
+    A["Input Data<br/>x"] -->|Encode| B["Encoder Network<br/>q(z|x)"]
+    B -->|Output| C["Mean & Variance<br/>μ(x), σ(x)"]
+    C -->|Sample| D["Latent Vector<br/>z ~ N(μ,σ)"]
+    D -->|Decode| E["Decoder Network<br/>p(x|z)"]
+    E -->|Output| F["Reconstructed<br/>x̂"]
+
+    G["Prior<br/>p(z) = N(0,I)"] -.->|Regularize| D
+
+    F -->|Reconstruction Loss| H["L_recon = ||x - x̂||²"]
+    D -->|KL Divergence| I["L_KL = KL(q(z|x) || p(z))"]
+
+    H -->|Total Loss| J["L_total = L_recon + βL_KL"]
+    I -->|Total Loss| J
+
+    style B fill:#fff3e0
+    style E fill:#f3e5f5
+    style D fill:#e1f5ff
+    style G fill:#f3e5f5
+```
+
+### VAE vs Standard Autoencoder
+
+| Property | Standard AE | VAE |
+|----------|------------|-----|
+| **Latent space** | Discrete points | Continuous distribution |
+| **Sampling** | Can't generate new samples | Can sample and generate |
+| **Interpretation** | No probabilistic meaning | Each dimension meaningful |
+| **Regularization** | L1/L2 on weights | KL divergence on distribution |
+| **Training** | Simpler, faster | More complex, slower |
+| **Generalization** | Limited | Better (smooth latent space) |
+| **Use case** | Compression | Generation, representation learning |
+
+### Loss Function Trade-off (β parameter)
+
+```mermaid
+graph TD
+    A["Loss = L_recon + β*L_KL"] -->|β = 0| B["Reconstruction only<br/>Good reconstruction, poor distribution"]
+    A -->|β = 1| C["Balanced (ELBO)<br/>Good trade-off (theoretical)")
+    A -->|β > 1| D["More regularization<br/>Better distribution, worse reconstruction"]
+
+    B -->|Result| E["Latent space collapses<br/>Posterior ≈ Prior"]
+    C -->|Result| F["Smooth latent space<br/>Good generation + reconstruction"]
+    D -->|Result| G["Disentangled factors<br/>But blurry reconstructions"]
+
+    style C fill:#e8f5e9
+```
+
+### Encoder Design Options
+
+| Encoder Type | Latent Dimension | Variance Modeling | Best For |
+|--------------|-----------------|------------------|----------|
+| **Deterministic μ + learned σ** | Variable | Full flexibility | General purpose |
+| **Deterministic μ + fixed σ** | Variable | Simpler training | Image reconstruction |
+| **Factorized Gaussian** | Independent dimensions | Simplified | Standard VAE |
+| **Spherical Gaussian** | Isotropic | Very simple | Training stability |
+| **Full covariance** | Dependent dimensions | Most flexible | Complex data |
+
+### Posterior Collapse Problem
+
+```mermaid
+graph LR
+    A["Standard VAE Training"] -->|Issue| B["KL term → 0<br/>q(z|x) ≈ p(z)"]
+    B -->|Result| C["Decoder ignores z<br/>Autoencoder-like behavior"]
+    C -->|Manifestation| D["Poor generation<br/>Blurry samples"]
+
+    E["Solution 1: β-VAE"] -->|Increase| F["β weight<br/>Enforce distribution"]
+    G["Solution 2: Annealing"] -->|Gradually| H["Increase KL weight<br/>during training"]
+    I["Solution 3: Free bits"] -->|Ensure| J["Minimum KL contribution<br/>per minibatch"]
+
+    style B fill:#ffebee
+    style E fill:#e8f5e9
+    style G fill:#e8f5e9
+    style I fill:#e8f5e9
+```
+
+### Conditional vs Unconditional VAE
+
+| Aspect | Unconditional | Conditional (CVAE) |
+|--------|---------------|--------------------|
+| **Input** | Only x | x and conditioning y |
+| **Latent** | p(z), q(z\|x) | p(z\|y), q(z\|x,y) |
+| **Generation** | Random sampling | Controlled generation |
+| **Applications** | General generation | Specific categories |
+| **Complexity** | Simpler | More complex |
+| **Control** | No control | Full control over output |
 ## Interview Q&A
 
 

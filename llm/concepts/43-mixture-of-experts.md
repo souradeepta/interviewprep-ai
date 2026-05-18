@@ -30,8 +30,30 @@ graph TD
 
 ## Architecture / Trade-offs
 
-Key trade-offs and design considerations for this concept.
+### MoE Routing Mechanisms
 
+```mermaid
+graph TD
+    A["Input x"] -->|Forward through| B["Gating Network<br/>G(x) → [0.7, 0.2, 0.1]"]
+    B -->|Route to top-k| C["Expert 1: 70%<br/>Expert 2: 20%<br/>Expert 3: skip"]
+    C -->|Parallel compute| D["Expert outputs"]
+    D -->|Combine| E["Weighted sum<br/>0.7×E1 + 0.2×E2"]
+    E -->|Output| F["y"]
+
+    style B fill:#f3e5f5
+    style C fill:#e1f5ff
+    style E fill:#fff3e0
+```
+
+### Load Balancing Strategies
+
+| Strategy | Balancing | Training Cost | Quality | Sparsity |
+|----------|-----------|---------------|---------|----------|
+| **Load loss** | High (forces equal) | Medium | Lower | Fixed |
+| **Auxiliary loss** | Medium | Low | Medium | Variable |
+| **Token choice** | Low (learned routing) | Low | Higher | Variable |
+| **Expert dropout** | Dynamic | Medium | Variable | Variable |
+| **Expert scaling** | Per-expert | High | Higher | Adaptive |
 ## Interview Q&A
 
 

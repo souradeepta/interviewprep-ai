@@ -30,8 +30,70 @@ graph TD
 
 ## Architecture / Trade-offs
 
-Key trade-offs and design considerations for this concept.
+### Core Architecture
 
+```mermaid
+graph TD
+    A["Environment State<br/>s(t)"] -->|Input| B["Policy Network<br/>π(a|s;θ)"]
+    B -->|Action probabilities| C["Sample Action<br/>a ~ π(a|s)"]
+    C -->|Execute| D["Environment"]
+    D -->|Reward r<br/>Next state s'| E["Compute Return<br/>G(t) = Σ γ^t r(t)"]
+    E -->|Gradient direction| F["Policy Gradient<br/>∇J(θ) = E[∇log π(a|s) G(t)]"]
+    F -->|Update θ| B
+
+    style B fill:#fff3e0
+    style F fill:#f3e5f5
+    style E fill:#e1f5ff
+```
+
+### Policy Gradient Variants
+
+| Method | Baseline | Variance | Bias | Convergence |
+|--------|----------|----------|------|-------------|
+| **REINFORCE** | None | Very High | Unbiased | Slow |
+| **REINFORCE w/ Baseline** | State value | High | Unbiased | Medium |
+| **Actor-Critic** | Critic network | Low | Biased | Fast |
+| **A3C** | Advantage function | Low | Slight bias | Very Fast |
+| **PPO** | Clipped advantage | Low | Slight bias | Stable |
+
+### Continuous vs Discrete Actions
+
+```mermaid
+graph TD
+    A["Action Space"] -->|Discrete| B["Output softmax<br/>π(a|s) ∈ [0,1]"]
+    A -->|Continuous| C["Output mean & variance<br/>μ(s), σ(s)"]
+    B -->|Sample action| D["Select from<br/>discrete options"]
+    C -->|Sample action| E["Gaussian distribution<br/>a ~ N(μ, σ)"]
+    D --> F["Policy Gradient Update"]
+    E --> F
+
+    style A fill:#fff3e0
+    style B fill:#e1f5ff
+    style C fill:#e1f5ff
+```
+
+### Variance Reduction Techniques
+
+| Technique | Impact on Variance | Impact on Bias | Cost |
+|-----------|-------------------|-----------------|------|
+| Baseline subtraction | Moderate reduction | None (unbiased) | Minimal |
+| Advantage estimation | Good reduction | Slight increase | Moderate |
+| Generalized Advantage Estimation (GAE) | Very good | Very slight | Moderate |
+| Multiple steps (n-step returns) | Good | Small increase | Moderate |
+
+### Trade-off: Sample Efficiency vs Stability
+
+**On-Policy (REINFORCE family)**
+- ✓ Unbiased gradient estimates
+- ✓ Guaranteed convergence to local optima
+- ✗ High variance (need many samples)
+- ✗ Sample inefficient
+
+**Off-Policy (Deterministic Policy Gradient)**
+- ✓ Better sample efficiency
+- ✗ Biased gradient estimates
+- ✗ Convergence not guaranteed
+- ✓ More stable training
 ## Interview Q&A
 
 

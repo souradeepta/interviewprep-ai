@@ -31,8 +31,33 @@ graph TD
 
 ## Architecture / Trade-offs
 
-Key trade-offs and design considerations for this concept.
+### Retrieval System Architecture
 
+```mermaid
+graph TD
+    A["Documents"] -->|Encode| B["Dense Embeddings<br/>BERT, MPNet"]
+    B -->|Index| C["Vector Database<br/>HNSW, IVF, FAISS"]
+    
+    D["Query"] -->|Encode| E["Query Embedding"]
+    E -->|Search| C
+    C -->|Top-k candidates| F["Re-ranker<br/>Cross-encoder"]
+    F -->|Ranked results| G["Language Model"]
+    G -->|Answer| H["QA Output"]
+
+    style B fill:#fff3e0
+    style C fill:#e1f5ff
+    style F fill:#f3e5f5
+```
+
+### Retrieval Methods Trade-offs
+
+| Method | Speed | Accuracy | Memory | Scalability |
+|--------|-------|----------|--------|-------------|
+| **Lexical (BM25)** | Very fast | Moderate | Low | Excellent |
+| **Dense (DPR)** | Slow | High | High | Moderate |
+| **Hybrid** | Medium | Very high | High | Good |
+| **Approximate NN** | Fast | High | Medium | Excellent |
+| **Reranking** | Slower | Much higher | Low | Good |
 ## Interview Q&A
 
 

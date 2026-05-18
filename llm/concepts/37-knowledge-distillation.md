@@ -30,8 +30,52 @@ graph TD
 
 ## Architecture / Trade-offs
 
-Key trade-offs and design considerations for this concept.
+### Knowledge Transfer Mechanisms
 
+```mermaid
+graph TD
+    A["Teacher Model<br/>Large, accurate"] -->|Extract knowledge| B["Soft targets<br/>Probability distributions"]
+    A -->|Feature extraction| C["Intermediate representations<br/>Hidden layers"]
+
+    B -->|Temperature scaling| D["T=1: Hard targets<br/>T>1: Soft targets<br/>Higher T = more information"]
+
+    D -->|Train| E["Student Model<br/>Small, fast"]
+    C -->|Attention transfer| E
+
+    E -->|Result| F["Faster inference<br/>Better accuracy than training alone"]
+
+    style A fill:#fff3e0
+    style E fill:#f3e5f5
+    style D fill:#e1f5ff
+```
+
+### Model Size vs Performance
+
+| Student Size | Knowledge Retention | Speedup | Accuracy vs Teacher |
+|--------------|-------------------|---------|-------------------|
+| **Large (90% params)** | ~95% | 1.1x | -0.5% |
+| **Medium (50% params)** | ~85% | 2x | -2% |
+| **Small (10% params)** | ~70% | 10x | -5-10% |
+| **Tiny (1% params)** | ~40% | 50x | -20%+ |
+
+### Distillation Loss Components
+
+```mermaid
+graph LR
+    A["Total Loss"] -->|Distillation| B["L_dist = KL(p_student || p_teacher)<br/>Match soft targets"]
+    A -->|Ground Truth| C["L_task = CrossEntropy(y, p_student)<br/>Match labels"]
+
+    B -->|Weight α| D["Balance trade-off"]
+    C -->|Weight 1-α| D
+
+    D -->|α=0| E["Pure distillation<br/>Depends on teacher"]
+    D -->|α=0.5| F["Balanced<br/>Best for limited teacher quality"]
+    D -->|α=1| G["Pure supervision<br/>Ignore teacher"]
+
+    style E fill:#fff3e0
+    style F fill:#e8f5e9
+    style G fill:#ffebee
+```
 ## Interview Q&A
 
 

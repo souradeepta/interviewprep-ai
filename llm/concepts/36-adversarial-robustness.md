@@ -27,8 +27,56 @@ graph TD
 
 ## Architecture / Trade-offs
 
-Key trade-offs and design considerations for this concept.
+### Attack vs Defense Landscape
 
+```mermaid
+graph TD
+    A["Adversarial Threats"] -->|Input-level| B["Prompt injection<br/>Jailbreak attempts"]
+    A -->|Token-level| C["Subtle perturbations<br/>Typos, paraphrasing"]
+    A -->|Semantic| D["Meaning-preserving<br/>Rephrase harmful requests"]
+
+    E["Defense Layers"] -->|Input filtering| F["Block known jailbreaks<br/>Keyword detection"]
+    E -->|Prompt engineering| G["Explicit safety instructions<br/>Role definition"]
+    E -->|Model training| H["Adversarial fine-tuning<br/>RLHF on attacks"]
+    E -->|Monitoring| I["Anomaly detection<br/>Request logging"]
+    E -->|Human review| J["Escalation workflow<br/>Manual verification"]
+
+    B -->|Defended by| F
+    B -->|Defended by| G
+    C -->|Defended by| H
+    D -->|Defended by| I
+    D -->|Defended by| J
+
+    style B fill:#ffebee
+    style F fill:#e8f5e9
+```
+
+### Defense-in-Depth Strategy
+
+| Layer | Purpose | Coverage | Cost |
+|-------|---------|----------|------|
+| **Input validation** | Block known attacks | 20-30% of attacks | Very low |
+| **Prompt engineering** | Guide model behavior | 30-50% of attacks | Low |
+| **Model robustness** | Improve model resistance | 40-60% of attacks | High |
+| **Rate limiting** | Prevent brute force | Slow down attackers | Low |
+| **Human review** | Catch edge cases | 90%+ (but expensive) | Very high |
+| **Monitoring** | Detect novel attacks | Enables response | Medium |
+
+### Red Teaming Architecture
+
+```mermaid
+graph TD
+    A["Model Under Test"] -->|Expose to| B["Red Team<br/>Security experts"]
+    B -->|Find vulnerabilities<br/>via systematic probing| C["Vulnerability Log"]
+    C -->|Classify| D["Severity Level<br/>High/Medium/Low"]
+    D -->|Prioritize| E["Fix Queue"]
+    E -->|Update| F["Retrain/Fine-tune"]
+    F -->|Validate| A
+
+    style B fill:#f3e5f5
+    style C fill:#fff3e0
+    style D fill:#e1f5ff
+```
 ## Interview Q&A
 
 

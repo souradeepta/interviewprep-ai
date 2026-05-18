@@ -30,8 +30,37 @@ graph TD
 
 ## Architecture / Trade-offs
 
-Key trade-offs and design considerations for this concept.
+### NAS Search Strategy
 
+```mermaid
+graph TD
+    A["Architecture Search"] -->|Random Search| B["Baseline<br/>Random sampling"]
+    A -->|Evolutionary| C["Genetic algorithm<br/>Population-based"]
+    A -->|Reinforcement Learning| D["Controller network<br/>Learns to propose architectures"]
+    A -->|Differentiable| E["Continuous relaxation<br/>Gradient-based optimization"]
+
+    B -->|Speed| F["Slowest"]
+    C -->|Speed| G["Medium"]
+    D -->|Speed| G
+    E -->|Speed| H["Fastest"]
+
+    F -->|Quality| I["Baseline"]
+    G -->|Quality| J["Good"]
+    H -->|Quality| K["Excellent"]
+
+    style E fill:#e8f5e9
+```
+
+### Search Space Design
+
+| Dimension | Options | Impact |
+|-----------|---------|--------|
+| **Number of layers** | 2-20 | Depth complexity |
+| **Layer type** | Conv, Dense, Attention | Architecture diversity |
+| **Kernel size** | 1, 3, 5, 7 | Receptive field |
+| **Filters/units** | 16-512 | Model capacity |
+| **Skip connections** | Yes/No | Information flow |
+| **Activation** | ReLU, GELU, Swish | Non-linearity |
 ## Interview Q&A
 
 

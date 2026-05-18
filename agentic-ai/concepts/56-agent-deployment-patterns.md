@@ -31,8 +31,33 @@ graph TD
 
 ## Architecture / Trade-offs
 
-Key trade-offs and design considerations for this concept.
+### Deployment Pattern Options
 
+```mermaid
+graph TD
+    A["Deployment Pattern"] -->|Request-Response| B["Agent runs<br/>within SLA window"]
+    A -->|Async with Webhook| C["Long-running agent<br/>Callback when done"]
+    A -->|Queue-based| D["Agent pool<br/>Process queue"]
+    A -->|Streaming| E["Stream output<br/>User sees progress"]
+
+    B -->|Best for| F["Short tasks<br/>< 30 seconds"]
+    C -->|Best for| G["Long tasks<br/>Minutes+"]
+    D -->|Best for| H["Batch processing<br/>High volume"]
+    E -->|Best for| I["Interactive<br/>Show intermediate steps"]
+
+    style F fill:#e1f5ff
+    style G fill:#e1f5ff
+```
+
+### Failure Handling Strategies
+
+| Strategy | Coverage | Complexity | Cost |
+|----------|----------|-----------|------|
+| **Retry with backoff** | Transient failures | Low | Low |
+| **Fallback agent** | Degraded mode | Medium | Medium |
+| **Human escalation** | Critical cases | Medium | High |
+| **Circuit breaker** | Cascade prevention | Low | Low |
+| **Timeout limits** | Runaway agents | Low | Low |
 ## Interview Q&A
 
 

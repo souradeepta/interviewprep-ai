@@ -30,8 +30,37 @@ graph TD
 
 ## Architecture / Trade-offs
 
-Key trade-offs and design considerations for this concept.
+### Assistants API Architecture
 
+```mermaid
+graph TD
+    A["System prompt<br/>Define role"] -->|Configure| B["Assistant"]
+    C["Tools<br/>Code interpreter, retrieval"] -->|Register| B
+    D["Knowledge<br/>Upload files"] -->|Upload| B
+
+    E["User input"] -->|Create thread| F["Thread<br/>Conversation history"]
+    F -->|Add message| G["Message"]
+    G -->|Run assistant| H["Run<br/>Process & decide"]
+    H -->|Tool calls| I["Execute tools"]
+    I -->|Results| H
+    H -->|Generate| J["Response"]
+    J -->|Store in thread| F
+
+    style B fill:#fff3e0
+    style F fill:#e1f5ff
+    style H fill:#f3e5f5
+```
+
+### Managed vs DIY Trade-offs
+
+| Aspect | OpenAI Assistants | DIY with API |
+|--------|------------------|--------------|
+| **Setup time** | Minutes | Hours/Days |
+| **State management** | Automatic | Manual |
+| **Customization** | Limited | Unlimited |
+| **Cost** | Pay for platform | Pay for compute |
+| **Latency** | Higher (platform) | Lower (direct) |
+| **Reliability** | Managed (platform) | Own responsibility |
 ## Interview Q&A
 
 

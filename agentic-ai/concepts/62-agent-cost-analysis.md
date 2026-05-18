@@ -30,8 +30,37 @@ graph TD
 
 ## Architecture / Trade-offs
 
-Key trade-offs and design considerations for this concept.
+### Cost Calculation Framework
 
+```mermaid
+graph TD
+    A["Cost per Query"] -->|Model tokens| B["Input × price_in<br/>+ Output × price_out"]
+    A -->|Tool usage| C["API calls × per-call cost<br/>+ Service fees"]
+    A -->|Infrastructure| D["Agent processor<br/>+ Retrieval DB<br/>+ Storage"]
+
+    E["Optimization"] -->|Reduce steps| F["Fewer tool calls<br/>Better routing"]
+    E -->|Model selection| G["Use smaller models<br/>For simple tasks"]
+    E -->|Caching| H["Avoid recomputation<br/>Memoize results"]
+
+    B -->|Compound| I["Cost multiplier"]
+    C -->|Compound| I
+    D -->|Amortized| J["Per-query overhead"]
+    I -->|Total| K["Cost per successful query"]
+
+    style I fill:#fff3e0
+    style K fill:#f3e5f5
+```
+
+### Cost Optimization Hierarchy
+
+| Level | Cost Reduction | Effort | Impact |
+|-------|----------------|--------|--------|
+| **Caching** | 50%+ | Low | High |
+| **Model selection** | 30-70% | Low | High |
+| **Step reduction** | 20-50% | Medium | High |
+| **Batching** | 10-30% | Medium | Medium |
+| **Rate limiting** | 0% | Low | Prevents overages |
+| **Monitoring** | 0% | Low | Alerts on issues |
 ## Interview Q&A
 
 

@@ -32,8 +32,29 @@ graph TD
 
 ## Architecture / Trade-offs
 
-Key trade-offs and design considerations for this concept.
+### Context Length vs Computation
 
+```mermaid
+graph LR
+    A["Sequence Length n"] -->|Attention Complexity| B["O(n²) memory<br/>O(n²) computation"]
+    C["4K tokens"] -.->|1M params<br/>typical| D["Feasible"]
+    E["32K tokens"] -.->|2M params<br/>expensive| F["Challenging"]
+    G["1M tokens"] -.->|4B params<br/>impractical| H["Requires sparse"]
+
+    B -->|Mitigation| I["Sparse attention"]
+    B -->|Mitigation| J["Hierarchical processing"]
+    B -->|Mitigation| J["Retrieval augmentation"]
+```
+
+### Trade-offs: Context Length
+
+| Method | Max Context | Speed | Memory | Quality |
+|--------|-------------|-------|--------|---------|
+| **Dense Attention** | 4-8K | Fast | Medium | Excellent |
+| **Sparse Patterns** | 32K | Medium | Medium | Good |
+| **Hierarchical** | 64K+ | Slow | High | Medium |
+| **Retrieval-based** | Unlimited | Variable | Variable | Depends on retrieval |
+| **State-space models** | 1M+ | Fast | Low | Emerging |
 ## Interview Q&A
 
 

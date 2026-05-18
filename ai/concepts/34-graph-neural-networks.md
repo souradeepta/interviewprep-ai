@@ -30,8 +30,83 @@ graph TD
 
 ## Architecture / Trade-offs
 
-Key trade-offs and design considerations for this concept.
+### GNN Message Passing Architecture
 
+```mermaid
+graph TD
+    A["Input Graph<br/>Nodes & Edges"] -->|Feature Embedding| B["Node Embeddings<br/>h_v^(0)"]
+
+    B -->|Layer 1| C["Message Passing<br/>Aggregate neighbor info"]
+    C -->|Update| D["h_v^(1) = σ(W * [h_v^(0); Agg(h_u^(0))])"]
+    D -->|Layer 2-k| E["Repeat: More expressive<br/>representations"]
+    E -->|Readout| F["Graph-level: Pool nodes<br/>Node-level: Use final embedding"]
+    F -->|Prediction| G["Task Output<br/>Classification/Regression"]
+
+    style C fill:#f3e5f5
+    style D fill:#e1f5ff
+    style G fill:#fff3e0
+```
+
+### GNN Architecture Types
+
+| Type | Aggregation | Best For | Expressive Power |
+|------|-------------|----------|------------------|
+| **Graph Convolutional Network (GCN)** | Weighted mean | Node classification | Moderate |
+| **GraphSAGE** | Neighborhood sampling | Inductive learning | Moderate |
+| **Graph Attention Network (GAT)** | Learned attention weights | Long-range dependencies | High |
+| **Message Passing Neural Network** | Custom aggregation | General graphs | Very high |
+| **Graph Isomorphism Network (GIN)** | Sum aggregation | Theory-grounded | High |
+
+### Aggregation Functions Comparison
+
+```mermaid
+graph LR
+    A["Neighbor Information<br/>from h_u for u ∈ N(v)"] -->|Mean| B["GCN: Simple average<br/>Good for undirected graphs"]
+    A -->|Sum| C["GIN: Summation<br/>Provably expressive"]
+    A -->|Max| D["GraphSAGE: Max pooling<br/>Robust to outliers"]
+    A -->|Attention| E["GAT: Learned weights<br/>Adaptive to importance"]
+
+    style B fill:#e1f5ff
+    style C fill:#f3e5f5
+    style E fill:#fff3e0
+```
+
+### Depth vs Width Trade-off
+
+| Aspect | Shallow (1-2 layers) | Deep (5+ layers) |
+|--------|----------------------|-----------------|
+| **Receptive field** | 1-2 hop neighbors | 5+ hop neighbors |
+| **Information flow** | Local structure | Global structure |
+| **Vanishing gradient** | Unlikely | Likely (harder training) |
+| **Oversmoothing** | Not an issue | Major issue (embeddings converge) |
+| **Computation** | Fast | Slow |
+| **Memory** | Low | High |
+| **Best for** | Local patterns | Long-range relationships |
+
+### Node-level vs Graph-level Tasks
+
+```mermaid
+graph TD
+    A["GNN Output"] -->|Node-level| B["Use node embeddings directly"]
+    A -->|Graph-level| C["Aggregate node embeddings"]
+
+    B -->|Tasks| D["Node classification<br/>Link prediction"]
+    C -->|Pooling| E["Mean/Max/Attention pooling"]
+    E -->|Tasks| F["Graph classification<br/>Molecular property prediction"]
+
+    style D fill:#e1f5ff
+    style F fill:#fff3e0
+```
+
+### Scalability Considerations
+
+| Issue | Solution | Trade-off |
+|-------|----------|-----------|
+| **Large graphs don't fit in memory** | Neighbor sampling (GraphSAGE) | Biased gradient estimates |
+| **Dense computation with large node count** | Sparse attention patterns | May miss important connections |
+| **Message passing complexity O(E)** | Subgraph sampling | Information loss |
+| **Deep GNNs oversmoothing** | Skip connections, layer normalization | Added complexity |
+| **Training time for large graphs** | Mini-batch sampling | Requires careful variance control |
 ## Interview Q&A
 
 

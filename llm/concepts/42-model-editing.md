@@ -32,8 +32,28 @@ graph TD
 
 ## Architecture / Trade-offs
 
-Key trade-offs and design considerations for this concept.
+### Knowledge Editing Methods
 
+```mermaid
+graph TD
+    A["Target Knowledge<br/>Fact to update"] -->|Identify| B["Locate in model<br/>Which parameters?"]
+    B -->|Edit| C["Modify neurons/weights<br/>Surgical intervention"]
+    C -->|Verify| D["Check: Does it work?<br/>Does it break other facts?"]
+    D -->|Scale| E["Apply to multiple facts<br/>Batch editing"]
+
+    F["Side Effects"] -->|Risk| G["Unintended changes<br/>Related facts affected"]
+    G -->|Mitigation| H["Causal tracing<br/>Understand connections"]
+    H -->|Mitigation| I["Constrained optimization<br/>Minimize side effects"]
+```
+
+### Editing Approaches Trade-offs
+
+| Approach | Precision | Side Effects | Speed | Generality |
+|----------|-----------|--------------|-------|-----------|
+| **Layer-wise** | Medium | High | Fast | Low |
+| **Weight editing** | High | Variable | Medium | Low |
+| **LoRA fine-tuning** | High | Low | Slow | High |
+| **In-context examples** | Medium | None | Instant | High |
 ## Interview Q&A
 
 

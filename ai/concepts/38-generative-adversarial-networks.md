@@ -31,8 +31,94 @@ graph TD
 
 ## Architecture / Trade-offs
 
-Key trade-offs and design considerations for this concept.
+### GAN Training Loop
 
+```mermaid
+graph TD
+    A["Real Data<br/>x ~ p_data"] -->|Input| B["Discriminator<br/>D(x)"]
+    C["Noise<br/>z ~ p_z"] -->|Input| D["Generator<br/>G(z)"]
+
+    D -->|Fake samples| E["x̂ = G(z)"]
+    E -->|Input| B
+
+    B -->|Real score| F["L_D = -[log D(x) + log(1-D(G(z)))]"]
+    D -->|Fake score| G["L_G = -log D(G(z))"]
+
+    F -->|Discriminator step| H["Update D weights"]
+    G -->|Generator step| I["Update G weights"]
+
+    H -->|Equilibrium| J["Better discriminator<br/>Better training signal"]
+    I -->|Equilibrium| J
+
+    style A fill:#e1f5ff
+    style C fill:#f3e5f5
+    style B fill:#fff3e0
+    style D fill:#fff3e0
+```
+
+### GAN Variants Comparison
+
+| Variant | Generator Loss | Stability | Training Speed | Quality |
+|---------|----------------|-----------|-----------------|---------|
+| **Standard GAN** | -log D(G(z)) | Low | Medium | Medium |
+| **Least Squares GAN** | (D(G(z))-1)² | Medium | Medium | Good |
+| **Wasserstein GAN** | -E[D(G(z))] | High | Slow | Very good |
+| **Spectral Norm GAN** | Standard + Lipschitz constraint | High | Medium | Very good |
+| **Progressive GAN** | Standard + progressive growth | High | Slow | Excellent |
+
+### Mode Collapse Phenomenon
+
+```mermaid
+graph TD
+    A["Generator produces<br/>limited variety"] -->|Cause| B["Generator focuses on<br/>subset of modes"]
+    B -->|Why| C["Discriminator can't distinguish<br/>even from real data"]
+    C -->|Result| D["Generator stops exploring<br/>Equilibrium reached prematurely"]
+
+    E["Solution 1: Minibatch discrimination"] -->|Add| F["Discriminator sees batch diversity<br/>Rewards variety"]
+    G["Solution 2: Spectral normalization"] -->|Add| H["Constraint on D gradients<br/>Smoother training"]
+    I["Solution 3: Multiple discriminators"] -->|Use| J["Each discriminator penalizes<br/>different artifacts"]
+
+    style D fill:#ffebee
+    style E fill:#e8f5e9
+    style G fill:#e8f5e9
+    style I fill:#e8f5e9
+```
+
+### Discriminator vs Generator Balance
+
+| Aspect | Weak D | Balanced | Strong D |
+|--------|--------|----------|----------|
+| **Generator gradient** | Weak signal, slow learning | Good signal, fast learning | Saturated, no learning |
+| **Fake sample quality** | Poor (no pressure) | Excellent | May collapse (all variations) |
+| **Training stability** | Unstable, diverges | Stable | Unstable, mode collapse |
+| **Convergence speed** | Slow | Optimal | Slow or fails |
+| **How to fix** | Train D more | Nothing needed | Use better loss function |
+
+### Training Tricks
+
+```mermaid
+graph LR
+    A["GAN Training Challenges"] -->|Initialization| B["Careful weight init<br/>Standard: He init"]
+    A -->|Learning rates| C["Separate LR for D and G<br/>Often: G LR > D LR"]
+    A -->|Batch normalization| D["Essential for G<br/>Careful in D (no in output)"]
+    A -->|Architecture| E["Strided convolutions<br/>Avoid pooling (introduces artifacts)"]
+
+    style A fill:#f3e5f5
+    style B fill:#e1f5ff
+    style C fill:#e1f5ff
+    style D fill:#e1f5ff
+    style E fill:#e1f5ff
+```
+
+### Evaluation Metrics Trade-offs
+
+| Metric | Measures | Pros | Cons |
+|--------|----------|------|------|
+| **Inception Score (IS)** | Sample quality | Easy to compute | Biased toward IS-trained images |
+| **Fréchet Inception Distance (FID)** | Distribution quality | Correlates with human judgment | Requires reference dataset |
+| **Kernel Inception Distance (KID)** | Distribution quality | Less biased than FID | Slower to compute |
+| **Precision/Recall** | Diversity vs quality | Disentangled metrics | Requires classifiers |
+| **Human evaluation** | True quality | Ground truth | Expensive, subjective |
 ## Interview Q&A
 
 

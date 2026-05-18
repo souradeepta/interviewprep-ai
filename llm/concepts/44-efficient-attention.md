@@ -31,8 +31,31 @@ graph TD
 
 ## Architecture / Trade-offs
 
-Key trade-offs and design considerations for this concept.
+### Attention Mechanism Complexity
 
+```mermaid
+graph LR
+    A["Sequence Length n"] -->|Standard| B["O(n²) memory<br/>O(n²) compute"]
+    A -->|Linear| C["O(n) memory<br/>O(n) compute"]
+    A -->|Sparse| D["O(n*s) memory<br/>O(n*s) compute"]
+
+    B -->|4K tokens| E["12GB+ memory<br/>Slow"]
+    C -->|128K tokens| F["Low memory<br/>Fast"]
+    D -->|64K tokens| G["Medium memory<br/>Medium speed"]
+
+    style C fill:#e8f5e9
+```
+
+### Attention Approximation Methods
+
+| Method | Complexity | Information Loss | Stability |
+|--------|-----------|-----------------|-----------|
+| **Full attention** | O(n²) | None | High |
+| **Sliding window** | O(n) | High (missing long-range) | Very high |
+| **Local + global** | O(n) | Low | High |
+| **Linear attention** | O(n) | Medium (approximation) | Medium |
+| **Hierarchical** | O(n log n) | Low | High |
+| **Random projection** | O(n) | Medium | Low |
 ## Interview Q&A
 
 
