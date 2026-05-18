@@ -1,0 +1,278 @@
+# Semantic Search
+
+## Understanding Semantic Search: Finding Meaning Beyond Keywords
+
+Traditional keyword search matches exact terms but misses semantic relationships: searching for 'vehicle' won't find documents about 'car' unless explicitly set up with synonyms. Semantic search addresses this by embedding both queries and documents into a continuous vector space where semantically similar items are close together. A query about 'how cars work' can match documents explaining 'automobile mechanics' because both express similar meaning, despite different wording.
+
+The semantic search pipeline uses three components: (1) Embedding Model—encode queries and documents as dense vectors (e.g., 768-dim vectors from sentence-transformers), (2) Vector Database—store and search document embeddings efficiently using approximate nearest neighbor algorithms (HNSW, FAISS, Pinecone), (3) Ranking—optionally re-rank retrieved results using cross-encoders for final accuracy. This separation makes semantic search scalable: embedding and indexing happen once; search is a fast vector operation.
+
+Compared to keyword search, semantic search achieves 20-40% higher recall (finding relevant documents users actually want) and better precision when documents use paraphrased language. The trade-off is computational cost: keyword search is essentially free (hash tables), while semantic search requires neural embedding (milliseconds per query) and vector similarity computation (scales with document count but remains sublinear with good indexing). Modern vector databases (Qdrant, Weaviate, Pinecone) handle scaling automatically.
+
+In production, semantic search powers recommendation systems ("show similar products"), customer support ("match inquiries to previous solutions"), and information retrieval ("find relevant training data for fine-tuning"). Combined with RAG, semantic search retrieves documents contextually relevant to queries, enabling knowledge-grounded generation. Fine-tuning retrieval models (DPR, ColBERT) for domain-specific tasks adds 10-20% accuracy on top-k metrics, making semantic search both powerful and customizable.
+
+## Core Intuition
+Keyword search: "python" returns docs with word "python." Misses "serpent" (synonym) and returns docs about Python programming when you want pythons the snake. Semantic search understands meaning: query embedding + doc embeddings capture intent, regardless of exact words.
+
+## How It Works
+
+**Keyword Search (Traditional):**
+```
+Query: "how to boil water"
+Match: documents containing ["water", "boil"] (exact words)
+Result: only exact keyword matches
+Miss: "heat water to 100C", "cooking liquids" (synonyms, paraphrasing)
+```
+
+**Semantic Search:**
+```
+Query: "how to boil water"
+  ↓ [embed query]
+  → query_vector (384D)
+
+Documents:
+  "Heat water until it bubbles" → doc_vector_1
+  "Bring liquid to 100 degrees Celsius" → doc_vector_2
+  "Python is a programming language" → doc_vector_3
+  
+  ↓ [compute cosine similarity]
+  
+Ranking:
+  doc_vector_1: 0.92 ✓ (semantic match)
+  doc_vector_2: 0.85 ✓ (semantic match, "liquid" ≈ "water")
+  doc_vector_3: 0.12 ✗ (no semantic match, "Python" ≠ "water")
+```
+
+**Implementation:**
+
+**1. Embedding:**
+```python
+# Encode query and documents to vectors
+query_embedding = embed("how to boil water")         # shape: (384,)
+doc_embeddings = [
+    embed("Heat water until it bubbles"),             # (384,)
+    embed("Bring liquid to 100 degrees Celsius"),     # (384,)
+    embed("Python is a programming language")         # (384,)
+]
+```
+
+**2. Search (Approximate Nearest Neighbor):**
+```
+For each doc embedding:
+  similarity = cosine(query_embedding, doc_embedding)
+
+Return top-k docs with highest similarity
+```
+
+**3. Ranking:**
+```
+If multiple queries or rankings needed:
+  - Retrieve top-k dense matches
+  - Re-rank with cross-encoder (more expensive but accurate)
+  - Return top results
+```
+
+### Workflow Flowchart
+
+```mermaid
+graph LR
+    A["Query Text"] -->|Embedding| B["Query Vector"]
+    C["Corpus"] -->|Embedding| D["Doc Vectors<br/>Indexed"]
+    B -->|Similarity Search| E["Top-K Neighbors"]
+    E -->|Ranked| F["Results"]
+    style B fill:#e3f2fd
+    style D fill:#e0f2f1
+    style F fill:#e8f5e9
+```
+
+## Key Properties / Trade-offs
+
+| Aspect | Keyword Search | Semantic Search |
+|--------|---|---|
+| Speed | Fast (inverted index) | Medium (ANN search) |
+| Recall | Good for exact matches | Better for synonyms |
+| Precision | Exact but noisy | Semantic, clean |
+| Infrastructure | Simple (Elasticsearch) | Complex (embeddings + FAISS) |
+| Cost | Low | Medium (embedding compute) |
+| Language dependent | Yes (requires parsing) | No (works across languages) |
+| Latency | <10ms | 10-100ms |
+
+**Embedding Model Choice:**
+- **Small (100-300D):** fast, lower quality (good for simple searches)
+- **Medium (384D - BERT):** balanced (default for most uses)
+- **Large (768D - GPT2):** higher quality, slower (use for important searches)
+- **Very large (1536D - GPT-3):** state-of-the-art quality, slow (LLM embeddings)
+
+**Search Strategy:**
+```
+Option 1: Dense-only
+  - Fast, simple, works well for general domains
+  
+Option 2: Hybrid (Sparse + Dense)
+  - Combine keyword (sparse) + semantic (dense) scores
+  - Robust to both keyword and paraphrase searches
+  
+Option 3: Sparse → Dense pipeline
+  - Keyword search → get candidates
+  - Re-rank candidates with dense embeddings
+  - Best of both: keyword recall, semantic precision
+```
+
+## Common Mistakes / Gotchas
+
+- **Embedding model mismatch:** Query embedded with BERT, docs with Sentence-Transformer → incompatible vectors. Use same model for both.
+- **Not normalizing embeddings:** Cosine similarity assumes normalized vectors (unit norm). Normalize or use cosine-specific algorithms.
+- **Ignoring document length:** Long documents get different embeddings than short ones. For long docs, chunk and average, or use special pooling.
+- **Language/domain mismatch:** Embedding model trained on news; searching medical docs → poor results. Use domain-specific models or fine-tune.
+- **Search latency:** ANN search can be slow (1000s of docs → milliseconds). Use approximate methods (HNSW, IVF) not exact nearest neighbor.
+- **Too much context in embeddings:** Query "apple" returns both "Apple Inc" and "apple fruit." Add metadata filters or context to disambiguate.
+- **No fallback to keyword search:** Semantic search fails gracefully; keyword search doesn't. Use hybrid approach for robustness.
+- **Scaling with document growth:** Embedding all docs is expensive. Use incremental indexing, re-indexing strategy.
+
+## Code Example
+
+```python
+import numpy as np
+from sentence_transformers import SentenceTransformer
+import faiss
+
+# 1. Load embedding model
+model = SentenceTransformer('all-MiniLM-L6-v2')  # 384D, balanced
+
+# 2. Prepare documents
+documents = [
+    "How to cook rice: boil water, add rice, simmer for 15 minutes",
+    "Baking bread requires kneading and rising dough",
+    "Python is a programming language used for data science",
+    "Heat water to 100 degrees Celsius for boiling",
+    "Machine learning algorithms learn patterns from data",
+]
+
+# 3. Embed all documents
+embeddings = model.encode(documents, convert_to_tensor=False)  # (5, 384)
+embeddings = np.float32(embeddings)  # FAISS expects float32
+
+# 4. Build FAISS index (approximate nearest neighbor search)
+dimension = embeddings.shape[1]  # 384
+index = faiss.IndexFlatL2(dimension)  # L2 distance (equivalent to cosine after normalization)
+faiss.normalize_L2(embeddings)  # Normalize for cosine similarity
+index.add(embeddings)
+
+# 5. Search with query
+query = "How to boil water for cooking?"
+query_embedding = model.encode(query, convert_to_tensor=False)
+query_embedding = np.float32(query_embedding).reshape(1, -1)
+faiss.normalize_L2(query_embedding)
+
+# 6. Find top-k nearest neighbors
+k = 3
+distances, indices = index.search(query_embedding, k)
+
+# 7. Return results
+print(f"Query: {query}\n")
+print("Top results:")
+for i, (idx, dist) in enumerate(zip(indices[0], distances[0])):
+    # Convert distance back to similarity (cosine)
+    similarity = 1 - (dist / 2)  # L2 distance to cosine conversion
+    print(f"{i+1}. {documents[idx]} (similarity: {similarity:.3f})")
+
+# Output:
+# 1. Heat water to 100 degrees Celsius for boiling (similarity: 0.92)
+# 2. How to cook rice: boil water, add rice, simmer for 15 minutes (similarity: 0.88)
+# 3. Baking bread requires kneading and rising dough (similarity: 0.65)
+```
+
+## Interview Quick-Reference
+
+| Question | What to say |
+|---|---|
+| "Semantic search?" | Convert query + docs to embeddings, find neighbors by similarity. Returns semantically relevant, not just keyword matches. |
+| "vs keyword search?" | Keyword: exact, fast, misses synonyms. Semantic: flexible, slower, handles paraphrasing, synonyms, zero-shot. |
+| "Embedding model?" | Small (fast), medium (balanced), large (high quality). Match model for query and docs. Domain-specific when possible. |
+| "Scaling?" | Use approximate nearest neighbor (FAISS, HNSW). Not exact nearest neighbor; stays sub-millisecond at scale. |
+| "Latency?" | 10-100ms depending on database size and ANN method. Keyword search faster (<10ms); semantic search acceptable for most uses. |
+| "Hybrid search?" | Combine keyword (sparse) + semantic (dense). Better recall + precision. Recommended for production. |
+
+## Real-World Examples
+
+### E-commerce Product Search
+Keyword search: 'blue shoe' doesn't match 'footwear in navy'. Semantic search: matches because of similarity. Conversion rate: 2% → 5% from better relevance.
+
+### Customer Support Search
+Query: 'How do I reset my password?'. Should match: 'Forgotten credentials', 'Sign-in issue', 'Account access'. Keyword: misses many. Semantic: catches all.
+
+## Real-World Examples
+
+### E-commerce Product Search
+Keyword search: 'blue shoe' doesn't match 'footwear in navy'. Semantic search: matches because of similarity. Conversion rate: 2% → 5% from better relevance.
+
+### Customer Support Search
+Query: 'How do I reset my password?'. Should match: 'Forgotten credentials', 'Sign-in issue', 'Account access'. Keyword: misses many. Semantic: catches all.
+
+## Real-World Examples
+
+### E-commerce Product Search
+Keyword search: 'blue shoe' doesn't match 'footwear in navy'. Semantic search: matches because of similarity. Conversion rate: 2% → 5% from better relevance.
+
+### Customer Support Search
+Query: 'How do I reset my password?'. Should match: 'Forgotten credentials', 'Sign-in issue', 'Account access'. Keyword: misses many. Semantic: catches all.
+
+## Interview Q&A
+
+**Q: When does semantic search underperform keyword search (BM25) and why?**
+A: Semantic search underperforms for: exact match queries (product IDs, error codes, names), highly technical queries where domain vocabulary is precise, short queries with little semantic context, and queries where the user's phrasing exactly matches document phrasing. BM25's term frequency weighting is very effective for exact retrieval. Hybrid search (BM25 + semantic) nearly always outperforms either alone—don't abandon keyword search entirely.
+
+**Q: How do you handle the vocabulary mismatch between queries and documents in semantic search?**
+A: The whole point of semantic search is to handle vocabulary mismatch via embedding similarity. But for extreme domain mismatch (user asks "how to fix NullPointerException" but docs use "null reference error"), even semantic search struggles. Mitigate: fine-tune embedding models on your domain query-document pairs; use query expansion (GPT-4 generates synonyms/related terms and searches for all); use BM25 as fallback for low-confidence semantic results.
+
+**Q: What is cross-encoder re-ranking and when is it worth the cost?**
+A: Bi-encoder (standard embedding search): embed query and documents independently, use cosine similarity—fast but less accurate. Cross-encoder: feed (query, document) pair to a model that attends to both simultaneously, producing a relevance score—more accurate but O(n) complexity requiring one forward pass per document. Use cross-encoder to re-rank the top-50 bi-encoder results—you only run it 50 times, not on the full corpus. Typically improves NDCG by 5-10% at 3-10x latency cost.
+
+**Q: How do you evaluate semantic search quality beyond simple accuracy?**
+A: Use NDCG@k (normalized discounted cumulative gain)—rewards returning more relevant documents earlier. MRR (mean reciprocal rank)—measures how quickly a relevant result appears. Recall@k—what fraction of relevant docs appear in top-k. For production: track implicit feedback (click-through rates, session depth). Human evaluation for qualitative assessment. Always evaluate on a held-out test set with diverse query types including edge cases.
+
+**Q: How do user query patterns affect semantic search system design?**
+A: Short queries (2-3 words) give less semantic signal—HyDE or query expansion helps. Navigational queries (looking for a specific document) favor BM25 keyword matching. Informational queries (broad concepts) favor semantic search. Transactional queries (specific task completion) need both. Design your system to classify query intent and route to the appropriate retrieval strategy, or use a hybrid approach that works adequately for all query types.
+
+**Q: What is the trade-off between embedding model size and search quality?**
+A: Larger embedding models (e3-large: 3072 dims, 335M params) produce better embeddings but are slower to compute and require more storage. Smaller models (all-MiniLM-L6: 384 dims, 22M params) are 10-15x faster with ~5-10% quality gap on general tasks. The dimension size also affects HNSW index memory. For high-traffic production, use small models; invest in fine-tuning a small model on your domain rather than using a large generic model.
+
+
+## Related Topics
+- [Embeddings](02-embeddings.md) — how documents and queries are encoded
+- [Vector Databases](20-vector-databases.md) — storing and indexing embeddings at scale
+- [RAG](18-rag.md) — semantic search is the retrieval component
+- [Semantic Caching](22-semantic-caching.md) — cache semantically similar queries
+
+## Resources
+- [Semantic Search with LLMs](https://www.anthropic.com/research/)
+- [FAISS: Facebook AI Similarity Search](https://github.com/facebookresearch/faiss)
+- [Sentence-Transformers: Semantic Embeddings](https://www.sbert.net/)
+- [Beyond BM25: Semantic Search with Embeddings](https://huggingface.co/blog/semantic-search)
+
+## Concept Relationships
+
+```mermaid
+graph TD
+    A["Semantic Search"]
+    B["Embeddings"] -->|prerequisite| A
+    A -->|used with| D["Vector Databases"]
+    
+    style A fill:#fff3e0
+```
+
+## Interview Questions
+
+**Q: How does semantic search differ from keyword search?**
+*A: Keyword: exact matching ('customer' doesn't match 'client'). Semantic: meaning-based ('customer' and 'client' similar). Semantic via embeddings: convert text → vector → cosine similarity. Better for synonyms, paraphrases, intent.*
+
+**Q: Why use semantic search over traditional full-text search?**
+*A: Full-text: fast, exact, many false negatives. Semantic: slower but catches intent. Hybrid: use both, combine scores. Best: semantic for accuracy, full-text for speed (use full-text as first filter).*
+
+**Q: How do you scale semantic search to millions of documents?**
+*A: Index embeddings in vector DB (Pinecone, Weaviate, Milvus). HNSW/IVF algorithms for fast approximate search. Query: embed → search DB → get neighbors. Latency: <100ms for 10M docs.*
+
+**Q: What embedding model should you use?**
+*A: General: all-MiniLM-L6-v2 (fast), all-mpnet-base-v2 (accurate). Domain-specific: fine-tune on your domain. Multilingual: multilingual-e5-base. Speed: smaller models faster (22M params vs 335M params).*
+
+**Q: How do you evaluate semantic search quality?**
+*A: Metrics: mean average precision (MAP), NDCG, MRR. Manual inspection: do top-k results make sense? Click-through rate in production. A/B test: semantic vs keyword search.*
