@@ -30,7 +30,18 @@ graph TD
 
 ## Architecture / Trade-offs
 
-Trade-off 1 vs trade-off 2
+### Initialization Strategies
+
+| Strategy | For | Scale | Risk |
+|----------|-----|-------|------|
+| **Xavier** | Sigmoid/Tanh | 1/√fanin | Too small for ReLU |
+| **He** | ReLU | √(2/fanin) | Too large for Sigmoid |
+
+### Batch Normalization Effect
+
+- **With BN:** Initialization less critical (rescales activations)
+- **Without BN:** Critical (determines initial gradients)
+- **Best:** He init + ReLU + BN = robust training
 
 ## Interview Q&A
 

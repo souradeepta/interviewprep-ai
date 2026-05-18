@@ -30,7 +30,20 @@ graph TD
 
 ## Architecture / Trade-offs
 
-Trade-off 1 vs trade-off 2
+### Linear Regression Variants
+
+| Variant | Complexity Control | Feature Selection | Use When |
+|---------|-------------------|------------------|----------|
+| **OLS** | None | Keeps all features | Few features, no multicollinearity |
+| **Ridge (L2)** | Shrinks coefficients | All features (reduced) | Multicollinearity present |
+| **Lasso (L1)** | Zeros some coefficients | Automatic selection | Need feature selection |
+| **Elastic Net** | Combines L1 + L2 | Balance both | Complex relationships |
+
+### Solution Methods Trade-off
+
+- **Normal Equation:** Exact (X^T X)^{-1} X^T y, O(d³) inversion slow for large d
+- **Gradient Descent:** Iterative, no inversion needed, scales to large d, requires tuning
+- **Regularized:** Ridge/Lasso add terms preventing overfitting without exact solution
 
 ## Interview Q&A
 

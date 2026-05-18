@@ -30,7 +30,20 @@ graph TD
 
 ## Architecture / Trade-offs
 
-Trade-off 1 vs trade-off 2
+### CV Strategies
+
+| Strategy | Best For | Folds | Cost |
+|----------|----------|-------|------|
+| **K-fold** | Standard | 5-10 | Reasonable |
+| **Stratified** | Imbalanced | 5-10 | Reasonable |
+| **Time-series** | Sequential | k | Reasonable |
+| **Leave-One-Out** | Small data | n | Expensive |
+
+### Nested CV (Advanced)
+
+- **Outer:** Unbiased performance estimation
+- **Inner:** Hyperparameter tuning
+- **Cost:** K² × training time
 
 ## Interview Q&A
 

@@ -30,7 +30,20 @@ graph TD
 
 ## Architecture / Trade-offs
 
-Trade-off 1 vs trade-off 2
+### Regularization Techniques
+
+| Technique | Mechanism | Sparsity | When |
+|-----------|-----------|----------|------|
+| **L1** | Σ|w| penalty | High (zeros) | Feature selection |
+| **L2** | Σw² penalty | None | Smooth solutions |
+| **Dropout** | Random removal | None | Neural networks |
+| **Early Stopping** | Stop validation plateau | None | All iterative |
+
+### Lambda Selection
+
+- **λ=0:** No regularization, overfits
+- **λ=optimal:** Best generalization (via CV)
+- **λ→∞:** Complete regularization, underfits
 
 ## Interview Q&A
 

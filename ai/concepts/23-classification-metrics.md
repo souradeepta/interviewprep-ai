@@ -30,7 +30,21 @@ graph TD
 
 ## Architecture / Trade-offs
 
-Trade-off 1 vs trade-off 2
+### Metric Robustness to Imbalance
+
+| Metric | Imbalance Robust | Use Case |
+|--------|-----------------|----------|
+| **Accuracy** | ✗ No | Balanced only |
+| **Precision** | ✓ Yes | FP costly |
+| **Recall** | ✓ Yes | FN costly |
+| **F1** | ✓ Yes | Balance both |
+| **PR-AUC** | ✓ Yes ⭐ | Imbalanced (best) |
+
+### Decision Framework
+
+- **Balanced:** Accuracy, F1, ROC-AUC
+- **Imbalanced:** PR-AUC, Precision, Recall
+- **Asymmetric cost:** Weight by impact
 
 ## Interview Q&A
 

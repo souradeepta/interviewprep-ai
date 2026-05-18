@@ -31,7 +31,22 @@ graph TD
 
 ## Architecture / Trade-offs
 
-Adam: fast, adaptive | RMSprop: simpler | SGD+momentum: stable
+### Optimizer Comparison
+
+| Optimizer | Learning Rate Sensitivity | Memory | Speed | Best For |
+|-----------|--------------------------|--------|-------|----------|
+| **SGD** | High (needs tuning) | Low | Medium | Well-behaved losses |
+| **Momentum** | Medium (helps smooth) | Low | Fast | Accelerating convergence |
+| **Adam** | Low (adaptive per param) | Medium | Fast | Most problems (default) |
+| **RMSprop** | Low | Low | Fast | Sparse gradients |
+| **AdamW** | Low | Medium | Fast | Deep learning with regularization |
+
+### Convergence Trade-offs
+
+- **SGD:** Simple and robust but requires careful learning rate tuning
+- **Momentum:** Faster through plateaus and better generalization
+- **Adaptive (Adam):** Requires less tuning, sometimes worse generalization
+- **AdamW:** Adam + weight decay (modern best practice for deep learning)
 
 ## Interview Q&A
 

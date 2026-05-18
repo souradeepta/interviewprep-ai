@@ -30,7 +30,20 @@ graph TD
 
 ## Architecture / Trade-offs
 
-Trade-off 1 vs trade-off 2
+### Metric Properties
+
+| Metric | Outlier Robust | Interpretable | Scale-Invariant |
+|--------|----------------|---|---|
+| **MAE** | ✓ Yes | ✓ Yes | ✗ No |
+| **MSE** | ✗ No | ✗ No | ✗ No |
+| **R²** | ✗ No | ✓ Yes | ✓ Yes |
+
+### When to Use
+
+- **Interpretable:** MAE (units same as y)
+- **Outlier-robust:** MAE or Median AE
+- **Math:** MSE/RMSE (differentiable)
+- **Compare models:** R² (scale-independent)
 
 ## Interview Q&A
 

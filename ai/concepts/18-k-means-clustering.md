@@ -30,7 +30,19 @@ graph TD
 
 ## Architecture / Trade-offs
 
-Trade-off 1 vs trade-off 2
+### Initialization Methods
+
+| Method | Quality | Speed | Consistency |
+|--------|---------|-------|------------|
+| **Random** | Poor | Fast | Inconsistent |
+| **K-means++** | Good | Slower | Consistent |
+
+### Determining K
+
+- **Elbow Method:** Find diminishing returns in inertia
+- **Silhouette Score:** Higher = better separation
+- **Gap Statistic:** Larger gap = more clusters
+- **Domain knowledge:** Often suggests K
 
 ## Interview Q&A
 

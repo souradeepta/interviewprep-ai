@@ -30,7 +30,19 @@ graph TD
 
 ## Architecture / Trade-offs
 
-Trade-off 1 vs trade-off 2
+### Normalization Variants
+
+| Variant | Scope | Batch-Dependent | Best For |
+|---------|-------|-----------------|----------|
+| **Batch Norm** | Per batch | Yes | Large batches, CNNs |
+| **Layer Norm** | Per features | No | Transformers, RNNs |
+| **Group Norm** | Feature groups | No | Small batches |
+
+### Training vs Inference
+
+- **Training:** Use minibatch statistics
+- **Inference:** Use running statistics (accumulated during training)
+- **Critical:** Wrong statistics at inference = poor performance
 
 ## Interview Q&A
 

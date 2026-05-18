@@ -31,7 +31,22 @@ graph TD
 
 ## Architecture / Trade-offs
 
-Trade-off 1 vs trade-off 2 — consider context and requirements.
+### RL Components
+
+| Component | Role | Example |
+|-----------|------|---------|
+| **Agent** | Decision-maker | Robot |
+| **Environment** | Responds | World |
+| **State** | Situation | Position |
+| **Action** | Choice | Move |
+| **Reward** | Feedback | +1 goal |
+
+### Exploration vs Exploitation
+
+- **Exploit only:** May get stuck locally
+- **Explore only:** Never use learned knowledge
+- **ε-greedy:** Balance - explore ε, exploit (1-ε)
+- **Decay ε:** Early exploration, late exploitation
 
 ## Interview Q&A
 

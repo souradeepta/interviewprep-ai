@@ -30,7 +30,18 @@ graph TD
 
 ## Architecture / Trade-offs
 
-Trade-off 1 vs trade-off 2
+### Kernel Methods
+
+| Kernel | Cost | Flexibility | Best For |
+|--------|------|-----------|----------|
+| **Linear** | O(n²) | Low | Linearly separable |
+| **RBF** | O(n³) | High (universal) | Complex non-linear |
+
+### Soft Margin Trade-off (C Parameter)
+
+- **High C:** Enforce margin strictly (may overfit)
+- **Low C:** Allow violations (robust, generalizes better)
+- **Optimal C:** Found via cross-validation
 
 ## Interview Q&A
 

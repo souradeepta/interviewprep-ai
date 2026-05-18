@@ -30,7 +30,20 @@ graph TD
 
 ## Architecture / Trade-offs
 
-Trade-off 1 vs trade-off 2
+### Activation Comparison
+
+| Function | Range | Vanishing | Dying | Use |
+|----------|-------|----------|-------|-----|
+| **Sigmoid** | [0,1] | ✗ Severe | N/A | Legacy |
+| **ReLU** | [0,∞) | ✓ No | ✗ Yes | Default |
+| **Leaky ReLU** | ℝ | ✓ No | ✓ No | Modern |
+| **GELU** | ℝ | ✓ No | ✓ No | Transformers |
+
+### Output Activation
+
+- **Binary:** Sigmoid for [0,1] probability
+- **Multi-class:** Softmax for K probabilities
+- **Regression:** Linear for unbounded output
 
 ## Interview Q&A
 

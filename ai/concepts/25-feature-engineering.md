@@ -30,7 +30,21 @@ graph TD
 
 ## Architecture / Trade-offs
 
-Trade-off 1 vs trade-off 2
+### Feature Progression
+
+| Type | Complexity | When |
+|------|-----------|------|
+| **Raw** | Low | Good features exist |
+| **Transformed** | Low | Non-linearity |
+| **Interactions** | Medium | Synergies |
+| **Domain** | Medium | Knowledge available |
+| **Learned** | High | Deep learning |
+
+### Feature Selection
+
+- **Filter:** Fast, simple, may miss
+- **Wrapper:** Accurate, slow, overfit risk
+- **Embedded:** LASSO, tree importance - good balance
 
 ## Interview Q&A
 

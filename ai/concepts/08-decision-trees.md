@@ -30,7 +30,19 @@ graph TD
 
 ## Architecture / Trade-offs
 
-Trade-off 1 vs trade-off 2
+### Splitting Criteria
+
+| Criterion | Formula | Prefers | Best For |
+|-----------|---------|---------|----------|
+| **Gini** | 1 - Σp² | Frequent classes | Balanced data |
+| **Entropy** | -Σp*log(p) | Even splits | Information theory |
+
+### Complexity vs Generalization
+
+- **Shallow (3-5):** High bias, low variance, underfits, fast
+- **Medium (10-15):** Balanced, good performance
+- **Deep (20+):** Low bias, high variance, overfits
+- **Pruning:** Post-hoc depth reduction for variance control
 
 ## Interview Q&A
 

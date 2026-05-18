@@ -30,7 +30,19 @@ graph TD
 
 ## Architecture / Trade-offs
 
-Trade-off 1 vs trade-off 2
+### Approximation Methods
+
+| Method | Accuracy | Speed | Scalability |
+|--------|----------|-------|-----------|
+| **Variational** | Good | Fast | Good |
+| **MCMC** | Excellent | Slow | Medium |
+| **Laplace** | Approximate | Fast | Good |
+
+### Prior-Likelihood Balance
+
+- **Strong prior:** Regularization when data limited
+- **Weak prior:** Lets data dominate, needs more samples
+- **With infinite data:** Posterior determined by likelihood only
 
 ## Interview Q&A
 

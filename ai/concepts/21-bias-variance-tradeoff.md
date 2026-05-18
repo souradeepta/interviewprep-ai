@@ -30,7 +30,22 @@ graph TD
 
 ## Architecture / Trade-offs
 
-Trade-off 1 vs trade-off 2
+### Error Decomposition
+
+```
+TestError = Bias² + Variance + IrreducibleNoise
+```
+
+| Regime | Solution |
+|--------|----------|
+| **High bias** | More complex model |
+| **High variance** | Regularization, more data |
+| **High both** | Wrong model type |
+
+### Diagnostic Path
+
+- **High train error:** Underfitting (high bias)
+- **High test, low train:** Overfitting (high variance)
 
 ## Interview Q&A
 

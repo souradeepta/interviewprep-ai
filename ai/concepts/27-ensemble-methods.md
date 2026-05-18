@@ -30,7 +30,20 @@ graph TD
 
 ## Architecture / Trade-offs
 
-Trade-off 1 vs trade-off 2
+### Strategies Comparison
+
+| Strategy | Training | Inference | Parallelizable |
+|----------|----------|-----------|----------------|
+| **Bagging** | Parallel | Parallel | ✓ Yes |
+| **Boosting** | Sequential | Sequential | ✗ No |
+| **Stacking** | 2-stage | Sequential | Partial |
+| **Voting** | Parallel | Parallel | ✓ Yes |
+
+### Why Ensembles Work
+
+- **Diversity:** Different errors cancel
+- **Variance reduction:** Averaging high-variance models
+- **Cost-benefit:** K× inference, often K× accuracy
 
 ## Interview Q&A
 

@@ -30,7 +30,20 @@ graph TD
 
 ## Architecture / Trade-offs
 
-Trade-off 1 vs trade-off 2
+### Ensemble Diversity
+
+| Source | Mechanism | Impact |
+|--------|-----------|--------|
+| **Data sampling** | Bootstrap 63% unique samples | Decorrelates trees |
+| **Feature sampling** | Random splits | Different decision boundaries |
+| **Multiple trees** | K independent learners | Averaging reduces variance |
+
+### Out-of-Bag (OOB) Advantage
+
+- **OOB samples:** ~37% of data not in bootstrap (free validation)
+- **OOB error:** Generalization estimate without separate validation
+- **Feature importance:** How much each feature decreases impurity
+- **Trade-off:** Less interpretable than single tree, better accuracy
 
 ## Interview Q&A
 

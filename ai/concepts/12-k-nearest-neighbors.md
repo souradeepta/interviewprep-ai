@@ -30,7 +30,20 @@ graph TD
 
 ## Architecture / Trade-offs
 
-Trade-off 1 vs trade-off 2
+### Distance Metrics
+
+| Metric | Dimension Sensitivity | Best Use |
+|--------|----------------------|----------|
+| **Euclidean** | High (scale-dependent) | Default continuous |
+| **Manhattan** | Medium | High-dimensional |
+| **Cosine** | Low (magnitude-invariant) | Text, sparse |
+
+### K Selection Trade-off
+
+- **k=1:** Memorizes (high variance, overfits)
+- **k=√N:** Sweet spot for most problems
+- **k=N/2:** Underfits (high bias)
+- **Curse of dimensionality:** High-D all points equidistant
 
 ## Interview Q&A
 

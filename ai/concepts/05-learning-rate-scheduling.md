@@ -29,7 +29,23 @@ graph TD
 
 ## Architecture / Trade-offs
 
-Step decay: simple | Exponential: smooth | Cosine: theoretically motivated
+### Schedule Types
+
+| Schedule | Formula | Best For | Trade-off |
+|----------|---------|----------|-----------|
+| **Constant** | lr = fixed value | Baseline | May oscillate or plateau |
+| **Step Decay** | lr *= gamma @ epoch N | Simple implementation | Discontinuous jumps |
+| **Exponential** | lr *= exp(-k*epoch) | Smooth decay | Hard to tune decay constant |
+| **Cosine** | lr = 0.5*base*(1+cos(π*t/T)) | Smooth + principled | More computation |
+| **Warmup** | Linear increase then decay | Prevents instability | Extra hyperparameter |
+
+### When to Use Each
+
+- **Linear decay:** Fast early progress, slow fine-tuning at end
+- **Step decay:** Sudden drops help escape plateaus
+- **Cosine annealing:** Mathematically principled smooth transitions
+- **Warmup:** Essential for Transformers to prevent gradient explosion
+- **Cyclical:** Multiple restarts help find diverse good solutions
 
 ## Interview Q&A
 

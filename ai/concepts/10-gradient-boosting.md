@@ -30,7 +30,20 @@ graph TD
 
 ## Architecture / Trade-offs
 
-Trade-off 1 vs trade-off 2
+### Sequential Error Correction
+
+| Stage | Learns | Effect |
+|-------|--------|--------|
+| **Tree 1** | Overall trend | Base prediction |
+| **Tree 2** | First errors | Correct obvious mistakes |
+| **Tree K** | Remaining errors | Fine-tune predictions |
+
+### Regularization Mechanisms
+
+- **Tree depth:** Shallow (4-8) = strong regularization
+- **Learning rate:** Lower lr = conservative steps, better generalization
+- **Early stopping:** Stop when validation plateaus
+- **Subsampling:** Use random subset per iteration
 
 ## Interview Q&A
 

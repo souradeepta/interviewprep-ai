@@ -30,7 +30,19 @@ graph TD
 
 ## Architecture / Trade-offs
 
-Trade-off 1 vs trade-off 2
+### Search Strategies
+
+| Strategy | Efficiency | Best For |
+|----------|-----------|----------|
+| **Grid** | Low | Few params |
+| **Random** | Better | Many params |
+| **Bayesian** | High | Few-medium |
+
+### Most Important
+
+- **Learning rate:** Controls convergence (MOST IMPORTANT)
+- **Regularization:** Affects bias-variance
+- **Model capacity:** Tree depth, network width
 
 ## Interview Q&A
 

@@ -32,7 +32,22 @@ graph LR
 
 ## Architecture / Trade-offs
 
-Exact gradients vs computational cost | Memory overhead for storing activations | Automatic differentiation vs manual implementation
+### Forward vs Backward Complexity
+
+| Direction | Operations | Memory | Cost |
+|-----------|-----------|--------|------|
+| **Forward** | Matrix multiplications | Store activations | O(n_params) |
+| **Backward** | Chain rule gradients | Reuse activations | ~2x forward |
+| **Total** | Forward + Backward | High (all activations) | 3x forward |
+
+### Gradient Flow Problems & Solutions
+
+- **Vanishing Gradient:** Sigmoid layers cause exponentially small gradients
+  - Solution: ReLU, skip connections, batch normalization
+- **Exploding Gradient:** Large weights cause exponentially large gradients
+  - Solution: Gradient clipping, careful weight initialization
+- **Dead Neurons:** ReLU outputs permanently zero for some neurons
+  - Solution: Leaky ReLU, ELU, or proper initialization
 
 ## Interview Q&A
 

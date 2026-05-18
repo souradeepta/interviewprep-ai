@@ -31,7 +31,21 @@ graph TD
 
 ## Architecture / Trade-offs
 
-Trade-off 1 vs trade-off 2 — consider context and requirements.
+### MDP Elements
+
+| Element | Symbol | Role |
+|---------|--------|------|
+| **States** | S | Possible situations |
+| **Actions** | A | Available choices |
+| **Transitions** | P(s'|s,a) | Environmental dynamics |
+| **Rewards** | R(s,a,s') | Learning signal |
+| **Discount** | γ | Future weight |
+
+### Markov Property
+
+- **Memoryless:** Only current state matters
+- **Why:** Enables efficient algorithms
+- **Violation:** Partially Observable → POMDP
 
 ## Interview Q&A
 

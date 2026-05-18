@@ -32,7 +32,22 @@ graph TD
 
 ## Architecture / Trade-offs
 
-MSE: interpretable, smooth gradients | Cross-entropy: probabilistic, handles imbalance well | Custom: powerful but requires tuning
+### Loss Function Comparison
+
+| Loss | Use Case | Properties | Outlier Sensitivity |
+|------|----------|-----------|---------------------|
+| **MSE** | Regression | Differentiable, smooth | High (quadratic penalty) |
+| **MAE** | Robust regression | Piecewise linear | Low (linear penalty) |
+| **Cross-Entropy** | Classification | Information-theoretic | Medium |
+| **Hinge** | SVM | Margin-based | Low |
+| **Focal** | Imbalanced classification | Down-weights easy samples | Flexible |
+
+### Mathematical Properties
+
+- **Convexity:** MSE and Cross-entropy are convex (single minimum)
+- **Differentiability:** All common losses differentiable except Hinge (subgradient)
+- **Gradient Magnitude:** MSE has larger gradients for large errors
+- **Interpretability:** MAE is direct in original units
 
 ## Interview Q&A
 

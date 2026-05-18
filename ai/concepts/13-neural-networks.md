@@ -30,7 +30,19 @@ graph TD
 
 ## Architecture / Trade-offs
 
-Trade-off 1 vs trade-off 2
+### Architecture Depth vs Width
+
+| Property | Deep | Wide |
+|----------|------|------|
+| **Efficiency** | Better (hierarchical) | Worse (parallel) |
+| **Training** | Harder (gradients) | Easier (direct) |
+| **Generalization** | Better (structure) | Overfits easily |
+
+### Universal Approximation
+
+- **Theorem:** 2-layer network approximates any continuous function
+- **Caveat:** Says nothing about learnability
+- **In practice:** Deep more sample-efficient than wide shallow
 
 ## Interview Q&A
 

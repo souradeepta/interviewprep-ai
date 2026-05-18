@@ -30,7 +30,19 @@ graph TD
 
 ## Architecture / Trade-offs
 
-Trade-off 1 vs trade-off 2
+### Covariance Structures
+
+| Type | Parameters | Flexibility | Computation |
+|------|-----------|-------------|-----------|
+| **Spherical** | 1 per cluster | Low | O(n) |
+| **Diagonal** | K*d | Medium | O(n*d) |
+| **Full** | K*d² | High | O(n*d³) |
+
+### EM Algorithm
+
+- **Convergence:** Guaranteed to local optimum
+- **Cost:** O(d³) covariance matrix inversion
+- **Scalability:** Limited to d < 1000 practically
 
 ## Interview Q&A
 

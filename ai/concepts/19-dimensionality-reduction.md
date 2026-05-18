@@ -30,7 +30,19 @@ graph TD
 
 ## Architecture / Trade-offs
 
-Trade-off 1 vs trade-off 2
+### Technique Comparison
+
+| Technique | Preserves | Interpretability | Scalability |
+|-----------|-----------|-----------------|------------|
+| **PCA** | Global variance | High | Excellent |
+| **t-SNE** | Local structure | None | Poor |
+| **UMAP** | Local + global | Low | Better |
+
+### Information Loss vs Reduction
+
+- **PCA:** Controllable, compute explained variance
+- **t-SNE:** High loss, visualization only
+- **UMAP:** Lower loss, preserves topology
 
 ## Interview Q&A
 

@@ -30,7 +30,20 @@ graph TD
 
 ## Architecture / Trade-offs
 
-Trade-off 1 vs trade-off 2
+### Classification Scenarios
+
+| Scenario | Output | Loss Function | Decision Boundary |
+|----------|--------|-------------|-------------------|
+| **Binary** | Single probability | Binary cross-entropy | Single hyperplane |
+| **Multi-class** | K probabilities | Categorical cross-entropy | K hyperplanes |
+| **Imbalanced** | Weighted loss | Weighted cross-entropy | Adjusted threshold |
+
+### Regularization Impact
+
+- **No regularization:** Overfits (especially p >> n)
+- **L2 (Ridge):** Shrinks all, keeps features, interpretable
+- **L1 (Lasso):** Zeros some, automatic selection, sparse
+- **Class weights:** Penalizes minority class errors more
 
 ## Interview Q&A
 

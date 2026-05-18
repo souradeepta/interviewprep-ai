@@ -31,7 +31,26 @@ graph TD
 
 ## Architecture / Trade-offs
 
-Batch GD: stable, slow on large data | SGD: fast, noisy updates | Mini-batch: balanced
+### Gradient Descent Variants
+
+| Variant | Data Per Step | Update Frequency | Stability | Speed | Memory |
+|---------|---------------|------------------|-----------|-------|--------|
+| **Batch GD** | All N samples | Once per epoch | Very stable | Slow | High |
+| **SGD** | 1 sample | N times per epoch | Noisy/unstable | Fast | Low |
+| **Mini-batch** | 32-256 samples | N/batch times | Balanced | Fast | Medium |
+
+### Learning Rate Trade-offs
+
+- **High (0.1+):** Fast progress, oscillates and diverges
+- **Low (1e-5):** Stable, very slow convergence
+- **Adaptive:** Per-parameter rates for better convergence
+- **Scheduled:** Start high, decay over time (most practical approach)
+
+### Batch Size Effects
+
+- **Size=1 (SGD):** Noisy gradients escape local minima, slow per-step progress
+- **Size=N:** Clean gradient signal but computational inefficiency
+- **Optimal=32-256:** Balances gradient quality with hardware efficiency
 
 ## Interview Q&A
 
