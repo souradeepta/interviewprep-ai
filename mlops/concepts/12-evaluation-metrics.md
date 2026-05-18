@@ -260,3 +260,104 @@ Tracks all because optimizing watch hours alone (recommending only top hits) hur
 - **A/B Testing** (Concept 11): Uses metrics to measure experiment success
 - **Model Testing** (Concept 09): Validates metrics in lab before production
 - **Monitoring** (Concept 18): Tracks metric drift in production
+
+---
+
+## Quick Reference Card
+
+### 2-Minute Elevator Pitch
+Evaluation metrics are the translation layer between ML model outputs and business outcomes. The core failure mode: optimizing for the wrong metric. A fraud model optimized for recall catches all fraud but declines 40% of legitimate transactions — users cancel their cards. A recommendation model optimized for click-through rate creates clickbait, reducing long-term retention. The key skill: defining a metric hierarchy (primary metric + guardrails) that captures both what you want to improve and what you must not regress, and understanding the limitations of every metric you use.
+
+### Numbers to Know
+- Fraud detection: typical industry targets are precision >95% (to limit false declines) and recall >90% (to catch fraud)
+- Imbalanced data threshold: if minority class < 10% of data, accuracy becomes misleading — use PR-AUC instead
+- ROC-AUC interpretation: 0.5 = random classifier, 0.70 = acceptable, 0.85 = good, 0.95+ = excellent
+- NDCG@10: standard ranking metric for search/recommendation; measures quality of top-10 results
+- Netflix primary metric: watch hours per member; 1% improvement ≈ $300M/year
+- Stripe primary metric: fraud loss rate ($ lost per $M transacted); false decline rate is the key guardrail
+- Uber ETA: MAE (Mean Absolute Error) in minutes; target MAE < 3 minutes for reliability
+- Latency as a metric: always measure p99, not mean — mean latency can look good while 1% of users experience 10x worse latency
+
+### Decision Framework: Choosing the Right Metric
+
+```mermaid
+graph TD
+    A["What type of ML task?"] --> B{"Classification"}
+    A --> C{"Regression"}
+    A --> D{"Ranking / Recommendation"}
+    
+    B --> E{"Data balanced?"}
+    E --> |"Yes, &gt;10% minority"| F{"Fixed threshold<br/>needed?"}
+    F --> |"Yes"| G["Precision + Recall<br/>F1 Score<br/>Pick threshold on ROC"]
+    F --> |"No, ranking quality"| H["ROC-AUC<br/>Threshold-invariant<br/>Good for model comparison"]
+    E --> |"No, &lt;10% minority"| I{"False positives<br/>or negatives costlier?"}
+    I --> |"FP costly<br/>(false alarms)"| J["Precision + PR-AUC<br/>Minimize false positives<br/>Fraud, spam, alerts"]
+    I --> |"FN costly<br/>(missed positives)"| K["Recall + PR-AUC<br/>Minimize missed positives<br/>Disease detection, safety"]
+    
+    C --> L{"Outliers in data?"}
+    L --> |"Yes"| M["MAE<br/>Robust to outliers<br/>Uber ETA, pricing"]
+    L --> |"No, punish large errors"| N["RMSE<br/>Penalizes large errors<br/>Demand forecasting"]
+    
+    D --> O{"Top-K or full ranking?"}
+    O --> |"Top-K matters<br/>(recommendations)"| P["NDCG@K, MAP@K<br/>Reward top-K quality<br/>Netflix, Spotify, Google"]
+    O --> |"At least one hit<br/>(search)"| Q["Hit Rate@K<br/>Did user find what they want?<br/>E-commerce search"]
+```
+
+---
+
+## Strong vs Weak Answers
+
+### Q: A credit scoring model achieves 97% accuracy. Is it production-ready?
+
+**Weak Answer:** "97% accuracy is very high, so the model is likely production-ready. I would deploy it and monitor performance."
+
+**Strong Answer:** "97% accuracy on credit scoring is almost meaningless without knowing the data distribution. If 95% of applicants are non-defaulters, a model that predicts 'no default' for everyone achieves 95% accuracy — and has zero predictive value. Credit scoring has a highly imbalanced dataset (default rates typically 3-8%), so accuracy is the wrong metric entirely. The right metrics depend on the business trade-off: precision (of those I approve, how many will repay?) and recall (of all qualified applicants, how many do I approve?) — and you must decide which side of this trade-off matters more. At a bank with thin margins, approving defaulters (low precision) is catastrophic; at a fintech trying to grow market share, denying creditworthy applicants (low recall) is the bigger problem. I'd report: PR-AUC (overall discrimination ability), precision at recall=80% (the operating point), and fairness metrics (is approval rate consistent across demographics?). Deploy only after satisfying compliance-mandated disparate impact testing."
+
+---
+
+### Q: You're building a recommendation model for Spotify. What metrics would you use in your evaluation framework?
+
+**Weak Answer:** "I would use NDCG and click-through rate to measure recommendation quality and user engagement."
+
+**Strong Answer:** "Spotify's recommendation system has multiple competing objectives, so I'd define a layered metric framework. Primary business metric: streams per user per session (direct revenue proxy). Without this, I'm optimizing a proxy. Technical metrics for model quality: NDCG@10 (ranking quality — do I rank songs users actually listen to highly?), diversity at @20 (what % of recommended songs are from outside the user's listening history? — prevents filter bubbles), and coverage (what % of the catalog appears in recommendations? — prevents long-tail artists from being invisible). Guardrail metrics: skip rate within 30 seconds (users skipping immediately indicates irrelevance), explicit negative feedback rate (thumbs down), session abandonment rate. The tension: optimizing purely for NDCG tends to recommend only popular tracks that historical data shows people like — but this doesn't surface new artists and kills long-term engagement. I'd optimize NDCG subject to diversity > 30% (at least 3 of 10 recommendations from outside top 10K tracks). Latency guardrail: <200ms for personalized recommendations at scale."
+
+---
+
+### Q: Your model's AUC-ROC is 0.92 in testing but only 0.78 in production. What happened?
+
+**Weak Answer:** "The model is overfitting or the production data is different from the test data. I would retrain the model with more data."
+
+**Strong Answer:** "A 14-point AUC drop from test to production is almost always distribution shift or data leakage in the test set — rarely a simple overfitting problem. I'd investigate three hypotheses in order. First, data leakage in test: did any feature in the test set carry information about the label that wouldn't be available at prediction time? Common in fraud (using post-fraud merchant features), medicine (using discharge diagnoses), and recommendations (using watch completion as both feature and label). Test: does AUC drop to ~0.78 if you remove features computed after the event? If yes, leakage confirmed. Second, temporal distribution shift: were test set and production data collected in different time windows? If test is random-sample from 2024 and production is streaming 2026 data, behavioral shifts explain the gap. Test: compute AUC on the chronologically latest 10% of your test set — does it already show AUC around 0.78? Third, real-world vs. curated data quality: test data may have been cleaned (nulls imputed, outliers removed) while production data is raw. Check null rates and outlier frequencies across both."
+
+---
+
+## System Design: Evaluation Metrics Framework for a Multi-Model ML Platform
+
+**Question:** "You're building the evaluation framework for a large fintech company (think Robinhood) that uses ML models for: fraud detection, credit underwriting, investment recommendations, and customer lifetime value prediction. Each model has different stakeholders and risk profiles. Design a unified evaluation metrics framework."
+
+**Walkthrough:**
+
+1. **Define a primary metric per model.** Fraud detection: fraud loss rate ($ lost per $M transacted) — not recall, because recall ignores the cost of false declines. Credit underwriting: expected profit per approved application (accounts for approval rate and default rate jointly). Investment recommendations: 3-month return attribution (did users who followed recommendations outperform benchmark?). CLV prediction: mean absolute error on 6-month revenue prediction.
+
+2. **Mandatory guardrail metrics for each model.** Fraud: false decline rate ≤ 0.5%, legitimate transaction approval rate ≥ 99%. Credit: demographic parity — approval rate gap across race/gender < 2% (regulatory compliance). Investment: annualized Sharpe ratio for recommendations ≥ 0.8 (risk-adjusted returns). CLV: coverage — model must generate predictions for ≥ 98% of customers.
+
+3. **Fairness metrics as first-class metrics (not afterthoughts).** For credit underwriting: Equalized Odds (equal TPR and FPR across demographic groups), demographic parity (approval rate parity). These are legally required under the Equal Credit Opportunity Act. Fail any fairness metric = block deployment, no exceptions.
+
+4. **Offline evaluation protocol.** All models use temporal validation: train on data through date T, evaluate on data from T+1 to T+30. This prevents temporal leakage. Separate holdout sets for: in-distribution evaluation (same distribution as training), out-of-distribution evaluation (new customer cohorts, new geographies), adversarial evaluation (deliberately crafted edge cases).
+
+5. **Business impact estimation.** For each model, maintain a dollar-impact calculator: a 1% improvement in the primary metric translates to how much revenue or cost savings? This connects ML metrics to business decisions. Example: 1% reduction in fraud loss rate = $5M/year; 0.1% reduction in false decline rate = $2M/year in retained revenue.
+
+6. **Calibration as a required metric.** For all probabilistic models: reliability diagram must show <5% gap between predicted probability and actual outcomes at each decile. Uncalibrated models make business decisions at wrong thresholds. Use Platt scaling or isotonic regression as post-processing if calibration is poor.
+
+7. **Latency as a mandatory metric.** Fraud model SLO: p99 latency <50ms (transaction waiting). Credit model SLO: p99 latency <500ms (applicant waiting). Investment recommendation SLO: p99 latency <200ms (market is open). Track latency degradation per model version — a 2x latency regression blocks deployment even if accuracy improved.
+
+8. **Automated metric computation and dashboards.** Every model has a Grafana dashboard updated daily showing: all primary and guardrail metrics over the last 90 days, comparison to previous version, and alerts for metrics outside acceptable ranges. Metric computation is automated — no manual spreadsheets.
+
+9. **Version-specific metric baselines.** When a new model version is deployed, it establishes its own baseline. The monitoring system compares current metrics to: (a) the version's own deployment-time baseline (regression detection) and (b) the previous version's metrics (was the version transition worth it?).
+
+10. **Escalation path for metric failures.** If primary metric degrades >2%: auto-alert data scientist. If primary metric degrades >5%: auto-alert engineering manager, initiate rollback consideration. If guardrail metric degrades >1%: auto-rollback (no human approval needed). This hierarchy prevents either over-reaction (rolling back 1% degradation) or under-reaction (ignoring 10% degradation).
+
+**Key decisions:**
+- Business metrics as primary (not technical metrics): aligns ML optimization with revenue and risk outcomes
+- Temporal validation as mandatory: prevents leakage, the most common source of inflated offline metrics
+- Fairness metrics as deployment blockers: regulatory compliance requires they be enforced automatically, not reviewed optionally

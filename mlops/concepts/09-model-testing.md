@@ -329,3 +329,94 @@ Result: Ensures recommendations balance: popularity (users want to watch good sh
 - **Evaluation Metrics** (Concept 12): Which metrics to optimize
 - **Model Monitoring** (Concepts 19-20): Continuous production evaluation
 - **Deployment Strategies** (Concept 16): Canary, shadow, blue-green testing in deployment
+
+---
+
+## Quick Reference Card
+
+### 2-Minute Elevator Pitch
+Model testing is a multi-dimensional quality gate that stands between an experiment and a production system. The testing pyramid has four layers: unit tests (does the model produce valid outputs on known inputs?), integration tests (does the model work end-to-end with real data pipelines and feature stores?), behavioral tests (does the model follow domain rules, e.g., monotonicity?), and shadow tests (does the model perform acceptably on live production traffic?). The key insight: a model with 95% accuracy can still fail all four layers — it might crash on edge cases, violate fairness constraints, or degrade production metrics even as accuracy holds.
+
+### Numbers to Know
+- Shadow testing duration: 7 days minimum (captures weekly behavior patterns)
+- Fairness testing threshold: <3% performance gap across demographic groups (typical industry standard; regulated industries may require <1%)
+- Model testing latency SLO: p99 latency test must be run on production-scale hardware, not developer laptops
+- Netflix: tests recommendation models on 5M user sessions before A/B test (shadow phase)
+- Stripe: backtests fraud models on 30 days of historical transactions before deployment
+- Google: BERT testing includes adversarial robustness testing on 100K+ adversarial examples
+- Accuracy on tail data: if a model achieves 95% accuracy overall but only 60% on the bottom-decile users, that's often unacceptable
+- Behavioral test coverage: aim for at least 5 behavioral tests per model (monotonicity, consistency, domain rules)
+
+### Decision Framework: Which Tests to Run Before Deployment
+
+```mermaid
+graph TD
+    A["Pre-Deployment Testing Order"] --> B["Unit Tests<br/>Run: always, before everything<br/>Time: &lt;5 minutes<br/>Checks: forward pass, output shape, value range"]
+    B --> C["Behavioral Tests<br/>Run: always<br/>Time: 5-30 minutes<br/>Checks: monotonicity, consistency,<br/>domain logic violations"]
+    C --> D["Integration Tests<br/>Run: always<br/>Time: 30-60 minutes<br/>Checks: feature store connection,<br/>data pipeline end-to-end"]
+    D --> E{"High risk model?<br/>(fraud, safety, pricing)"}
+    E --> |"No"| F["Backtest<br/>Run on 30 days historical data<br/>Time: 1-4 hours"]
+    E --> |"Yes"| G["Fairness Tests<br/>Run: always for regulated models<br/>Time: 1-2 hours<br/>Checks: demographic parity,<br/>equal opportunity"]
+    G --> F
+    F --> H["Shadow Test<br/>Run on live traffic<br/>Time: 7+ days<br/>Checks: real production behavior"]
+    H --> I["A/B Test<br/>Only after shadow passes<br/>Time: 14+ days<br/>Checks: business impact"]
+```
+
+---
+
+## Strong vs Weak Answers
+
+### Q: A model achieves 95% accuracy on your test set. An engineer says "ship it." What testing do you still need?
+
+**Weak Answer:** "I would run additional tests for robustness and fairness before deploying. I would also test the latency to make sure it meets the SLO."
+
+**Strong Answer:** "95% accuracy on a held-out test set is necessary but far from sufficient for production readiness. Five critical gaps remain. First, distribution shift: is the test set temporally appropriate? If the model was trained on January-March data and the test set is a random sample of the full year, there's no evidence it works on April-December. I'd require a temporal holdout test on the most recent 10% of data. Second, fairness: does 95% accuracy hold across all user segments? A model that's 95% accurate overall but 78% accurate for a demographic subgroup is not production-ready, especially in regulated domains. Third, behavioral correctness: does the model follow domain rules? A credit model should never lower someone's score if their income increases — monotonicity tests catch this. Fourth, latency: I need p99 inference time on production hardware under production load (not a developer laptop). A model with 95% accuracy that takes 500ms to score is useless if the SLO is 100ms. Fifth, shadow test: run the model on live traffic for 7 days with predictions logged but not used. This surfaces distribution shift, edge cases, and integration bugs that test sets miss."
+
+---
+
+### Q: How do you test a model for fairness when you don't have labeled demographic data in your test set?
+
+**Weak Answer:** "You need demographic data to test for fairness, so I would collect that data first before doing fairness testing."
+
+**Strong Answer:** "Lack of directly labeled demographics is common but not a blocker. Three approaches. First, proxy-based fairness testing: use geographic data (zip code → neighborhood demographics), linguistic patterns (names, writing style can correlate with demographics), or survey-based demographic inference. This is imperfect but gives you signal — if performance varies significantly by zip code, that's a fairness flag worth investigating. Second, audit via paired testing: create synthetic test cases that differ only in demographic-correlated signals (e.g., two loan applications identical except one has a traditionally male name, one a traditionally female name). If predictions differ, the model has picked up a gender signal. This is how the Gender Shades study audited facial recognition systems. Third, outcome-based testing: even without demographics, measure if the model's outputs (approval rates, fraud flags, recommendation quality) differ across proxy groups. If fraud model flags rates are 3x higher for transactions from ZIP codes with majority minority populations compared to ZIP codes with similar income but different demographics, that's disparate impact. The key principle: absence of demographic data is not evidence of fairness — it's evidence of insufficient testing."
+
+---
+
+### Q: Your fraud detection model fails on 'tail' transactions — it works great on 99% of cases but consistently misclassifies a specific type of transaction. How do you systematically find and address this in testing?
+
+**Weak Answer:** "I would add more examples of the tail transaction type to the training data so the model learns to handle it better."
+
+**Strong Answer:** "Finding and fixing tail failures requires a structured approach across three phases. Phase 1 — Discovery: segment the test set by transaction type, merchant category, geography, amount range, and time of day. Compute accuracy per segment. Any segment with accuracy 10+ points below the global average is a 'tail failure' candidate. Use SHAP values to understand what features are driving misclassifications in that segment. Phase 2 — Validation: build a dedicated holdout set for that transaction type. Quantify the business impact: if this type represents 0.1% of volume but 5% of fraud loss, fixing it is high priority. If it's 0.01% of volume and 0.1% of fraud loss, it may be lower priority. Phase 3 — Remediation options: (a) collect more labeled examples of this type (data augmentation or targeted data collection), (b) build a specialized sub-model for this transaction type and ensemble it with the main model, (c) add hand-crafted rules that cover the known failure pattern while the model is improved, (d) accept the limitation and document it explicitly. The testing infrastructure must include: a regression test that specifically tests this tail case, so future model updates don't accidentally make it worse."
+
+---
+
+## System Design: Comprehensive Model Testing Framework for Fraud Detection
+
+**Question:** "You're the ML engineer responsible for the testing framework at a payment processor (like PayPal). The fraud detection model processes 2M transactions/day. A failure (missed fraud wave, or false-decline surge) costs $1M+. Design a comprehensive testing framework that ensures models are safe to deploy."
+
+**Walkthrough:**
+
+1. **Unit test suite (fast, runs on every commit, <5 minutes).** Tests: (a) model loads without error from the serialized artifact, (b) forward pass produces a float output in [0, 1] for valid inputs, (c) model handles null input values gracefully (does not crash, returns a fallback score), (d) batch inference produces consistent results with single-item inference (no batch normalization bugs), (e) inference on synthetic known-fraud transactions returns score >0.8, (f) inference on synthetic known-legitimate transactions returns score <0.2.
+
+2. **Behavioral test suite (runs on every model version, <30 minutes).** Tests: (a) Monotonicity: if transaction amount increases for the same user/merchant, fraud score should not decrease (higher amounts are higher risk). (b) Merchant consistency: two identical transactions to the same merchant should score within 0.01 (no stochasticity). (c) Domain rules: transaction with a known-fraud merchant_id should score >0.9. (d) Temporal consistency: score for a transaction at 3am should differ from 3pm by <0.3 (time matters but not too much). (e) Currency invariance: the same transaction in USD vs EUR (after conversion) should score within 0.05.
+
+3. **Fairness test suite (required for all production models).** Compute false decline rate (FDR = legitimate transactions blocked / total legitimate) segmented by: country (no country should have FDR 3x higher than median), transaction amount decile (lower-amount transactions should not have disproportionately high FDR), card type (debit vs credit should not differ by >2% FDR). Block deployment if any fairness metric fails.
+
+4. **Performance test suite (runs on staging, <1 hour).** Load test: simulate 2M transactions/day (23 transactions/second average, 200 transactions/second peak). Requirement: p99 latency <50ms at peak load. Memory test: model memory footprint must be <2GB (to allow 4 replicas on a single GPU node). Concurrent request test: 100 concurrent requests should produce 100 independent correct responses with no cross-contamination.
+
+5. **Backtest (runs before shadow phase, 4-8 hours).** Replay 30 days of historical transactions through the new model. Compare: overall fraud detection rate vs incumbent, false decline rate vs incumbent, performance by transaction type (card-present, card-not-present, recurring). Requirement: new model must match or improve on all three dimensions. Any regression on any segment blocks deployment.
+
+6. **Shadow test (runs in production, 14 days).** New model runs alongside the incumbent for 14 days. Both models score every transaction; only the incumbent's decision is acted on. Shadow test success criteria: new model's fraud score correlation with incumbent >0.9 (models largely agree), new model's predicted fraud rate matches incumbent within 5%, no signs of systematic divergence over time (no drift in score distribution).
+
+7. **Integration test suite (runs weekly, catches silent regressions).** Tests that the full production system works end-to-end: (a) feature store provides all 47 required features within 5ms, (b) model loads correctly from the artifact registry, (c) the inference service returns valid JSON for valid inputs, (d) the monitoring system correctly records each inference event, (e) rollback mechanism works (deploys previous version within 2 minutes).
+
+8. **Adversarial test suite (runs quarterly).** Tests designed to find model weaknesses: (a) velocity stuffing attack (many small legitimate transactions followed by one large fraudulent one — model may lower score after seeing legitimate history), (b) synthetic fraud using known attack patterns (test whether model still catches fraud after adversary changes merchant IDs), (c) geographic spoofing (transaction IP in US, issuing bank in Nigeria — does model correctly weight this signal?).
+
+9. **Continuous monitoring (runs in production, always-on).** Automated alerts for: fraud detection rate drops >5% from baseline (missed fraud wave), false decline rate increases >0.5% (customer impact), score distribution shifts significantly (KS test p < 0.01), latency p99 exceeds 80ms (5ms from SLA breach), any feature's null rate exceeds 1% (feature pipeline issue).
+
+10. **Rollback testing (monthly drill).** Every month, the on-call engineer performs a deliberate rollback drill: deploy model v(n-1), verify traffic shifts correctly, verify metrics return to v(n-1) baseline, redeploy current model. This ensures the rollback mechanism works when needed in a real incident, not just theoretically.
+
+**Key decisions:**
+- Behavioral tests over pure accuracy tests: accuracy can look fine while the model violates domain rules; behavioral tests catch this
+- Fairness as a deployment blocker: making it optional means it doesn't get fixed under time pressure
+- Shadow test as mandatory pre-condition for A/B: prevents A/B tests from being contaminated by model-integration bugs

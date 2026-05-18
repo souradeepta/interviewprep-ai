@@ -349,3 +349,99 @@ Data testing is the foundation of production ML. Clean data doesn't guarantee ac
 - **Model Testing** (Concept 09): Tests consuming this validated data
 - **Data Monitoring** (Concept 18): Continuous production validation
 - **Drift Detection** (Concept 20): Identifying distribution shifts
+
+---
+
+## Quick Reference Card
+
+### 2-Minute Elevator Pitch
+Data testing validates that the inputs feeding into ML pipelines meet quality standards. It's the difference between discovering a data quality issue at 3am when a model degrades, versus catching it at 9am when the pipeline runs. The testing pyramid runs from cheap-and-fast schema checks (milliseconds per row) to expensive-but-thorough statistical drift tests (minutes per batch). The key mindset shift: data quality is not someone else's responsibility — the team consuming the data must own their data contracts, and data testing is how those contracts are enforced automatically.
+
+### Numbers to Know
+- Schema checks: <1ms per row, should run on every single record, zero performance overhead
+- Statistical distribution tests (KS test): ~1 second for 1M rows, run hourly or daily
+- Great Expectations suite: typically catches 85-90% of data quality issues before they reach models
+- Netflix validates 1000+ features daily; a single bad feature can degrade recommendation quality by 3-5%
+- Stripe discovered $100K/month fraud losses from one nullable field (missing merchant_category)
+- Google research: 90% of ML bugs are data problems, not code problems
+- Acceptable null rate benchmarks: critical features <0.1%, important features <1%, optional features <5%
+- Distribution drift alert threshold: KS test p-value < 0.01 (stricter than 0.05 to reduce false positives)
+- Data freshness SLA: real-time features should be <1 minute stale; batch features <24 hours stale
+
+### Decision Framework: Data Testing at Each Pipeline Stage
+
+```mermaid
+graph TD
+    A["When to run data tests?"] --> B["At Ingestion<br/>(always synchronous)"]
+    A --> C["Before Feature Engineering<br/>(always synchronous)"]
+    A --> D["After Feature Engineering<br/>(always synchronous)"]
+    A --> E["Before Model Training<br/>(synchronous gate)"]
+    A --> F["At Inference Time<br/>(synchronous, fast only)"]
+    A --> G["In Production Monitoring<br/>(async, continuous)"]
+    
+    B --> B1["Schema, types, required fields<br/>Reject invalid records immediately"]
+    C --> C1["Completeness, freshness<br/>Statistical baseline comparison"]
+    D --> D1["Feature value ranges<br/>Null rates per feature<br/>Cross-feature consistency"]
+    E --> E1["Full suite: schema + statistical<br/>+ distribution drift vs last version<br/>Block training if fails"]
+    F --> F1["Schema only, fast checks<br/>&lt;1ms overhead<br/>Fallback to rules if fails"]
+    G --> G1["Distribution shift (KS test)<br/>Anomaly detection<br/>Completeness trending"]
+```
+
+---
+
+## Strong vs Weak Answers
+
+### Q: You inherit a production ML system where data quality is "validated manually every week." The last major data issue cost $500K in incorrect predictions. How do you redesign the testing strategy?
+
+**Weak Answer:** "I would automate the data validation using Great Expectations and set up alerts when checks fail. I would validate the data schema and check for nulls daily."
+
+**Strong Answer:** "Manual weekly validation is a recipe for expensive incidents. I'd redesign across three time horizons. Immediate (same day): implement schema validation at the point of ingestion using Great Expectations. Every record runs through type checks, required field checks, and value range checks. This catches the most common data quality issues instantly. This week: implement automated completeness and statistical checks on each daily batch. For each feature: baseline null rate, baseline value distribution, baseline record count. Generate a daily quality report emailed to the team. Alert if any metric deviates >2 standard deviations from the 30-day baseline. Over the next month: build data contracts for each upstream feed, with formal SLAs (schema version, completeness guarantee, freshness SLA). Any contract violation generates a Jira ticket automatically, assigned to the data producer — not just a notification. The $500K incident was almost certainly preventable with the immediate step. The second step prevents recurring issues. The third step builds organizational accountability. Timeline: Day 1 automation should be live in 2 days (Great Expectations is fast to integrate), with a target to eliminate manual validation within 2 weeks."
+
+---
+
+### Q: Your model accuracy dropped 8% overnight. Data validation shows all checks passed. What do you investigate?
+
+**Weak Answer:** "If validation passed, the issue is probably with the model itself. I would retrain the model or check for code issues."
+
+**Strong Answer:** "Validation passing doesn't mean data is good — it means data met your existing checks. An 8% accuracy drop with clean validation suggests the checks are insufficient. I'd investigate four hypotheses in order. First, subtle distribution shift within validated bounds: your price feature passed its null check and range check, but the distribution of values within the valid range may have shifted significantly. Run a KS test comparing today's feature distributions to the 30-day baseline — look for features with p-value < 0.01. Second, feature-label correlation change: a feature that was a strong predictor may have changed its relationship with the label. Example: if a 'days since last login' feature was predictive of churn, but your login infrastructure changed how inactive accounts are handled, the feature's semantics changed without the schema changing. Third, upstream computation change: a feature computed by another team may have changed its calculation without changing the schema. Audit the changelog for the data pipeline that produces your features — any change in the last 48 hours is a suspect. Fourth, label definition change: if labels come from a downstream system (e.g., confirmed fraud labels), and that system changed its definition, your validation data is now different from your training data. The lesson: add KS test-based distribution checks to the validation suite so subtle shifts are caught automatically."
+
+---
+
+### Q: How do you test for data leakage in a train/test split before your team submits a model to production?
+
+**Weak Answer:** "I would make sure the test set is from a different time period than the training set, and remove any features that are too highly correlated with the label."
+
+**Strong Answer:** "Data leakage testing requires a systematic checklist, not ad-hoc inspection. Five specific tests. First, temporal split verification: confirm no data point in the test set has a timestamp earlier than the latest timestamp in the training set. A simple assertion: `assert test_df['timestamp'].min() > train_df['timestamp'].max()`. Second, identifier leakage check: any column that directly identifies an entity associated with the label (e.g., `fraud_case_id`, `customer_complaint_id`) must be removed before training. Automated check: correlation scan — any feature with absolute correlation >0.95 with the label is a leakage candidate. Third, temporal feature audit: for any feature with time in its name or that computes aggregates (7-day average, lifetime value), verify it uses only data available at the prediction time, not data from after the event. This requires code review of the feature engineering, not just data inspection. Fourth, duplicate detection: any samples appearing in both train and test sets (same entity, same timeframe) inflate test metrics. Check: if any entity_id appears in both splits, investigate why. Fifth, cross-validation temporal ordering: if using k-fold, ensure it's TimeSeriesSplit (not random), which respects temporal order and prevents future data from being in earlier folds."
+
+---
+
+## System Design: Data Testing Infrastructure for a Real-Time Recommendation System
+
+**Question:** "You're designing the data testing infrastructure for a social media platform (like TikTok) with 1B daily active users. The recommendation algorithm consumes 200+ features from 15 different data sources. Data quality issues caused a major engagement drop last quarter that took 3 days to diagnose. Design a comprehensive data testing system that catches quality issues within 15 minutes of occurrence."
+
+**Walkthrough:**
+
+1. **Data contract registry.** Create a formal contract for each of the 15 data sources. Each contract specifies: schema (column names, types, constraints), freshness SLA (how often updated, maximum acceptable staleness), completeness guarantee (minimum % of expected entities present), and owner (who to page if the contract is violated). Contracts are stored in git (versioned, reviewed, auditable) and referenced by the testing infrastructure.
+
+2. **Ingestion-time validation (synchronous, <5ms per record).** Every event entering the pipeline runs through a schema validation layer built on Apache Avro schemas. Invalid events go to a dead-letter Kafka topic (never silently dropped). Metrics emitted per event: `validation_passed` (counter), `schema_violations` (tagged by field name and violation type). A Grafana dashboard shows validation pass rate in real time.
+
+3. **Batch completeness checks (runs every 5 minutes).** For each data source, check: (a) entity coverage — what % of the expected user base has data updated in the last SLA window? Alert if <99.5%. (b) Volume check — is today's ingested row count within 20% of the 7-day moving average? Alert if outside this range (indicates upstream issue or unusual traffic spike). (c) Freshness check — when was the latest event timestamp? Alert if older than 2× the SLA.
+
+4. **Statistical distribution monitoring (runs hourly).** For each of the 200+ features, compute: (a) current null rate vs 30-day baseline null rate (alert if 2× increase), (b) KS test comparing today's distribution to 7-day baseline (alert if p < 0.01), (c) specific outlier detection for critical features (user engagement score outside [0, 1], item age negative). Use reservoir sampling (1M samples) for scalable KS tests.
+
+5. **Cross-feature consistency checks (runs daily before training).** Verify relationships between features that must hold by definition: user's `total_watch_time` must equal sum of individual session watch times; item's `like_count` must be non-negative and not exceed its `view_count`; timestamp of most recent interaction must be ≤ current time. Violations indicate pipeline bugs, not just data quality issues.
+
+6. **Training data gate (runs before every training job).** Automated pre-flight check: (a) all 15 data sources have been refreshed within their SLA, (b) all 200+ features pass their schema and completeness checks, (c) no statistical distribution check has flagged more than 5 features simultaneously (could indicate a widespread data issue), (d) no cross-feature consistency violations. If any gate fails, training is halted and a P1 alert fires.
+
+7. **Inference-time validation (synchronous, <1ms).** At prediction time, validate each incoming request: schema check (required features present, correct types), range check (feature values within historical bounds), staleness check (feature last updated within SLA). If validation fails: log the failure, use a fallback prediction (global popularity ranking, no personalization), and emit a monitoring event. Never return an error to the user.
+
+8. **Production distribution monitoring (continuous, async).** Compare the features used for the last 1M predictions to the training distribution. Use Population Stability Index (PSI): PSI < 0.1 = no significant shift, PSI 0.1-0.25 = moderate shift (alert), PSI > 0.25 = major shift (trigger retraining consideration). This runs continuously on sampled production traffic.
+
+9. **Automated incident creation.** When any check fails: create a Jira ticket with severity based on: impact (how many users affected?), urgency (is this blocking serving or just monitoring?), and duration (how long has the issue persisted?). P1 (page on-call immediately): serving-impacting issues. P2 (next business day): non-serving issues detected by monitoring. Auto-assign to the data contract owner of the affected source.
+
+10. **Root cause tooling.** When an issue is detected: automatically generate a "data quality dossier" containing: the specific check that failed (with exact values), the last 7 days of metrics for that check (trend line), the list of models and features that consume this data source (impact scope), and a comparison of today's data sample to yesterday's (schema diff, value distribution comparison). This reduces mean-time-to-diagnosis from 3 days (current state) to <2 hours.
+
+**Key decisions:**
+- 5-minute batch checks vs hourly: 5-minute checks catch freshness and volume issues within SLA; hourly statistical checks are expensive (KS test on 200 features) and don't need to run as frequently
+- Dead-letter queue over silent drop: silent drops create invisible data quality issues; dead-letter queues make every failure visible and investigable
+- Inference-time validation with fallback: never block serving on a data issue — degrade gracefully to a simpler model while the issue is resolved

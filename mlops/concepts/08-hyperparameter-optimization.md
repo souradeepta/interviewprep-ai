@@ -269,3 +269,94 @@ Weak: "Try learning_rate=0.1, 0.01, 0.001." (Only 3 values, no systematic approa
 - Ray Tune: https://docs.ray.io/en/latest/tune/
 - Hyperband: https://arxiv.org/abs/1603.06393
 - Keras Tuner: https://keras.io/keras_tuner/
+
+---
+
+## Quick Reference Card
+
+### 2-Minute Elevator Pitch
+Hyperparameter optimization is the systematic process of finding the configuration that maximizes model performance — and it delivers more value per engineering hour than almost any other ML activity. Random search over 50 configurations typically outperforms careful manual tuning. Bayesian optimization over 100 trials typically adds another 1-3% accuracy on top of random search. The key insight: learning rate and regularization account for 80% of the variance in model performance; optimizing these two parameters first is almost always sufficient. The rest is configuration details.
+
+### Numbers to Know
+- Learning rate sensitivity: moving from lr=0.1 to lr=0.01 can change accuracy by 3-5%; from 0.01 to 0.001 by 1-2%
+- Batch size effect: doubling batch size requires increasing learning rate by ~√2 to maintain same convergence (square root scaling rule)
+- Random search vs. grid search: random search finds equally good results with ~20% fewer trials (Bergstra & Bengio, 2012)
+- Bayesian optimization efficiency: reaches 95% of maximum performance in 3-5x fewer trials than random search on typical benchmarks
+- Early stopping savings: stopping at 20% of epochs for unpromising runs saves 70-80% of compute
+- Hyperband efficiency: achieves same result as 100-trial random search with ~30 GPU-hours instead of 100
+- Diminishing returns: after 50-100 trials with Bayesian optimization, improvements are typically <0.1% per additional trial
+- Key parameters to always optimize: learning_rate (log scale, 1e-5 to 1e-1), batch_size (powers of 2: 16-512), dropout (0.0-0.5), weight_decay (log scale, 1e-6 to 1e-1)
+
+### Decision Framework: Which HPO Strategy to Use
+
+```mermaid
+graph TD
+    A["Choose HPO Strategy"] --> B{"Search budget<br/>(GPU-hours)?"}
+    B --> |"< 10 GPU-hours<br/>Explore quickly"| C["Random Search<br/>20-30 trials<br/>Broad coverage<br/>Often beats grid search"]
+    B --> |"10-50 GPU-hours<br/>Efficient search"| D{"Known structure<br/>in search space?"}
+    D --> |"Yes, correlated params"| E["Bayesian Optimization<br/>Optuna TPE or CMA-ES<br/>50-100 trials<br/>Learns from past trials"]
+    D --> |"No, independent params"| C
+    B --> |"50+ GPU-hours<br/>Large scale"| F{"Distributed<br/>infrastructure?"}
+    F --> |"Yes, Kubernetes/Spark"| G["Ray Tune<br/>100-500 trials<br/>Parallel across machines<br/>Best for NN search"]
+    F --> |"No, single node"| E
+    B --> |"Cost-critical<br/>Limited compute"| H["Hyperband / ASHA<br/>Multi-fidelity<br/>Early stopping built-in<br/>3-5x more efficient"]
+```
+
+---
+
+## Strong vs Weak Answers
+
+### Q: You have a budget of 50 GPU-hours for hyperparameter optimization on a transformer model. How do you use it?
+
+**Weak Answer:** "I would try different values of learning rate and batch size using grid search, then pick the best combination."
+
+**Strong Answer:** "I'd allocate budget across three phases. Phase 1 (10 GPU-hours): rough exploration with random search over 20 trials. Search space: learning_rate (log-uniform 1e-5 to 1e-2), batch_size (16, 32, 64, 128), warmup_ratio (0.0 to 0.15). Each trial trains for 20% of full epochs, which is enough to distinguish promising from unpromising configurations. Phase 2 (30 GPU-hours): Bayesian optimization (Optuna TPE) with 50 trials, narrowed search space based on Phase 1 (focus on regions that showed promise). Train each trial for 50% of epochs with early stopping. Phase 3 (10 GPU-hours): retrain the top 3 configurations on full epochs with different random seeds (3 seeds each) to estimate variance and confirm the winner. This staged approach is how Hugging Face recommends HPO for language models — it avoids wasting compute on obviously bad regions while still exploring broadly. Expected result: 2-4% accuracy improvement over default hyperparameters, which at Netflix scale is worth millions in recommendation quality."
+
+---
+
+### Q: Optimal hyperparameters from a 1M-sample dataset don't transfer to a 100M-sample production dataset. Why, and what do you do?
+
+**Weak Answer:** "The model might be overfitting on small data. I would re-run hyperparameter optimization on a larger dataset."
+
+**Strong Answer:** "This is a well-documented phenomenon. When data scale increases 100x, several hyperparameters change their optimal values: (1) Learning rate: larger datasets benefit from higher learning rates (more gradient signal per update reduces noise, allows faster convergence) — the linear scaling rule suggests increasing lr proportionally with batch size. (2) Batch size: with 100M samples, larger batches (512-2048) improve GPU utilization without the variance problem that occurs on small datasets. (3) Regularization: with more data, the model is naturally less prone to overfitting, so optimal weight_decay and dropout are typically lower on large datasets. (4) Warmup: larger datasets with larger batches benefit from longer warmup periods. My approach: rather than re-running full HPO on 100M samples (expensive), I'd use a dataset-scale proxy search — run HPO on a stratified 5% sample (5M samples), which is 5x larger than the original but 20x cheaper than the full dataset. Then validate the top 3 configurations on the full dataset. This is the approach Google Brain used when scaling BERT fine-tuning across dataset sizes."
+
+---
+
+### Q: How do you share and reuse optimal hyperparameters across teams in a large organization?
+
+**Weak Answer:** "I would document the best hyperparameters in a wiki or README file so other teams can reference them."
+
+**Strong Answer:** "Manual documentation has a fundamental problem: it goes stale within months as datasets, model architectures, and libraries evolve. I'd build a living hyperparameter registry integrated with the experiment tracking system. Structure: each 'hyperparameter configuration' entry contains: model_architecture (bert-base, xgboost), task_type (classification, regression), dataset_characteristics (size, class balance, domain), optimal_config (the parameter values), expected_performance_range (accuracy 0.91-0.93), and a pointer to the experiment run that validated it. The registry is queryable: 'Show me XGBoost configurations for imbalanced binary classification datasets with >1M rows.' Teams submit new configurations after completing HPO, and the system tracks whether submitted configs hold up over time (if a config degrades when retested 6 months later, it's flagged). This is similar to what Google's Vizier service does internally — a hyperparameter recommendation service that learns across all of Google's models."
+
+---
+
+## System Design: Distributed HPO for a Large-Scale Search Ranking Model
+
+**Question:** "You're the ML lead at an e-commerce company (think Amazon). The search ranking model has 12 important hyperparameters and trains on 100M query-product pairs. Current search is manual (engineers try values they 'feel' are good). Design a systematic HPO system that finds better hyperparameters within a $10K compute budget."
+
+**Walkthrough:**
+
+1. **Identify the 12 parameters and their types.** Learning rate (continuous, log scale), batch size (discrete, powers of 2), warmup steps (discrete, 500-5000), dropout (continuous, 0-0.5), weight decay (continuous, log scale), max sequence length (discrete, 128-512), hidden size (discrete, 256-1024), number of attention heads (discrete, 4-16), feed-forward dimension (discrete, 512-4096), layer normalization epsilon (continuous, log scale), label smoothing (continuous, 0-0.3), gradient clipping (continuous, 0.5-5.0).
+
+2. **Estimate compute budget.** $10K / $2 per GPU-hour (A100) = 5,000 GPU-hours. Full training on 100M samples takes ~50 GPU-hours. So I can afford 100 full runs — reasonable for Bayesian optimization.
+
+3. **Reduce effective search space.** Start with parameter importance analysis: run 20 random trials and use Optuna's `fanova` module to compute feature importance. Typically, 3-4 parameters account for 80% of variance (learning rate, batch size, warmup, dropout). Fix the others to reasonable defaults and search only the important ones. This reduces search space from 12 to 4 dimensions.
+
+4. **Multi-fidelity strategy.** Use Hyperband (ASHA scheduler in Ray Tune): start all 100 trials, but kill the bottom 50% at 10% of training epochs (5 GPU-hours each), kill the bottom 50% of survivors at 33% of epochs, and let only the top 12 run to completion. Total compute: (50 × 5) + (25 × 16) + (12 × 50) = 250 + 400 + 600 = 1,250 GPU-hours — 4x more efficient than running all 100 to completion.
+
+5. **Distributed execution with Ray Tune.** Deploy a Ray cluster on 10 GPU machines. Ray Tune distributes trials across machines, handles failed trials automatically, and provides real-time visualization. Search algorithm: Optuna TPE (Tree-structured Parzen Estimator) — learns which regions of parameter space produce good results and samples from them preferentially.
+
+6. **Validation protocol.** Use a fixed validation set of 5M samples (stratified by query type) — the same set for all trials. This ensures fair comparison. Primary metric: NDCG@10 on the validation set. Guardrail: latency <100ms on a representative 10K query sample.
+
+7. **Early stopping within trials.** Each trial uses learning rate warmup + cosine decay with early stopping: if validation NDCG@10 doesn't improve for 3 consecutive epochs, stop the trial. Saves 30-50% of compute on plateau runs.
+
+8. **Budget allocation: reserve for retraining.** Allocate: 60% of budget (3,000 GPU-hours) for the search. 25% (1,250 GPU-hours) for retraining the top 5 configurations on full data with 3 different seeds each. 15% (750 GPU-hours) contingency for re-exploration if search results are poor.
+
+9. **Analysis of search results.** After search: plot hyperparameter importance, parallel coordinates plot (which parameter combinations correlate with high NDCG?), and learning curves for top 10 trials. Document insights: 'For this model, learning_rate=0.0003 and warmup_steps=2000 are critical; batch_size and dropout have lower impact.'
+
+10. **Integration with deployment pipeline.** The optimal configuration is automatically written to the model's config file and versioned in git. The deployment CI/CD pipeline reads this config — no manual copy-paste. Future retraining runs inherit the optimal config. Every 6 months, re-run HPO on the latest data (model distribution shifts, optimal hyperparameters may change).
+
+**Key decisions:**
+- Multi-fidelity (Hyperband) over pure Bayesian: Hyperband's early stopping makes it 3-5x more compute-efficient for large models where training is expensive
+- Parameter importance before full search: reduces 12-dimensional search to 4-dimensional, dramatically improving search efficiency
+- Fixed validation set for all trials: ensures fair comparison; a dynamic validation set would contaminate comparisons with data variance

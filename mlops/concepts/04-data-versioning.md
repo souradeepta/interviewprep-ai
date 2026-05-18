@@ -213,3 +213,93 @@ When fraud detection accuracy drops: identify which version caused regression, r
 - Delta Lake: https://delta.io/
 - Apache Iceberg: https://iceberg.apache.org/
 - MLflow Data: https://www.mlflow.org/
+
+---
+
+## Quick Reference Card
+
+### 2-Minute Elevator Pitch
+Data versioning enables reproducibility in ML by tracking which exact dataset trained each model. Without it, a model degradation is a black box — you can't tell if data changed, code changed, or the world changed. With it, you reconstruct any historical training set in minutes, run controlled experiments (retrain v3 vs v5), and diagnose degradation by binary search across versions. The key insight: datasets are not files, they are logical entities with lineage, schema, and content-addressable identity (hash).
+
+### Numbers to Know
+- DVC overhead: metadata file is ~1KB per versioned dataset regardless of dataset size
+- Delta Lake: stores only deltas (changes), typically 5-10x more storage-efficient than full copies
+- Retention cost: 1TB training data at 3 copies = ~$70/month on S3; versioning adds 20-30% storage overhead with delta storage
+- Netflix: versions 50M-row recommendation datasets daily; lineage graph has 200+ nodes
+- Acceptable reproduction tolerance: <0.1% accuracy difference between original and reproduced result
+- Time-travel queries on Delta Lake/Iceberg: retrieve any snapshot from the last 30 days in <10 seconds
+- Storage recommendation: keep current + 2 previous major versions (90 days); archive older to S3 Glacier
+
+### Decision Framework: Which Data Versioning Tool to Use
+
+```mermaid
+graph TD
+    A["Choose Data Versioning Tool"] --> B{Dataset size?}
+    B --> |"< 100GB<br/>Research/small team"| C{Git-native workflow?}
+    C --> |"Yes"| D["DVC<br/>File tracking + Git<br/>Simple metadata<br/>S3/GCS storage"]
+    C --> |"No"| E["Metadata-only versioning<br/>Hash + S3 path<br/>Minimal overhead"]
+    B --> |"100GB-10TB<br/>Production"| F{Ecosystem?}
+    F --> |"Databricks / Spark"| G["Delta Lake<br/>ACID + time travel<br/>Efficient deltas<br/>Spark-native"]
+    F --> |"Multi-cloud / Vendor-neutral"| H["Apache Iceberg<br/>Open format<br/>Compaction + snapshots<br/>Works with Spark, Trino, Flink"]
+    F --> |"Cloud-native (AWS)"| I["AWS Glue + S3 Versioning<br/>Managed lineage<br/>Integrates with SageMaker"]
+    B --> |"> 10TB<br/>Warehouse-scale"| J["Delta Lake or Iceberg<br/>Both support petabyte scale<br/>Choose by ecosystem"]
+```
+
+---
+
+## Strong vs Weak Answers
+
+### Q: A model trained 3 months ago achieved 95% accuracy. The same code run today achieves 90%. How do you debug this with data versioning?
+
+**Weak Answer:** "I would compare the training data from 3 months ago to today's data and see what changed."
+
+**Strong Answer:** "With proper data versioning, this is a systematic binary search. First, I'd identify the training dataset version used 3 months ago from the model registry — it should have a `dataset_hash` and `dataset_version` linked to the model artifact. Second, I'd retrain on that exact snapshot using DVC or Delta Lake's time-travel query. If accuracy returns to 95%, data is the culprit. If it stays at 90%, it's code or environment. Third, if data is the issue, I'd identify the version where accuracy first dropped by binary search — retrain on v3, v4, v5 (2-3 GPU hours each) to isolate the breaking change. Fourth, compare schema, row counts, and statistical distributions between the last 'good' version and the first 'bad' version. Common culprits: a new data source added that introduced label noise, a feature definition change that silently altered semantics, or a temporal leak introduced by a pipeline change. Netflix debugged a 4% recommendation accuracy drop this way — traced to a feature store update that changed how viewing history was computed."
+
+---
+
+### Q: How do you prevent data versioning from consuming 10x storage as data grows?
+
+**Weak Answer:** "I would use Delta Lake which stores deltas instead of full copies, so it uses less storage."
+
+**Strong Answer:** "Storage efficiency requires three practices working together. First, use delta storage (Delta Lake or Iceberg) which stores row-level changes rather than full dataset copies — a dataset that changes 5% daily needs 5% incremental storage, not 100%. Second, implement retention policies: for production models, keep current + 2 previous versions hot (fast access), archive everything older than 90 days to S3 Glacier (80% cost reduction). Only keep critical milestone versions permanently — the dataset that trained the best model ever, or a regulatory compliance baseline. Third, compress aggressively: Parquet with Snappy compression reduces CSV storage 10-20x with no information loss. Uber's ETA training pipeline went from 500GB/week to 45GB/week by switching to Parquet + delta versioning + 30-day retention. The principle: version the artifact hash and metadata always; store the full data only when needed."
+
+---
+
+### Q: How do you implement data lineage tracking for 100 interdependent datasets?
+
+**Weak Answer:** "I would document each dataset's dependencies in a wiki or README file."
+
+**Strong Answer:** "Manual documentation is a maintenance trap — it's always stale. I'd build lineage tracking directly into the pipeline code as a first-class concern. Each pipeline job records: input dataset hashes and versions, transformation code commit (git hash), output dataset hash and version, creation timestamp, and creator job ID. This gets stored in a lineage metadata store — a simple graph database (or even a JSON file per dataset) where nodes are datasets and edges are transformations. The key value: when source data changes or a pipeline bug is found, you can immediately query 'which downstream datasets are affected?' and trigger targeted recomputation. At Google, lineage tracking enabled engineers to invalidate and recompute only the 12 datasets downstream of a buggy pipeline stage, rather than recomputing all 100+. For 100 datasets, I'd use Apache Atlas or build a lightweight custom graph using Neo4j — the graph structure makes ancestor/descendant queries trivial."
+
+---
+
+## System Design: Data Versioning for a Monthly Retraining Pipeline
+
+**Question:** "You're building the data infrastructure at a hedge fund that retrains trading signal models monthly on 5 years of financial data (~2TB). Models must be exactly reproducible for regulatory audit (SEC requires being able to reproduce any prediction from the last 7 years). Design the data versioning system."
+
+**Walkthrough:**
+
+1. **Choose the versioning approach.** For 2TB with regulatory requirements, use Apache Iceberg on AWS S3. Iceberg provides: (a) immutable snapshots with content-addressable hashes, (b) time-travel queries to any historical snapshot, (c) vendor-neutral format readable by any query engine, (d) built-in retention policies. Alternative (Delta Lake) would work too but creates Databricks dependency.
+
+2. **Content-addressable dataset identity.** Each dataset version is identified by a SHA-256 hash of its content (file hashes) and schema. This hash is the immutable identifier stored in the model registry alongside the model weights. Given a hash, you can retrieve the exact training snapshot.
+
+3. **Lineage graph.** Every transformation records its inputs and outputs in a lineage metadata store. Structure: `{output_hash: "abc123", inputs: [{hash: "def456", name: "raw_prices_v3"}, {hash: "ghi789", name: "earnings_v2"}], transform_code: "git:abc123def456", created: "2026-01-15T09:00:00Z"}`. Store this in DynamoDB or PostgreSQL as a directed acyclic graph.
+
+4. **Model-dataset linkage.** The model registry entry for every deployed model includes: `dataset_version: "2026-01-15_hash=abc123"`, `dataset_lineage_root: "raw_prices_2021-2026"`. During SEC audit, present this entry and execute time-travel query to retrieve the exact snapshot.
+
+5. **Retention policy: tiered storage.** Hot (current + 12 months): S3 Standard, instant access. Warm (1-3 years): S3 Infrequent Access, <1 min retrieval. Cold (3-7 years): S3 Glacier, 3-5 hour retrieval. Only the regulatory minimum (7 years) is kept; older data is deleted. Cost estimate: 2TB hot + 18TB warm + 36TB cold ≈ $1,200/month.
+
+6. **Immutable storage guarantee.** Enable S3 Object Lock with Compliance mode (prevents deletion even by admins) on all versioned training datasets. This satisfies SEC's "data cannot be altered after the fact" requirement and is enforced at the storage layer without relying on application-level controls.
+
+7. **Reproduction workflow.** When auditor requests: "Reproduce the June 2024 model predictions." Step 1: Look up model `june_2024_v2` in model registry → get `dataset_hash=abc123`. Step 2: Time-travel query: `SELECT * FROM training_data VERSION AS OF 'abc123'`. Step 3: Check out code: `git checkout def456`. Step 4: Spin up Docker container with pinned dependencies. Step 5: Run training, verify predictions match within floating-point tolerance (0.01%).
+
+8. **Schema evolution tracking.** Financial data schemas change (new exchanges added, field renames). Every schema version is stored with its activation date in the lineage graph. The reproduction workflow automatically selects the correct schema version for the target date.
+
+9. **Automated validation before versioning.** Before creating a new dataset version, run automated checks: row count within 5% of previous version, schema matches contract, no future dates in timestamps. Failed validation prevents version creation — prevents accidentally versioning corrupt data.
+
+10. **Data contract for each feed.** Each upstream data provider (Bloomberg, Quandl) has a formal contract: schema, freshness SLA, completeness guarantee. Versioning is triggered only after contract validation passes. Contract violations page the data engineering on-call immediately.
+
+**Key decisions:**
+- Iceberg over DVC: DVC is git-native but not designed for 2TB datasets or regulatory audit requirements; Iceberg's time-travel and immutable snapshots match the compliance use case exactly
+- Immutable storage (S3 Object Lock): application-level immutability can be bypassed by admins; storage-level locks cannot
+- Content-addressable hashing: allows deduplication (if two monthly datasets are identical, they share one storage copy) while maintaining separate logical versions

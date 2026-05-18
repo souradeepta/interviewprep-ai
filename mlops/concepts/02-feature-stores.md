@@ -247,3 +247,93 @@ Weak: "I'd use Feast and Redis." (Which features? How to compute them? What abou
 - Tecton: https://www.tecton.ai/
 - Hopsworks: https://www.hopsworks.ai/
 - Feature Store Summit: https://www.featurestore.org/
+
+---
+
+## Quick Reference Card
+
+### 2-Minute Elevator Pitch
+A feature store solves the "build it three times" problem in production ML: the same user feature gets computed independently by the fraud team, the recommendation team, and the search team — with slightly different logic each time, causing inconsistencies and wasted engineering effort. A feature store centralizes feature computation, versioning, and serving, ensuring the exact same feature values used in training are served at inference time. This eliminates training-serving skew, the most common source of unexplained model degradation.
+
+### Numbers to Know
+- Netflix: serves 100s of features to recommendation models at <50ms latency for 250M users
+- Uber: reduced duplicate feature engineering by 60% after launching their Michelangelo feature store
+- Training-serving skew is responsible for 15-30% of unexplained model degradation incidents (Google research)
+- Batch features: acceptable staleness 1-24 hours; computed in warehouses, served from column stores
+- Real-time features: freshness <1 second; computed by stream processors (Flink/Kafka), served from Redis
+- Redis lookup latency: <2ms for cached feature vectors; DynamoDB: 5-10ms
+- Feature store adoption threshold: typically justified when 3+ models share overlapping features or when training-serving skew incidents occur more than once per quarter
+
+### Decision Framework: When and How to Build a Feature Store
+
+```mermaid
+graph TD
+    A["Is a feature store needed?"] --> B{"How many models<br/>share features?"}
+    B --> |"< 3 models"| C["Skip feature store<br/>Use shared library functions<br/>Too early"]
+    B --> |"3-10 models"| D{"Budget and team size?"}
+    D --> |"Small team / OSS"| E["Feast<br/>Python-first, simple<br/>Offline + online stores<br/>No SaaS cost"]
+    D --> |"Has budget"| F["Tecton<br/>Managed SaaS<br/>Full lineage + governance<br/>Enterprise support"]
+    B --> |"10+ models"| G{"Existing infrastructure?"}
+    G --> |"Databricks"| H["Databricks Feature Store<br/>Native Delta integration<br/>Built-in point-in-time joins<br/>Free with Databricks"]
+    G --> |"Spark / Hadoop"| I["Hopsworks<br/>Spark-native<br/>Strong governance<br/>On-prem or cloud"]
+    G --> |"AWS native"| J["Amazon SageMaker<br/>Feature Store<br/>Managed, integrated with<br/>SageMaker pipelines"]
+```
+
+---
+
+## Strong vs Weak Answers
+
+### Q: Design a feature store for Netflix serving 250M users with 100+ recommendation models, each requiring 1000+ features at <50ms latency.
+
+**Weak Answer:** "I would use Feast with Redis for online serving and store batch features in S3. Features would be precomputed daily and loaded into Redis."
+
+**Strong Answer:** "I'd design a dual-path architecture. The offline path runs nightly Spark jobs to compute expensive batch features: user embeddings (1024-dim, computed from 30 days of viewing history), content similarity vectors, and genre preference profiles. These are materialized into BigQuery (offline store) for training and into Redis (online store, hash keyed by user_id) for serving. The online path uses a Flink pipeline consuming a Kafka stream of real-time user events to compute session features: current browsing context, last 10 titles watched, time-of-day signal. These are written to Redis with 5-minute TTL. At inference time, the recommendation service fetches batch features from Redis (<2ms for preloaded vectors) and real-time features from Redis (<2ms). Combined latency: ~5ms for feature retrieval + ~20ms GPU inference = <30ms total, well within 50ms budget. The feature registry tracks all 1000+ features with owner, SLA, version, and data lineage. For 250M users × 1024-dim vectors × 4 bytes = ~1TB in Redis — we'd shard across 20 Redis clusters. Governance: each feature has a declared owner, freshness SLA, and deprecation timeline. Training-serving consistency is enforced by the registry's point-in-time join API, which uses the feature values that existed at label time."
+
+---
+
+### Q: Your feature store inference latency degraded from 50ms to 500ms over the past week. Debug the bottleneck.
+
+**Weak Answer:** "I would look at the logs to see which step is slow and optimize that step."
+
+**Strong Answer:** "I'd approach this systematically with three diagnostic layers. First, trace a single request end-to-end: add timing instrumentation at each stage (feature key lookup, Redis get, serialization, network). This immediately isolates whether it's Redis latency, serialization overhead, or network. Second, check infrastructure metrics: Redis hit rate (should be >95%; a drop indicates eviction or cache miss surge), Redis memory pressure (if over 80% capacity, eviction spikes latency 10x), and network throughput (if the Redis cluster is saturated, add read replicas). Third, check for behavioral changes: did the feature schema change (larger vectors = slower serialization)? Did a new feature with a slow computation path get added to the critical path? A common culprit is a new 'real-time' feature that's actually computed synchronously at serving time rather than pre-materialized — one such feature added 50ms per inference at Uber before they moved it to the batch path. Fix: separate expensive feature computation from the serving path; pre-materialize everything possible; only compute truly real-time signals (session context) online."
+
+---
+
+### Q: How do you enforce temporal correctness to prevent data leakage in a feature store?
+
+**Weak Answer:** "I would make sure training data is from before the label date and not use future data."
+
+**Strong Answer:** "Temporal correctness is the hardest problem in feature stores and the most common source of inflated evaluation metrics. The issue: when you create a training dataset, you need the feature values that existed at label time — not the current values. A feature store solves this with point-in-time joins. For each (entity, label_timestamp) pair in the training set, the feature store returns the feature value that was valid at label_timestamp — not the latest value. This requires storing features with effective timestamps, not just values. Feast implements this natively; custom systems often miss it. The test: train with point-in-time join, then retrain without it. If accuracy improves dramatically without it, you have leakage. At Stripe, a fraud model initially achieved 98% AUC — suspiciously high. Investigation revealed the feature store was serving today's merchant risk score (which incorporated the fraud outcome) rather than the merchant risk score that existed at transaction time. After fixing the point-in-time join, AUC dropped to 91% — the real number, and still industry-leading."
+
+---
+
+## System Design: Feature Store for a Ride-Sharing Platform
+
+**Question:** "Design a feature store for Uber. The platform has 50+ ML models (matching, surge pricing, ETA, fraud, driver incentives) that share overlapping features about drivers, riders, and trips. The matching model needs features in <30ms; fraud scoring needs features in <50ms; ETA needs features in <100ms. 5M daily active drivers, 20M daily active riders."
+
+**Walkthrough:**
+
+1. **Categorize features by freshness requirement.** Three tiers: (a) static features (driver vehicle type, rider city) — updated weekly, served from DynamoDB; (b) batch features (driver 7-day acceptance rate, rider 30-day cancellation rate) — updated hourly, served from Redis; (c) real-time features (driver current location, rider session state, surge multiplier) — updated per-event, served from Redis with <30-second TTL.
+
+2. **Offline store for training.** Use Delta Lake on S3 with partitioning by entity type and date. The offline store retains 2 years of feature history for training and backtesting. Point-in-time join API: `feature_store.get_historical_features(entity_df, feature_refs, join_type='point_in_time')`.
+
+3. **Online store architecture.** Redis Cluster (20 shards) for hot features. Key structure: `{entity_type}:{entity_id}:{feature_name}` e.g., `driver:12345:acceptance_rate_7d`. Hash fields store all features for an entity in one Redis hash, enabling O(1) multi-feature lookups. Target: <5ms for full feature vector retrieval.
+
+4. **Stream processing pipeline.** Flink consumes Kafka topics (driver_events, rider_events, trip_events) and computes sliding window aggregations. Example: `COUNT(trips) OVER WINDOW 7 DAYS GROUP BY driver_id` — materialized every 5 minutes. Flink writes to both Redis (online) and Delta Lake (offline) with the same transformation code, guaranteeing training-serving consistency.
+
+5. **Feature registry.** Central catalog with: feature name, entity type, owner team, computation logic (SQL or Flink code), SLA (how fresh?), version, downstream models using it. Search by owner, entity, or tag. Prevents duplicate feature creation.
+
+6. **Versioning and training-serving consistency.** Each feature definition has a version. When the matching team changes `driver_acceptance_rate_7d` to use a different window, they create v2. Existing models pin to v1 until they explicitly migrate. The registry enforces: a model in production must declare its feature versions explicitly; any change requires a new version and migration plan.
+
+7. **Feature serving API.** gRPC endpoint: `GetFeatures(entity_ids: List[str], feature_names: List[str]) → FeatureVector`. The API fans out to Redis for online features and falls back to DynamoDB if Redis misses. Response time: <10ms p99 for batch feature lookups.
+
+8. **Monitoring and alerting.** Per-feature metrics: freshness (when was this last updated?), null rate (are values populated?), distribution drift (has value distribution shifted vs. baseline?). Alert: pagerduty if any model-critical feature is stale >2x its SLA.
+
+9. **Cost optimization.** Features not used by any model for 90 days are archived from Redis (evicted) but retained in Delta Lake. This reclaims ~30% of Redis memory at large scale. A monthly "feature cleanup" process notifies owners of unused features.
+
+10. **Multi-tenancy and access control.** Each team owns their feature namespace. The fraud team's features are readable by fraud models only; matching features are shared. Access controlled at the feature registry level — unauthorized models cannot materialize restricted features.
+
+**Key decisions:**
+- Redis over DynamoDB for hot features: 2ms vs 10ms latency matters at 50M requests/day
+- Flink over Spark for real-time features: Spark Structured Streaming has 30-60s micro-batch latency; Flink achieves <5s event-time latency
+- Point-in-time joins non-negotiable: without them, training accuracy is inflated and production performance surprises are inevitable

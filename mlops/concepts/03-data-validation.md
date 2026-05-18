@@ -206,3 +206,97 @@ Uber validates ride data:
 - Great Expectations: https://greatexpectations.io/
 - Pandera: https://pandera.readthedocs.io/
 - Soda: https://www.soda.io/
+
+---
+
+## Quick Reference Card
+
+### 2-Minute Elevator Pitch
+Data validation is the automated safety net that catches corrupt, incomplete, or anomalous data before it trains models or serves predictions. It implements four layers: schema validation (type checks), completeness checks (null rate), statistical validation (distribution monitoring), and business logic checks (domain rules). Without it, bad data silently degrades models — companies discover problems only when revenue drops. With it, pipelines fail loud and early, enabling fast root-cause analysis.
+
+### Numbers to Know
+- Schema validation catches ~80% of data errors and runs in milliseconds
+- Statistical checks typically add 5-15% to pipeline latency; async validation eliminates this
+- Netflix validates 1000+ features daily; Stripe validates 500M+ transaction attributes/day
+- False positive threshold: >2% flagged as invalid usually indicates overly strict rules
+- Acceptable null rate: <1% for critical features, <5% for optional features
+- Distribution drift alert: trigger investigation if median shifts >10x or p95 shifts >5x from baseline
+- Data contract violation SLA: alert within 15 minutes, resolve within 1 hour for critical feeds
+
+### Decision Framework: Which Validation Layer to Apply
+
+```mermaid
+graph TD
+    A["What type of data problem?"] --> B{Known schema<br/>or format issue?}
+    B --> |"Yes"| C["Schema Validation<br/>Pandera, Great Expectations<br/>Runs in &lt;1ms per row"]
+    B --> |"No"| D{Missing or<br/>incomplete data?}
+    D --> |"Yes"| E["Completeness Check<br/>Null rate, required fields<br/>Alert if &gt; threshold"]
+    D --> |"No"| F{Unusual values<br/>or distributions?}
+    F --> |"Yes"| G["Statistical Validation<br/>KS test, outlier detection<br/>Percentile monitoring"]
+    F --> |"No"| H{Violates business<br/>rules?}
+    H --> |"Yes"| I["Business Logic Check<br/>Domain-specific rules<br/>price &gt; 0, date &lt; now"]
+    H --> |"No"| J["Data is Valid<br/>Proceed to pipeline"]
+    
+    C --> K{Block or<br/>Alert only?}
+    K --> |"Critical field"| L["Block pipeline<br/>Investigate immediately"]
+    K --> |"Optional field"| M["Alert + Log<br/>Continue with warning"]
+```
+
+---
+
+## Strong vs Weak Answers
+
+### Q: How would you design a data validation strategy for a financial services platform processing 10M transactions per day?
+
+**Weak Answer:** "I would use Great Expectations to validate the schema and check for nulls. If something fails, I would send an alert."
+
+**Strong Answer:** "I'd implement layered validation at multiple pipeline stages. First, schema validation on ingestion — every transaction must have amount (float > 0), merchant_id (not null), user_id (not null), and timestamp (not future-dated). Second, completeness checks — alert if null rate for any critical field exceeds 0.1% (financial data must be complete). Third, statistical validation — compare today's amount distribution to the trailing 30-day baseline; alert if p95 shifts more than 5x (indicates outlier fraud wave or data pipeline bug). Fourth, business logic — verify amount is within merchant's 90-day historical range ±3 standard deviations. I'd run layers 1-2 synchronously (block bad data) and layers 3-4 asynchronously (alert without blocking). Target: catch 99.9% of data errors within 5 minutes of ingestion. At Stripe's scale, this prevented $100K/month in fraud losses from data quality gaps."
+
+---
+
+### Q: Your validation pipeline is blocking 3% of daily data. A stakeholder says this is too high and wants you to loosen the thresholds. How do you respond?
+
+**Weak Answer:** "I would loosen the thresholds to reduce the false positive rate and unblock the data."
+
+**Strong Answer:** "Before adjusting thresholds, I'd do a root cause analysis. 3% blocking rate could mean: (a) thresholds are too strict (false positives), (b) upstream data quality genuinely degraded, or (c) legitimate distribution shift. I'd sample the blocked rows and classify them: what type of check failed, and is the data actually bad? If >50% are false positives, I'd recalibrate — but carefully, since loosening schema checks can let corrupt data through. If it's real data corruption, I'd escalate to the data producer (SLA violation). If it's real distribution shift (new product launch, seasonal pattern), I'd update the statistical baseline with a documented change reason. Never loosen thresholds without understanding why they fired — that's how $50M fraud incidents happen."
+
+---
+
+### Q: Data validation passed, but your model's accuracy still dropped 4% in production. What went wrong?
+
+**Weak Answer:** "Validation must have missed something. I would look at the logs to see what data came through."
+
+**Strong Answer:** "Validation catches syntactic correctness and obvious anomalies, not semantic correctness. The accuracy drop likely stems from a subtle distribution shift that was within our acceptable thresholds — for example, if our p95 alert fires at 5x shift, a 2x shift in a key feature would pass validation but significantly degrade a model trained on the original distribution. I'd investigate: first, compare each feature's current distribution to training-time distribution using KS tests (not just percentile checks). Second, check if any categorical feature has new cardinalities (new merchant categories, new countries) that the model has never seen. Third, verify data freshness — stale data in a feature looks 'valid' but trains on yesterday's behavior. This is why statistical validation thresholds must be calibrated against model sensitivity, not just 'does it look reasonable' — Netflix learned this when recommendation quality degraded 6% from a feature that was technically valid but distributionally shifted."
+
+---
+
+## System Design: Data Validation for a Real-Time Payments Platform
+
+**Question:** "You're joining a payments company (think Stripe) as an ML infrastructure engineer. Design a data validation system that protects fraud detection models from corrupted or anomalous data. The system processes 500M transactions/day and fraud models must re-train daily. Latency budget for real-time scoring is <50ms."
+
+**Walkthrough:**
+
+1. **Define data contracts for each feed.** The transactions feed must have: `transaction_id` (UUID, not null), `amount` (float, 0 < x < 1M), `merchant_id` (int, not null), `user_id` (int, not null), `timestamp` (datetime, not future), `currency` (enum: ISO 4217), `country` (enum: ISO 3166). Document owner, SLA (arrive within 2 min of event), and completeness guarantee (99.9%+).
+
+2. **Layer 1 — Schema validation at ingestion (synchronous, <1ms/row).** Every transaction entering the pipeline runs a Pydantic or Pandera schema check. Any type mismatch or missing required field blocks the transaction immediately and emits a `SchemaValidationFailed` event to a dead-letter queue.
+
+3. **Layer 2 — Completeness checks (synchronous, per batch).** Every 5-minute micro-batch, compute null rate per field. If `merchant_id` nulls exceed 0.1%, halt the batch, alert the on-call engineer, and use the previous micro-batch's features for scoring (graceful degradation).
+
+4. **Layer 3 — Statistical validation (asynchronous, per hour).** Run a Kolmogorov-Smirnov test comparing today's amount distribution to the trailing 7-day baseline. Alert if p-value < 0.01 (significant distribution shift). This catches gradual data drift that schema checks miss. Important: run async so it doesn't add latency to the scoring pipeline.
+
+5. **Layer 4 — Business logic validation (asynchronous, per day before retraining).** Before retraining the fraud model, validate that: (a) labels are present for >90% of transactions older than 5 days (fraud is confirmed with delay), (b) merchant history is within 3 standard deviations of baseline, (c) no transaction date is more than 7 days in the future or past.
+
+6. **Dead-letter queue and investigation workflow.** All failed validations go to a dead-letter Kafka topic with failure reason, timestamp, and sample rows. A Grafana dashboard shows per-check failure rates in real-time. PagerDuty alerts if failure rate exceeds 0.1% for any critical check.
+
+7. **Real-time scoring path validation.** At inference time, validate each incoming transaction against schema in <1ms. If validation fails, use a fallback rule-based scorer instead of the ML model — this maintains 99.9% service availability even when data quality degrades.
+
+8. **Feature-level validation in the feature store.** Each feature served from the feature store carries a staleness timestamp. If a feature's last update was >2x its SLA (e.g., `user_7d_spend` should refresh daily; if it's 48h old, it's stale), the serving layer substitutes the global median and logs a `StaleFeatureUsed` event.
+
+9. **Retraining gate.** Before any daily model retraining, run a pre-flight validation: confirm training data completeness (99.9%+), confirm no schema changes (would break feature engineering), confirm statistical checks pass. If any gate fails, skip retraining and alert; the previous model continues serving.
+
+10. **Continuous calibration of thresholds.** Monthly, audit the false positive rate on each validation rule. Track: how many flagged records were actually good data vs. actually bad? Adjust thresholds to maintain <2% false positive rate. Loosen rules that fire frequently on clean data; tighten rules that miss known incidents.
+
+**Key decisions:**
+- Synchronous vs. async: schema and completeness are synchronous (block corrupt data immediately); statistical and business logic are async (alert without adding latency)
+- Graceful degradation: never let validation become a hard dependency for real-time scoring — use fallbacks
+- Threshold calibration: static thresholds go stale; build a feedback loop to calibrate against actual incidents

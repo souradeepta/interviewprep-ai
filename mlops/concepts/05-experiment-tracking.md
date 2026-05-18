@@ -257,3 +257,92 @@ Weak: "Keep experiments in spreadsheet with accuracy and hyperparameters." (No r
 - Weights & Biases: https://wandb.ai/
 - Neptune: https://neptune.ai/
 - Aim: https://aimstack.io/
+
+---
+
+## Quick Reference Card
+
+### 2-Minute Elevator Pitch
+Experiment tracking is the institutional memory of an ML team. Without it, a team of 10 engineers running 500 experiments per month loses track of what worked, can't reproduce results, and re-discovers the same optimal hyperparameters every quarter. With it, any engineer can query "show me experiments with validation F1 > 0.93 on the fraud dataset, run in the last 60 days" in seconds. Tracking captures three things: parameters (what configuration?), metrics (how did it perform?), and artifacts (what was produced?) — plus the metadata to reproduce any run.
+
+### Numbers to Know
+- Typical ML team: 50-200 experiments per engineer per month; without tracking, >80% of results are lost within 4 weeks
+- MLflow storage: ~1MB metadata per run (excluding artifacts); 10,000 runs = ~10GB metadata
+- W&B artifact storage: typical model checkpoint = 100MB-10GB; daily storage cost for 1000 runs × 1GB artifacts = ~$30/day on S3
+- Experiment tracking reduces time-to-reproduce from hours/days to minutes
+- Netflix: 1000+ recommendation experiments tracked per month with 2-year retention for compliance
+- Search speed: MLflow can query 50,000 runs in <2 seconds with indexed metrics
+- Recommended retention: keep all metadata forever (<1GB/month); archive artifacts after 90 days (80% cost savings)
+
+### Decision Framework: Choosing an Experiment Tracking Tool
+
+```mermaid
+graph TD
+    A["Choose Experiment Tracking"] --> B{"On-prem required<br/>or data privacy?"}
+    B --> |"Yes, on-prem only"| C["MLflow<br/>Open-source, self-hosted<br/>Free, simple setup<br/>Good community"]
+    B --> |"No, cloud OK"| D{"Team collaboration<br/>priority?"}
+    D --> |"Heavy collaboration,<br/>shared dashboards"| E["Weights and Biases<br/>Best UI, real-time sharing<br/>Automatic artifact versioning<br/>SaaS cost ~$50/user/month"]
+    D --> |"Solo or small team"| F{"Budget?"}
+    F --> |"Free / open-source"| C
+    F --> |"Some budget"| G["Neptune.ai<br/>Good filtering, metadata-rich<br/>Flexible pricing<br/>Good for structured metadata"]
+    B --> |"Regulated industry"| H["Comet ML<br/>Audit trails, permissions<br/>Enterprise governance<br/>SOC 2 compliant"]
+```
+
+---
+
+## Strong vs Weak Answers
+
+### Q: You ran 200 experiments over 3 months. How do you find and reproduce the best result?
+
+**Weak Answer:** "I would search through my experiment tracking dashboard and filter by accuracy to find the best run, then use the same hyperparameters to retrain."
+
+**Strong Answer:** "With proper experiment tracking, finding and reproducing is a two-minute operation. First, query by metric: `mlflow.search_runs(filter_string='metrics.val_f1 > 0.93 and params.model_type = "transformer"', order_by=['metrics.val_f1 DESC'])` — this returns the top runs ranked by F1. Second, inspect the top run: check parameters (learning_rate=0.0001, batch_size=32, dropout=0.3), artifacts (model checkpoint, training curve), and metadata (git commit abc123, dataset version v7, training duration 4.2 hours). Third, reproduce: check out `git checkout abc123`, load dataset v7 from the data registry, run training with identical parameters. The result should match within 0.1% (accounting for floating-point variance). The critical detail most engineers miss: you must log the git commit hash AND the data version with every run — parameters alone are insufficient because code or data may have changed. At Uber, a team spent 2 weeks trying to reproduce a 2% accuracy improvement before they found that the experiment had used a different data preprocessing script than what was in main."
+
+---
+
+### Q: Your experiment tracking system uses 50TB of storage and costs $15K/month. How do you cut costs without losing important results?
+
+**Weak Answer:** "I would delete old experiments that are no longer needed and only keep the recent ones."
+
+**Strong Answer:** "This requires a tiered retention strategy, not blanket deletion. First, distinguish metadata from artifacts: metadata (parameters, metrics, tags, git commits) is tiny — 1MB per run × 500K runs = 500GB total, negligible cost. Artifacts (model checkpoints, training curves) drive costs. Second, apply artifact retention rules: keep artifacts for the top 10% of runs by primary metric, and delete artifacts for everything else after 30 days. Keep all metadata permanently. Third, implement cold storage tiering: experiments older than 90 days but within the top 10% move to S3 Glacier (80% cost reduction, 3-5h retrieval). Fourth, compress artifacts: use int8 quantization for stored checkpoints (4x size reduction), compress training curves as parquet (10x reduction). Result: 50TB → 8TB hot + 15TB cold storage, $15K/month → $2.5K/month. Implementation: a weekly cron job evaluates all runs older than 30 days, archives artifacts for runs below the top-10% threshold, and moves top-10% artifacts older than 90 days to Glacier."
+
+---
+
+### Q: How do you design experiment tracking for a team of 15 ML engineers running 1000 experiments per week?
+
+**Weak Answer:** "I would set up MLflow or W&B, have everyone log their experiments, and create a shared dashboard."
+
+**Strong Answer:** "At that scale, experiment tracking needs structure to stay useful. I'd design three layers. First, project hierarchy: experiments are organized as `{team}/{project}/{model_type}/{search_phase}` — e.g., `fraud/card_auth/transformer/hyperparam_sweep_2026q1`. This prevents the 'haystack' problem where 50,000 runs are unorganized. Second, standardized logging schema: all engineers use a shared logging wrapper that automatically captures: git commit (mandatory), dataset version (mandatory), training hardware (auto), training duration (auto), and a free-form `notes` field for observations. Parameters and metrics are logged with consistent naming conventions (not `lr` and `learning_rate` mixed). Third, team norms: each experiment gets a `status` tag (`active`, `archived`, `best`, `failed`) and an owner. Weekly 30-minute team sync reviews the top 5 experiments from the past week. The key cultural practice: experiment results live in the tracking system, not in Slack or email — when someone asks 'what's the best model?', the answer is always a dashboard link, never 'I think it was on Tuesday'."
+
+---
+
+## System Design: Experiment Tracking for a Large-Scale Recommendation System
+
+**Question:** "You're the ML platform lead at a 50-person ML engineering organization. Teams are running 2000+ experiments per month across recommendation, fraud, search ranking, and pricing. Design an experiment tracking system that supports: cross-team comparison, automated best-model promotion, cost control, and regulatory audit requirements."
+
+**Walkthrough:**
+
+1. **Choose infrastructure.** Self-hosted MLflow on Kubernetes with PostgreSQL backend for metadata and S3 for artifact storage. Rationale: data privacy (models can't leave internal infrastructure), cost control (no per-seat SaaS fees), and customization (custom promotion workflows). Alternative for teams without infrastructure maturity: W&B Teams for faster setup.
+
+2. **Project and experiment hierarchy.** Three-level namespace: `{org_team}/{project_name}/{experiment_id}`. Example: `fraud_team/card_auth_v2/hyperparam_sweep_jan`. Each project has an owner, a primary metric, and a dashboard. This prevents name collisions across teams and enables project-level access control.
+
+3. **Standardized logging contract.** Build a `@track_experiment` decorator that wraps training functions and automatically logs: git commit hash (from `git rev-parse HEAD`), dataset URI and version hash, hardware specs (GPU type, count), training start/end time, and all hyperparameters from the config object. Metrics are logged per epoch. This decorator is mandatory — CI fails if training scripts don't use it.
+
+4. **Artifact versioning and deduplication.** Use content-addressable storage: artifact hash becomes the S3 key. If two experiments produce identical model weights (same code + data + seed), they share one S3 object. This prevents duplicate storage for near-identical runs.
+
+5. **Automated best-model promotion.** A nightly job queries each project's experiments, finds the run with the best primary metric in the last 7 days that also meets quality gates (latency <100ms, fairness metrics within bounds, no data leakage detected). It automatically promotes this run to `status=candidate` and creates a Jira ticket for human review. This reduces the "find the best model" step from hours to seconds.
+
+6. **Cross-team comparison.** A weekly digest dashboard shows: top 3 experiments per team, trend of primary metric over the last 4 weeks, and the team leaderboard. This surfaces cross-team learnings — if the pricing team's data augmentation technique improved accuracy 3%, the recommendation team should know.
+
+7. **Cost control.** Automated cleanup job runs weekly: delete artifacts for runs with `status=archived` older than 30 days; move artifacts for non-top-10% runs to S3 Glacier after 90 days; keep all metadata permanently (it's tiny). Target: <$5K/month total storage cost for 2000 runs/month.
+
+8. **Regulatory audit trail.** For fraud models specifically, retain all experiment metadata (not just top models) for 7 years (SEC requirement). Each experiment links to: training code commit, dataset version hash, hyperparameters, and evaluation results. Auditors can reconstruct any historical model from these records.
+
+9. **Integration with CI/CD.** Every PR that changes model training code triggers a comparison experiment: new code vs. current production code, on the canonical validation dataset. The PR cannot be merged if the new code degrades primary metric by >1% without explicit override approval.
+
+10. **Feedback loop from production.** Production model IDs link back to experiment runs. When production monitoring detects accuracy degradation, it automatically annotates the originating experiment run with `production_degradation=true` and the degradation timestamp. This closes the loop: experiments that train well but degrade quickly are flagged as unreliable baselines.
+
+**Key decisions:**
+- Self-hosted vs. SaaS: at 50 engineers with regulatory requirements, self-hosted MLflow wins on cost and data control; SaaS is better for teams < 10 engineers
+- Mandatory logging decorator: optional tracking gets inconsistently adopted; mandatory adoption via CI enforcement is the only reliable approach
+- Separate metadata from artifact retention: metadata is cheap and always retained; artifact retention policy controls 95% of costs

@@ -336,3 +336,98 @@ Serving is distinct from training. Raw models can't handle production load. Fram
 - **Containerization** (Concept 13): Models run in containers
 - **Deployment** (Concept 16): Serving infrastructure deployment strategy
 - **Monitoring** (Concept 18): Monitor serving performance in production
+
+---
+
+## Quick Reference Card
+
+### 2-Minute Elevator Pitch
+Model serving is the engineering challenge of taking a trained model and making it reliably available to millions of concurrent requests with <100ms latency, high availability, and cost efficiency. It's distinct from training: the concerns are throughput (how many requests per second?), latency (how fast for each?), availability (what happens when a pod fails?), and versioning (how do you ship a new model without downtime?). The key insight: most serving latency comes from feature retrieval (10-30ms), not model inference (5-20ms) — optimizing the wrong layer is a common mistake.
+
+### Numbers to Know
+- Netflix: 250M users, p99 recommendation latency <500ms, 1B+ requests/day
+- Stripe fraud: <100ms p99 for 500M transactions/day; uses quantized models (100ms → 20ms)
+- Uber ETA: <50ms p99 latency; pre-computes popular routes to achieve this
+- Dynamic batching benefit: 128-sample batch processes 10-50x faster than 128 individual requests on GPU
+- Feature retrieval typically accounts for 40-60% of total serving latency
+- Cache hit rate target for recommendation features: >90% (reduces feature latency from 30ms to 2ms)
+- Model warm-up time: large PyTorch models take 5-30 seconds to load; readiness probes prevent cold-start traffic
+- Auto-scaling rule of thumb: target 70% CPU/GPU utilization; scale up at 80%, scale down at 60%
+- KServe vs custom FastAPI: KServe adds ~5ms overhead but provides versioning, monitoring, and auto-scaling for free
+
+### Decision Framework: Choosing Model Serving Latency Optimizations
+
+```mermaid
+graph TD
+    A["Serving latency too high?"] --> B["Profile: where is time spent?"]
+    B --> C{"Is feature retrieval<br/>slow? (&gt;30ms)"}
+    C --> |"Yes"| D{"Features already<br/>in cache?"}
+    D --> |"No"| E["Add Redis cache<br/>Pre-materialize batch features<br/>Reduces 30ms → 2ms for cache hits"]
+    D --> |"Yes, cache miss"| F["Increase cache TTL<br/>or pre-warm for predictable users"]
+    C --> |"No"| G{"Is model inference<br/>slow? (&gt;50ms)"}
+    G --> |"Yes"| H{"GPU available?"}
+    H --> |"No"| I["Quantization<br/>INT8 model: 2-4x faster on CPU<br/>ONNX runtime: 1.5-3x faster"]
+    H --> |"Yes"| J["Dynamic batching<br/>Batch 32-128 samples<br/>10-50x GPU throughput"]
+    G --> |"No"| K{"Is network/API<br/>overhead slow?"}
+    K --> |"Yes"| L["gRPC instead of REST<br/>2-3x lower latency<br/>Protocol buffer serialization"]
+    K --> |"No"| M["Profile further:<br/>Post-processing? Logging?<br/>Connection pooling?"]
+```
+
+---
+
+## Strong vs Weak Answers
+
+### Q: Your model inference takes 500ms. The product team needs <100ms. Walk me through your optimization process.
+
+**Weak Answer:** "I would use model quantization to make the model faster and add caching for repeated requests."
+
+**Strong Answer:** "I'd attack this as an engineering problem with measurement before optimization. First, I'd profile the 500ms to understand where time goes. Typical breakdown: feature retrieval 150ms, model inference 250ms, pre/post-processing 50ms, network 50ms. This immediately shows where to focus. For feature retrieval (150ms → target <20ms): move features to Redis (lookup is 2ms vs database query at 150ms). Pre-materialize batch user features nightly; only compute truly real-time features (session context) at serving time. For model inference (250ms → target <50ms): first try ONNX export (PyTorch → ONNX typically gives 1.5-2x speedup on CPU). If still slow, try INT8 quantization (2-4x speedup with <1% accuracy drop for most models). If model is GPU-bound, enable dynamic batching (accumulate 50ms worth of requests into a batch of 32-64, then GPU processes in 30ms instead of 250ms × 64 = 16 seconds serially). For post-processing (50ms → target <5ms): vectorize operations, avoid Python loops, use NumPy batch operations. Result after optimization: 20ms feature retrieval + 50ms inference + 5ms post-processing + 25ms network = 100ms total. Then verify: load test confirms p99 at 100ms under production traffic patterns."
+
+---
+
+### Q: Design a serving system for a language model (LLM) that needs to handle 10K requests per second with <500ms latency. The model has 7B parameters.
+
+**Weak Answer:** "I would deploy the model on multiple GPU servers with a load balancer in front to handle 10K requests per second. I would use vLLM or TensorRT for fast inference."
+
+**Strong Answer:** "7B parameter LLM serving at 10K RPS is a serious infrastructure challenge. Let me work through the math. A 7B parameter model in FP16 requires 14GB GPU memory. An A100 (80GB) can hold ~5 model replicas or use tensor parallelism across 2 GPUs for larger context. With vLLM's continuous batching (key innovation: unlike static batching, continuous batching never waits for a full batch — it starts processing as soon as a request arrives, achieving ~3x better throughput than naive approaches), a single A100 can handle ~200-500 tokens/second throughput. At 10K RPS with average 50-output-token requests: 500K tokens/second needed. 200 tokens/second per GPU → 2,500 A100 GPUs needed. This is expensive — typical LLM serving cost is $0.001-0.01 per request. Architecture: (a) Gateway layer (nginx/Envoy): rate limiting, auth, request routing. (b) Model server tier: vLLM on A100 clusters with tensor parallelism (2 GPUs per model). (c) KV cache: vLLM's paged attention KV cache achieves near-zero memory waste vs traditional static KV allocation. (d) Prefix caching: if requests share common prefixes (system prompts), cache the KV cache for those prefixes — reduces compute 30-50% for chat applications. Latency: time-to-first-token target <200ms, streaming response for UX. Monitoring: tokens per second, queue depth, KV cache utilization, GPU memory pressure."
+
+---
+
+### Q: A model serving endpoint has 99.9% availability requirement. How do you achieve this?
+
+**Weak Answer:** "I would run multiple replicas of the model with a load balancer to ensure high availability. I would also have health checks to detect failures and restart pods."
+
+**Strong Answer:** "99.9% availability = <8.7 hours downtime per year, or <44 minutes per month. Achieving this requires defense in depth. Infrastructure layer: minimum 3 replicas deployed across 2+ availability zones (prevents single AZ failure from causing outage). Kubernetes HPA auto-scales based on CPU/latency — never goes below 3 replicas. Rolling deployment strategy ensures at least 2 replicas are always running during updates. Application layer: circuit breaker pattern (if >20% of requests timeout, stop calling the model and return cached/fallback predictions). Graceful degradation: if the ML model is unavailable, fall back to a rule-based predictor or cached predictions (users get degraded experience, not errors). Load balancer with health checks: every 10 seconds, if a replica fails 3 consecutive health checks, it's removed from rotation and a new one is started. The health check must verify model readiness (can it return a valid prediction?), not just process health (is the pod running?). Dependencies: if the feature store is unavailable, the model cannot serve personalized predictions. Design the fallback: serve global popular items or cached user features rather than failing. Test all this with chaos engineering: monthly game day where we kill replicas, inject latency into dependencies, and verify availability stays above 99.9%."
+
+---
+
+## System Design: High-Scale Model Serving for Real-Time Recommendation
+
+**Question:** "You're the ML infrastructure lead at an e-commerce company similar to Amazon. The product recommendation model must serve 100K predictions/second at peak (holiday season), with p99 latency <100ms, and 99.95% availability. The model requires 50 features per prediction. Design the complete serving architecture."
+
+**Walkthrough:**
+
+1. **Capacity planning.** 100K predictions/second × 100ms per prediction = 10,000 concurrent requests in flight. Each prediction needs: feature retrieval (30ms), model inference (50ms), post-processing (10ms), networking (10ms) = 100ms total. For 100K RPS with GPU batching: batch size 64 → 1,562 batches/second. A100 GPU processes a 64-sample batch in ~5ms → single A100 can handle 12,800 samples/second. For 100K RPS: 8 A100 GPUs needed at peak + 2 spare (capacity buffer for holiday spikes).
+
+2. **Feature serving architecture.** 50 features split into: (a) static user features (user embedding, historical preferences) — stored in DynamoDB, cache in Redis with 1-hour TTL; (b) real-time session features (last 5 clicks, cart contents) — stored in Redis directly, 5-minute TTL; (c) item features (price, category, stock) — stored in DynamoDB, cache in Redis with 15-minute TTL. Feature retrieval: parallel fetch from Redis (~2ms for cache hit) with DynamoDB fallback (~8ms for miss). Cache hit rate target: >95%. At 95% hit rate and 100K RPS: 5K cache misses/second to DynamoDB — DynamoDB provisioned for 5K read units.
+
+3. **Model serving tier.** KServe InferenceService on Kubernetes. GPU node pool: 10 A100 nodes (8 for traffic, 2 on standby). Dynamic batching enabled: accumulate requests for up to 20ms or until batch size 64, whichever comes first. This trades 20ms latency for 50x throughput. Auto-scaling: scale from 8 to 20 GPUs during holiday peak based on GPU utilization threshold (>70% → add 2 GPUs).
+
+4. **Load balancing and request routing.** nginx Ingress with least-connections routing (routes new requests to the replica with fewest in-flight requests, minimizing tail latency). Geographic routing: US-East and US-West deployments with Route53 latency routing — cuts cross-coast networking from 70ms to <10ms.
+
+5. **Caching layer for popular items.** Top-1000 users (by request frequency) have their recommendations precomputed every 5 minutes and stored in Redis. These users account for ~15% of traffic. Cache hit for them: <5ms total (no model inference needed). This reduces effective throughput requirement by 15%, providing headroom.
+
+6. **Circuit breaker pattern.** Hystrix-style circuit breaker: if >10% of model calls in a 10-second window fail or timeout, open the circuit and serve cached recommendations for 30 seconds. This prevents cascade failure: a temporarily overloaded model tier doesn't take down the entire product page.
+
+7. **Graceful degradation tiers.** Tier 1 (normal): personalized ML recommendations. Tier 2 (model slow): serve cached recommendations from 5 minutes ago. Tier 3 (cache miss): serve user's top 10 historical categories. Tier 4 (feature store unavailable): serve globally popular items. Each tier is configured in the serving code; the system automatically falls through tiers based on availability.
+
+8. **Versioning and deployment.** KServe traffic splitting: new model at 5% → 25% → 100% over 3 days. Both model versions run simultaneously with KServe routing. Rollback: reduce new model to 0% in <30 seconds by updating the traffic split configuration.
+
+9. **Monitoring and alerting.** Prometheus metrics: p50/p99/p999 latency per endpoint, error rate, feature cache hit rate, GPU utilization, batch size distribution. Grafana dashboards. Alerts: p99 latency > 80ms (15-second budget before SLA breach), error rate > 0.1%, cache hit rate < 90% (indicates Redis capacity issue), GPU utilization > 85% (scale-up trigger).
+
+10. **Cost optimization.** Spot instances for 6 of 8 baseline GPUs (60% cost savings, ~5% interruption rate). Spot interruption handler: graceful pod draining (in-flight requests complete before pod terminates), Kubernetes rebalances traffic automatically. Reserved instances for 2 minimum-baseline GPUs (always-on, no interruption). Holiday season: pre-scale to 12 GPUs 48 hours before event (Kubernetes pre-scaling based on historical traffic patterns). Total serving cost: $15K/month baseline, $25K/month peak (holiday season).
+
+**Key decisions:**
+- Dynamic batching as the key throughput lever: without batching, 100K RPS would require 50 A100s; with batching, 8 A100s suffice (6x cost savings)
+- Parallel feature fetch: sequential fetching (feature A then B) doubles latency; parallel fetch keeps feature retrieval within 2ms budget
+- Graceful degradation tiers: availability > perfection — a degraded recommendation is always better than a 500 error for conversion rate

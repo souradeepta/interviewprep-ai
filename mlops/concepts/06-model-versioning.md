@@ -296,3 +296,95 @@ Weak: "Store model weights in S3." (No metadata, no governance, no versioning)
 - MLflow Model Registry: https://mlflow.org/docs/latest/model-registry.html
 - SageMaker Model Registry: https://docs.aws.amazon.com/sagemaker/latest/dg/model-registry.html
 - Databricks Model Registry: https://docs.databricks.com/machine-learning/model-registry/
+
+---
+
+## Quick Reference Card
+
+### 2-Minute Elevator Pitch
+Model versioning is the organizational backbone that makes model deployment reliable and auditable. A model version is not just a file in S3 — it's a complete record: weights, parameters, training data version, code commit, dependencies, metrics, and deployment history. Without this record, a production incident becomes a forensic investigation: "What model is running? What data trained it? Can we roll back?" With a proper registry, the answer to all three is available in under 60 seconds. The key governance insight: every model promotion requires approval, and every model should have an explicit deprecation plan.
+
+### Numbers to Know
+- MLflow Model Registry: stores unlimited models, metadata is lightweight (~1KB per version), artifacts in S3/GCS
+- SageMaker Model Registry: supports 250 model groups per account, up to 10,000 model versions per group
+- Rollback time with proper versioning: <5 minutes (fetch previous version's S3 path, redeploy container)
+- Without versioning: typical rollback takes 2-8 hours (find old code, retrain, redeploy)
+- Netflix: versions 100+ recommendation models; each has 30 days of version history retained
+- Stripe: all fraud model versions retained 7 years (regulatory requirement)
+- Storage cost: 1GB model artifact × 10 versions × 100 models = 1TB = ~$23/month on S3
+
+### Decision Framework: What to Store in a Model Registry Entry
+
+```mermaid
+graph TD
+    A["Model Registry Entry"] --> B["Model Identity"]
+    A --> C["Reproducibility Info"]
+    A --> D["Quality Evidence"]
+    A --> E["Operational Metadata"]
+    A --> F["Governance Trail"]
+    
+    B --> B1["name, version, status<br/>staging|production|archived<br/>created_by, created_at"]
+    C --> C1["git_commit hash<br/>data_version hash<br/>dependency_versions pinned<br/>random_seed"]
+    D --> D1["primary_metric value<br/>guardrail metrics<br/>test_set_performance<br/>fairness metrics"]
+    E --> E1["artifact_s3_path<br/>docker_image_tag<br/>inference_latency_p99<br/>model_size_bytes"]
+    F --> F1["approved_by<br/>approval_date<br/>deployment_history<br/>incident_history"]
+```
+
+---
+
+## Strong vs Weak Answers
+
+### Q: A production fraud model's accuracy dropped from 95% to 88% after last night's deployment. Your on-call rotation needs to resolve this in 30 minutes. Walk me through the rollback process.
+
+**Weak Answer:** "I would roll back to the previous model version. I would find the previous model weights and redeploy them."
+
+**Strong Answer:** "With a proper model registry, this is a 5-step process that takes under 10 minutes. Step 1 (1 minute): query the registry: `mlflow.search_model_versions("name='fraud_detector' AND tags.status='production'")` — identifies the currently running version (v15) and the previous production version (v14). Step 2 (1 minute): verify v14 is still viable — check its production deployment metrics from when it was last live (accuracy 95%, latency 45ms, no known issues). Step 3 (2 minutes): issue rollback command to Kubernetes: `kubectl set image deployment/fraud-model fraud-model=registry/fraud-model:v14`. The old container is already in the registry; no rebuild needed. Step 4 (2 minutes): verify rollback — monitor accuracy metric in Grafana; should return to baseline within 2-3 minutes as traffic shifts to v14. Step 5 (4 minutes): page the model owner with incident details — which version failed, when it was deployed, what metric degraded. Simultaneously, tag v15 as `status=incident` in the registry with the incident timestamp. The post-mortem can wait until morning. The 30-minute clock is for restoration; root cause analysis is separate."
+
+---
+
+### Q: Design a governance process for model deployment when 10 teams are sharing a single model registry.
+
+**Weak Answer:** "I would have a review process where engineers check the model before deploying it to production. Each team would have their own namespace in the registry."
+
+**Strong Answer:** "Governance at 10-team scale requires both technical controls and process controls. Technical: namespace isolation (each team's models are in `{team_name}/{model_name}` — only team members can write, anyone can read), deployment locks (only CI/CD service account can transition models to production status, not individual engineers), and audit logging (every status change, approval, and deployment logged immutably). Process: a four-gate approval workflow for production promotion. Gate 1 (automated): accuracy threshold check, latency benchmark, fairness metrics within bounds — automated, no human needed. Gate 2 (automated): shadow test on last 7 days of production traffic — model's predictions are compared to the incumbent; if primary metric is within 2% of incumbent, automatic gate pass. Gate 3 (human): senior ML engineer from the team reviews the model card (what changed from previous version, why, expected impact) and approves. Gate 4 (optional, for high-risk models): security review for models touching PII or financial decisions. This process: automatically approves ~60% of models (low-risk, clear improvement), requires 1 human review for ~35%, and blocks ~5% for rework. Average time from training to production: 4 hours."
+
+---
+
+### Q: How do you handle the situation where a dependency update (PyTorch 2.0 → 2.1) breaks an older model version you might need to roll back to?
+
+**Weak Answer:** "I would pin the dependencies in the requirements file so the model always uses the same library versions."
+
+**Strong Answer:** "Pinning dependencies is necessary but not sufficient — the problem is that production environments evolve, and a model registered months ago with PyTorch 2.0 may fail to run in a PyTorch 2.1 environment if you need to roll back. The solution has three components. First, container-level versioning: every model version is associated with a specific Docker image tag (e.g., `fraud-model-base:pytorch2.0.1`), and the registry stores this image tag alongside the model weights. Rollback means deploying the exact same container, not just the same weights. Second, base image retention policy: base images are retained for 2 years minimum (or as long as the model that depends on them is retained), regardless of whether they're the 'current' base image. Third, compatibility testing: when upgrading the production environment (new PyTorch version), run compatibility tests on all currently-registered production models and the previous 2 versions. Any model that breaks gets flagged; the team either upgrades it or accepts that rollback to that version would require a container rebuild. This is how Stripe manages fraud model compatibility — they discovered a PyTorch 1.11 → 1.12 change that broke a serialized model format, and the container registry policy prevented a production incident."
+
+---
+
+## System Design: Model Registry for Enterprise Multi-Team ML Platform
+
+**Question:** "You're the ML platform team at an insurance company (think Allstate). The company has 40 ML models across 8 teams: claims fraud, pricing, underwriting, churn prediction, customer segmentation, document classification, image damage assessment, and chatbot. Models affect real financial decisions and are subject to state insurance regulations. Design the model registry and governance system."
+
+**Walkthrough:**
+
+1. **Registry architecture.** Use MLflow Model Registry with PostgreSQL backend (for audit-grade logging) and AWS S3 for artifact storage. Separate registries for: experiment tracking (all models, all versions, lightweight), and production registry (only approved models, immutable, full audit trail). The separation prevents experiment clutter from affecting production operations.
+
+2. **Model card as a required artifact.** Every model version must include a standardized model card: model purpose, training data description, known limitations, fairness evaluation results, performance on protected class subgroups (required for insurance), expected drift schedule, and responsible engineer contact. The registry validates model card presence before allowing staging-to-production transition.
+
+3. **Four-environment lifecycle.** Development (experiment tracking, no governance, full team access) → Staging (automated tests pass, model card complete) → Shadow (model runs on production traffic without affecting decisions, 7-day minimum) → Production (approved, deployed, monitored). Each transition is a status change in the registry with a required approver log.
+
+4. **Regulatory compliance fields.** Insurance models are regulated by state insurance departments. Registry stores: (a) regulatory jurisdiction (which state laws apply), (b) disparate impact test results (model performance must not differ by race, gender, geography beyond legal thresholds), (c) model explainability artifacts (SHAP values for underwriting decisions — required for adverse action notices), (d) audit trail for 7 years (regulatory requirement).
+
+5. **Automated quality gates.** Before any model can transition to staging: primary metric must exceed a team-defined threshold, latency p99 must be below SLO, fairness metrics must pass disparate impact tests, model card must be complete. These run automatically on every registered model. Gate failures generate issues in Jira, not just notifications — they require resolution, not just acknowledgment.
+
+6. **Shadow testing infrastructure.** For insurance models, shadow testing is mandatory (not optional). During shadow phase: the new model runs alongside production, both models score the same inputs, but only the production model's output affects decisions. Shadow metrics are tracked in a dashboard; a 7-day minimum shadow period catches weekly behavioral patterns.
+
+7. **Rollback SLA.** Registry design requirement: any model must be rollback-able within 10 minutes by any on-call engineer (not just the model owner). This means: rollback procedure is documented in the registry entry, previous version's container is retained and ready to deploy, and rollback requires one-click approval rather than a deployment pipeline run.
+
+8. **Access control.** Role-based access: data scientists (read all, write own team's staging), senior data scientists (write all staging, approve own team's production), ML platform engineers (write all production, manage infrastructure), compliance officer (read all production metadata, no write access). Access audit logs stored for 7 years.
+
+9. **Model deprecation workflow.** Every model in the registry must have a deprecation plan: when will it be replaced, what will replace it, who is responsible? Models without deprecation plans after 18 months trigger automatic alerts. Before archiving, the compliance team must confirm regulatory obligations are met (some jurisdictions require models to be available for 5 years after last use).
+
+10. **Integration with incident management.** Every production incident that involves an ML model creates an automatic registry annotation: incident ID, timestamp, metric degradation magnitude, root cause (once identified), and time to resolution. Over time, this builds a model reliability history that informs deployment risk scoring for future versions.
+
+**Key decisions:**
+- Separate experiment and production registries: prevents experiment noise from cluttering production governance; different access control requirements
+- Model cards as deployment blockers: without enforcement, model cards don't get written; making them a gate ensures compliance documentation exists before regulatory examination
+- Shadow testing as mandatory for regulated models: in insurance, "it worked in testing" is not sufficient justification — shadow testing on real data is the only evidence regulators accept

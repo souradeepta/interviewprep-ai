@@ -260,3 +260,93 @@ A/B testing is the gold standard for model validation. Lab tests can be misleadi
 - **Evaluation Metrics** (Concept 12): Metrics used in A/B tests
 - **Canary Deployment** (Concept 16): Deployment strategy using A/B test framework
 - **Monitoring** (Concept 18): Continuous monitoring post-A/B test deployment
+
+---
+
+## Quick Reference Card
+
+### 2-Minute Elevator Pitch
+A/B testing is how you validate that a model change creates real business value, not just improved offline metrics. Offline evaluation tells you whether a model is better in the lab; A/B testing tells you whether users actually behave differently. The key components: randomized assignment (avoid confounding), statistical power calculation (don't run underpowered tests), guardrail metrics (prevent shipping regressions), and minimum test duration (7 days minimum to capture day-of-week effects). Netflix found that 70% of models that improved offline metrics degraded business metrics in A/B tests — making A/B testing non-negotiable.
+
+### Numbers to Know
+- Netflix: 250M subscribers, runs 1000+ simultaneous A/B tests; 1% watch hours = ~$300M/year revenue
+- Stripe: 1% false decline rate increase = $10M/year in lost revenue; drives conservative A/B guardrails
+- Minimum test duration: 7 days (captures weekly patterns), 14+ days for seasonal products
+- Typical sample size for 2% lift detection: 500K-2M users per variant (depends on metric variance)
+- p-value threshold: 0.05 (industry standard); some teams use 0.01 for high-stakes decisions
+- Guardrail threshold: ship only if primary metric improves AND no guardrail degrades >1%
+- Multiple testing correction: with 10 metrics, use Bonferroni correction (p < 0.005) or FDR control
+- Sequential testing: use SPRT (Sequential Probability Ratio Test) to stop early safely without inflating Type I error
+
+### Decision Framework: A/B Test or Deploy Immediately?
+
+```mermaid
+graph TD
+    A["New model ready to deploy"] --> B{"Is change<br/>deterministic?"}
+    B --> |"Yes: bug fix,<br/>crash fix, security"| C["Deploy immediately<br/>No A/B test needed<br/>Monitor post-deploy"]
+    B --> |"No: model change,<br/>ranking change"| D{"Risk level?"}
+    D --> |"Low: backend change,<br/>no user-visible impact"| E["Internal A/B or<br/>canary only<br/>Monitor metrics"]
+    D --> |"Medium: feature change,<br/>unknown user impact"| F{"How confident<br/>in offline eval?"}
+    F --> |"High confidence,<br/>extensive backtesting"| G["Canary 5%<br/>then A/B at 50/50<br/>for 7 days"]
+    F --> |"Low confidence,<br/>novel approach"| H["Shadow test 1 week<br/>then A/B at 10/90<br/>for 14+ days"]
+    D --> |"High: pricing, fraud,<br/>payments, safety-critical"| I["Shadow test 2 weeks<br/>A/B at 5/95 then 50/50<br/>Manual approval required"]
+```
+
+---
+
+## Strong vs Weak Answers
+
+### Q: A new recommendation model improved offline NDCG by 5%. A colleague says "just ship it." What's your response?
+
+**Weak Answer:** "I agree that we should test it further with an A/B test to make sure it actually improves user experience before fully deploying."
+
+**Strong Answer:** "I'd push back on shipping immediately, and here's the specific risk. Offline NDCG measures ranking quality against historical interactions — but users are not static. A model that improves NDCG by 5% might achieve this by recommending more popular content, which historically has higher click rates, but decreases long-term engagement and diversity. Netflix found that 70% of models improving offline metrics hurt engagement in A/B tests. The right process: run a 2-week A/B test on 10% of users (control: current model, treatment: new model). Primary metric: watch hours per user. Guardrails: engagement breadth (% of recommendations outside top 100 titles must not decrease), session abandonment rate (must not increase >1%), p99 latency (must not increase). If all pass, roll out to 50%, then 100%. The offline metric is a signal for 'worth testing' — not 'worth shipping.'"
+
+---
+
+### Q: After 4 days, your A/B test shows p=0.03 improvement in the primary metric. Your manager wants to ship now. What do you do?
+
+**Weak Answer:** "The p-value is below 0.05, so the result is statistically significant. I would ship it."
+
+**Strong Answer:** "p=0.03 after 4 days is a dangerous place to stop. Three problems. First, day-of-week effects: if we started the test on a Monday, we've seen Tuesday-Thursday traffic heavily but barely any weekend traffic. Weekend users have different behavior patterns — a model that improves weekday engagement might hurt weekend engagement. Minimum 7 days captures one full weekly cycle. Second, novelty effect: users exposed to a new model often show temporary engagement increases ('shiny new thing') that fade within 2 weeks. Stopping at 4 days may capture novelty, not real improvement. Third, peeking inflates Type I error: if we were planning to run 14 days and instead peek at 4 days and stop early because it looks significant, we've effectively run multiple hypothesis tests, and our Type I error rate is much higher than 5%. The right answer to the manager: 'The signal is encouraging — let's keep running. Stopping early risks shipping a model that reverses in production within 2 weeks, which is far more disruptive than waiting 10 more days.' Use sequential testing (SPRT) if you genuinely need early stopping capability."
+
+---
+
+### Q: Design an A/B test for a new fraud detection model at Stripe that catches 5% more fraud but might increase false declines by 1%.
+
+**Weak Answer:** "I would run an A/B test with 50% of transactions using the new model and 50% using the old model. After collecting enough data, I would compare fraud detection rates and false decline rates."
+
+**Strong Answer:** "Fraud A/B tests are especially tricky because of delayed labels — fraud is confirmed 5-30 days after the transaction. My design: Primary metric: fraud loss rate ($ lost to fraud per $M transacted). Guardrails: false decline rate (must not increase >0.5% — at Stripe's scale, 1% false decline = $10M/year revenue loss), legitimate transaction approval rate, customer complaint rate. Sample size: at 500M transactions/month, even 1% traffic gives 5M transactions — enough for statistical significance on a 5% improvement within 2 weeks. Split: 5% treatment, 95% control (conservative because fraud model changes affect real money). Duration: 30 days minimum (need fraud label propagation — most fraud is confirmed within 21 days). Analysis: wait 30 days after test ends before analysis (let labels settle). Instrumentation: log every transaction's model version, prediction score, and decision. When fraud label arrives, join to the prediction. Guardrail: auto-rollback if false decline rate spikes >0.5% within the first 7 days (visible immediately). This is how Stripe caught a false decline issue in a 2022 model update before it hit full traffic."
+
+---
+
+## System Design: A/B Testing Platform for a Large-Scale ML Organization
+
+**Question:** "Design an A/B testing platform for Netflix that runs 1000+ simultaneous experiments on 250M subscribers. The platform must support: randomized assignment, multiple concurrent experiments without interference, statistical analysis, guardrail enforcement, and automated rollout/rollback."
+
+**Walkthrough:**
+
+1. **Randomized assignment engine.** Use a deterministic hash function: `hash(user_id + experiment_id) % 100` determines which bucket a user falls into. This is: (a) deterministic (same user always sees same model), (b) stable across sessions (user experience is consistent), (c) independent per experiment (participation in experiment A doesn't affect B). Store assignments in Redis for <1ms lookups.
+
+2. **Experiment namespace and mutual exclusion.** Some experiments must not interfere with each other (testing two different ranking changes simultaneously contaminates both signals). Implement an exclusion group system: experiments in the same group are mutually exclusive. Users in group A experiments are excluded from group B experiments. This limits concurrent experiment capacity but eliminates cross-experiment contamination.
+
+3. **Metric collection pipeline.** User interactions (views, clicks, watch events) flow into a Kafka topic. A Flink consumer joins interactions with experiment assignments (Redis lookup) and writes to a ClickHouse analytical database partitioned by experiment_id. This enables real-time metric computation per variant.
+
+4. **Statistical analysis engine.** For each experiment, run hourly: (a) t-test for continuous metrics (watch hours, session duration), (b) proportion test for binary metrics (click rate, abandonment), (c) CUPED (Controlled-experiment Using Pre-Experiment Data) variance reduction to improve statistical power. Alert when: p-value crosses 0.05 (possible significant result, needs human review), guardrail metrics degrade (immediate notification).
+
+5. **Power analysis and test duration recommendation.** Before an experiment launches, engineers input: baseline metric value, minimum detectable effect, desired confidence level. The platform computes required sample size and recommended test duration. Prevents underpowered tests from being launched.
+
+6. **Guardrail enforcement.** Each experiment declares guardrail metrics with degradation thresholds (e.g., "session abandonment rate must not increase >1%"). An automated monitor checks guardrails every 6 hours. If any guardrail trips: (a) send PagerDuty alert, (b) automatically reduce experiment traffic from current % to 0.1% (not a full stop, to preserve statistical evidence), (c) require manual override to restore traffic.
+
+7. **Sequential testing for early stopping.** Implement SPRT (Sequential Probability Ratio Test) as an opt-in feature for experiments with clear directional signals. This allows safe early stopping when evidence accumulates faster than expected, without inflating Type I error rate. Not the default — only for experiments where time-to-decision is critical.
+
+8. **Automated rollout.** When an experiment crosses statistical significance threshold AND all guardrails pass: (a) notify experiment owner, (b) automatically expand to 50% if currently at <10%, or (c) require manual approval for 100% rollout. No experiment goes to 100% without human sign-off.
+
+9. **Experiment interaction detection.** Nightly job tests for experiment interactions: do users in experiments A and B simultaneously behave differently than users in just A or just B? Flag interactions for review. This catches interference from mutually exclusive group misconfigurations.
+
+10. **Post-experiment analysis.** After 100% rollout, run a Difference-in-Differences analysis comparing the 30-day post-experiment metric trend to pre-experiment baseline. This validates that the A/B test benefit materialized in production and wasn't a novelty effect.
+
+**Key decisions:**
+- Deterministic hash assignment: ensures user experience consistency and enables reproducibility
+- CUPED variance reduction: reduces required sample size by 30-50%, enabling faster experiments
+- Guardrail auto-reduction (not full stop): preserves statistical evidence while limiting user impact

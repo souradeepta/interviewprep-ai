@@ -283,3 +283,94 @@ Stripe processes 1M+ transactions/day. Fraud pipeline:
 - dbt: https://www.getdbt.com/
 - Apache Flink: https://flink.apache.org/
 - Great Expectations: https://greatexpectations.io/
+
+---
+
+## Quick Reference Card
+
+### 2-Minute Elevator Pitch
+Data pipelines are the foundation of every production ML system — they determine data freshness, quality, and reliability. The core design decision is batch vs. streaming: batch pipelines process data in windows (hourly, daily) with high throughput and acceptable latency; streaming pipelines process events in real time with millisecond latency and stateful computation. Most production ML systems require both — batch for training (historical aggregations) and streaming for serving (real-time features). The key operational challenge is building pipelines that fail loud (not silent), recover automatically, and maintain data quality contracts with downstream consumers.
+
+### Numbers to Know
+- Airflow DAG: typical production pipeline runs 100-1000 tasks, handles 1TB/day; Airflow itself consumes ~2GB RAM
+- Kafka throughput: 1M+ events/second per cluster with sub-10ms latency; Flink can process 10M events/second
+- Batch pipeline SLA: typical production batch runs take 30min-4 hours; anything >6 hours requires optimization
+- Netflix: ingests 1B+ events/day; batch pipeline produces daily features in ~3 hours
+- Uber surge pricing: requires real-time feature updates every 30 seconds; streaming pipeline latency <10ms
+- Stripe fraud pipeline: batch retraining daily on 24 hours of confirmed fraud labels; real-time scoring in <50ms
+- Cost benchmark: batch Spark job processing 1TB costs ~$200 on AWS (EMR + S3); Flink cluster processing 100M events/hour costs ~$500/month
+- Idempotency: required for all production pipelines — re-running a failed job must not create duplicates or corrupt data
+
+### Decision Framework: Batch vs. Streaming vs. Hybrid
+
+```mermaid
+graph TD
+    A["Data Pipeline Architecture"] --> B{"What's the latency<br/>requirement for<br/>features or predictions?"}
+    B --> |"Hours to days<br/>(training, analytics)"| C["Batch Pipeline<br/>Airflow or Kubeflow<br/>Spark or dbt<br/>Cost: low"]
+    B --> |"Minutes<br/>(near-real-time features)"| D{"Data volume?"}
+    D --> |"< 100MB/min"| E["Micro-batch<br/>Spark Structured Streaming<br/>1-5 min windows<br/>SQL-friendly"]
+    D --> |"> 100MB/min"| F["True Streaming<br/>Apache Flink<br/>&lt;1 sec latency<br/>Stateful, complex"]
+    B --> |"Milliseconds<br/>(real-time inference)"| G["True Streaming<br/>Apache Flink + Kafka<br/>&lt;100ms end-to-end<br/>Required for fraud, pricing"]
+    
+    C --> H["Add Streaming<br/>when needed?"]
+    H --> |"Yes, both needed"| I["Lambda Architecture<br/>Batch (training) +<br/>Streaming (serving)<br/>Integrate at feature store"]
+```
+
+---
+
+## Strong vs Weak Answers
+
+### Q: Design a data pipeline for a real-time fraud detection system at a payments company processing 1M transactions per day. The fraud model must score each transaction in <100ms.
+
+**Weak Answer:** "I would use Kafka to ingest transactions in real time and Spark to process them. The model would score transactions as they come in."
+
+**Strong Answer:** "I'd design a dual-path pipeline. The real-time path uses Kafka → Flink → Redis. Transactions arrive in Kafka (<5ms). Flink computes real-time features in <20ms: transaction velocity (count of transactions in the last hour for this user), merchant risk score lookup, and amount deviation from user's 30-day baseline. These are written to Redis with TTL. At scoring time, the fraud model fetches Redis features (<5ms) and runs inference (<30ms). Total end-to-end: <60ms, well within the 100ms budget. The batch path retrains the model daily: confirmed fraud labels from the past 5 days (labels arrive with delay) are joined with historical features in S3, a Spark job computes training-time features, and the model retrains. Idempotency is critical — if the Flink job crashes at 2pm, it must resume from its last Kafka offset without double-counting events. I'd use Kafka's exactly-once semantics and Flink's checkpointing for this. Monitoring: alert if Kafka consumer lag exceeds 10 seconds (indicates processing falling behind), alert if null rate in any feature exceeds 1%, alert if end-to-end latency p99 exceeds 80ms (5ms headroom before SLA breach)."
+
+---
+
+### Q: Your batch pipeline that trains the recommendation model runs daily at 2am and takes 4 hours. It failed last night and the 7am model refresh deadline was missed. How do you debug and prevent future occurrences?
+
+**Weak Answer:** "I would check the Airflow logs to find the error, fix the bug, and re-run the pipeline. I would also add alerting to be notified when it fails."
+
+**Strong Answer:** "Debugging: I'd check Airflow's task-level view to identify which specific task failed — not just the overall DAG failure. Was it the data ingestion task (source unavailable?), a transformation task (out of memory on a large partition?), or a data quality check (data arrived malformed)? Once I identify the task, I'd check: (a) the task's stdout/stderr logs for the actual exception, (b) resource metrics (CPU, memory, disk) during execution — OOM is the most common Spark failure mode, (c) data stats for that specific batch (did a hot partition cause skew?). Prevention requires three things: first, proactive data freshness monitoring — alert at 1:30am if source data hasn't arrived by then (2am pipeline start), giving time to investigate before the deadline. Second, staged checkpointing — break the 4-hour monolith into 4 one-hour stages with intermediate data written to S3; a failure in stage 3 resumes from stage 3, not from scratch. Third, parallel SLA analysis — if the daily 4-hour pipeline is too brittle for a 7am deadline, switch to incremental processing (4 hourly 30-minute runs rather than 1 daily 4-hour run). This is how Netflix handles their recommendation pipeline: hourly incremental updates rather than daily full reprocessing."
+
+---
+
+### Q: Your data pipeline costs $50K/month. The CFO wants a 40% cost reduction. How do you approach this?
+
+**Weak Answer:** "I would reduce the cluster size and process less data to lower compute costs."
+
+**Strong Answer:** "Cost reduction requires measurement before optimization — never guess at where costs come from. First, I'd profile spending by pipeline: which Airflow DAGs, Spark jobs, or Kafka clusters account for the most spend? Typically, 20% of pipelines account for 80% of costs. Second, within expensive pipelines, I'd identify the cost driver: is it compute (Spark cluster hours), storage (S3 costs for intermediate data), or networking (cross-AZ data transfer)? For compute: filter data early in the pipeline (push filters before expensive joins), use spot instances for batch jobs (60-80% cost reduction vs on-demand with 1-5% interruption rate), and right-size clusters (most Spark jobs use the same cluster size as 2 years ago, when data was 3x smaller). For storage: delete intermediate data after pipeline completion (often forgotten), compress outputs as Parquet instead of CSV (10x size reduction), and archive inputs older than 30 days to Glacier. For a $50K/month pipeline, a realistic target is 40-50% reduction without quality loss — I'd document each optimization with its cost impact before and after, to demonstrate the reduction credibly to the CFO."
+
+---
+
+## System Design: End-to-End Data Pipeline for a Recommendation System
+
+**Question:** "You're building the data infrastructure for a streaming service (think Netflix). Design the complete data pipeline from user events to model training to real-time feature serving. The system must handle 1B events/day, retrain daily, and serve recommendation features in <50ms for 250M users."
+
+**Walkthrough:**
+
+1. **Event ingestion layer.** Users generate events (clicks, watches, searches, pauses) from web/mobile apps. Events are published to Kafka with 3 brokers, partitioned by `user_id` (ensures events for the same user are ordered). Kafka retention: 7 days. Event throughput: 1B/day = ~11,600 events/second average, 50,000 events/second peak. Kafka cluster sizing: 20 partitions, 3 replicas, ~6TB retention storage.
+
+2. **Stream processing for real-time features.** A Flink job consumes from Kafka in real time. Flink computes: current session features (what has the user watched in this session?), content freshness signals (new episodes released today), and trending content (what's being watched right now?). Flink writes to Redis with TTL (session features: 30-minute TTL; trending: 5-minute TTL). Latency target: event arrives in Kafka → Redis update in <5 seconds.
+
+3. **Batch processing for training data.** Nightly Spark job (Airflow DAG, starts at midnight): reads yesterday's 1B events from S3 (Kafka → S3 sink runs continuously), joins with content metadata, computes user-level features (watch history, genre preferences, viewing patterns by time of day). Output: ~100GB Parquet file partitioned by user_id. Writes to S3 with a version hash (data versioning).
+
+4. **Feature engineering for training.** A second Spark job reads the batch user features and computes model training features: user embeddings (derived from watch history), content similarity features, time-of-day interaction features. These are written to the offline feature store (Delta Lake on S3). Critical: use point-in-time join API to ensure no temporal leakage.
+
+5. **Model training.** An Airflow DAG triggers after batch feature engineering completes. Training job reads from the offline feature store, trains the recommendation model (typically a two-tower neural network), and registers the trained model in MLflow. Training takes ~3 hours on 8 GPU machines. Quality gate: model must achieve NDCG@10 > baseline before registration.
+
+6. **Batch feature serving (offline → online materialization).** After training, a feature materialization job reads user embeddings from the offline store and writes them to Redis (online store), keyed by user_id. This is the largest job: 250M users × 1024-dim float32 vectors = ~1TB of Redis data. Materialization takes ~2 hours. Uses Redis pipeline batching (1000 writes per batch) for throughput.
+
+7. **Real-time serving.** At recommendation request time: (a) fetch user embeddings from Redis (<2ms), (b) fetch session features from Redis (<2ms), (c) run ANN (approximate nearest neighbor) search to find top-1000 candidate content items (<20ms), (d) run ranking model to re-rank candidates (<15ms). Total: <50ms target achieved.
+
+8. **Data quality monitoring.** Great Expectations runs validation after each batch job: schema check (required columns present), completeness check (null rate <1% for user_id, content_id), freshness check (timestamp within 24 hours of processing). Failed validation halts the training pipeline and sends PagerDuty alert.
+
+9. **Pipeline orchestration and SLAs.** Airflow DAG dependencies: event ingestion must complete by 11pm, batch Spark by 3am, feature engineering by 5am, training by 8am, materialization by 10am. Model is live with fresh features before peak traffic at 8pm. SLA violations trigger automatic alerts and fallback (serve yesterday's model if today's training fails).
+
+10. **Cost monitoring and optimization.** Monthly cost dashboard: Kafka cluster ($3K/month), Spark batch jobs ($8K/month), Redis cluster for online serving ($12K/month), S3 storage ($5K/month). Largest cost driver: Redis. Optimization: only materialize embeddings for users active in the last 30 days (covers 95% of traffic, reduces Redis by 40%). Total: $28K/month with optimizations.
+
+**Key decisions:**
+- Lambda architecture (batch + streaming): batch provides rich historical features for training accuracy; streaming provides fresh session context for serving relevance
+- Feature materialization as a separate step: decouples training from serving; model can be updated without re-materializing all features
+- Delta Lake for offline store: enables point-in-time joins (prevents leakage) and time-travel queries (enables versioning and debugging)
