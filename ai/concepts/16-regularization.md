@@ -10,9 +10,13 @@ A key technique in machine learning.
 
 ## How It Works
 
-1. Step 1
-2. Step 2
-3. Step 3
+1. Define the base loss function L(θ) (e.g., cross-entropy or MSE)
+2. Add a regularization term: L_reg(θ) = L(θ) + λ·Ω(θ)
+3. For L2 (Ridge/weight decay): Ω(θ) = ½‖θ‖² — penalizes large weights, shrinks them toward zero
+4. For L1 (Lasso): Ω(θ) = ‖θ‖₁ — induces sparsity, drives some weights exactly to zero
+5. For dropout: during each forward pass, randomly set each neuron's output to zero with probability p; scale remaining by 1/(1−p)
+6. For early stopping: monitor validation loss; stop training when validation loss stops improving for patience epochs
+7. Update regularized gradient: ∂L_reg/∂W = ∂L/∂W + λW (for L2), then apply optimizer update
 
 ```mermaid
 graph TD

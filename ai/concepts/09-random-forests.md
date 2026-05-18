@@ -10,9 +10,13 @@ A key technique in machine learning.
 
 ## How It Works
 
-1. Step 1
-2. Step 2
-3. Step 3
+1. Draw B bootstrap samples (with replacement) from the training data, one per tree
+2. For each bootstrap sample, train a decision tree — but at each split, consider only a random subset of √p features (for classification) or p/3 features (for regression)
+3. Repeat until B trees are trained (typical B = 100–500)
+4. For prediction, pass the input through all B trees: take majority vote (classification) or mean (regression)
+5. Samples not in a tree's bootstrap sample form its Out-of-Bag (OOB) set — use these for free internal validation
+6. Compute feature importances by measuring average impurity decrease per feature across all trees
+7. Tune max_features (controls diversity) and n_estimators (controls variance reduction)
 
 ```mermaid
 graph TD

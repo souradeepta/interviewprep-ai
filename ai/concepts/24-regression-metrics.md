@@ -10,9 +10,13 @@ A key technique in machine learning.
 
 ## How It Works
 
-1. Step 1
-2. Step 2
-3. Step 3
+1. Obtain predicted values ŷᵢ from the model on a held-out test set
+2. Compute residuals: eᵢ = yᵢ − ŷᵢ for each prediction
+3. Compute Mean Absolute Error: MAE = (1/n)Σ|eᵢ| — robust to outliers, same units as target
+4. Compute Mean Squared Error: MSE = (1/n)Σeᵢ² — penalizes large errors more heavily
+5. Compute RMSE = √MSE — returns to original units; compare directly to target scale
+6. Compute R² = 1 − SSres/SStot, where SSres = Σeᵢ², SStot = Σ(yᵢ−ȳ)² — proportion of variance explained (1.0 is perfect)
+7. Plot residuals vs fitted values and residual histogram — patterns reveal model misspecification
 
 ```mermaid
 graph TD

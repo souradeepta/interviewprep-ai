@@ -10,9 +10,13 @@ A key technique in machine learning.
 
 ## How It Works
 
-1. Step 1
-2. Step 2
-3. Step 3
+1. Map inputs to a high-dimensional feature space φ(x) using the kernel trick (no explicit computation needed)
+2. Find the hyperplane w·φ(x) + b = 0 that maximizes the margin 2/‖w‖ between the two classes
+3. Formulate as a convex optimization: minimize ½‖w‖² subject to yᵢ(w·φ(xᵢ)+b) ≥ 1
+4. Introduce slack variables ξᵢ for soft margin (allow some misclassifications): minimize ½‖w‖² + C·Σξᵢ
+5. Solve the dual problem using Lagrange multipliers — only support vectors (points on or inside the margin) have non-zero multipliers
+6. Use the kernel function K(xᵢ, xⱼ) = φ(xᵢ)·φ(xⱼ) to compute inner products implicitly (RBF: e^(−γ‖xᵢ−xⱼ‖²))
+7. Predict: ŷ = sign(Σᵢ αᵢyᵢK(xᵢ,x) + b), summing only over support vectors
 
 ```mermaid
 graph TD

@@ -10,9 +10,13 @@ A key technique in machine learning.
 
 ## How It Works
 
-1. Step 1
-2. Step 2
-3. Step 3
+1. Choose k (number of clusters) and initialize k centroids — randomly or using k-means++ (choose each centroid with probability proportional to distance from nearest existing centroid)
+2. Assignment step: assign each point xᵢ to the nearest centroid: cᵢ = argminⱼ ‖xᵢ − μⱼ‖²
+3. Update step: recompute each centroid as the mean of its assigned points: μⱼ = (1/|Cⱼ|) Σᵢ∈Cⱼ xᵢ
+4. Repeat assignment and update steps until centroids stop moving (convergence) or max iterations reached
+5. Measure quality with inertia (sum of squared distances to nearest centroid) — lower is better
+6. Run multiple restarts with different initializations and keep the result with lowest inertia
+7. Select k using the elbow method (inertia vs k curve) or silhouette score (measures cluster cohesion vs separation)
 
 ```mermaid
 graph TD

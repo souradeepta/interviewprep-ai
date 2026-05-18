@@ -10,9 +10,13 @@ A key technique in machine learning.
 
 ## How It Works
 
-1. Step 1
-2. Step 2
-3. Step 3
+1. Specify a prior distribution p(θ) encoding beliefs about parameters before observing data
+2. Define a likelihood function p(D|θ) — the probability of observing data D given parameters θ
+3. Apply Bayes' theorem: p(θ|D) = p(D|θ) · p(θ) / p(D), where p(D) = ∫p(D|θ)p(θ)dθ is the normalizing constant
+4. For conjugate priors (e.g., Beta-Binomial, Normal-Normal), compute the posterior analytically
+5. For non-conjugate models, approximate the posterior with MCMC (Markov Chain Monte Carlo) sampling or Variational Inference
+6. Extract point estimates: MAP (mode of posterior) or posterior mean; extract uncertainty via credible intervals
+7. Use the posterior predictive distribution p(x_new|D) = ∫p(x_new|θ)p(θ|D)dθ to make predictions with uncertainty quantification
 
 ```mermaid
 graph TD

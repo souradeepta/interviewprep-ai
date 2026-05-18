@@ -10,9 +10,13 @@ A key technique in machine learning.
 
 ## How It Works
 
-1. Step 1
-2. Step 2
-3. Step 3
+1. Start with the full training dataset at the root node
+2. For each candidate feature and split threshold, compute impurity (Gini or entropy) of resulting child nodes
+3. Select the split that maximizes information gain (parent impurity − weighted child impurity)
+4. Recursively split each child node using the same procedure
+5. Stop when a stopping criterion is met: max_depth reached, min_samples_leaf, or no impurity improvement
+6. Assign each leaf node the majority class (classification) or mean value (regression) of its training samples
+7. Optionally prune the tree post-hoc by removing splits that don't improve validation performance
 
 ```mermaid
 graph TD

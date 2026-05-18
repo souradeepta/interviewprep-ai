@@ -10,9 +10,13 @@ A key technique in machine learning.
 
 ## How It Works
 
-1. Step 1
-2. Step 2
-3. Step 3
+1. Decompose the expected prediction error at a point x into three components: Error = Bias² + Variance + Irreducible noise
+2. Bias measures how far the average prediction is from the true value: Bias = E[f̂(x)] − f(x)
+3. Variance measures how much predictions vary across different training sets: Var = E[(f̂(x) − E[f̂(x)])²]
+4. Irreducible noise is the inherent randomness in the labels — cannot be reduced by any model
+5. Complex models (deep trees, high-degree polynomials) have low bias but high variance — they fit noise
+6. Simple models (linear, shallow trees) have high bias but low variance — they underfit the signal
+7. Optimal model complexity minimizes total error — tune via validation curve (error vs model complexity plot)
 
 ```mermaid
 graph TD

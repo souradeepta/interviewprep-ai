@@ -10,9 +10,13 @@ A key technique in machine learning.
 
 ## How It Works
 
-1. Step 1
-2. Step 2
-3. Step 3
+1. Initialize K Gaussian components with means μₖ, covariances Σₖ, and mixing weights πₖ (often via k-means)
+2. E-step (Expectation): compute soft assignment (responsibility) of each point to each component: rᵢₖ = πₖ·N(xᵢ|μₖ,Σₖ) / Σⱼ πⱼ·N(xᵢ|μⱼ,Σⱼ)
+3. M-step (Maximization): update parameters using the responsibilities as weights: Nₖ = Σᵢ rᵢₖ, μₖ = (1/Nₖ)Σᵢ rᵢₖxᵢ
+4. Update covariances: Σₖ = (1/Nₖ) Σᵢ rᵢₖ(xᵢ−μₖ)(xᵢ−μₖ)ᵀ
+5. Update mixing weights: πₖ = Nₖ/n
+6. Repeat E and M steps until log-likelihood converges: log p(X) = Σᵢ log Σₖ πₖ·N(xᵢ|μₖ,Σₖ)
+7. Select K using BIC = −2·log p(X) + K·log(n) — choose K that minimizes BIC
 
 ```mermaid
 graph TD

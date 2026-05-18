@@ -10,9 +10,13 @@ A key technique in machine learning.
 
 ## How It Works
 
-1. Step 1
-2. Step 2
-3. Step 3
+1. Center the data by subtracting the mean: X_centered = X − mean(X)
+2. Compute the covariance matrix: C = (1/(n−1)) X_centeredᵀ X_centered
+3. Compute eigenvectors and eigenvalues of C: the eigenvectors are the principal components
+4. Sort eigenvectors by decreasing eigenvalue magnitude — they capture the most variance first
+5. Select the top k eigenvectors to form projection matrix W (d × k)
+6. Project data into the k-dimensional space: Z = X_centered · W
+7. The explained variance ratio for each component = eigenvalue / sum(all eigenvalues) — use to choose k (aim for 90-95% cumulative explained variance)
 
 ```mermaid
 graph TD

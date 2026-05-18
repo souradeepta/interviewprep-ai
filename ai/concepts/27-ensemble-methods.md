@@ -10,9 +10,13 @@ A key technique in machine learning.
 
 ## How It Works
 
-1. Step 1
-2. Step 2
-3. Step 3
+1. Train multiple diverse base learners on the training data (can be same algorithm with different hyperparameters, or different algorithms)
+2. For bagging (e.g., Random Forest): train each base learner on a bootstrap sample of the data; average predictions to reduce variance
+3. For boosting (e.g., GBM): train base learners sequentially, where each learner corrects the errors of the previous ensemble
+4. For stacking: generate out-of-fold predictions from base learners; use these as features to train a meta-learner
+5. For voting classifiers: combine predictions by majority vote (hard voting) or average probabilities (soft voting)
+6. Combine base learner predictions using the chosen aggregation: mean/vote (bagging), weighted sum (boosting), meta-learner output (stacking)
+7. Validate that the ensemble outperforms the best individual base learner on a held-out test set
 
 ```mermaid
 graph TD

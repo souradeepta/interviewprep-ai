@@ -10,9 +10,13 @@ A key technique in machine learning.
 
 ## How It Works
 
-1. Step 1
-2. Step 2
-3. Step 3
+1. Represent the model as ŷ = Xθ, where X is the feature matrix and θ are the parameters to learn
+2. Define a loss function — Mean Squared Error: L(θ) = (1/n) Σ(ŷᵢ − yᵢ)²
+3. Minimize the loss either analytically via the Normal Equation: θ = (XᵀX)⁻¹Xᵀy, or iteratively with gradient descent
+4. Compute the gradient: ∂L/∂θ = (2/n) Xᵀ(Xθ − y)
+5. Update parameters: θ ← θ − α · ∂L/∂θ until convergence
+6. Add L2 regularization (Ridge) by penalizing θᵀθ: θ = (XᵀX + λI)⁻¹Xᵀy
+7. Evaluate fit using R², RMSE, and residual plots
 
 ```mermaid
 graph TD

@@ -10,9 +10,13 @@ A key technique in machine learning.
 
 ## How It Works
 
-1. Step 1
-2. Step 2
-3. Step 3
+1. Store the entire training dataset (lazy learning — no explicit training phase)
+2. Given a new query point x, compute its distance to every training point using a distance metric (Euclidean, Manhattan, cosine)
+3. Retrieve the k training points with the smallest distances to x
+4. For classification: assign the majority class among the k neighbors (optionally weighted by 1/distance)
+5. For regression: predict the mean (or distance-weighted mean) of the k neighbors' target values
+6. Choose k using cross-validation — small k = low bias/high variance, large k = high bias/low variance
+7. Optimize with spatial data structures (KD-tree for d < 20, Ball-tree for higher dimensions) to avoid O(nd) brute force
 
 ```mermaid
 graph TD

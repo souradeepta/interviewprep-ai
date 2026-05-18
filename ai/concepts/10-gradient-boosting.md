@@ -10,9 +10,13 @@ A key technique in machine learning.
 
 ## How It Works
 
-1. Step 1
-2. Step 2
-3. Step 3
+1. Initialize with a simple prediction: F₀(x) = argmin_γ Σ L(yᵢ, γ) (e.g., mean of y for regression)
+2. Compute pseudo-residuals (negative gradient of loss w.r.t. current predictions): rᵢ = −∂L(yᵢ, F(xᵢ))/∂F(xᵢ)
+3. Fit a weak learner (shallow decision tree) to the pseudo-residuals
+4. Find the optimal step size γ by line search: γ = argmin_γ Σ L(yᵢ, F(xᵢ) + γ·hₜ(xᵢ))
+5. Update the model: Fₜ(x) = Fₜ₋₁(x) + η·γ·hₜ(x), where η is the learning rate
+6. Repeat steps 2–5 for T boosting rounds
+7. Final prediction is the sum of all weak learners: F(x) = F₀(x) + η·Σₜ hₜ(x)
 
 ```mermaid
 graph TD

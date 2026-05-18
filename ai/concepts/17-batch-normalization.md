@@ -10,9 +10,13 @@ A key technique in machine learning.
 
 ## How It Works
 
-1. Step 1
-2. Step 2
-3. Step 3
+1. For a mini-batch B = {x₁,...,xₘ}, compute batch mean: μ_B = (1/m)Σxᵢ
+2. Compute batch variance: σ²_B = (1/m)Σ(xᵢ − μ_B)²
+3. Normalize each activation: x̂ᵢ = (xᵢ − μ_B) / √(σ²_B + ε), where ε prevents division by zero
+4. Scale and shift with learnable parameters γ and β: yᵢ = γx̂ᵢ + β (allows the network to undo normalization if needed)
+5. During training, maintain running estimates of mean and variance using exponential moving average
+6. During inference, use the running estimates (not batch statistics) for deterministic behavior
+7. Backpropagate gradients through the normalization: ∂L/∂γ = Σ∂L/∂yᵢ · x̂ᵢ, ∂L/∂β = Σ∂L/∂yᵢ
 
 ```mermaid
 graph TD

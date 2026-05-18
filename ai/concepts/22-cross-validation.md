@@ -10,9 +10,13 @@ A key technique in machine learning.
 
 ## How It Works
 
-1. Step 1
-2. Step 2
-3. Step 3
+1. Split the training data into k equal-sized folds (e.g., k=5 or k=10)
+2. For fold i (i=1..k): train the model on all folds except fold i, then evaluate on fold i
+3. Record the evaluation metric (e.g., accuracy, RMSE) for each fold
+4. Repeat for all k folds — every data point is used exactly once as a test point
+5. Report mean ± standard deviation of the k metric values as the generalization estimate
+6. For stratified k-fold (classification): ensure each fold preserves the original class distribution
+7. For nested CV: wrap an inner CV (hyperparameter search) inside the outer CV — produces unbiased estimate of tuned model performance
 
 ```mermaid
 graph TD

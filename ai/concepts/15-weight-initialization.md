@@ -10,9 +10,13 @@ A key technique in machine learning.
 
 ## How It Works
 
-1. Step 1
-2. Step 2
-3. Step 3
+1. Before training begins, assign initial values to all weight matrices W and bias vectors b
+2. Set biases to zero — this is always safe and standard
+3. For Xavier/Glorot initialization (tanh, sigmoid): draw W from Uniform(−√(6/(nᵢₙ+nₒᵤₜ)), √(6/(nᵢₙ+nₒᵤₜ))) or Normal(0, √(2/(nᵢₙ+nₒᵤₜ)))
+4. For He initialization (ReLU): draw W from Normal(0, √(2/nᵢₙ)) — accounts for ReLU zeroing half the neurons
+5. The goal is to keep activation variance stable across layers: Var(a^l) ≈ Var(a^(l-1))
+6. Poor initialization (too large → exploding activations, too small → vanishing gradients) prevents gradient flow
+7. Verify initialization quality by checking that activation statistics (mean, std) are reasonable in the first forward pass
 
 ```mermaid
 graph TD

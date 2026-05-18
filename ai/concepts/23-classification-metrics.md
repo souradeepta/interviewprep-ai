@@ -10,9 +10,13 @@ A key technique in machine learning.
 
 ## How It Works
 
-1. Step 1
-2. Step 2
-3. Step 3
+1. Obtain predicted class labels (or probabilities) from the model on a held-out test set
+2. Build the confusion matrix: count True Positives (TP), True Negatives (TN), False Positives (FP), False Negatives (FN)
+3. Compute Precision = TP/(TP+FP) — of all predicted positives, what fraction are correct?
+4. Compute Recall (Sensitivity) = TP/(TP+FN) — of all actual positives, what fraction did we catch?
+5. Compute F1 = 2·(Precision·Recall)/(Precision+Recall) — harmonic mean, penalizes extreme imbalance
+6. For threshold-independent evaluation, compute ROC-AUC: area under the Receiver Operating Characteristic curve (TPR vs FPR at all thresholds)
+7. For imbalanced classes, prefer PR-AUC (area under Precision-Recall curve) — more sensitive to minority class performance
 
 ```mermaid
 graph TD

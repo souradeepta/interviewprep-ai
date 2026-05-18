@@ -10,9 +10,13 @@ A key technique in machine learning.
 
 ## How It Works
 
-1. Step 1
-2. Step 2
-3. Step 3
+1. Explore the raw data: check distributions, missing values, cardinality of categoricals, correlations
+2. Handle missing values: impute with mean/median (numeric) or mode/constant (categorical), or use indicator features for missingness
+3. Encode categorical variables: one-hot for low-cardinality, target encoding for high-cardinality, ordinal for ordered categories
+4. Scale numeric features: StandardScaler (zero mean, unit variance) for distance-based models; MinMaxScaler for neural networks; RobustScaler when outliers are present
+5. Create interaction features: multiply or divide related features when domain knowledge suggests interactions
+6. Transform skewed features: log(1+x) for right-skewed, Box-Cox for general skewness, binning for non-linear relationships
+7. Select features: remove zero-variance features, apply correlation filtering (drop one of correlated pairs), then use model-based importance for final selection
 
 ```mermaid
 graph TD

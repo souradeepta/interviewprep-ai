@@ -10,9 +10,13 @@ A key technique in machine learning.
 
 ## How It Works
 
-1. Step 1
-2. Step 2
-3. Step 3
+1. Define network architecture: input layer (d features) → hidden layers (each with n neurons + activation) → output layer
+2. Forward pass: for each layer l, compute zˡ = Wˡaˡ⁻¹ + bˡ, then apply activation aˡ = σ(zˡ)
+3. Compute loss at the output: L = loss(ŷ, y) (e.g., cross-entropy for classification)
+4. Backward pass: compute ∂L/∂W and ∂L/∂b for every layer using chain rule (backpropagation)
+5. Start from output layer: δᴸ = ∂L/∂z, then propagate back: δˡ = ((Wˡ⁺¹)ᵀ δˡ⁺¹) ⊙ σ'(zˡ)
+6. Update parameters with an optimizer (SGD, Adam): W ← W − α·∂L/∂W
+7. Repeat forward and backward passes over mini-batches for multiple epochs until convergence
 
 ```mermaid
 graph TD

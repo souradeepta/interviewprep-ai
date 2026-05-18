@@ -10,9 +10,13 @@ A key technique in machine learning.
 
 ## How It Works
 
-1. Step 1
-2. Step 2
-3. Step 3
+1. Model the log-odds of the positive class as a linear function: log(p/(1−p)) = Xθ
+2. Apply the sigmoid function to map log-odds to probabilities: p = 1/(1+e^(−Xθ))
+3. Define cross-entropy loss: L(θ) = −(1/n) Σ[yᵢ log(pᵢ) + (1−yᵢ) log(1−pᵢ)]
+4. Compute gradient: ∂L/∂θ = (1/n) Xᵀ(p − y)
+5. Update parameters with gradient descent (or L-BFGS for small datasets)
+6. Apply threshold (default 0.5) to predicted probabilities to get class labels
+7. For multiclass, extend to softmax: pₖ = e^(Xθₖ) / Σⱼ e^(Xθⱼ)
 
 ```mermaid
 graph TD

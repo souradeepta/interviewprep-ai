@@ -10,9 +10,13 @@ A key technique in machine learning.
 
 ## How It Works
 
-1. Step 1
-2. Step 2
-3. Step 3
+1. Define the hyperparameter search space: specify ranges and scales (log-scale for learning rate, linear for dropout rate)
+2. Choose a search strategy: grid search for small spaces (< 3 hyperparameters), random search for larger spaces, Bayesian optimization for expensive models
+3. For random search: sample n_iter configurations uniformly at random from the search space
+4. For Bayesian optimization: fit a surrogate model (Gaussian process) to observed (config, score) pairs; use an acquisition function (Expected Improvement) to select the next configuration
+5. Evaluate each configuration with k-fold cross-validation to get an unbiased performance estimate
+6. Track all configurations and scores in a registry — prevents redundant evaluations
+7. Select the best configuration, retrain on the full training set, and evaluate once on the held-out test set
 
 ```mermaid
 graph TD

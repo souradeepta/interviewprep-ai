@@ -10,9 +10,13 @@ A key technique in machine learning.
 
 ## How It Works
 
-1. Step 1
-2. Step 2
-3. Step 3
+1. Receive pre-activation value z = w·x + b (weighted sum of inputs)
+2. Apply the non-linear activation function: a = σ(z)
+3. For ReLU: a = max(0, z) — zero for negative inputs, identity for positive
+4. For sigmoid: a = 1/(1+e⁻ᶻ) — squashes output to (0,1), used for binary output
+5. For softmax (output layer): aₖ = e^(zₖ)/Σⱼ e^(zⱼ) — produces probability distribution over K classes
+6. The activation's derivative σ'(z) is used in backpropagation: δ = δ_next · σ'(z)
+7. Choice of activation affects gradient flow — ReLU avoids vanishing gradients; sigmoid causes them in deep networks
 
 ```mermaid
 graph TD
