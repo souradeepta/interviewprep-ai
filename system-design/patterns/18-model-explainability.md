@@ -1,55 +1,86 @@
-# Model explainability
+# Model Explainability
 
 ## TL;DR
-Core ML system design pattern for production.
+Explain why model made a prediction. Techniques: SHAP (feature importance), LIME (local approximation), decision trees (inherently interpretable). Required for: regulated domains (healthcare, finance), high-stakes decisions.
 
 ## Core Intuition
-[Intuitive explanation]
+Black-box model predicts 0.92 (approve loan). Why? Explainability answers: "because income=high (impact: +0.3), credit_score=low (impact: -0.1)..."
 
 ## How It Works
-[Technical details]
+
+**Three approaches:**
+
+1. **SHAP (SHapley Additive exPlanations):**
+   - Compute contribution of each feature to prediction
+   - Global: which features matter most overall
+   - Local: for this specific prediction, which features drove it
+
+2. **LIME (Local Interpretable Model-agnostic Explanations):**
+   - Fit simple linear model to predict same as black-box
+   - Use linear model coefficients as explanation
+
+3. **Decision Trees:**
+   - Inherently interpretable: path from root to leaf explains prediction
+   - Downside: low accuracy vs neural nets
+
+| Method | Global Explanations | Local Explanations | Accuracy |
+|--------|---|---|---|
+| SHAP | Yes | Yes | Neutral |
+| LIME | No | Yes | Neutral |
+| Trees | Yes | Yes | Lower |
 
 ## Key Properties / Trade-offs
-- Property 1
-- Property 2
+- Accuracy vs interpretability: trees interpretable but less accurate
+- Computation: SHAP expensive, LIME cheap
+- Trust: explanations must be correct (garbage in → garbage explanation)
 
 ## Common Mistakes / Gotchas
-- Mistake 1
-- Mistake 2
+- Explanation wrong: SHAP values computed incorrectly
+- Over-confident: explanation seems clear but isn't (confounding)
+- Ignoring domain: explanation makes sense mathematically but not in business
 
 ## Best Practices
-- Choose explanation method based on stakeholder: SHAP values for data scientists, natural language for end users
-- Validate explanations against domain knowledge — implausible explanations signal model issues
-- Use local explanations (LIME, SHAP waterfall) for individual predictions, global for model behavior
-- Generate explanations at inference time for production use cases requiring regulatory compliance
-- Test explanation stability — similar inputs should yield similar explanations
-- Include counterfactual explanations ('if X were different, outcome would change')
-- Document explanation limitations alongside the explanations themselves
+- **Validate explanations:** use human review to check explanations make sense
+- **Global + local:** understand overall model and specific predictions
+- **Sanity checks:** flip feature value, does explanation change appropriately?
+- **Domain review:** have domain expert validate explanations
+
+## Code Example
+```python
+import shap
+
+# Train model
+model = train_model(X, y)
+
+# SHAP explanations
+explainer = shap.TreeExplainer(model)
+shap_values = explainer.shap_values(X)
+
+# Global: average absolute SHAP per feature
+shap.summary_plot(shap_values, X)  # Feature importance
+
+# Local: for one prediction
+shap.force_plot(explainer.expected_value, shap_values[0], X[0])
+```
 
 ## Interview Q&A
+**Q: Regulatory requirement: explain each prediction. Approach?**
+A: Use SHAP or LIME. SHAP more rigorous (Shapley values mathematically grounded), LIME faster. For loan approvals: "Approved because income=$100K (impact +0.4), credit_score=750 (impact +0.3), ..."
 
-**Q: What is the difference between model interpretability and model explainability?**
-A: Interpretability: understanding why a model makes predictions by examining its internal structure—inherent property of simple models (linear models, decision trees) that humans can directly inspect. Explainability: post-hoc techniques applied to black-box models to approximate their behavior for specific predictions—SHAP, LIME, attention weights. Interpretable models are always explainable; explainable models may not be interpretable (SHAP provides per-prediction explanations but doesn't make a neural network "interpretable"). Use interpretability when regulatory requirements demand it; explainability when debugging or communicating decisions.
-
-**Q: When is SHAP preferable to LIME for explaining individual predictions?**
-A: SHAP is preferable when: you need globally consistent feature importance (SHAP values satisfy axioms like efficiency and symmetry that LIME doesn't guarantee), you have tree-based models (TreeSHAP is exact and fast), or you need to aggregate explanations across many predictions. LIME is preferable when: SHAP is too slow (SHAP on deep neural networks requires approximation), you want local linearity (LIME's local linear model is easier to communicate), or you need custom input perturbations for complex input types (text, images with domain-specific perturbations).
-
-**Q: How do you use explainability in production to debug model failures?**
-A: For each reported model failure (wrong prediction, customer complaint): compute SHAP values for the failing example, identify which features have unusually high attribution, compare the feature values and attributions to similar correct predictions. Build a "failure explanation dashboard": aggregate explanations for the worst predictions, identify systematic patterns (feature X has unexpectedly high negative attribution in 60% of failures). This turns individual failure analysis into systematic model improvement signal.
-
-**Q: What are the limitations of SHAP-based explanations that you should communicate to stakeholders?**
-A: SHAP explains predictions in terms of feature contributions, but it cannot: prove causality (high SHAP for a feature doesn't mean changing it would change the prediction), guarantee that the explanation reflects the model's actual decision process for deep networks (it approximates), or account for feature correlations fully (correlated features may have their importance split arbitrarily). Also: explanations are for single predictions, not the model's general behavior. Communicate these limitations explicitly when sharing explanations to prevent overconfidence in their meaning.
-
-**Q: How do you build explainability into a model from the design phase rather than as an afterthought?**
-A: Design choices: prefer simpler models when accuracy is comparable (a gradient boosted tree with 94% accuracy is more explainable than a neural network with 95%); use attention mechanisms for text models (attention weights give rough explanations); design features to be human-interpretable (one-hot encode rather than embed categorical features when explanation matters); include explanation-specific features in the architecture (auxiliary objectives that force the model to learn interpretable representations). Document the explanation strategy in the model card before training.
+**Q: Explanation says "age important". Trust it?**
+A: Validate. (1) Flip age value, does prediction change? (2) Is age causally important or correlated with actual driver? (3) Does domain expert agree? Don't trust until validated.
 
 ## Interview Quick-Reference
-| Question | What to say |
-|---|---|
-| "Explain?" | [Answer] |
+| Method | Speed | Rigor | When |
+|--------|-------|-------|------|
+| SHAP | Slow | High | Healthcare (need rigor) |
+| LIME | Fast | Medium | Quick explanation |
+| Trees | Fast | High | Interpretability critical |
 
 ## Related Topics
-- [Related](other.md)
+- [Model Debugging](17-model-debugging.md)
+- [Fairness Metrics](25-fairness-metrics.md)
 
 ## Resources
-- [Reference](url)
+- [SHAP Documentation](https://shap.readthedocs.io/)
+- [LIME: Local Interpretable Models](https://github.com/marcotcr/lime)

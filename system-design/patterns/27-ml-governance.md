@@ -1,55 +1,93 @@
-# Ml governance
+# ML Governance
 
 ## TL;DR
-Core ML system design pattern for production.
+Govern ML systems: model ownership, model registry, approval workflow (staging → prod), audit trail (who changed what), rollback procedure. Required for: compliance, safety, accountability.
 
 ## Core Intuition
-[Intuitive explanation]
+ML system = code + data + model. Governance = versioning all three, audit trail, approval workflow.
 
 ## How It Works
-[Technical details]
+
+**ML governance components:**
+
+1. **Model ownership:** who is responsible for this model?
+2. **Approval workflow:** 
+   - Scientist trains model
+   - Reviewers approve
+   - Deploy to staging
+   - Stakeholder signs off
+   - Deploy to prod
+3. **Audit trail:** log all changes (who, when, why)
+4. **Rollback:** ability to revert to previous model
+
+| Phase | Owner | Action |
+|-------|-------|--------|
+| Training | Data scientist | Train model |
+| Review | Tech lead | Code review |
+| Staging | QA | Test model |
+| Approval | Business owner | Approve for prod |
+| Prod | ML engineer | Deploy & monitor |
 
 ## Key Properties / Trade-offs
-- Property 1
-- Property 2
+- Process overhead: governance slows deployment
+- Safety: prevents bad models reaching prod
+- Accountability: clear who is responsible
 
 ## Common Mistakes / Gotchas
-- Mistake 1
-- Mistake 2
+- No approval process: anyone can deploy (chaos)
+- No audit trail: can't debug who changed what
+- No rollback: bad model → stuck
+- Too much process: bottleneck, slow deployment
 
 ## Best Practices
-- Document model cards for every production model (intended use, limitations, metrics by subgroup)
-- Require approval gates before production deployment — human sign-off for high-risk models
-- Log model predictions in production for monitoring and audit
-- Track model performance by demographic subgroups to detect disparate impact
-- Set model expiration dates — trigger retraining reviews periodically
-- Maintain rollback procedures with tested SLA
-- Version control all configuration files, not just model weights
+- **Clear workflow:** staging → prod (don't skip staging)
+- **Signature required:** business owner signs off before prod
+- **Audit logging:** every model change logged
+- **Rollback SOP:** procedure for emergency rollback
+- **Regular audits:** monthly review of all models in prod
+
+## Code Example
+```python
+class MLGovernance:
+    def request_deployment(self, model_name, version):
+        # Create approval request
+        request = {
+            "model": model_name,
+            "version": version,
+            "requester": "alice@company.com",
+            "timestamp": datetime.now(),
+            "status": "pending_review"
+        }
+        self.db.save_request(request)
+        
+        # Notify reviewers
+        self.send_approval_email(request)
+    
+    def approve_deployment(self, request_id, approver):
+        request = self.db.get_request(request_id)
+        request["approver"] = approver
+        request["status"] = "approved"
+        self.db.save_request(request)
+```
 
 ## Interview Q&A
+**Q: Bad model deployed, caused issue. How prevent?**
+A: ML governance. (1) Staging environment (test before prod). (2) Approval workflow (manager signs off). (3) Audit trail (know who deployed what). (4) Monitoring (catch issue in staging, not prod). (5) Rollback (revert quickly).
 
-**Q: What is model risk management and when is it required?**
-A: Model risk management (MRM) is the process of identifying, assessing, and mitigating risks from model errors. Required by: US banking regulators (SR 11-7 guidance for banks), insurance regulators, and increasingly for high-risk AI under EU AI Act. MRM includes: model documentation (model purpose, assumptions, limitations), validation (independent review of model performance), ongoing monitoring (performance degradation detection), and governance (approval process for model deployment and changes). Companies outside financial services often implement MRM voluntarily for high-stakes models.
-
-**Q: How do you structure model documentation for an ML governance audit?**
-A: Required documentation: model card (purpose, capabilities, limitations), training data description (source, size, preprocessing, known biases), model architecture description, performance metrics (on multiple slices, not just overall), validation methodology (how was the model tested?), change log (what changed from previous version), known issues and mitigations, and intended use vs. out-of-scope use. Store documentation with model artifacts in the registry, version alongside the model. An audit should be able to reproduce key performance claims from the documentation alone.
-
-**Q: What approval workflows are needed for high-risk ML model deployments?**
-A: Approval chain for high-risk models: ML team sign-off (technical validation), data governance review (data usage compliance), security review (vulnerability assessment), legal/compliance review (regulatory requirements), business owner sign-off (accepts business risk), and for regulated industries, independent model validator sign-off. Codify approvals as blocking gates in the CI/CD pipeline—a model shouldn't deploy without all required approvals recorded. Track approval status in the model registry.
-
-**Q: How do you handle a model that has been in production but was never properly validated?**
-A: Don't immediately shut down the model—that would disrupt business operations. Instead: (1) document current model version and performance as the baseline; (2) run retrospective validation against historical data and compare to the undocumented baseline; (3) if validation reveals significant issues, implement monitoring and mitigations while working toward a proper replacement; (4) establish a governance timeline for bringing the model into compliance. Prioritize: high-risk models (consequential decisions) over low-risk (internal analytics).
-
-**Q: What is the incident response process when an ML model causes a governance violation?**
-A: Immediate: assess whether to take the model offline or implement emergency mitigations (e.g., filter outputs, escalate to human review). Document: what happened, when it was detected, who was affected, what the model did. Root cause analysis: was this a known limitation, a data issue, a model failure, or a deployment error? Remediation: implement technical fix, update governance documentation, improve monitoring to prevent recurrence. Reporting: depending on severity and regulation, may require notifying affected individuals, regulators, or senior management. Establish an ML-specific incident response playbook.
+**Q: How many levels of approval?**
+A: Depends on stakes. Low-stakes (recommendations): tech lead. High-stakes (healthcare): tech lead + business owner + legal. Balance: safety vs speed.
 
 ## Interview Quick-Reference
-| Question | What to say |
-|---|---|
-| "Explain?" | [Answer] |
+| Component | Purpose |
+|-----------|---------|
+| Ownership | Accountability |
+| Approval | Gate-keeping |
+| Audit trail | Compliance |
+| Rollback | Safety |
 
 ## Related Topics
-- [Related](other.md)
+- [Model Registry](04-model-registry.md)
+- [Production Readiness](23-production-readiness.md)
 
 ## Resources
-- [Reference](url)
+- [ML Governance Framework](https://www.mckinsey.com/)

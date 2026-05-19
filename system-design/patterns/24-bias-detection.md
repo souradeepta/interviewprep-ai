@@ -1,55 +1,77 @@
-# Bias detection
+# Bias Detection
 
 ## TL;DR
-Core ML system design pattern for production.
+Check: does model accuracy differ by cohort (age, gender, race)? If yes, investigate root cause (imbalanced training data, unfair features). Measure: fairness metrics (demographic parity, equalized odds).
 
 ## Core Intuition
-[Intuitive explanation]
+Model 95% accurate overall, but 80% accurate on underrepresented group. Biased. Find bias, fix data or retrain.
 
 ## How It Works
-[Technical details]
+
+**Bias detection steps:**
+1. **Slice accuracy:** compute accuracy by cohort (age, gender, race, geo)
+2. **Fairness metrics:** 
+   - Demographic parity: approval rate same across groups
+   - Equalized odds: true positive rate same across groups
+   - Predictive parity: precision same across groups
+3. **Root cause:** is training data imbalanced? Are features biased?
+4. **Fix:** collect more data for underrepresented group, remove biased features
+
+| Cohort | Accuracy | Fairness Gap |
+|--------|----------|---|
+| Male | 95% | - |
+| Female | 85% | 10% gap |
+| White | 94% | - |
+| Black | 82% | 12% gap |
 
 ## Key Properties / Trade-offs
-- Property 1
-- Property 2
+- Audit overhead: fairness metrics add complexity
+- Fairness vs accuracy: enforcing fairness might reduce overall accuracy
+- Which metric: demographic parity vs equalized odds have trade-offs
 
 ## Common Mistakes / Gotchas
-- Mistake 1
-- Mistake 2
+- Not checking for bias: assume model is fair (wrong)
+- Proxy variables: remove gender, but model learns gender from zip code
+- Greenwashing: report good fairness metric that doesn't matter
+- Ignoring context: fairness metric appropriate for one domain might not be for another
 
 ## Best Practices
-- Define protected attributes and fairness criteria before building models
-- Measure bias on held-out test set, not training data
-- Disaggregate metrics by subgroup combinations (intersectionality), not just single attributes
-- Use statistical tests to determine if performance differences are significant
-- Run bias evaluation as part of CI/CD pipeline — not one-time audits
-- Monitor bias metrics in production — distribution shift causes bias to reappear
-- Involve domain experts in interpreting bias metrics — not all disparities are problematic
+- **Multiple metrics:** use demographic parity + equalized odds
+- **Regular audits:** check for bias monthly
+- **Stakeholder input:** ask affected groups what fairness means
+- **Fix root cause:** don't hide bias, fix underlying data/features
+- **Documentation:** record fairness metrics, explain trade-offs
+
+## Code Example
+```python
+from sklearn.metrics import confusion_matrix
+
+def compute_fairness_metrics(y_true, y_pred, groups):
+    for group_name in groups.unique():
+        mask = groups == group_name
+        accuracy = (y_true[mask] == y_pred[mask]).mean()
+        tn, fp, fn, tp = confusion_matrix(y_true[mask], y_pred[mask]).ravel()
+        tpr = tp / (tp + fn)  # True positive rate
+        print(f"{group_name}: accuracy={accuracy:.1%}, TPR={tpr:.1%}")
+```
 
 ## Interview Q&A
+**Q: Model has 10% fairness gap (male 95%, female 85%). Acceptable?**
+A: Unacceptable for high-stakes (hiring, loans). Investigate: why the gap? Is it training data imbalance? Then collect more female examples. Is it biased features? Remove them. Fix root cause.
 
-**Q: What is the difference between disparate impact and disparate treatment in ML models?**
-A: Disparate treatment: using a protected characteristic (race, gender) directly as a model feature—illegal in most jurisdictions for consequential decisions. Disparate impact: the model doesn't use protected characteristics directly but produces significantly different outcomes for protected groups—can also be illegal even without discriminatory intent. Test for both: check which features the model uses, and separately measure outcomes across demographic groups. A model can have disparate impact even with no disparate treatment if proxy variables correlate with protected characteristics.
-
-**Q: How do you measure bias in a model when you don't have demographic labels?**
-A: Proxy inference: use name-based ethnicity inference (Bayesian Improved Surname Geocoding), zip code as a proxy for race/income, gender inference from name. These proxies are imperfect but can detect gross disparities. Audit vendor: hire a third-party audit firm with specialized bias detection tools. Analyze proxy features: if the model heavily weights zip code, investigate whether that creates disparate impact. Test with synthetic data: create matched pairs that differ only in demographic-correlated attributes and measure prediction differences.
-
-**Q: What are the fundamental trade-offs between different fairness metrics?**
-A: It is mathematically proven that you cannot simultaneously satisfy demographic parity (equal positive prediction rates across groups), equalized odds (equal TPR and FPR across groups), and predictive parity (equal precision across groups) unless base rates are equal across groups (which they rarely are). Choose the fairness metric that aligns with your use case: criminal justice—prefer equalized odds (equal error rates). Hiring—prefer demographic parity (equal opportunity). Medical diagnosis—prefer predictive parity (equal reliability of positive prediction).
-
-**Q: How do you implement a bias monitoring system for production models?**
-A: Compute fairness metrics (demographic parity ratio, equalized odds difference, disparate impact) on a rolling window of recent predictions. Compare against: legal thresholds (4/5 rule: adverse impact ratio <0.8 triggers investigation), historical baselines, and peer models. Alert when: fairness metrics degrade significantly, prediction volume for specific groups changes (may indicate distribution shift), or outcomes for groups diverge. Store all bias metrics with the same rigor as accuracy metrics—they're equally important for responsible deployment.
-
-**Q: What interventions can you use to mitigate bias in a deployed model?**
-A: Pre-processing: rebalance training data, remove or transform biased features. In-processing: add fairness constraints to the loss function (adversarial debiasing, fairness regularization). Post-processing: adjust decision thresholds per demographic group to equalize outcomes. Monitoring: implement feedback loops to detect bias creep after retraining. Choosing between them: post-processing is fastest to implement but may reduce overall accuracy; pre-processing addresses root causes but requires new training. Start with post-processing to demonstrate the fix is feasible, then address root causes through data and training changes.
+**Q: Removing gender feature but model still learns it. Why?**
+A: Proxy variables: gender correlated with zip code, age, income. Model reconstructs gender from correlated features. Solution: identify all proxy features, remove or decorrelate them.
 
 ## Interview Quick-Reference
-| Question | What to say |
-|---|---|
-| "Explain?" | [Answer] |
+| Metric | Definition |
+|--------|---|
+| Demographic parity | approval rate same for all groups |
+| Equalized odds | TPR same for all groups |
+| Predictive parity | precision same for all groups |
 
 ## Related Topics
-- [Related](other.md)
+- [Fairness Metrics](25-fairness-metrics.md)
+- [Model Debugging](17-model-debugging.md)
 
 ## Resources
-- [Reference](url)
+- [Fairness and Machine Learning](https://fairmlbook.org/)

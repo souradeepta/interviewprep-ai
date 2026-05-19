@@ -1,55 +1,85 @@
-# Privacy preserving ml
+# Privacy-Preserving ML
 
 ## TL;DR
-Core ML system design pattern for production.
+Train models without exposing private data. Techniques: differential privacy (add noise), federated learning (train on edge), homomorphic encryption (compute on encrypted data). Trade latency/accuracy for privacy.
 
 ## Core Intuition
-[Intuitive explanation]
+Hospital has patient data. Can't share with cloud. Solution: send model to hospital, train locally, send results back (federated). Or: add noise to data, train, model doesn't memorize individuals (differential privacy).
 
 ## How It Works
-[Technical details]
+
+**Privacy techniques:**
+
+1. **Differential privacy:** add noise to data/gradients
+   - Model can't memorize individuals
+   - Cost: accuracy drops 1-5%
+
+2. **Federated learning:** train on decentralized data
+   - Phone/hospital trains locally, sends gradient updates
+   - Server aggregates, sends back
+   - Data never leaves device
+
+3. **Homomorphic encryption:** compute on encrypted data
+   - Encrypt data, train model on encrypted data
+   - Cost: 1000x slower
+
+| Technique | Privacy | Accuracy | Speed |
+|-----------|---------|----------|-------|
+| Diff privacy | High | 95% | Fast |
+| Federated | High | 95% | Medium |
+| Homomorphic | Highest | 95% | Very slow |
 
 ## Key Properties / Trade-offs
-- Property 1
-- Property 2
+- Privacy vs accuracy: enforcing privacy reduces accuracy
+- Privacy vs speed: more privacy usually means slower
+- Complexity: privacy-preserving ML more complex to implement
 
 ## Common Mistakes / Gotchas
-- Mistake 1
-- Mistake 2
+- Assuming anonymization = privacy (can be re-identified)
+- Insufficient noise (privacy attack succeeds)
+- No privacy audit (privacy claims unvalidated)
+- Ignoring computational cost (homomorphic encryption very slow)
 
 ## Best Practices
-- Apply differential privacy with epsilon < 1.0 for high-sensitivity data
-- Use federated learning when data cannot leave client devices
-- Anonymize training data before use — pseudonymization is not anonymization
-- Apply privacy budget tracking across multiple model versions
-- Use secure aggregation in federated settings to prevent server from seeing individual updates
-- Conduct privacy audits using membership inference attack benchmarks
-- Encrypt model weights at rest and in transit for sensitive domains
+- **Privacy audit:** hire external party to verify privacy
+- **Differential privacy:** use published libraries (not DIY)
+- **Federated: careful gradient aggregation (averagingalone leaks data)
+- **Benchmark privacy vs accuracy:** measure trade-off
+
+## Code Example
+```python
+from tensorflow_privacy import DPKerasOptimizer
+
+# Differential privacy: add noise to gradients
+optimizer = tf.keras.optimizers.Adam(learning_rate=0.01)
+dp_optimizer = DPKerasOptimizer(
+    optimizer,
+    l2_norm_clip=1.0,  # Clip gradients
+    noise_multiplier=1.0  # Add Gaussian noise
+)
+
+# Train with DP optimizer
+model.compile(optimizer=dp_optimizer, loss='mse')
+model.fit(X, y, epochs=10)
+```
 
 ## Interview Q&A
+**Q: GDPR: user requests right-to-be-forgotten. Model trained on their data. What to do?**
+A: (1) Remove their data from training. (2) Retrain model. Or: (3) Use differential privacy (model already doesn't memorize individuals). Or: (4) Use certified forgetting (retraining procedure that provably removes their influence).
 
-**Q: What are the main privacy-preserving ML techniques and when do you use each?**
-A: Differential privacy (DP): adds calibrated noise during training to prevent individual data points from being identifiable in model outputs—use for models where model weights or outputs could reveal training data. Federated learning: train without centralizing data—use when data can't leave devices or organizational silos. Secure multi-party computation: compute on encrypted data—use for collaborative ML between competitors. Homomorphic encryption: compute on fully encrypted data—use for inference on sensitive data without decrypting. Match the technique to the threat model—DP doesn't help if an attacker has access to the training logs.
-
-**Q: How does differential privacy affect model accuracy and how do you tune the privacy budget?**
-A: DP adds Gaussian noise scaled to the sensitivity of the computation. Higher privacy (lower epsilon) requires more noise, reducing model accuracy. In practice: for epsilon=8 (strong privacy), image classifiers lose 5-15% accuracy; for epsilon=1, loss can be 20-30%. Tune epsilon by: determining the minimum acceptable accuracy on your task, testing DP training at different epsilon values, and choosing the smallest epsilon where accuracy meets the threshold. Document the privacy budget in the model card and treat it as a model property that informs deployment decisions.
-
-**Q: What is model memorization and how do you test for it?**
-A: Model memorization: the model stores specific training examples and can reproduce them when queried. Test with: membership inference attacks (can you tell if a specific example was in the training set?), training data extraction (can you prompt the model to reproduce verbatim training data?), and shadow model attacks (train a shadow model on similar data and compare behavior). LLMs are particularly susceptible to memorization of frequently-repeated text (addresses, emails, code). Use differential privacy training, deduplication of training data, and output filtering to mitigate.
-
-**Q: How do you implement federated learning for an ML application?**
-A: Federated learning architecture: (1) server sends current model to all clients; (2) each client trains on local data for N steps; (3) clients send gradient updates (not data) to server; (4) server aggregates updates (FedAvg: weighted average of gradients); (5) server updates global model and repeats. Key challenges: communication overhead (sending model updates each round), data heterogeneity (each client has a different data distribution), and stragglers (slow clients delay aggregation). Use frameworks: TensorFlow Federated, PySyft, or Flower for implementation.
-
-**Q: What are the privacy trade-offs of model inversion vs. membership inference attacks?**
-A: Model inversion: attacker reconstructs input data from model outputs—more dangerous for models with rich outputs (face recognition, generative models). Defends against: output rounding, output perturbation, limiting access to model internals. Membership inference: attacker determines if a specific data point was in training—enables stalking (was this person's medical record used?). More practical attack on most ML systems. Defends against: differential privacy, early stopping, temperature tuning, and monitoring for unusual query patterns. Test your model's vulnerability to both attacks before deploying with sensitive training data.
+**Q: Federated learning: train on hospital data. Hospital sues, says you stole data. How prevent?**
+A: (1) Contract specifying data never leaves hospital. (2) Audit: verify no data exfiltrated. (3) Differential privacy: even if gradient intercepted, doesn't reveal individuals. (4) Encryption: data encrypted on hospital device.
 
 ## Interview Quick-Reference
-| Question | What to say |
-|---|---|
-| "Explain?" | [Answer] |
+| Technique | Best For |
+|-----------|----------|
+| Diff privacy | Quick privacy, accept slight accuracy drop |
+| Federated | Decentralized data (hospitals, phones) |
+| Homomorphic | Highest privacy (if speed not critical) |
 
 ## Related Topics
-- [Related](other.md)
+- [Data Governance](26-data-governance.md)
+- [Differential Privacy](29-differential-privacy.md)
 
 ## Resources
-- [Reference](url)
+- [Differential Privacy Library](https://github.com/tensorflow/privacy)

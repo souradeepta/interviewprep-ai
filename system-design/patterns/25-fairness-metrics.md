@@ -1,55 +1,82 @@
-# Fairness metrics
+# Fairness Metrics
 
 ## TL;DR
-Core ML system design pattern for production.
+Measure fairness quantitatively: demographic parity (approval rate equal), equalized odds (TPR equal), individual fairness (similar inputs treated similarly). Each has trade-offs.
 
 ## Core Intuition
-[Intuitive explanation]
+Fairness = different groups get treated similarly. Metrics quantify this. Metric should match your fairness definition.
 
 ## How It Works
-[Technical details]
+
+**Three fairness paradigms:**
+
+1. **Demographic parity:** 
+   - Same approval rate for all groups
+   - Formula: P(pred=1|male) = P(pred=1|female)
+   - Use when: want equal outcome
+
+2. **Equalized odds:**
+   - Same true positive rate for all groups
+   - Formula: P(pred=1|label=1,male) = P(pred=1|label=1,female)
+   - Use when: want equal opportunity
+
+3. **Individual fairness:**
+   - Similar inputs treated similarly
+   - Formula: similar users get similar predictions
+   - Use when: want consistency
+
+| Metric | Pros | Cons |
+|--------|------|------|
+| Demographic parity | Intuitive | Ignores base rates |
+| Equalized odds | Principled | Complex to optimize |
+| Individual | Consistent | Hard to define "similar" |
 
 ## Key Properties / Trade-offs
-- Property 1
-- Property 2
+- Demographic parity vs equalized odds: can't satisfy both (impossibility theorem)
+- Fairness vs accuracy: enforcing fairness reduces accuracy
+- Group definition: fairness depends on how you define groups
 
 ## Common Mistakes / Gotchas
-- Mistake 1
-- Mistake 2
+- Picking wrong metric: demographic parity wrong for hiring (base rate differences)
+- Ignoring accuracy impact: fairness audit shows 5% accuracy drop → unacceptable
+- Ignoring context: fairness metric depends on use case
 
 ## Best Practices
-- Measure fairness across multiple metrics simultaneously — no single metric captures all notions of fairness
-- Use disaggregated evaluation by subgroup before and after model training
-- Apply fairness constraints during training when post-processing is insufficient
-- Document which fairness definition was optimized and why
-- Use Aequitas or Fairlearn libraries for systematic fairness auditing
-- Monitor fairness metrics in production — distribution shift can re-introduce bias
-- Involve domain experts and affected communities in defining fairness criteria
+- **Stakeholder input:** ask affected groups which metric matters
+- **Multiple metrics:** report all three, explain trade-offs
+- **Fairness-accuracy frontier:** show accuracy cost of fairness
+- **Regulatory compliance:** check which metric your domain requires
+
+## Code Example
+```python
+def fairness_metrics(y_true, y_pred, protected_attr):
+    groups = protected_attr.unique()
+    
+    for group in groups:
+        mask = protected_attr == group
+        approval_rate = (y_pred[mask] == 1).mean()
+        tpr = (y_pred[mask][y_true[mask] == 1] == 1).mean()
+        print(f"{group}: approval={approval_rate:.1%}, TPR={tpr:.1%}")
+```
 
 ## Interview Q&A
+**Q: Which fairness metric to use?**
+A: Depends on context. Hiring: equalized odds (equal opportunity). Lending: demographic parity (equal outcome). Healthcare: equalized odds (equal true positive rate). Ask stakeholders first.
 
-**Q: When is demographic parity the appropriate fairness metric to use?**
-A: Demographic parity (equal positive prediction rates across groups) is appropriate when: the selection process should be equal-opportunity regardless of group-specific base rates (e.g., hiring from historically underrepresented groups), the harm of under-selection is severe, and when you're trying to correct historical imbalances. It's inappropriate when: there are genuine group differences in the underlying construct being measured (e.g., demographic parity in medical diagnosis would mean treating equal numbers of sick and healthy people from each group regardless of disease rates).
-
-**Q: How do you choose between equalized odds and equal opportunity as fairness criteria?**
-A: Equal opportunity: only requires TPR (sensitivity) to be equal across groups—acceptable false positive rate disparity. Use when: false positives are low-harm (showing an ad to someone not interested). Equalized odds: requires both TPR and FPR to be equal—stricter, ensures errors are equally distributed. Use when: both false positives and false negatives have significant consequences (credit decisions, criminal justice). In practice, perfect equalized odds is impossible without equal base rates—choose which error type is more important and enforce equality on that.
-
-**Q: How do you handle intersectionality in fairness evaluation?**
-A: Intersectionality: disparities may exist for combinations of protected characteristics (e.g., Black women may face bias that doesn't appear when analyzing race or gender separately). Test: measure fairness metrics for all intersectional subgroups in your data. Challenge: small sample sizes for intersection subgroups reduce statistical power. Mitigation: combine rare intersection groups thoughtfully (don't merge to the point of obscuring real disparities), use bootstrap confidence intervals to communicate uncertainty, and prioritize reporting subgroups with enough data for reliable measurement.
-
-**Q: What is calibration fairness and why does it matter?**
-A: Calibration fairness: the model's predicted probabilities match actual rates equally well across groups. A model is calibrated for group A if "70% confident predictions" turn out to be correct 70% of the time for group A—same requirement for all groups. Calibration parity is important for: any application where the model's confidence score is used for decision-making (risk scores, medical probabilities), because a model that is well-calibrated overall but poorly calibrated for specific groups systematically misleads decisions for those groups.
-
-**Q: How do you communicate fairness metrics to business stakeholders who aren't familiar with the technical definitions?**
-A: Use concrete language: "The model approves loan applications from Group A at 68% and Group B at 55%—a 19% difference" rather than "Demographic parity difference is 0.13." Show impact: "This gap means approximately 3,000 additional Group B applicants per year would be approved if approval rates were equal." Frame in terms of regulatory risk: "Disparate impact ratios below 0.8 (currently 0.81) trigger regulatory scrutiny." Use comparison to human baseline: "Before the model, the human underwriter gap was 25%—the model reduced it to 19%."
+**Q: Equalized odds requires 2% accuracy drop. Accept?**
+A: Business decision. If accuracy 98% → 96%, might be acceptable. If accuracy 70% → 68%, unacceptable. Measure fairness-accuracy frontier, let stakeholders choose.
 
 ## Interview Quick-Reference
-| Question | What to say |
-|---|---|
-| "Explain?" | [Answer] |
+| Use Case | Best Metric |
+|----------|---|
+| Hiring | Equalized odds |
+| Lending | Demographic parity |
+| Diagnosis | Equalized odds |
+| Content ranking | Demographic parity |
 
 ## Related Topics
-- [Related](other.md)
+- [Bias Detection](24-bias-detection.md)
+- [Interpretability](19-interpretability.md)
 
 ## Resources
-- [Reference](url)
+- [Fairness and Machine Learning Book](https://fairmlbook.org/)

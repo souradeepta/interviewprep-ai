@@ -1,53 +1,74 @@
 # Model Debugging
 
 ## TL;DR
-Model performs poorly: analyze predictions, feature distributions, edge cases. Tools: confusion matrix, feature importance, SHAP values, error analysis.
+Why is model wrong? Debug: (1) training data quality (bad labels), (2) feature engineering (wrong features), (3) model capacity (too simple), (4) hyperparameters (suboptimal). Use error analysis (slice predictions by cohort).
 
 ## Core Intuition
-Model black box. Debug by: inspect what it learned, what it's confused about, why it fails.
+Model makes wrong predictions. Where does error come from? Trace back: data → features → training → hyperparameters.
 
 ## How It Works
-**Steps:**
-1. Confusion matrix: which classes confused?
-2. Feature importance: which features drive predictions?
-3. Error analysis: why does it fail on these examples?
-4. SHAP values: contribution of each feature per prediction
-5. Subgroup analysis: does it fail for specific groups?
 
-**Example:**
-- Model: 90% accuracy, but 40% error on ~elderly users
-- Root cause: few elderly examples in training
-- Fix: collect more elderly data, oversample, or retrain
+**Error analysis framework:**
+1. Collect errors (predictions where label ≠ prediction)
+2. Slice by cohort (age, geography, user segment)
+3. Identify patterns (where does model fail most?)
+4. Root cause: data quality, feature engineering, model capacity
+5. Fix: collect more data, engineer better features, increase capacity
+
+| Error Type | Example | Root Cause | Fix |
+|-----------|---------|-----------|-----|
+| High on old users | 70% error on age>60 | Insufficient training data for age>60 | Collect more old users |
+| High on rare items | 60% error on new products | Features don't capture new item patterns | Feature engineering |
+| Systematic low confidence | Always <0.6 confidence | Model capacity too low | Use larger model |
+
+## Key Properties / Trade-offs
+- Time: error analysis is manual and slow
+- Coverage: focus on high-impact errors first
+- Complexity: root cause often multi-factorial
 
 ## Common Mistakes / Gotchas
-- **Reporting only overall metrics:** 90% accuracy but 20% on minority class hidden
-- **No slicing:** bugs in subgroups invisible if you only look at aggregate
-- **Not acting:** identify issue but don't fix it
+- Looking at overall accuracy only (missing specific cohort failures)
+- Assuming training data is correct (actually has label errors)
+- Fixing wrong thing (improve feature engineering when real issue is data)
+- No prioritization (fix rare edge case instead of high-impact error)
+
+## Best Practices
+- **Start with overall accuracy:** understand baseline before diving into cohorts
+- **Slice systematically:** age, geo, user segment, time period
+- **Count errors:** high-impact cohort = many errors × high cost
+- **Root cause analysis:** ask "why" 5 times before fixing
+- **Validate fix:** make change, remeasure accuracy on error cohort
+
+## Code Example
+```python
+import pandas as pd
+
+def error_analysis(predictions, labels, features):
+    errors = predictions != labels
+    error_df = features[errors].copy()
+    error_df['error'] = 1
+    
+    # Slice by age
+    for age_group in ['<20', '20-40', '40-60', '>60']:
+        mask = error_df['age'].isin(age_groups[age_group])
+        error_rate = error_df[mask]['error'].mean()
+        print(f"Age {age_group}: {error_rate:.1%} error")
+```
 
 ## Interview Q&A
-
-**Q: How do you systematically debug a production model that starts producing wrong predictions?**
-A: Step 1: Isolate the scope—is it all predictions or a specific subset (one feature value, one user segment, one time period)? Step 2: Check data pipeline—are features computed correctly, is there new data quality issue? Step 3: Check model inputs—are any features outside training distribution? Step 4: Check model version—did a recent deployment change anything? Step 5: Check the prediction itself—run the input through the model with logging to see the reasoning chain. Start with the simplest hypothesis (data issue) before assuming model bug.
-
-**Q: What information should you log for model predictions to enable debugging?**
-A: Log: request ID, timestamp, model version, all input features (or their hashes for PII), raw model output (logits/probabilities, not just final prediction), prediction latency, and the session/user context. For LLMs: log the full prompt, the completion, token counts, and model confidence if available. Store these logs in a queryable format (not just as text). Retention: 30 days for full logs, then aggregated statistics indefinitely. Never debug production issues without this data—it's the equivalent of application error logging for ML systems.
-
-**Q: What are the most common root causes of sudden model performance degradation?**
-A: In order of frequency: (1) data pipeline change—upstream feature changed schema, computation bug, missing data; (2) traffic distribution shift—new user segment, marketing campaign changes input distribution; (3) code deployment—serving code change introduced bug; (4) model registry issue—wrong model version deployed; (5) infrastructure change—hardware, library version change affects output; (6) label/feedback loop—model's predictions affect future training data. Check these in order before concluding "the model got worse."
-
-**Q: How do you identify which features are causing a model to make incorrect predictions?**
-A: Use SHAP values for individual predictions: compute per-feature contribution for the incorrect predictions and compare to correct ones. Look for: features with unusually high or low values in the failure cases, features where the contribution sign is reversed compared to typical predictions. Use slice-based analysis: segment predictions by feature bins and compute accuracy per slice—the slice with worst accuracy identifies the problematic feature range. A/B compare the feature distributions between your true positives, true negatives, false positives, and false negatives.
-
-**Q: How do you debug a model that is biased toward one class in production?**
-A: Check: class distribution in recent production predictions vs. training data, threshold calibration (is the decision threshold still appropriate for current traffic?), class distribution in recent training data (if model was recently retrained), and feature distributions for each class (are class distributions shifting differently?). If the class distribution in predictions has shifted without a corresponding shift in true class distribution, the model may need recalibration. If true class distribution has shifted (concept drift), retraining is needed.
+**Q: Model has 85% accuracy. Where to improve?**
+A: Error analysis. (1) Find high-error cohorts. (2) Fix highest-impact one. (3) Remeasure. Example: model is 95% accurate for users >30, 70% for <30. Focus on <30: collect more data, engineer better features, or use separate model.
 
 ## Interview Quick-Reference
-**Debug model?** Confusion matrix, feature importance, error analysis, SHAP. Slice by subgroups.
+| Analysis | Output | Action |
+|----------|--------|--------|
+| Overall accuracy | 85% | Proceed to slices |
+| Age slice | <20: 60%, >60: 90% | Focus on <20 |
+| Root cause | Insufficient training data | Collect more |
 
 ## Related Topics
-- [Model Explainability](18-model-explainability.md)
-- [Interpretability](19-interpretability.md)
+- [Evaluation Metrics](12-evaluation-metrics.md) in AI section
+- [Drift Detection](15-drift-detection.md)
 
 ## Resources
-- [SHAP](https://github.com/slundberg/shap)
-- [Error Analysis](https://www.microsoft.com/en-us/research/publication/towards-accountable-ai-systems-mechanisms-for-supporting-verifiable-claims/)
+- [Error Analysis Framework](https://www.deeplearning.ai/)

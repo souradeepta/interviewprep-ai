@@ -1,55 +1,72 @@
 # Cost Optimization
 
 ## TL;DR
-Reduce ML system costs: model size (quantization, pruning), serving (batch, caching), compute (right-size infrastructure), data (reduce volume). Common 3-5x reductions.
+Reduce ML system cost without sacrificing quality. Techniques: model distillation (teacher → student, smaller), quantization (fp32 → int8), caching, cheaper models (GPT-3.5 vs GPT-4). Target: 30-50% cost reduction.
 
 ## Core Intuition
-ML is expensive: training, serving, data storage. Optimize where money goes.
+GPU costs $2.50/hour. Can you get similar accuracy with cheaper GPU ($0.50/hour)? Or smaller model? Save 80% cost.
 
 ## How It Works
-**Model costs:**
-- Quantization: 4x smaller, 2-3x faster, ~1-2% accuracy loss
-- Pruning: remove unimportant parameters
-- Distillation: small student model mimics large teacher
 
-**Serving costs:**
-- Caching: avoid recomputation
-- Batch inference: cheaper per prediction
-- Right-size: don't over-provision GPUs
+**Cost levers:**
 
-**Data costs:**
-- Retention: don't keep indefinitely
-- Compression: reduce storage
-- Sampling: train on sample, not full data
+| Lever | Technique | Savings | Trade-off |
+|-------|-----------|---------|-----------|
+| Model size | Distillation | 50% | 2-3% accuracy drop |
+| Precision | Quantization | 40% | Negligible |
+| Hardware | Cheaper GPU | 70% | Slight latency increase |
+| Inference | Batching, caching | 50% | None |
+| Model | Simpler model (XGBoost vs NN) | 80% | More accuracy drop |
+
+## Key Properties / Trade-offs
+- Accuracy vs cost: can't eliminate cost without accuracy cost
+- Latency vs cost: optimizing cost might increase latency
+- Complexity: optimization increases code complexity
 
 ## Common Mistakes / Gotchas
-- **Optimizing wrong thing:** cheap model, expensive serving. Look holistically.
-- **Premature optimization:** optimize before measuring. Profile first.
-- **Quality sacrificed:** cut costs too much → broken models. Measure impact.
+- Optimizing wrong thing: optimize latency when bottleneck is storage
+- Too aggressive: distill so much model is useless
+- Not measuring: "optimized cost" but didn't actually measure savings
+
+## Best Practices
+- **Baseline cost:** establish current cost per prediction
+- **Target:** reduce by 30%, measure if achieved
+- **Prioritize:** optimize most expensive component first
+- **Validate:** measure accuracy after each optimization, stop if quality degrades
+- **Portfolio:** use cheaper model for easy cases, expensive for hard
+
+## Code Example
+```python
+# Model distillation
+teacher_model = load_large_model()  # 500MB, 100ms latency
+student_model = train_student(teacher_model, X)  # 50MB, 20ms latency
+
+# Inference
+output = student_model.predict(X)  # Faster, cheaper
+
+# Quantization (fp32 → int8)
+quantized_model = torch.quantization.quantize_dynamic(model)
+# 4x smaller, similar accuracy
+```
 
 ## Interview Q&A
+**Q: GPU inference costs $10K/month. Budget $5K. How?**
+A: (1) Quantization (int8) → 40% savings ($6K). (2) Smaller model via distillation → 30% savings ($4.2K). (3) Caching repeated requests → 10% savings ($3.8K). Combined: easily hit $5K.
 
-**Q: What are the highest-ROI cost optimization strategies for ML inference workloads?**
-A: In order of ROI: (1) right-sizing instances (25-40% savings: match GPU memory to model size), (2) model quantization INT8/INT4 (2-4x cost reduction with minimal quality loss), (3) auto-scaling (30-50% savings by eliminating idle capacity during off-peak), (4) spot/preemptible instances for batch inference (60-70% savings), (5) continuous batching (2-3x throughput improvement on the same hardware). Model distillation (smaller model) has highest long-term ROI but requires upfront training cost and quality validation.
-
-**Q: How do you balance model quality and inference cost when making optimization trade-offs?**
-A: Quantify the cost of quality degradation: A/B test a cheaper model (smaller, quantized, faster) and measure business metric impact. If the cheaper model costs 50% less and reduces business metric by 2%, that's a concrete trade-off decision for stakeholders, not a purely technical one. Some quality degradation is worth the cost savings; some isn't. Present the trade-off with data, don't make the decision unilaterally. Implement the optimization with a canary deployment and measure actual business impact before full rollout.
-
-**Q: How do you identify overprovisioned ML infrastructure?**
-A: Indicators of overprovisioning: GPU utilization consistently <30%, CPU utilization <20%, memory usage <50% of provisioned. Check: average vs. peak utilization (provision for peak, not average), request queue depth (if near zero, capacity is sufficient and may be excess), cost per prediction over time (should be decreasing as you optimize, not flat). Use cloud cost allocation tags to attribute GPU spend to specific models. A model that costs $10K/month with <30% GPU utilization is likely overprovisioned and worth investigating.
-
-**Q: What is model cascading and how does it reduce inference cost?**
-A: Model cascading: use a cheap, fast model for easy cases and a powerful, expensive model only for hard cases. Example: a small BERT model handles 80% of text classification requests with high confidence; uncertain cases (<70% confidence) are escalated to a larger model. Cost reduction: 80% of requests use the cheap model, reducing average cost by 70-80% with minimal quality impact (the expensive model handles the cases it's actually needed for). Design the cascade threshold by measuring the accuracy distribution of the cheap model on a validation set.
-
-**Q: How do you estimate and forecast ML infrastructure costs?**
-A: Build a cost model: cost = f(requests per day, average tokens/request, model size, GPU type, batch size efficiency). Track: actual cost per 1K predictions by model, cost trend over time, cost breakdown by component (inference vs. feature store vs. data pipeline). Forecast using request growth projections. Alert when: actual cost exceeds forecast by >20% (unexpected usage spike or efficiency regression), cost per prediction increases unexpectedly (optimization regression). Make cost a first-class metric alongside accuracy and latency.
+**Q: Cost optimization: distill model, accuracy drops 5%. Worth it?**
+A: Depends on use case. If accuracy >95%, 5% drop → still >90%, acceptable. If already at 70%, unacceptable. Measure business impact (does 5% accuracy drop hurt revenue?).
 
 ## Interview Quick-Reference
-**Cost optimization?** Model size, serving efficiency, right-size infrastructure, data reduction.
+| Technique | Cost Savings | Accuracy Impact |
+|-----------|---|---|
+| Distillation | 50% | 2-3% drop |
+| Quantization | 40% | <1% drop |
+| Caching | 30% | 0% |
+| Batch | 50% | 0% |
 
 ## Related Topics
-- [Model Compression](../ml/concepts/model-compression.md)
-- [Quantization](../llm/concepts/quantization.md)
+- [Model Serving](05-model-serving.md)
+- [Request Batching](09-request-batching.md)
 
 ## Resources
-- [Cost-Effective ML](https://www.oreilly.com/library/view/cost-effective-machine-learning/9781491990797/)
+- [Model Optimization Techniques](https://pytorch.org/tutorials/recipes/quantization.html)

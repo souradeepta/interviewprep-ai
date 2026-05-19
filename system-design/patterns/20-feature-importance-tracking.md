@@ -1,55 +1,76 @@
-# Feature importance tracking
+# Feature Importance Tracking
 
 ## TL;DR
-Core ML system design pattern for production.
+Monitor: which features contribute to predictions, which are unused. Track over time. If important feature becomes unused (correlation dropped), investigate (data quality, feature computation bug).
 
 ## Core Intuition
-[Intuitive explanation]
+Model relies on 10 features today, 5 tomorrow (5 stopped being useful). Track this: indicates data drift or feature pipeline issue.
 
 ## How It Works
-[Technical details]
+
+**Tracking workflow:**
+1. Compute feature importance (SHAP, permutation, tree-based)
+2. Store importance over time
+3. Compare: is top-5 feature set stable?
+4. Alert: if important feature importance drops >50%
+
+| Date | Top Feature | Importance | Change |
+|------|---|---|---|
+| Jan 1 | income | 0.35 | - |
+| Jan 8 | income | 0.32 | -8% |
+| Jan 15 | income | 0.18 | -47% ⚠️ |
 
 ## Key Properties / Trade-offs
-- Property 1
-- Property 2
+- Computation cost: importance computation is expensive
+- Frequency: daily computation vs weekly (trade cost vs freshness)
 
 ## Common Mistakes / Gotchas
-- Mistake 1
-- Mistake 2
+- Not tracking: ship model, never revisit feature importance
+- Over-sensitive: alert on 1% change (noise)
+- Ignoring correlation: importance might change due to seasonal pattern (not a problem)
 
 ## Best Practices
-- Track feature importances across model versions to detect distribution shift in inputs
-- Alert when a previously unimportant feature becomes top-ranked — often indicates data issues
-- Combine multiple importance methods (permutation, SHAP, gradient) for robustness
-- Track feature importance stability across cross-validation folds
-- Use importance tracking to guide feature engineering for the next model iteration
-- Visualize importance trends over time, not just point-in-time values
-- Separate importance from model version metadata
+- **Baseline importance:** establish from training, compare to production
+- **Threshold:** alert if importance drops >30% (noise-resistant)
+- **Root cause:** when importance drops, investigate: data quality, correlation drift, model retraining
+- **Action plan:** if feature broke, decide: fix pipeline or retrain model
+
+## Code Example
+```python
+import shap
+
+def track_feature_importance(model, X, date):
+    explainer = shap.TreeExplainer(model)
+    shap_values = explainer.shap_values(X)
+    importance = np.abs(shap_values).mean(axis=0)
+    
+    importance_dict = {
+        'date': date,
+        'features': X.columns.tolist(),
+        'importance': importance.tolist()
+    }
+    
+    # Store in database
+    db.save_importance(importance_dict)
+```
 
 ## Interview Q&A
+**Q: Feature importance changes by 5% weekly. Alert?**
+A: No, probably noise. Set threshold at 30-50% change. Or: compute 7-day rolling average to smooth noise.
 
-**Q: How do you use feature importance to identify when a model should be retrained?**
-A: Track feature importance over time using a sliding window of recent predictions. When important features' importance ranks change significantly (feature that was always top-5 drops to top-20), investigate: has the feature distribution changed? Has its correlation with the target shifted? Use importance change as a leading indicator of model degradation. Set alerts when top-5 feature importances shift >30% from historical baseline. Importance change often precedes measurable accuracy degradation by days to weeks, enabling proactive retraining.
-
-**Q: What are the limitations of permutation importance vs. SHAP importance?**
-A: Permutation importance: shuffle one feature, measure accuracy decrease—captures total effect including correlation with other features. Limitation: correlated features split importance between them unpredictably. SHAP importance: average absolute SHAP values—captures marginal contribution while accounting for correlation. More reliable for correlated features. Use permutation importance for quick feature selection; use SHAP for debugging and communication. Both can mislead when features are highly correlated—be skeptical of any single importance metric for correlated feature sets.
-
-**Q: How do you use feature importance to detect data leakage?**
-A: Leakage indicator: a feature has suspiciously high importance (>3x the next feature), especially a feature that shouldn't logically cause the target. Examples: a transaction timestamp in a fraud model (fraud transactions may be processed later), a post-event feature in a before-event prediction. For each high-importance feature, ask: "Could a value of this feature only be known if we already knew the outcome?" If yes, it's leakage. Verify by checking whether removing the suspicious feature causes a large accuracy drop—it will if it's leaking the target.
-
-**Q: How do feature importance values change between model versions and what do you do with that information?**
-A: Changes to expect: new features introduced in a retrain may rank highly, displacing existing features. Features whose distribution has changed may rank differently. Important features that now rank low may indicate the model has learned a different solution (possibly through shortcuts). Compare feature importance between model versions before promoting: if a version has a completely different feature importance ranking, investigate even if accuracy is comparable—it may have learned a different (possibly less robust) function.
-
-**Q: How do you use feature importance for feature selection in production models?**
-A: Eliminate features with near-zero importance if: (1) they're expensive to compute (API calls, complex aggregations), (2) they add noise that reduces interpretability, or (3) you want to reduce serving complexity. Never eliminate features based on importance alone without measuring the impact on model accuracy—low-importance features may still contribute to edge-case performance. Implement a feature ablation test: retrain without the candidate features and measure accuracy on a held-out test set. Remove only features where ablation shows <1% accuracy change.
+**Q: Important feature disappeared from top-10. Cause?**
+A: (1) Check if feature values changed (drift). (2) Check if feature is highly correlated with another feature (collinearity). (3) Retrain model, importance should stabilize.
 
 ## Interview Quick-Reference
-| Question | What to say |
+| Alert Threshold | When |
 |---|---|
-| "Explain?" | [Answer] |
+| 20% change | Sensitive (may have false positives) |
+| 50% change | Standard |
+| 100% change | Critical (feature no longer used) |
 
 ## Related Topics
-- [Related](other.md)
+- [Drift Detection](15-drift-detection.md)
+- [Model Monitoring](16-monitoring-and-observability.md)
 
 ## Resources
-- [Reference](url)
+- [Feature Importance Guide](https://christophgerstner.github.io/interpretable_machine_learning_book/)

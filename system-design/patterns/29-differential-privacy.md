@@ -1,55 +1,88 @@
-# Differential privacy
+# Differential Privacy
 
 ## TL;DR
-Core ML system design pattern for production.
+Add noise to data or gradients during training. Model cannot memorize individuals (membership inference attack fails). Formally proven privacy: ε-differential privacy (smaller ε = more private).
 
 ## Core Intuition
-[Intuitive explanation]
+Data = {Alice, Bob, Charlie}. Train model on data. Model memorizes Alice. Attack: "is Alice in training data?" → Yes (privacy leak). Solution: add noise so model can't memorize Alice.
 
 ## How It Works
-[Technical details]
+
+**Differential privacy:**
+- Add Gaussian noise to gradients during training
+- Smaller ε = more noise = more privacy (but less accuracy)
+- ε=1: good privacy. ε=10: less privacy.
+
+| ε | Privacy | Accuracy |
+|---|---------|----------|
+| 0.5 | Very high | 90% |
+| 1.0 | High | 92% |
+| 5.0 | Medium | 94% |
+| 10.0 | Low | 95% |
 
 ## Key Properties / Trade-offs
-- Property 1
-- Property 2
+- Privacy vs accuracy: more privacy → more accuracy drop
+- Complexity: requires clipping and noise addition
+- Proof: differential privacy = formal proof (unlike heuristics)
 
 ## Common Mistakes / Gotchas
-- Mistake 1
-- Mistake 2
+- DIY differential privacy (easy to get wrong)
+- Insufficient noise (privacy bound too loose)
+- No privacy audit (claims not validated)
+- Confusing ε values (different libraries use different scales)
 
 ## Best Practices
-- Start with epsilon=1.0 as a baseline and tighten based on privacy requirements
-- Use RDP (Rényi Differential Privacy) accountant for tight composition bounds
-- Clip gradients before adding noise — gradient norm must be bounded
-- Apply DP at the model level, not the dataset level, for training
-- Use DP-SGD (opacus library for PyTorch) for end-to-end differentially private training
-- Publish epsilon values alongside model performance metrics
-- Test that privacy guarantees hold with membership inference attack evaluation
+- **Use library:** TensorFlow Privacy, Opacus (PyTorch)
+- **Test privacy:** membership inference attack to validate
+- **Report ε value:** always report privacy budget
+- **Noise scheduling:** start high noise, reduce over training
+- **Batch size:** smaller batch → more privacy needed
+
+## Code Example
+```python
+import opacus
+from opacus.utils.batch_memory_manager import BatchMemoryManager
+
+# Attach DP to optimizer
+model = MyModel()
+optimizer = torch.optim.SGD(model.parameters(), lr=0.01)
+
+privacy_engine = opacus.PrivacyEngine(
+    model,
+    batch_size=32,
+    sample_size=len(dataset),
+    alphas=[10, 100],
+    noise_multiplier=1.0,
+    max_grad_norm=1.0
+)
+privacy_engine.attach(optimizer)
+
+# Train normally, DP is automatic
+for epoch in range(10):
+    for batch_x, batch_y in dataloader:
+        loss = model(batch_x, batch_y)
+        loss.backward()
+        optimizer.step()
+```
 
 ## Interview Q&A
+**Q: Model trained with DP (ε=1.0). Privacy guarantee?**
+A: Formal guarantee: attacker with ~N/2 data samples can't determine if single person is in training set (at ε=1.0). More precisely: probability attacker guesses wrong is at least 50% + (1-e^(-1))/2 = 68%.
 
-**Q: What does epsilon in differential privacy mean intuitively and what values are considered strong?**
-A: Epsilon bounds the privacy loss: an attacker's ability to distinguish whether a specific individual was in the training set improves by at most e^epsilon. Small epsilon means strong privacy. Interpretations: epsilon=0: perfect privacy (no information leakage); epsilon=1: 2.7x advantage for attacker with one individual's data; epsilon=8: 3000x advantage (barely better than no privacy). In practice: epsilon<1 is strong but often impractical (too much noise); epsilon=1-10 is commonly used; epsilon>10 provides weak protection. The appropriate epsilon depends on your threat model and how sensitive the data is.
-
-**Q: How do you compose privacy budgets across multiple DP computations?**
-A: Basic composition: running k DP mechanisms with epsilon values epsilon_1 through epsilon_k gives total privacy budget epsilon_total = sum of all epsilon values—budget accumulates with each computation on the same data. This means you can't run unlimited DP queries—the privacy budget depletes. Advanced composition (Renyi DP, moments accountant): achieves tighter bounds, allowing more queries within the same total budget. In practice: use Opacus's privacy engine which automatically tracks cumulative privacy loss using moments accountant. Set a total budget and stop training when it's exhausted.
-
-**Q: When is DP-SGD preferable to aggregation-level DP (adding noise to final statistics)?**
-A: Aggregation-level DP: add noise to aggregate statistics (counts, means) after computation—simpler and allows tighter privacy guarantees for simple statistics. Sufficient for: releasing demographic statistics, publishing aggregate model metrics. DP-SGD: clips and noisifies gradients during training—provides protection for each training step but accumulates privacy budget. Necessary for: training neural networks where you want the model itself to be DP. If you just need to release model performance statistics publicly, aggregation-level DP is cheaper. If you need the model weights to be DP (e.g., to prevent model inversion), use DP-SGD.
-
-**Q: How does clipping gradient norms interact with differential privacy in DP-SGD?**
-A: DP-SGD clips each per-sample gradient to a maximum L2 norm C before adding Gaussian noise. Clipping bounds the sensitivity—the noise level is calibrated to C. Too small C: clips most gradients, destroying signal and degrading accuracy significantly. Too large C: gradients barely clipped, noise is small relative to gradient magnitude but privacy loss per step is lower. Tune C to the typical per-sample gradient norm: use the median gradient norm from the first few non-DP training steps as a starting point, then adjust based on accuracy vs. privacy budget.
-
-**Q: What are the implementation pitfalls when applying DP to ML training?**
-A: Common mistakes: applying DP after batch normalization (batch norm leaks per-sample info through batch statistics—use group norm or layer norm instead), forgetting to clip per-sample gradients (not batch-averaged gradients), reusing the privacy budget for hyperparameter tuning (each evaluation depletes budget—use public validation data for tuning), and applying DP only to training but not to the evaluation data (evaluation can also leak information). Use Opacus (PyTorch) or TF Privacy (TensorFlow) rather than implementing DP from scratch.
+**Q: DP reduces accuracy 5%. Acceptable?**
+A: Depends on use case. Recommendation (95% → 90%): maybe. Medical diagnosis (95% → 90%): unacceptable. Measure fairness-accuracy frontier, choose based on user needs.
 
 ## Interview Quick-Reference
-| Question | What to say |
+| ε | Privacy Level |
 |---|---|
-| "Explain?" | [Answer] |
+| 0.1 | Excellent (academic research) |
+| 1.0 | Good (industry standard) |
+| 10.0 | Weak (privacy claim but not strong) |
 
 ## Related Topics
-- [Related](other.md)
+- [Privacy-Preserving ML](28-privacy-preserving-ml.md)
+- [Data Governance](26-data-governance.md)
 
 ## Resources
-- [Reference](url)
+- [Differential Privacy Library](https://github.com/tensorflow/privacy)
+- [Opacus: PyTorch DP Library](https://opacus.ai/)

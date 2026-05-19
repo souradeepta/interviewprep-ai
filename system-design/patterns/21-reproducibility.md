@@ -1,55 +1,81 @@
 # Reproducibility
 
 ## TL;DR
-Core ML system design pattern for production.
+Re-run training with same code + data + random seed → exact same model. Critical for: debugging (reproduce error), auditing (regulatory), collaboration (share model training).
 
 ## Core Intuition
-[Intuitive explanation]
+Scientist reports: "trained model on dataset X, got 95% accuracy". Can you reproduce it? Yes? Reproducible. No? Not reproducible.
 
 ## How It Works
-[Technical details]
+
+**Reproducibility requirements:**
+1. **Code version:** git commit hash (exact code used)
+2. **Data version:** data commit hash (exact training data)
+3. **Random seed:** set seed for numpy, torch, etc
+4. **Dependencies:** version all libraries (Python 3.10, torch 2.0, etc)
+5. **Hardware:** note GPU type (different GPU might have floating-point differences)
+
+| Component | How to Track |
+|-----------|---|
+| Code | git commit hash |
+| Data | DVC commit, or data hash |
+| Seed | np.random.seed(42) |
+| Deps | requirements.txt, poetry.lock |
+| Hardware | log GPU type in metadata |
 
 ## Key Properties / Trade-offs
-- Property 1
-- Property 2
+- Effort: reproducibility requires discipline (version everything)
+- Cost: maintain multiple versions of code/data
+- Benefit: debugging, auditing, collaboration
 
 ## Common Mistakes / Gotchas
-- Mistake 1
-- Mistake 2
+- Not seeding: same code, different seed → different model
+- Changing dependencies: torch 1.12 vs 2.0 might differ
+- Data versioning: forgot to version training data → can't rebuild
+- Floating-point sensitivity: GPU vs CPU might differ slightly
 
 ## Best Practices
-- Pin all library versions in requirements.txt or conda environment file
-- Set random seeds everywhere — Python, NumPy, PyTorch, TensorFlow
-- Use deterministic algorithms when available (PyTorch: torch.use_deterministic_algorithms)
-- Store training data snapshots as versioned artifacts, not live queries
-- Record hardware specs — GPU type affects floating point results
-- Containerize the training environment with Docker
-- Automate full reproduction pipeline from data → trained model → metrics
+- **Seed early:** set random seed before any randomization
+- **Lock dependencies:** use poetry.lock or requirements-exact.txt
+- **Version data:** use DVC for datasets
+- **Document hardware:** log GPU type, torch version, CUDA version
+- **Validate reproduction:** weekly: re-run old training, verify metrics match
+
+## Code Example
+```python
+import numpy as np, torch, random
+
+# Seed everything
+def seed_everything(seed=42):
+    np.random.seed(seed)
+    torch.manual_seed(seed)
+    torch.cuda.manual_seed_all(seed)
+    random.seed(seed)
+
+seed_everything(42)
+
+# Train
+model = train(X, y)  # Same code + seed → exact same model
+```
 
 ## Interview Q&A
+**Q: Model v1.0.0 trained 6 months ago. Re-train today with same code + data. Different accuracy. Why?**
+A: (1) Random seed different. (2) Different torch version. (3) Different GPU. (4) Data changed (pipeline updated). Investigate each. To truly reproduce, must match all four.
 
-**Q: What are the minimum requirements for a reproducible ML experiment?**
-A: Code: exact git commit hash. Data: exact dataset version (hash or immutable reference). Environment: exact library versions (requirements.txt or conda environment), hardware type. Random seeds: set in NumPy, PyTorch, and Python random for all operations that use randomness. Configuration: all hyperparameters stored in a config file or experiment tracker. Given these five things, you should be able to re-run the exact experiment. If you can't, identify which element is not reproducible and fix it.
-
-**Q: How do you handle non-determinism in GPU training for reproducibility?**
-A: GPU operations are non-deterministic by default (CUDA's parallel reduction algorithms are non-associative). Enable determinism: set CUDA_LAUNCH_BLOCKING=1, torch.use_deterministic_algorithms(True), and cuDNN benchmark off (torch.backends.cudnn.benchmark = False). Trade-off: deterministic mode can be 20-50% slower. Use it for: debugging experiments where you need to isolate changes, final training runs before deployment. Accept non-determinism in exploratory training but record the variance range to understand expected performance variation.
-
-**Q: What is the difference between reproducibility and replicability in ML research?**
-A: Reproducibility: re-running the same code with the same data produces the same result (computational reproducibility). Replicability: running a different implementation of the same method on different data produces similar results (scientific replicability). For production ML: focus on computational reproducibility—you need to rebuild models exactly in case of rollback or audit. Replicability matters for research claims but is a separate concern. Production model training should be reproducible within the same compute environment; replicability across environments is harder and often not required.
-
-**Q: How do you maintain reproducibility when training data comes from a live production database?**
-A: Never train directly against a live database—snapshot training data at a fixed point in time and store it immutably. Create a training data snapshot pipeline: extract data with explicit filters (date ranges, version flags), store in versioned storage (S3 with versioning, Delta Lake), log the query used and execution timestamp. If you must refresh training data, create a new dataset version rather than overwriting the old one. The training pipeline should accept a dataset version as input, not query the live database directly.
-
-**Q: How do you audit which training data was used to produce a production model?**
-A: Maintain a model registry entry that links: model artifact to training run to dataset version to raw data snapshots. Store the dataset hash alongside the model artifact. For regulated industries, this audit trail must be preserved for the lifetime of the model (often 5-7 years). Test your audit capability: given a model version in production, can you reproduce the exact training dataset? If not, your audit trail is incomplete. Tools: MLflow lineage tracking, SageMaker Experiments, or custom PostgreSQL lineage tables.
+**Q: Reproducibility overhead: worth it?**
+A: Yes, for production models. Cost: 5% development time overhead. Benefit: debugging saved hours, regulatory audit easy. ROI positive at 2+ production models.
 
 ## Interview Quick-Reference
-| Question | What to say |
-|---|---|
-| "Explain?" | [Answer] |
+| Component | How to Version |
+|-----------|---|
+| Code | git commit |
+| Data | DVC commit or hash |
+| Random | seed=42 |
+| Deps | poetry.lock |
 
 ## Related Topics
-- [Related](other.md)
+- [Model Versioning](06-model-versioning.md)
+- [Model Registry](04-model-registry.md)
 
 ## Resources
-- [Reference](url)
+- [MLflow Reproducibility](https://mlflow.org/docs/latest/tracking.html)
