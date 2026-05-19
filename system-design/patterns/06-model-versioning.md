@@ -1,55 +1,97 @@
-# Model versioning
+# Model Versioning
 
 ## TL;DR
-Core ML system design pattern for production.
+Semantic versioning (MAJOR.MINOR.PATCH) for trained models. Pin code commit, data version, hyperparameters. Enables reproduction: exact same inputs → exact same model.
 
 ## Core Intuition
-[Intuitive explanation]
+Model v1.0.0 is a snapshot: specific code, specific data, specific hyperparameters. Re-run same code + data = reproducible model. No version → can't reproduce.
 
 ## How It Works
-[Technical details]
+
+**Versioning Scheme:**
+- MAJOR (e.g., 1.0.0 → 2.0.0): architecture change (XGBoost → neural net)
+- MINOR (e.g., 2.0.0 → 2.1.0): feature set change (add/remove features)
+- PATCH (e.g., 2.1.0 → 2.1.1): hyperparameter tuning, bugfix
+
+**Metadata per version:**
+- Code commit hash (git): enables exact code reproduction
+- Data version (DVC): which training data version
+- Hyperparameters: learning_rate, batch_size, epochs
+- Metrics: accuracy, F1, AUC (comparison across versions)
 
 ## Key Properties / Trade-offs
-- Property 1
-- Property 2
+
+| Aspect | Semantic | Calendar |
+|--------|----------|----------|
+| Example | 2.1.0 | 2024-01-15.3 |
+| Readability | Clear meaning (major/minor/patch) | Timestamp-based |
+| Rollback | "Go back to 1.9.0" | "Go back to yesterday" |
+| When to use | Code-driven models | Daily retrained models |
+| Clarity | Clear breaking changes | Less clear |
 
 ## Common Mistakes / Gotchas
-- Mistake 1
-- Mistake 2
+- No versioning at all: models scattered, impossible to reproduce
+- Calendar versioning without semantic: unclear if v2 is minor or major change
+- Losing code: model v1.0.0 trained on deleted code branch → can't rebuild
+- Data drift ignored: v1.0.0 trained on 2024-01 data, trying to use with 2024-03 data
 
 ## Best Practices
-- Tag every model artifact with a semantic version (major.minor.patch) tied to a git commit
-- Store model metadata (training data hash, hyperparameters, metrics) alongside the artifact
-- Use a model registry (MLflow, Weights & Biases) — don't just store files in S3 with dates
-- Never overwrite model versions — treat them as immutable artifacts
-- Automate promotion criteria (must pass eval thresholds before promotion to staging/prod)
-- Keep model lineage — which dataset and code version produced this model
-- Test model versions in shadow mode before promoting to production
+
+- **Git commit hash as anchor:** model_v1.0.0_commit_abc123def456. Reproducible.
+- **Data version locked:** Pin with DVC or commit hash. Same data + code = same model.
+- **Breaking changes → major:** architecture change increments major version.
+- **Backward compatibility:** never tag the same version twice. Each model is immutable.
+- **Deprecation policy:** versions < 6 months old marked deprecated, removed after 12 months.
+
+## Code Example
+
+```python
+import json, subprocess
+from pathlib import Path
+
+class ModelVersioning:
+    def register_version(self, model, version, metrics, code_commit, data_version):
+        metadata = {
+            "version": version,
+            "code_commit": code_commit,
+            "data_version": data_version,
+            "metrics": metrics,
+            "timestamp": datetime.now().isoformat()
+        }
+        
+        version_dir = Path(f"models/v{version}")
+        version_dir.mkdir(parents=True, exist_ok=True)
+        
+        # Save model
+        model.save(f"{version_dir}/model.pkl")
+        
+        # Save metadata
+        with open(f"{version_dir}/metadata.json", "w") as f:
+            json.dump(metadata, f, indent=2)
+        
+        print(f"Registered model v{version} with code commit {code_commit}")
+```
 
 ## Interview Q&A
 
-**Q: What constitutes a new model version vs. a model update?**
-A: Treat as a new version: different architecture, different training data, different hyperparameters that change model behavior, schema changes to inputs or outputs. Treat as a minor update: bug fixes in serving code, infrastructure changes that don't affect predictions, documentation updates. The test: would two versions produce different predictions for the same input? If yes, it's a new version that requires evaluation and promotion gates. If no, it's an infrastructure change with different deployment procedures.
+**Q: How do you ensure reproducibility across model versions?**
+A: Pin three things: (1) code version via git commit hash, (2) data version via DVC or data hash, (3) hyperparameters explicitly. Given all three, re-run training produces identical model (within floating-point precision). Test: periodically rebuild old models from stored metadata, validate metrics match.
 
-**Q: How do you version models when training data changes frequently?**
-A: Version the training data as part of the model version: store a hash of the dataset or a reference to a specific data snapshot. This allows you to answer: "what data was this model trained on?" and "if we retrain on the same data, do we get the same model?" Without data versioning, model versions are not reproducible—you can't debug regressions by comparing model versions. DVC (Data Version Control) or Delta Lake are standard tools for data versioning in ML workflows.
-
-**Q: What is the shadow registry pattern and when do you use it?**
-A: Shadow registry: a model version that receives a copy of production traffic (shadow mode) without affecting real responses. Use it for: evaluating a candidate model on production data distribution before promotion, comparing predictions between versions without risk, and validating that a new version handles edge cases in production. Shadow mode requires: infrastructure to duplicate requests, logging to compare shadow vs. production predictions, and a comparison framework to identify meaningful differences.
-
-**Q: How do you maintain multiple model versions in production simultaneously?**
-A: Multiple production versions are needed for: A/B testing, gradual rollout, customer-specific model versions, and multi-tenant deployments. Implementation: version the serving endpoint (model_id or version_id as a request parameter), route requests to the appropriate version at the load balancer, maintain separate scaling policies per version. Monitor each version independently—a new version may fail on a specific segment of traffic that the aggregate monitoring misses. Have a sunset policy: versions older than N months should be deprecated.
-
-**Q: How do you handle the model registry when models are trained with different frameworks?**
-A: Use a framework-agnostic serialization format: ONNX (covers most frameworks), pickle for Python-specific models, SavedModel for TensorFlow. Store both the native format (for retraining) and a serving-optimized format (ONNX/TensorRT). Include the framework version in the model metadata—models trained with PyTorch 1.x may not load with PyTorch 2.x. Design your serving infrastructure to support multiple model formats or standardize on one (ONNX is the most portable choice).
+**Q: Model v2.0.0 is worse than v1.9.0. Rollback?**
+A: Versioning enables instant rollback: switch production traffic to v1.9.0 (config change, no rebuild). Investigate v2.0. Find bug. Create v2.0.1 with fix. Redeploy. SLA: rollback <5 minutes.
 
 ## Interview Quick-Reference
-| Question | What to say |
-|---|---|
-| "Explain?" | [Answer] |
+
+| Semver | Example | When |
+|--------|---------|------|
+| MAJOR | 1.0.0 → 2.0.0 | Architecture change |
+| MINOR | 2.0.0 → 2.1.0 | Feature set change |
+| PATCH | 2.1.0 → 2.1.1 | Bugfix/hyperparameter |
 
 ## Related Topics
-- [Related](other.md)
+- [Model Registry](04-model-registry.md) - manages all versions
+- [Data Pipelines](02-data-pipelines.md) - data versioning (DVC)
 
 ## Resources
-- [Reference](url)
+- [Semantic Versioning](https://semver.org/)
+- [DVC: Data Version Control](https://dvc.org/)

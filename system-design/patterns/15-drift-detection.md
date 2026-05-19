@@ -1,52 +1,88 @@
 # Drift Detection
 
 ## TL;DR
-Detect when model's assumptions break: input distribution shifts (covariate drift), output distribution shifts (label drift), or P(Y|X) changes (concept drift). Alert for retraining.
+Monitor: input feature distribution, model output distribution, target distribution (if available). Drift detected = model performance degrading. Trigger retraining.
 
 ## Core Intuition
-Model trained on past data. World changes. Model assumptions break. Detect this and retrain.
+Model trained on 2024-01 data. In 2024-03, user behavior changed—different feature distribution. Model still uses old patterns → performance drops. Drift detection catches this.
 
 ## How It Works
-**Covariate drift:** P(X) changed but P(Y|X) same
-- Example: more mobile users than before
-- Detection: compare feature distributions (KS test, Wasserstein)
 
-**Label shift:** P(Y) changed but P(X|Y) same
-- Example: more fraud attempts
-- Detection: monitor label distribution
+**Three types of drift:**
 
-**Concept drift:** P(Y|X) changed
-- Example: user preferences shifted
-- Detection: model accuracy drops
+1. **Data drift:** input feature distribution changed (KS-test p<0.05)
+2. **Concept drift:** same inputs but relationship changed (output distribution changed)
+3. **Target drift:** ground truth distribution changed
+
+| Drift Type | Example | Detection |
+|------------|---------|-----------|
+| Data | User age distribution shifted younger | Feature histogram changed |
+| Concept | Buying behavior changed post-pandemic | Output distribution changed |
+| Target | Class imbalance increased | Label distribution changed |
+
+## Key Properties / Trade-offs
+- Sensitivity: 1% threshold catches noise, 10% threshold misses real drift
+- Latency: immediate detection vs 1-hour delay
+- Overhead: continuous monitoring vs weekly checks
 
 ## Common Mistakes / Gotchas
-- **No baseline:** can't tell if drift significant without baseline
-- **Alert fatigue:** too-sensitive thresholds → false positives
-- **Not acting:** detect drift but don't retrain → still broken
+- No baseline: don't know if distribution is different
+- No retraining trigger: detect drift but don't act
+- False positives: alert fatigue from noise
+- Ignoring seasonal patterns: summer traffic pattern ≠ drift
+
+## Best Practices
+- **Baseline:** establish training data distribution as baseline
+- **Rolling window:** compare last week to last 4 weeks (detects drift, ignores noise)
+- **Multiple metrics:** check multiple features (not just 1)
+- **Action plan:** detect drift → automatically trigger retraining
+- **Manual review:** for uncertain cases, notify team for decision
+
+## Code Example
+```python
+from scipy.stats import ks_2samp
+
+class DriftDetector:
+    def __init__(self, baseline_data, threshold=0.05):
+        self.baseline = baseline_data
+        self.threshold = threshold
+    
+    def check_drift(self, current_data):
+        drifts = []
+        
+        for feature in current_data.columns:
+            statistic, p_value = ks_2samp(
+                self.baseline[feature].values,
+                current_data[feature].values
+            )
+            
+            if p_value < self.threshold:
+                drifts.append({
+                    "feature": feature,
+                    "p_value": p_value,
+                    "action": "Retrain"
+                })
+        
+        return drifts
+```
 
 ## Interview Q&A
+**Q: Drift detected on 1 feature. Trigger retraining?**
+A: Maybe not. If multiple features normal, single feature drift could be noise. Check: (1) is it consistent over time? (2) do other features support it? (3) is it explainable (e.g., seasonal)? If unsure, hold for now. Retrain if drift persists >1 week.
 
-**Q: What is the difference between data drift, concept drift, and model drift?**
-A: Data drift (covariate shift): the distribution of input features changes, but the relationship between features and target stays the same—retrain with new data. Concept drift: the relationship between features and target changes (e.g., user behavior patterns shift after a major event)—need to collect new labels and retrain, not just update feature distributions. Model drift: model performance degrades over time due to either data or concept drift—the observable symptom, caused by one of the above. Diagnosing which type is occurring determines the remediation.
-
-**Q: How do you detect drift without labeled production data?**
-A: Unsupervised drift detection uses only input features (no labels needed): compare production feature distributions against training data using statistical tests (KS test for continuous, chi-square for categorical, MMD for multivariate). Population Stability Index (PSI) measures distributional shift for each feature. Reconstruction error from an autoencoder trained on training data is high for out-of-distribution inputs. These detect input drift immediately; output drift (model prediction distribution changes) can also be monitored without labels. Labeled validation (comparing predictions to outcomes) is the gold standard but requires waiting for labels.
-
-**Q: How do you set thresholds for drift alerts without generating too many false alarms?**
-A: Set thresholds based on empirical distribution of the metric in a stable period. Compute PSI or KS statistic for each day in a 3-month historical window, take the 95th percentile as the alert threshold. This accounts for natural seasonal variation and traffic patterns. Use dynamic thresholds that adjust for seasonality (a metric may look "drifted" every holiday season but it's predictable). Alert on sustained drift (3+ consecutive days above threshold) rather than single-day spikes.
-
-**Q: How do you prioritize which features to monitor for drift?**
-A: Monitor: features with high importance (top 10 by SHAP/permutation importance), features known to be operationally unstable (external data sources, calculated fields), and features that have drifted before. Don't monitor exhaustively—with 100+ features, even 5% false positive rate means 5 false alarms per day. Use feature importance to prioritize: a drift in a low-importance feature has minimal impact on model performance, while drift in a top-5 feature is likely to cause significant degradation.
-
-**Q: What is the appropriate response to detected drift and how do you automate it?**
-A: Immediate response: alert the model owner with drift details and estimated impact on model performance. Automated triage: run model quality metrics on recent predictions to quantify actual performance degradation (not just distribution shift). If degradation is significant: trigger retraining pipeline, route traffic to fallback model if retraining takes too long. Not all drift requires action: investigate whether the drift represents a permanent change (retrain) or a temporary spike (wait and monitor). Build a drift response runbook with decision criteria for each response level.
+**Q: Retraining costs $10K. Drift on minor feature. Retrain?**
+A: No. Prioritize: rank features by impact on prediction. Retrain only if high-impact feature drifts. Use quick retraining (not full pipeline) for low-impact features first.
 
 ## Interview Quick-Reference
-**Drift types?** Covariate (X changed), label (Y changed), concept (relationship changed).
+| Drift Type | Cause | Solution |
+|-----------|-------|----------|
+| Data drift | Feature distribution changed | Retrain |
+| Concept drift | Relationship changed | Retrain |
+| Seasonal | Expected pattern | Ignore (normal) |
 
 ## Related Topics
-- [Monitoring & Observability](16-monitoring-and-observability.md)
-- [Model Versioning](06-model-versioning.md) — rolling back when drift detected
+- [Model Monitoring](16-monitoring-and-observability.md)
+- [Retraining Pipelines](02-data-pipelines.md)
 
 ## Resources
-- [Learning Under Concept Drift](https://arxiv.org/abs/1010.6241)
+- [Drift Detection Methods](https://en.wikipedia.org/wiki/Concept_drift)

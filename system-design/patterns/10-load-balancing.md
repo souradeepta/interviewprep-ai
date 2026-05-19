@@ -1,55 +1,89 @@
-# Load balancing
+# Load Balancing
 
 ## TL;DR
-Core ML system design pattern for production.
+Distribute requests across multiple model serving replicas. Strategies: round-robin, least-connections, health-aware routing. Ensures no replica overloads, enables horizontal scaling, provides failover.
 
 ## Core Intuition
-[Intuitive explanation]
+Without LB: one server handles all traffic → bottleneck. With LB: 3 replicas → 3x capacity + fault tolerance (one fails, others still serve).
 
 ## How It Works
-[Technical details]
+
+**Round-robin:** Request 1 → Replica A, Request 2 → Replica B, Request 3 → Replica C, Request 4 → Replica A...
+
+**Least-connections:** Route to replica with fewest active requests.
+
+**Health-aware:** Check replica health every 10s, remove unhealthy replicas from rotation.
+
+| Strategy | Best For | Pros | Cons |
+|----------|----------|------|------|
+| Round-robin | Equal replicas | Simple | Ignores replica health |
+| Least-conn | Variable latency | Adaptive | Overhead tracking connections |
+| Health-aware | Prod (critical) | Handles failures | Extra complexity |
 
 ## Key Properties / Trade-offs
-- Property 1
-- Property 2
+- No LB: single point of failure
+- Simple LB (round-robin): can route to dead replicas
+- Complex LB (health-aware): overhead but reliable
 
 ## Common Mistakes / Gotchas
-- Mistake 1
-- Mistake 2
+- LB without health checks: routes to dead replicas
+- Sticky sessions: if all users stick to Replica A, uneven load
+- Single point of failure: LB itself becomes bottleneck
+- No timeout: hangs on slow replica
 
 ## Best Practices
-- Use health checks with warmup awareness — newly started model servers need time before accepting traffic
-- Implement circuit breakers to stop routing to unhealthy backends
-- Use weighted routing for gradual rollouts (canary deployments)
-- Monitor P95/P99 latency per backend, not just average
-- Use consistent hashing for stateful inference (session-pinned requests)
-- Auto-scale backends based on queue depth, not just CPU — ML inference is memory-bound
-- Test load balancer behavior during backend restarts
+- **Health checks:** liveness (alive?), readiness (model loaded?), deep (can reach DB?)
+- **Circuit breaker:** if replica fails 3 times, remove for 30s, then retry
+- **Graceful degradation:** if 2/3 replicas down, slow down clients (queue) rather than fail
+- **Metrics:** latency per replica, error rate per replica. Alert if latency spikes.
+
+## Code Example
+```python
+import httpx, asyncio
+from collections import deque
+
+class LoadBalancer:
+    def __init__(self, replica_urls):
+        self.replicas = deque(replica_urls)
+        self.client = httpx.AsyncClient()
+    
+    async def forward(self, features):
+        for _ in range(len(self.replicas)):
+            replica = self.replicas[0]
+            self.replicas.rotate(-1)  # Round-robin
+            
+            try:
+                response = await self.client.post(
+                    f"{replica}/predict",
+                    json={"features": features},
+                    timeout=2.0
+                )
+                return response.json()
+            except httpx.RequestError:
+                # Try next replica
+                continue
+        
+        raise Exception("All replicas failed")
+```
 
 ## Interview Q&A
+**Q: Load balancer becomes bottleneck. Solution?**
+A: Multiple LBs with DNS round-robin, or use cloud load balancer (AWS ELB). Or: embed LB logic in client (client-side load balancing). Distribute decision logic to avoid central bottleneck.
 
-**Q: What load balancing strategy works best for ML model serving?**
-A: Least-connections for heterogeneous models: route to the backend with fewest in-flight requests—works well when request processing times vary significantly. Round-robin for homogeneous stateless models: simple and effective when all backends have equal capacity. Latency-aware (P2C: Power of Two Choices): randomly pick 2 backends, route to the faster one—statistically approaches optimal routing with low overhead. Avoid pure round-robin for GPU serving: if one replica is saturated (slow), round-robin keeps sending it traffic, causing cascading degradation.
-
-**Q: How do you handle sticky sessions for stateful model inference?**
-A: Most ML models should be stateless (predict independently for each request). When state is needed (conversational AI, streaming generation): implement session affinity at the load balancer (route same session_id to same backend), use an external state store (Redis) that any backend can access (better—removes stickiness requirement), or use a request router that forwards state context with each request. Stateless design is strongly preferred because it simplifies scaling, failover, and deployment—use external state stores rather than in-process state.
-
-**Q: What health check configuration prevents sending traffic to model replicas that are warming up?**
-A: Configure separate liveness and readiness probes. Readiness probe: HTTP GET /health/ready with a timeout of 30s and failure threshold of 2. In the readiness endpoint, verify: model is loaded (run a synthetic inference), GPU memory is allocated, and all dependencies are reachable. Set initialDelaySeconds equal to your worst-case model loading time (e.g., 60s for a 7B model). Never route traffic to a replica that hasn't passed readiness—a partially loaded model produces unpredictable outputs.
-
-**Q: How do you do weighted traffic routing for gradual model rollouts?**
-A: Implement at the load balancer level with weighted backends: 95% traffic to stable model, 5% to new model candidate. Increment the new model's weight in stages (5% to 10% to 25% to 50% to 100%), with a hold period at each stage to validate metrics. Many load balancers (NGINX, Envoy, AWS ALB) support weighted routing natively. For A/B testing, add a request ID header to enable per-user consistency (same user always hits the same model version across requests).
-
-**Q: What are the failure modes when a load balancer becomes a bottleneck?**
-A: The load balancer itself can become a single point of failure or a throughput bottleneck. Signs: load balancer CPU usage >80%, queue depth on the load balancer increasing, latency from client to backend exceeds latency from load balancer to backend by >20ms. Mitigation: use a managed load balancer service (AWS ALB, GCP Load Balancer) that auto-scales, implement client-side load balancing for service-to-service calls (avoids the load balancer for internal traffic), and distribute traffic across multiple load balancer instances with anycast or DNS-based routing.
+**Q: Replica A is slow (p99 latency 500ms). How LB responds?**
+A: Health check detects slow response latency. Reduce traffic to Replica A (route only 20% of requests). Monitor recovery. When p99 < normal + 20%, restore to 100%.
 
 ## Interview Quick-Reference
-| Question | What to say |
-|---|---|
-| "Explain?" | [Answer] |
+| Replica | Status | Load |
+|---------|--------|------|
+| A | Healthy (50ms) | 100% |
+| B | Healthy (60ms) | 100% |
+| C | Slow (400ms) | 20% |
+| D | Dead (timeout) | 0% |
 
 ## Related Topics
-- [Related](other.md)
+- [Model Serving](05-model-serving.md)
+- [Request Batching](09-request-batching.md)
 
 ## Resources
-- [Reference](url)
+- [NGINX Load Balancing](https://nginx.org/en/docs/http/load_balancing.html)

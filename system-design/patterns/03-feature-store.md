@@ -1,67 +1,120 @@
 # Feature Store
 
 ## TL;DR
-A centralized system for managing ML features: computing, storing, serving. Features are reused across many models (training and serving). A feature store avoids code duplication, ensures consistency, and scales feature serving to low-latency production systems.
+Centralized system for managing, versioning, and serving features. Handles feature computation (offline), storage, retrieval, and consistency between training and serving. Enables feature reuse across models and teams.
 
 ## Core Intuition
-Without a feature store: each team rebuilds the same features (user_age, user_purchase_history, etc.) in different code → inconsistencies → production bugs. A feature store is like a library: define once, reuse everywhere.
+Without a feature store, teams compute features separately for training and serving—causing inconsistencies and wasted effort. A feature store is a shared database for features: one computation, used everywhere.
 
 ## How It Works
+**Two-layer Architecture:**
 
-**Components:**
-- **Offline store:** compute features on historical data (batch job), store in data warehouse
-- **Online store:** low-latency key-value store (Redis, DynamoDB) for serving at prediction time
-- **Materialization:** sync offline → online (fresh copy every hour, for example)
-- **Feature registry:** catalog of all features (name, schema, lineage, owner)
+1. **Offline Store (Training):**
+   - Batch compute features (hourly, daily)
+   - Store historical feature tables with timestamps
+   - Enable point-in-time lookups (get features as of training date to prevent data leakage)
+   - Example: user_id=123, day=2024-01-15 → {age: 35, purchases_30d: 12, country: USA}
 
-**Typical flow:**
-1. Engineer defines feature (e.g., "user_avg_purchase_30d")
-2. Batch job runs nightly, computes on historical data
-3. Values written to offline store (data warehouse)
-4. Values synced to online store (Redis) for serving
-5. Model at inference queries online store for user's feature values
-6. Prediction returned in <50ms
+2. **Online Store (Serving):**
+   - Fast lookup cache (Redis, DynamoDB)
+   - Serve fresh features in <50ms per request
+   - Handle high QPS (10K+ requests/sec)
+   - Automatic sync from offline store
+
+**Workflow:**
+```mermaid
+graph LR
+    A[Raw Data] -->|Batch<br/>Hourly| B[Feature Computation<br/>Spark/DBT]
+    B -->|Write| C[Offline Store<br/>BigQuery]
+    C -->|Materialize| D[Online Store<br/>Redis]
+    E[Training] -->|Read<br/>Point-in-time| C
+    F[Serving] -->|Read<br/>Real-time| D
+```
 
 ## Key Properties / Trade-offs
-- **Latency vs freshness:** hourly sync is fast; real-time sync adds latency
-- **Cost vs coverage:** compute everything = high cost; selective computation = risk of missing important features
-- **Governance:** standardized features prevent inconsistencies but slower feature iteration
+| Aspect | Offline-Only | Online-Only | Both (Recommended) |
+|--------|--------------|-------------|------------------|
+| Freshness | Hours old | Real-time | Real-time for serving, historical for training |
+| Cost | Cheap (batch) | Expensive (per-request) | Moderate (batch + cache) |
+| Training-serving skew | High risk | Low risk | No skew |
+| Latency | N/A | <50ms | <50ms serving |
+| Complexity | Low | High | High |
 
 ## Common Mistakes / Gotchas
-- **Training/serving skew:** different code for training vs serving → model degrades in production
-- **Data leakage:** future information in features at training time
-- **Stale features:** sync interval too long → serving with outdated data
+- **No offline store:** Train and serve compute features differently → skew
+- **Missing point-in-time:** Train on latest data, serve on stale data → overfitting
+- **No versioning:** Change feature computation → can't reproduce training
+- **Ignoring consistency:** Offline and online features diverge → serving predictions differ from training
+- **No feature ownership:** Teams hoard features, others duplicate work
 
-## Examples (Concrete)
-- **Tecton, Feast, Databricks Feature Store:** open/commercial feature platforms
-- **Uber Michelangelo, Airbnb ML:** built internal feature stores
+## Best Practices
+- **Version everything:** Tag feature set with date/hash. Reproducible training.
+- **Schema validation:** Enforce feature names, types, ranges. Early error detection.
+- **Point-in-time correctness:** Training must use features as of training_date, not current.
+- **Monitoring:** Track feature freshness, staleness, missing values. Alert if data pipeline fails.
+- **Document features:** Name, definition, owner, SLA. Enable feature reuse across teams.
+- **Automate materialization:** Offline → Online sync on schedule (every 5 minutes for most use cases).
+- **Test feature pipelines:** Unit tests for computation logic, integration tests for storage.
+
+## Code Example
+
+```python
+from feast import FeatureStore, FeatureView, Field
+from feast.infra.offline_stores.bigquery_source import BigQuerySource
+from datetime import timedelta
+
+# Define feature view
+user_features = FeatureView(
+    name="user_features",
+    entities=["user_id"],
+    ttl=timedelta(days=30),
+    schema=[
+        Field(name="age", dtype=int),
+        Field(name="purchases_30d", dtype=int),
+    ],
+    source=BigQuerySource(table="bigquery_dataset.user_features_daily"),
+    online=True  # Materialize to online store
+)
+
+# Usage in training
+store = FeatureStore(repo_path=".")
+training_df = store.get_historical_features(
+    entity_df=train_entities,
+    features=["user_features:age", "user_features:purchases_30d"],
+    full_feature_names=True
+)
+
+# Usage in serving
+online_features = store.get_online_features(
+    features=["user_features:age", "user_features:purchases_30d"],
+    entity_rows=[{"user_id": 123}]
+)
+print(online_features)  # {"user_features:age": 35, ...}
+```
 
 ## Interview Q&A
+**Q: How do you handle feature freshness trade-offs?**
+A: Define SLA per feature: static features (user country) → daily refresh, trending features (user engagement) → hourly, real-time features (current page) → online-only (compute on-demand). Measure staleness: % of online features refreshed in last hour. Alert if <95% refreshed. For low-latency use cases, accept slight staleness (5-15 minutes) if it reduces serving cost.
 
-**Q: When should you implement a feature store vs. computing features inline?**
-A: Implement a feature store when: multiple models share features (avoid duplicate computation), features require expensive computation (aggregations over large datasets), online/offline feature consistency is critical (training-serving skew prevention), or you need point-in-time correct features for retraining. Compute inline when: you have one model, features are simple and cheap to compute, or you're still in early ML development. The overhead of a feature store (infrastructure, maintenance) is only justified when it solves real problems you're experiencing.
+**Q: Point-in-time correctness: why not just use current features for training?**
+A: Data leakage. If you train on tomorrow's features to predict today's label, the model learns patterns that aren't available at prediction time. Example: train on purchase_30d = 100, predict churned=yes. At serving time, you have purchase_30d = 10 (stale), prediction is wrong. Solution: when building training set at day T, fetch features as of day T (not today), ensuring training data represents the state at prediction time.
 
-**Q: What is training-serving skew and how does a feature store prevent it?**
-A: Training-serving skew: features are computed differently at training time (offline, batch) vs. serving time (online, real-time), causing the model to receive different distributions than it was trained on. Classic example: training uses the median of a column but serving uses the mean. A feature store prevents this by ensuring the exact same feature computation logic is used for both training and serving—the feature definition is single-source-of-truth.
-
-**Q: How do you implement point-in-time correct features for model retraining?**
-A: Point-in-time correctness means: when generating training data for a label that occurred at time T, use only feature values that were available at time T (no future leakage). Feature stores implement this by storing feature values with timestamps and providing time-travel queries: "what was the value of feature X for entity Y at time T?" This requires storing the full history of feature values, not just current values—a significant storage cost that justifies the feature store.
-
-**Q: What are the latency requirements for online feature serving and how do you meet them?**
-A: Real-time inference: online features must be served in <10ms (leaving budget for model inference). Requirements: in-memory store (Redis, Cassandra) for fast reads, pre-computed feature values (not computed on-the-fly at serving), co-location of feature store with inference service (avoid network latency), and bulk fetch (retrieve all features for an entity in one call, not one call per feature). Monitor feature serving latency as a primary SLA—slow feature serving can silently cause SLA violations.
-
-**Q: How do you manage feature versioning and backward compatibility?**
-A: Treat feature definitions as versioned contracts. When a feature computation changes (new data source, modified aggregation window): create a new feature version, maintain old version while downstream models migrate, use a shadow-mode period where both versions are computed and compared. Never update a feature definition in-place if it's used by production models—the change will cause training-serving skew for those models. A feature store should provide version history and deprecation workflows.
+**Q: Feature store overhead: when is it worth it?**
+A: Worth it when: 3+ production models (feature reuse), features are recomputed regularly (cost savings), training-serving skew causes problems, or teams share features. Overhead: storage cost, infrastructure maintenance, initial setup (2-4 weeks). ROI appears at 10+ models or when skew prevents deployment.
 
 ## Interview Quick-Reference
-| Question | What to say |
-|---|---|
-| "Why use a feature store?" | Reusable features, avoid skew, scale to low-latency serving, governance. |
-| "Offline vs online?" | Offline: historical computation. Online: real-time serving. Materialization syncs them. |
+| Metric | Target |
+|--------|--------|
+| Online latency | <50ms per feature |
+| Offline-online staleness | <15 min |
+| Feature ownership | 100% documented |
+| Training-serving skew | 0 |
 
 ## Related Topics
-- [Data Pipelines](02-data-pipelines.md) — [Online vs Batch Inference](07-online-vs-batch-inference.md)
+- [Model Registry](04-model-registry.md) - stores trained models
+- [Data Pipelines](02-data-pipelines.md) - computes features
 
 ## Resources
-- [Feast: A Feature Store for ML](https://feast.dev)
-- [Real-time ML: Challenges and Solutions (Tecton)](https://www.tecton.ai/blog/)
+- [Feast: Open Source Feature Store](https://feast.dev)
+- [Tecton: Managed Feature Platform](https://www.tecton.ai)
+- [Feature Store Survey](https://arxiv.org/abs/2202.00359)

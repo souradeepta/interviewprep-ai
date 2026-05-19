@@ -1,55 +1,101 @@
-# Inference caching
+# Inference Caching
 
 ## TL;DR
-Core ML system design pattern for production.
+Cache LLM/model responses to eliminate redundant inference. Strategies: exact-match (hash prompt), semantic (embedding similarity). Hit rate 20-40% saves 20-40% cost + latency.
 
 ## Core Intuition
-[Intuitive explanation]
+Same question asked twice? Don't run inference twice. First time: compute and cache. Second time: serve from cache. Simple but powerful.
 
 ## How It Works
-[Technical details]
+
+**Two caching strategies:**
+
+1. **Exact-match (deterministic):**
+   - Hash(prompt) → cached response
+   - Works when same input appears again
+   - Hit rate: 20-30% for typical LLM workloads
+   - Cost savings: 20-30%
+
+2. **Semantic (fuzzy matching):**
+   - Embed query, find similar cached queries
+   - Cosine similarity > 0.95 → serve cached response
+   - Works for rephrased questions with same intent
+   - Hit rate: 40-50% combined with exact-match
+   - Cost: embedding inference (cheap) vs cache lookup gain
 
 ## Key Properties / Trade-offs
-- Property 1
-- Property 2
+
+| Aspect | No Cache | Exact Match | Semantic |
+|--------|----------|-------------|----------|
+| Cost | Baseline | -25% | -40% |
+| Latency | 1000ms | 10ms | 50ms |
+| Hit rate | N/A | 25% | 50% |
+| Complexity | Low | Medium | High |
+| Freshness | Always fresh | Potential staleness | Potential staleness |
 
 ## Common Mistakes / Gotchas
-- Mistake 1
-- Mistake 2
+- Cache LLM responses at temp > 0 (random): different responses for same input
+- Cache with no TTL: stale responses served long-term
+- Cache stampede: many requests miss simultaneously → all compute at once (traffic spike)
+- No cache key versioning: model v1 and v2 share cache → wrong version served
 
 ## Best Practices
-- Use content-addressed caching (hash of input) for exact-match cache hits
-- Implement semantic caching (embedding similarity) for near-duplicate queries
-- Set TTL based on how frequently the underlying model or data changes
-- Cache at the right granularity — response-level for full outputs, embedding-level for representations
-- Monitor cache hit rate and latency reduction — validate caching is worth the complexity
-- Implement cache warming for predictable request patterns
-- Separate cache storage from model serving to scale independently
+
+- **Hash-based keys for exact match:** hash(model_id + prompt + temperature=0)
+- **TTL based on freshness needs:** FAQ (24h), user profiles (1h), real-time (no cache)
+- **Semantic cache with confidence:** only serve if similarity >0.95, log lower-confidence hits
+- **Cache warming:** pre-populate common queries (FAQ) before peak hours
+- **Monitoring:** track hit rate, cost savings, cache size. Alert if hit rate drops.
+
+## Code Example
+
+```python
+import hashlib, json
+from redis import Redis
+
+class InferenceCache:
+    def __init__(self, llm_client, redis_client, ttl_seconds=3600):
+        self.llm = llm_client
+        self.redis = redis_client
+        self.ttl = ttl_seconds
+    
+    def predict(self, prompt, model="gpt-4"):
+        # Create cache key from prompt hash
+        key = hashlib.sha256(f"{model}:{prompt}".encode()).hexdigest()
+        
+        # Check cache
+        cached = self.redis.get(key)
+        if cached:
+            return json.loads(cached)
+        
+        # Miss: compute
+        response = self.llm.create_completion(prompt, model=model)
+        
+        # Store in cache with TTL
+        self.redis.setex(key, self.ttl, json.dumps(response))
+        return response
+```
 
 ## Interview Q&A
 
-**Q: What cache invalidation strategy should you use for model inference caching?**
-A: TTL-based: set expiration based on how fast the underlying data changes—static lookup tables: 24 hours, personalized recommendations: 15 minutes, real-time fraud scores: never cache. Event-based: invalidate when the model is retrained or input data changes (use a cache version key that includes model version). Request-specific: for LLM responses, include a hash of the exact prompt as the cache key—any change in the prompt is a cache miss. Never cache responses from non-deterministic models at temperature >0 unless you explicitly want to freeze a specific response.
+**Q: Cache hit rate is 15%. Worth it?**
+A: No. Overhead of cache management (lookup, storage, invalidation) outweighs 15% savings. Typical breakeven: 20-25% hit rate. Focus on raising hit rate first: (1) identify top 20% of queries, (2) pre-populate cache, (3) add semantic caching for similar queries. Retarget once hit rate > 25%.
 
-**Q: When does inference caching hurt more than it helps?**
-A: Caching hurts when: the cache hit rate is <10% (overhead outweighs benefit), the cached data becomes stale quickly causing wrong predictions, memory pressure from the cache degrades other system performance, or the cache provides a false sense of capacity (real load spikes hit a cold cache). Measure: cache hit rate, latency reduction for hits vs. misses, stale cache rate (responses served after model retrain), and tail latency at cache misses (the worst case is what users experience when cache fails).
-
-**Q: How do you implement caching for an LLM API to reduce cost and latency?**
-A: Exact cache (hash match): store (prompt_hash to response), serve from cache for identical prompts. Works well for: FAQ answers, product descriptions, templated responses. Semantic cache (embedding similarity): embed the query, retrieve cached response if sufficiently similar exists. Works for: slightly rephrased questions with the same intent. Implement both with different thresholds: exact match first (free), semantic match second (cost of embedding). Track cache hit rate and cost savings; validate that semantic cache hits are actually equivalent answers to the original queries.
-
-**Q: How do you handle personalized inference that can't be cached naively?**
-A: Separate the personalization from the base computation. Cache the base computation (non-personalized model output), then apply a lightweight personalization layer (re-ranking, score adjustment) using cached user features. This way you cache the expensive part and keep the personalization layer fast. Alternatively, cache at a user segment level rather than individual level—users in the same segment get the same cached base results with segment-level adjustments. Segment-level caching has higher hit rates than individual-level.
-
-**Q: What are the distributed caching considerations for multi-region inference serving?**
-A: Cache locality: read from the nearest cache replica to minimize latency; write-through to all replicas for consistency. Replication lag: in a multi-region setup, a model retrain may not invalidate all regional caches simultaneously—implement version-aware cache keys (include model version in cache key). Cache stampede: when the cache expires and many requests simultaneously miss—use probabilistic early expiration or mutex-based single-flight to prevent all requests from computing simultaneously. Monitor cache hit rates per region independently.
+**Q: How do you handle non-deterministic models (temperature > 0)?**
+A: Don't cache full responses. Cache components: (1) embeddings (deterministic), (2) top-k candidates (deterministic), (3) final ranking (deterministic). Personalization happens post-cache. Example: cache top-10 products, user-specific re-ranking happens online.
 
 ## Interview Quick-Reference
-| Question | What to say |
-|---|---|
-| "Explain?" | [Answer] |
+
+| Strategy | Hit Rate | Cost Savings | Complexity |
+|----------|----------|--------------|------------|
+| Exact match | 25% | 25% | Low |
+| Semantic | 40% | 40% | High |
+| Combined | 45% | 45% | High |
 
 ## Related Topics
-- [Related](other.md)
+- [Model Serving](05-model-serving.md) - serves from cache
+- [LLM API Gateway](03-llm-api-gateway.md) - caches responses
 
 ## Resources
-- [Reference](url)
+- [Redis Caching Best Practices](https://redis.io/docs/management/eviction/)
+- [LLM Prompt Caching](https://openai.com/blog/prompt-caching/)

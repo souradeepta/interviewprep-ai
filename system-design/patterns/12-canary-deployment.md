@@ -1,59 +1,88 @@
 # Canary Deployment
 
 ## TL;DR
-Roll out to small % traffic first (5-10%), monitor metrics, gradually increase if healthy. Detect bad models early, limit blast radius.
+Gradual rollout: deploy to 5% of users first. Monitor metrics. If good, 25% → 50% → 100%. If bad, rollback immediately. Reduces blast radius of buggy models.
 
 ## Core Intuition
-Don't push to all users at once. Test on subset first.
+Don't release to everyone at once. Release to brave few first (canaries). If they're OK, expand. If problem, only 5% affected, easy rollback.
 
 ## How It Works
-```
-Day 1: Deploy to 5% traffic
-  Monitor: latency, error rate, accuracy
-  If healthy → 25%
-  
-Day 2: 25% traffic
-  Monitor for 24h
-  If healthy → 50%
-  
-Day 3: 50%, 100%
-```
 
-**Rollback:** if metrics bad at any stage, revert to previous model.
+1. Deploy model v2 to 5% of traffic
+2. Monitor: latency, errors, prediction distribution
+3. If metrics OK for 30 min: increase to 25%
+4. Continue: 50%, then 100%
+5. If metrics bad: rollback to v1 (instant)
+
+| Phase | % Users | Duration | Decision |
+|-------|---------|----------|----------|
+| Canary | 5% | 30 min | Metrics OK? |
+| Early adopters | 25% | 1 hour | Errors <0.1%? |
+| Rollout | 50% | 1 hour | Latency OK? |
+| General availability | 100% | Ongoing | Success! |
 
 ## Key Properties / Trade-offs
-- Safety: catch issues early
-- Time: gradual → slower full deployment
-- Cost: run 2 models in parallel (overhead)
+- Safety: catch issues early, affect few users
+- Speed: gradual rollout is slower than instant
+- Complexity: need traffic splitting, monitoring
+- Risk: some users get v2, others get v1 (short period)
 
 ## Common Mistakes / Gotchas
-- **Bad metrics:** monitor wrong thing → miss issues
-- **Too fast ramp:** 5% → 100% in 1h → catch issues too late
-- **No rollback plan:** can't quickly revert
+- Not monitoring during canary (rollout succeeds but model is bad)
+- Rollback too slow (wait for multiple failures before acting)
+- Canary % too high (50% canary defeats the purpose)
+- Not isolating canary traffic (canary sees different data than rest)
+
+## Best Practices
+- **Monitor early:** liveness (alive?), readiness (loaded?), deep (quality metrics)
+- **Rollback threshold:** if error rate > 1%, rollback immediately
+- **Gradual expansion:** 5% → 25% → 50% → 100% (not 5% → 100%)
+- **Separate monitoring:** track canary metrics separately from baseline
+- **Metrics for rollback:** accuracy, latency, error rate—not just "is it alive"
+
+## Code Example
+```python
+import time
+
+class CanaryDeployment:
+    def deploy(self, model_version, stages=[0.05, 0.25, 0.5, 1.0]):
+        for traffic_pct in stages:
+            print(f"Routing {traffic_pct*100}% to {model_version}")
+            self.set_traffic(model_version, traffic_pct)
+            
+            # Monitor
+            time.sleep(300)  # 5 minutes per stage
+            
+            metrics = self.get_metrics(model_version)
+            if metrics['error_rate'] > 0.01:  # >1% error
+                print(f"Rollback: error rate {metrics['error_rate']}")
+                self.rollback()
+                return False
+            
+            print(f"Stage OK, error_rate={metrics['error_rate']}")
+        
+        print("Canary deployment successful!")
+        return True
+```
 
 ## Interview Q&A
+**Q: Canary at 5% detects bug affecting 10% of users (edge case). Problem?**
+A: Bad luck—edge case didn't trigger in first 5%. Solution: targeted canary—route canary traffic to users likely to hit edge case (e.g., specific geo, user segment). Or: longer canary duration (2 hours instead of 30 min).
 
-**Q: What percentage of traffic should you route to a canary and for how long?**
-A: Start with 1-5% of traffic: enough to get statistical signal, small enough to limit blast radius if the canary fails. For models with high-volume traffic (>10K req/s), 1% gives 100+ req/s to the canary—sufficient for significance in 1-2 hours. For lower-traffic models, increase to 5-10% to accumulate enough samples. Hold at each traffic level for at least 1 hour (longer for metrics that take time to manifest: session-level metrics need multiple user sessions). Stop at 50% and validate before proceeding to 100%.
-
-**Q: How do you decide which metrics trigger an automatic canary rollback?**
-A: Rollback triggers should be: latency degradation (canary P99 > baseline P99 x 1.5), error rate increase (canary error rate > baseline x 2), prediction quality degradation (primary business metric drops > threshold), or model-specific anomaly (prediction distribution shifts significantly). Set thresholds conservatively—it's better to roll back a good model unnecessarily than to leave a bad model running. Log all automatic rollbacks and review them; false rollbacks reveal metric sensitivity issues or model quality improvements that look like regressions.
-
-**Q: How do you compare canary and baseline performance statistically?**
-A: Use statistical tests appropriate for your metric type: t-test for continuous metrics (latency, revenue), proportion test for rate metrics (click-through rate, error rate), Mann-Whitney U for non-normal distributions. Determine minimum detectable effect and required sample size before the experiment (don't run until you see significance). Correct for multiple comparisons if testing many metrics. Report effect size, not just p-value—a statistically significant 0.1% improvement may not be practically significant.
-
-**Q: What is a canary analysis framework and how does it differ from manual monitoring?**
-A: Manual monitoring: engineers watch dashboards and decide when canary looks bad. Error-prone: humans miss slow degradations, have inconsistent thresholds, and don't account for time-of-day effects. Automated canary analysis (Spinnaker, Kayenta): continuously compares canary vs. baseline metrics, accounts for confounders (traffic patterns, time of day), applies statistical tests, and produces a pass/fail/inconclusive verdict. Automated analysis is more reliable, faster, and consistent—it should gate promotion to 100% traffic without requiring manual approval for routine deployments.
-
-**Q: How do you run canary deployments for ML models with personalization?**
-A: Personalized models require user-consistent routing: the same user should always hit either canary or baseline during the experiment, not alternate between them (which would contaminate both groups). Implement user-level assignment: hash user_id % 100, route <5% to canary for the duration of the experiment. This ensures: clean A/B comparison, consistent user experience, and accurate measurement of long-term behavioral changes (which require a user to experience only one model version).
+**Q: How do you choose metric thresholds for rollback (error rate 1%)?**
+A: Start conservative: 0.5% (half of baseline). Lower threshold → more rollbacks (false positives). Higher threshold → miss real issues. AB test thresholds: compare automatic vs manual rollback decisions. Calibrate over time.
 
 ## Interview Quick-Reference
-**Canary?** Gradual rollout: 5% → 25% → 50% → 100%. Monitor, rollback if bad.
+| Stage | Traffic | Duration | Decision |
+|-------|---------|----------|----------|
+| Canary | 5% | 30 min | Error <1%? |
+| Early | 25% | 1 hour | Latency OK? |
+| Main | 50% | 1 hour | Metrics green? |
+| GA | 100% | Stable | Ship it! |
 
 ## Related Topics
-- [Blue-Green Deployment](11-blue-green-deployment.md) — alternative
-- [A/B Testing](14-ab-testing.md) — measure impact
+- [Blue-Green Deployment](11-blue-green-deployment.md)
+- [A/B Testing](14-ab-testing.md)
 
 ## Resources
-- [Deployment Patterns](https://martinfowler.com/bliki/CanaryRelease.html)
+- [Canary Deployments](https://martinfowler.com/bliki/CanaryRelease.html)

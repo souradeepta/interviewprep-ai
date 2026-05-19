@@ -1,58 +1,97 @@
 # Blue-Green Deployment
 
 ## TL;DR
-Two identical environments (blue, green). Traffic on blue. Deploy to green, test, switch traffic to green. Instant rollback: switch back to blue.
+Two identical environments (Blue=current, Green=new). Deploy new model to Green, test, then switch traffic. Instant rollback: switch back to Blue. Zero downtime.
 
 ## Core Intuition
-Two parallel systems. Keep old one ready, switch to new, easy rollback.
+Safe deployment: have two full systems. Test on the new one. Users still use old one. Convinced? Switch all users to new. Detect issue? Switch back. No downtime.
 
 ## How It Works
-```
-Blue (current): production, getting all traffic
-Green (new): deploy new model, run tests, no real traffic
 
-When ready:
-  Switch load balancer: blue → green
-  Now green is live, blue is backup
+1. Blue (production): serving all traffic with model v1.0.0
+2. Green (staging): deploy model v2.0.0, test thoroughly
+3. Validation: run synthetic tests, smoke tests, canary with 1% traffic
+4. Switch: update load balancer config to route to Green
+5. Rollback (if needed): switch back to Blue (config change, instant)
 
-If issues:
-  Switch back: green → blue (instant)
-```
+| Phase | Blue | Green | Traffic |
+|-------|------|-------|---------|
+| Initial | v1.0.0 running | Idle | 100% → Blue |
+| Deployment | v1.0.0 running | v2.0.0 running | 100% → Blue |
+| Validation | v1.0.0 running | v2.0.0 tested | 100% → Blue |
+| Switch | v1.0.0 idle | v2.0.0 running | 100% → Green |
+| Rollback | v1.0.0 running | v2.0.0 idle | 100% → Blue |
 
 ## Key Properties / Trade-offs
-- Rollback: instant (switch LB)
-- Cost: run 2 environments (2x cost)
-- Downtime: minimal (switch is <1s)
-- Testing: can test on green before switching
+- Cost: 2x infrastructure (both Blue and Green running)
+- Speed: instant switch (config change)
+- Safety: full rollback, no downtime
+- Complexity: manage two environments
 
 ## Common Mistakes / Gotchas
-- **Double cost:** full redundancy is expensive
-- **Data sync:** if data changes during switch, blue-green diverge. Minimize DB changes during switch.
-- **Not testing green:** deploy without testing → issues after switch
+- Forgetting to warm cache on Green (cold start latency)
+- Different infrastructure on Blue/Green (breaks reproducibility)
+- Not testing on Green thoroughly before switch
+- Rollback not working (Blue degraded during switch window)
+
+## Best Practices
+- **Pre-warm Green:** run synthetic traffic to populate caches
+- **Identical infrastructure:** Blue and Green must be clones
+- **Test on Green:** run full test suite before switch
+- **Gradual switch:** 10% → 50% → 100% rather than instant
+- **Keep Blue warm:** don't turn off old environment for 30 min after switch
+
+## Code Example
+```python
+import subprocess
+
+class BlueGreenDeployment:
+    def deploy(self, model_version):
+        # 1. Deploy to Green
+        print("Deploying to Green...")
+        subprocess.run(["kubectl", "apply", "-f", "green-deployment.yaml"])
+        
+        # 2. Wait for Green readiness
+        subprocess.run(["kubectl", "wait", "--for=condition=ready", "pod", "-l", "app=green"])
+        
+        # 3. Test Green
+        print("Running tests on Green...")
+        test_result = subprocess.run(["python", "test_model.py", "--endpoint=green.local"])
+        
+        if test_result.returncode != 0:
+            print("Tests failed, not switching")
+            return False
+        
+        # 4. Switch traffic to Green
+        print("Switching traffic to Green...")
+        subprocess.run(["kubectl", "patch", "service", "model-api", 
+                       "-p", '{"spec":{"selector":{"version":"green"}}}'])
+        
+        # 5. Monitor
+        print("Monitoring Green for 5 minutes...")
+        time.sleep(300)
+        
+        print("Deployment complete!")
+        return True
+```
 
 ## Interview Q&A
+**Q: Infrastructure cost doubles (2x servers). Worth it?**
+A: For critical models: yes. For experimental: maybe not. Compromise: use staging environment (smaller), test there, then deploy to prod. Cost: 1.5x instead of 2x.
 
-**Q: What are the infrastructure requirements for blue-green deployment of ML models?**
-A: Requires: capacity to run two full production environments simultaneously (2x cost during deployment), a load balancer that can switch traffic instantaneously, automated health checking for the green environment before traffic switch, and a rollback mechanism that can switch back in <5 minutes. For ML specifically: both environments need access to the same feature store and inference infrastructure, model artifacts must be pre-loaded in the green environment before traffic switch, and both environments must produce identical predictions for the same inputs (to validate correctness before switch).
-
-**Q: How long should you maintain the blue environment after switching traffic to green?**
-A: Maintain blue for: the time needed to detect slow-burn failures (P99 latency degradation, accuracy drift) that don't appear immediately. Minimum: 24 hours after the switch, longer for models where business impact takes time to manifest (recommendation models: 48-72 hours to see session depth changes). During this window, keep blue warm (don't scale down) so rollback is instantaneous, not another deployment. Delete blue after: deployment is considered stable AND rollback window has passed.
-
-**Q: How do you validate the green environment before switching traffic?**
-A: Automated checks: run the full model evaluation suite on the green endpoint, replay a sample of recent production requests and compare predictions to blue (should match for the same inputs unless the model deliberately changed), run performance benchmarks (latency/throughput within 10% of blue), verify all dependencies are reachable. Manual validation: have the team test the green endpoint on realistic inputs. Gate the traffic switch on all automated checks passing—never switch manually without automated validation.
-
-**Q: When is blue-green deployment inappropriate for ML models?**
-A: Inappropriate when: 2x infrastructure cost is prohibitive, the new model requires different infrastructure (different GPU type, different serving framework) making side-by-side impossible, or the model change is intentionally backward-incompatible (different input schema). Alternatives: canary deployment (route small % of traffic to new model, not 0/100% switch), shadow mode (run new model but ignore its predictions), or rolling deployment (replace replicas one by one with brief overlap period). Choose based on your risk tolerance and infrastructure constraints.
-
-**Q: How do you handle database schema changes in conjunction with blue-green ML deployments?**
-A: Database changes that affect feature computation or model metadata must be backward-compatible with both blue and green. Expand-contract pattern: (1) expand—add new column/table without removing old, both blue and green work; (2) cut over—switch traffic to green; (3) contract—remove old column/table after blue is decommissioned. Never do a one-step database migration that breaks the currently-live blue environment. Feature store schema changes require the same careful coordination.
+**Q: Deployment takes 10 minutes, traffic increases during that window. Issue?**
+A: Blue might be overwhelmed if Green is still warming up (request rejected). Solution: pre-warm Green during off-peak, or use canary (small % traffic to Green) before full switch.
 
 ## Interview Quick-Reference
-**Blue-green?** Two envs, instant switch, instant rollback. More expensive, safer.
+| Phase | Blue | Green | Traffic |
+|-------|------|-------|---------|
+| Initial | v1 (prod) | - | 100% |
+| Deploy | v1 (prod) | v2 (test) | 100% |
+| Switch | - | v2 (prod) | 100% |
 
 ## Related Topics
-- [Canary Deployment](12-canary-deployment.md) — gradual alternative
-- [Production Readiness](23-production-readiness.md)
+- [Canary Deployment](12-canary-deployment.md)
+- [Model Serving](05-model-serving.md)
 
 ## Resources
-- [Blue-Green Deployment](https://martinfowler.com/bliki/BlueGreenDeployment.html)
+- [Blue-Green Deployment Guide](https://martinfowler.com/bliki/BlueGreenDeployment.html)

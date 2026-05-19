@@ -1,55 +1,113 @@
-# Model registry
+# Model Registry
 
 ## TL;DR
-Core ML system design pattern for production.
+Centralized repository for managing model artifacts, metadata, and versions. Tracks: model binaries, hyperparameters, metrics, training data, code version. Enables reproducibility, comparison, and safe deployment.
 
 ## Core Intuition
-[Intuitive explanation]
+A model registry is a version control system for trained models. Just as Git tracks code versions, a registry tracks model versions—enabling rollback, comparison, and safe promotion to production.
 
 ## How It Works
-[Technical details]
+**Model Lifecycle in Registry:**
+
+```mermaid
+graph TD
+    A[Train] -->|Register| B[Staging]
+    B -->|Validate| C{Metrics<br/>Good?}
+    C -->|Yes| D[Production]
+    C -->|No| E[Rejected]
+    D -->|Monitor| F{Drift<br/>Detected?}
+    F -->|Yes| G[Archived]
+    F -->|No| D
+```
+
+**Stored Metadata:**
+- Model binary (pickle, ONNX, SavedModel)
+- Hyperparameters (learning_rate, depth, ...)
+- Training metrics (accuracy, loss, F1)
+- Training data: commit hash, date range
+- Code version: git commit hash
+- Status: staging/production/archived
+- Owner, creation date, update date
 
 ## Key Properties / Trade-offs
-- Property 1
-- Property 2
+| Aspect | Git-based | Artifact Store | Managed Registry |
+|--------|-----------|---|---|
+| Ease of setup | Hard (manual) | Medium | Easy |
+| Version control | Manual | Automatic | Automatic |
+| Metadata | Limited | Good | Excellent |
+| Cost | Free | Low | Moderate |
+| Scalability | Poor | Medium | Excellent |
 
 ## Common Mistakes / Gotchas
-- Mistake 1
-- Mistake 2
+- **No registry:** models scattered across drives, impossible to reproduce
+- **No versioning:** can't rollback to previous model if new one fails
+- **Missing metadata:** don't remember what data was used for training
+- **No code tracking:** model trained on code that's since been deleted
+- **Ignoring status:** promote to prod without validation
 
 ## Best Practices
-- Store model artifacts, metadata, and metrics together as a single versioned unit
-- Implement promotion workflows: experiment → staging → production with approval gates
-- Use tags for searchability (model type, task, dataset, team)
-- Automate metric comparison before promotion — require improvement over current prod
-- Integrate registry with CI/CD for automatic registration on successful training runs
-- Store model cards and bias evaluation alongside model artifacts
-- Keep registry access audited — log all reads, writes, and promotions
+- **Immutable versions:** once registered, don't modify. Create new version if changes needed.
+- **Separate staging/prod:** validate models in staging before promotion.
+- **Tag with git hash:** enable reproduction. Can rebuild exact model from git commit.
+- **Store metrics alongside:** accuracy, precision, recall. Enable easy comparison.
+- **Automated promotion:** promote if test accuracy improves by >1%. Reduce manual overhead.
+- **Monitor production model:** detect drift, performance degradation. Trigger retraining alert.
+- **Cleanup old versions:** retention policy (keep 5 latest, delete rest). Manage storage cost.
+
+## Code Example
+
+```python
+import mlflow
+import mlflow.sklearn
+
+# Train and register
+with mlflow.start_run():
+    model = train_model(data)
+    mlflow.log_params({"lr": 0.01, "epochs": 100})
+    mlflow.log_metrics({"accuracy": 0.95, "f1": 0.92})
+    mlflow.sklearn.log_model(model, "model")
+    
+    # Register in registry
+    mlflow.register_model(
+        model_uri=f"runs:/{mlflow.active_run().info.run_id}/model",
+        name="fraud_detector"
+    )
+
+# Promote to production
+client = mlflow.tracking.MlflowClient()
+client.transition_model_version_stage(
+    name="fraud_detector",
+    version=2,
+    stage="Production"  # Staging -> Production
+)
+
+# Serve from registry
+production_model = mlflow.pyfunc.load_model(
+    "models:/fraud_detector/Production"
+)
+prediction = production_model.predict(data)
+```
 
 ## Interview Q&A
+**Q: How do you compare models in the registry?**
+A: Tag models with metrics (accuracy, F1, latency). Query registry for top-5 by accuracy. Deploy side-by-side with shadow traffic (serve both, compare predictions). Use A/B testing framework to measure business impact. Clear winner? Promote. Close call? Keep both, monitor longer.
 
-**Q: What metadata should every model version in the registry include?**
-A: Mandatory: training data version (or dataset hash), hyperparameters, evaluation metrics on test set, training code version (git commit), training infrastructure (GPU type, framework version), model size and inference latency benchmarks. Highly recommended: data lineage (what raw data was used), feature importance, behavioral tests results, fairness/bias metrics, and the business context (what problem this model solves). Without this metadata, debugging production issues or replicating experiments is extremely difficult.
-
-**Q: How do you implement model promotion gates (dev to staging to production)?**
-A: Each gate should have automated checks: dev to staging (unit tests pass, basic metrics above floor threshold, no regression vs. baseline), staging to production (full eval suite on held-out data, A/B test results meet statistical significance, latency/throughput benchmarks met, security scan clean). Some checks require human approval (model card review, compliance sign-off for regulated use cases). Never promote a model without automated gates—a broken model in production is more expensive than the time saved by skipping checks.
-
-**Q: How do you handle rollback when a production model starts failing?**
-A: Design for fast rollback from the start: keep the previous production model artifact registered and deployable in <5 minutes. Implement automated rollback triggers: if key metrics drop >X% in the first hour after deployment, automatically roll back. Have a manual rollback runbook that any on-call engineer can execute without ML expertise. After rollback, post-mortem to identify the root cause before attempting re-deployment. The ability to roll back quickly is more important than preventing all bad deployments.
-
-**Q: What is the difference between a model registry and a model store?**
-A: Model store: binary artifact storage (S3, GCS)—stores model files, serialized weights, ONNX files. Model registry: metadata management and lifecycle tracking—stores the version history, evaluation metrics, deployment status, and lineage of models. You need both: the registry knows about model versions and their metadata, and points to artifacts in the store. MLflow, Weights & Biases, and SageMaker Model Registry combine both; many teams use S3 + a custom metadata database separately.
-
-**Q: How do you manage model registry access control in a multi-team environment?**
-A: Implement role-based access: data scientists can register and evaluate models; ML engineers can promote to staging; deployment approvals require additional sign-off. Restrict production promotion to an automated CI/CD system (not individual humans). Maintain an audit log of all registry operations: who registered, promoted, or deprecated each model version. For regulated industries, the audit log is a compliance requirement, not just a best practice.
+**Q: Rollback scenario: new model deployed, but causing issues in production. What's the SOP?**
+A: Registry should store previous production model version. Within seconds, switch traffic back to previous model (configuration change, no redeployment). Investigate new model. Once fixed, re-register and redeploy. Total downtime: <1 minute. Without registry, rollback is manual and slow.
 
 ## Interview Quick-Reference
-| Question | What to say |
-|---|---|
-| "Explain?" | [Answer] |
+| Item | Detail |
+|------|--------|
+| Versioning | Immutable, git-backed |
+| Status | Staging → Production → Archived |
+| Metadata | Metrics, hyperparams, training data |
+| Promotion | Automated on test performance |
 
 ## Related Topics
-- [Related](other.md)
+- [Model Serving](05-model-serving.md) - serves from registry
+- [A/B Testing](14-ab-testing.md) - compares models
 
 ## Resources
-- [Reference](url)
+- [MLflow Model Registry](https://mlflow.org/docs/latest/model-registry.html)
+- [DVC Model Registry](https://dvc.org/)
+- [Seldon Model Store](https://docs.seldon.io/projects/seldon-core/en/latest/graph/model_signatures.html)
