@@ -36,12 +36,50 @@ Voice agents need fast end-to-end pipeline for real-time conversation.
 - Cost optimization strategies
 
 ## Key Trade-offs
-| Aspect | Option A | Option B | Choice | Rationale |
-|--------|----------|----------|--------|-----------|
-| Speed vs Quality | Fast (basic) | Slow (advanced) | Balanced | Trade-off based on SLA |
-| Cost vs Accuracy | Cheap model | Expensive model | Optimal mix | Cost-effective with acceptable accuracy |
 
-## Interview Q&A
+| Component | Latency | Accuracy | Cost | Model Quality |
+|-----------|---------|----------|------|---------|
+| ASR (fast) | 100ms | 85% WER | $0.01 | Lightweight |
+| ASR (accurate) | 300ms | 92% WER | $0.05 | Large |
+| NLU (rule-based) | 10ms | 80% | $0 | Poor |
+| NLU (ML) | 50ms | 92% | $0.001 | Good |
+| Full pipeline (streaming) | 250ms | 90%+ | $0.05 | Optimized |
+
+**Decision:** Real-time < 500ms → streaming ASR. Accuracy critical → large model. Cost critical → lightweight.
+
+---
+
+## Production Failure Scenarios
+
+**Scenario 1: ASR errors cascade**
+- Mishear "no" as "know". Entire response wrong. User frustrated.
+- Fix: Confidence-based disambiguation (ask for confirmation if <0.8).
+
+**Scenario 2: TTS latency kills UX**
+- Response generated in 200ms. TTS takes 500ms. User waits 700ms total.
+- Fix: Streaming TTS (start audio at first word, generate rest while playing).
+
+**Scenario 3: Multi-language complexity**
+- 20+ languages supported. Each language different accuracy/latency. Confusing routing.
+- Fix: Language detection first. Route to appropriate pipeline.
+
+**Scenario 4: Context loss across turns**
+- User: "Book a flight from NYC". System: "Where to?" User: "LA". System forgot NYC.
+- Fix: Session management. Track conversation history. Inject into NLU.
+
+---
+
+## Implementation Guidance
+
+**Wrong:** Assume streaming ASR gives real-time response (adds latency).
+**Right:** Streaming with parallel processing (NLU before full ASR done).
+
+**Wrong:** Single model for all languages.
+**Right:** Language-specific models for accuracy.
+
+---
+
+## Sophisticated Interview Q&A
 
 **Q1: How do you scale this system from current to 10x volume?**
 

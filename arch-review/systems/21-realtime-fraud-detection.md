@@ -35,12 +35,49 @@ Fraud evolves. Need real-time detection + explainable decisions.
 - Cost optimization strategies
 
 ## Key Trade-offs
-| Aspect | Option A | Option B | Choice | Rationale |
-|--------|----------|----------|--------|-----------|
-| Speed vs Quality | Fast (basic) | Slow (advanced) | Balanced | Trade-off based on SLA |
-| Cost vs Accuracy | Cheap model | Expensive model | Optimal mix | Cost-effective with acceptable accuracy |
 
-## Interview Q&A
+| Approach | Detection Rate (TPR) | False Positive Rate | Latency | Cost/Txn | Infrastructure |
+|----------|-------|-------|---------|----------|---------|
+| Rule-based | 85% | 2.0% | 5ms | $0.00001 | Low |
+| ML model | 95% | 0.5% | 30ms | $0.0001 | Medium |
+| ML + LLM explanation | 96% | 0.15% | 45ms | $0.0005 | High |
+| Ensemble (3 models) | 97% | 0.1% | 80ms | $0.001 | Very high |
+
+**Decision:** High volume + cost sensitive → ML. Regulatory/compliance → ML + LLM. Fraud-critical → ensemble.
+
+---
+
+## Production Failure Scenarios
+
+**Scenario 1: Model drift, FPR increases to 2%**
+- Fraud patterns evolve. Model trained 3 months ago. False positives spike. Users frustrated.
+- Fix: Weekly retraining pipeline. Drift detection (KS-test on transaction distribution). Auto-retrain if drift detected.
+
+**Scenario 2: Latency SLA breached at peak**
+- 100M txns/day peaks at 1.5M txns/min. Model inference queue builds up. Latency 150ms (SLA 50ms).
+- Fix: Model quantization (int8, 30% faster). Batch processing. Add GPU replicas.
+
+**Scenario 3: LLM hallucination in explanation**
+- Model flags transaction as fraud. LLM explanation wrong or contradictory. User disputes, loses trust.
+- Fix: Grounding checks. Explanation must cite specific features. Confidence thresholds.
+
+**Scenario 4: Training-serving skew**
+- Model trained on 90-day history. Production sees different feature distributions (new payment types, geographies).
+- Fix: Online validation. Compare training-set metrics to production metrics. Alert on divergence >5%.
+
+---
+
+## Implementation Guidance
+
+**Wrong:** Optimize for TPR alone. Ignore FPR.
+**Right:** Optimize for business ROI (cost of false positive vs cost of fraud).
+
+**Wrong:** Use expensive LLM for all explanations.
+**Right:** Tiered: simple rules for obvious fraud, LLM only for borderline cases.
+
+---
+
+## Sophisticated Interview Q&A
 
 **Q1: How do you scale this system from current to 10x volume?**
 

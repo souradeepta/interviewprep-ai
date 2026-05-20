@@ -35,12 +35,50 @@ Apps need multi-modal understanding. Current: separate APIs, high latency.
 - Cost optimization strategies
 
 ## Key Trade-offs
-| Aspect | Option A | Option B | Choice | Rationale |
-|--------|----------|----------|--------|-----------|
-| Speed vs Quality | Fast (basic) | Slow (advanced) | Balanced | Trade-off based on SLA |
-| Cost vs Accuracy | Cheap model | Expensive model | Optimal mix | Cost-effective with acceptable accuracy |
 
-## Interview Q&A
+| Approach | Latency | Accuracy | Cost/Request | Modalities | Fusion Quality |
+|----------|---------|----------|--------------|-----------|---------|
+| Sequential (separate APIs) | 1500ms | 92% | $0.01 | All 3 | Low |
+| Parallel (batch) | 800ms | 91% | $0.005 | All 3 | Low |
+| Unified model | 400ms | 94% | $0.003 | All 3 | High |
+| Lightweight unified | 250ms | 88% | $0.001 | All 3 | Medium |
+
+**Decision:** Accuracy critical → unified. Latency critical → lightweight. Cost critical → parallel batch.
+
+---
+
+## Production Failure Scenarios
+
+**Scenario 1: Model inconsistency across modalities**
+- Image + text agree → same prediction. Image + audio disagree → conflicts.
+- Fusion logic unclear. Output inconsistent.
+- Fix: Explicit fusion logic (voting, weighted combination). Test conflicts.
+
+**Scenario 2: One modality missing**
+- Request has image + text, but no audio. Model expects 3 inputs. Crashes.
+- Fix: Optional modalities. Fallback to best-effort subset.
+
+**Scenario 3: Latency SLA breached when audio streaming long**
+- Audio transcription takes 400ms for 60-second audio. Latency 400ms + processing 200ms = 600ms (SLA 500ms).
+- Fix: Streaming transcription (partial results early). Or: separate transcription pipeline.
+
+**Scenario 4: Memory explosion with large images**
+- 4K image + LLM context + audio embedding = high memory. OOM on GPU.
+- Fix: Image downsampling. Compression. Batch size reduction.
+
+---
+
+## Implementation Guidance
+
+**Wrong:** Require all 3 modalities. Fail if any missing.
+**Right:** Support any combination. Degrade gracefully.
+
+**Wrong:** Fuse at output layer (late fusion). Lose modality-specific info.
+**Right:** Fuse at multiple levels (early + late fusion).
+
+---
+
+## Sophisticated Interview Q&A
 
 **Q1: How do you scale this system from current to 10x volume?**
 

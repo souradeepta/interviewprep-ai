@@ -35,12 +35,50 @@ Generic recommendations underperform. Need personalized ranking.
 - Cost optimization strategies
 
 ## Key Trade-offs
-| Aspect | Option A | Option B | Choice | Rationale |
-|--------|----------|----------|--------|-----------|
-| Speed vs Quality | Fast (basic) | Slow (advanced) | Balanced | Trade-off based on SLA |
-| Cost vs Accuracy | Cheap model | Expensive model | Optimal mix | Cost-effective with acceptable accuracy |
 
-## Interview Q&A
+| Approach | CTR Lift | Latency | Cost/Rec | Personalization | Diversity |
+|----------|----------|---------|----------|-----------------|-----------|
+| Popularity-based | 0% | 1ms | $0 | None | Low |
+| Collaborative filtering | 10% | 50ms | $0.00001 | Medium | Medium |
+| Two-tower embedding | 13% | 150ms | $0.00005 | High | Medium |
+| Two-tower + LLM rank | 15% | 300ms | $0.0005 | Very high | High |
+| Multi-model ensemble | 16% | 500ms | $0.001 | Highest | Highest |
+
+**Decision:** Cost-critical → collaborative filtering. CTR optimization → two-tower. Diversity/quality → LLM rerank.
+
+---
+
+## Production Failure Scenarios
+
+**Scenario 1: Cold-start (new users with no history)**
+- New users get generic recs (embedding unfilled). CTR drops 50%.
+- Fix: Fallback to popularity-based. Hybrid recommendations (content + collaborative).
+
+**Scenario 2: LLM reranking too expensive**
+- LLM reranking costs $0.0005/rec, budget $0.00001/rec. System over budget.
+- Fix: Selective LLM (only top-5 candidates, not all 1000). Or: cheaper model.
+
+**Scenario 3: Embedding staleness**
+- User behavior changes (interests shift). User embeddings stale (updated weekly).
+- Fix: Real-time embedding update. Or: short-term decay (recent interactions weighted higher).
+
+**Scenario 4: Filter bubble (diversity loss)**
+- ML model optimizes CTR. Users see only similar items. Discovery low.
+- Fix: Diversity constraint. Enforce >30% new/diverse items. Monitor serendipity.
+
+---
+
+## Implementation Guidance
+
+**Wrong:** Optimize CTR/engagement alone. Ignore long-term user satisfaction.
+**Right:** Balance CTR + diversity + novelty. Monitor user churn, not just CTR.
+
+**Wrong:** Use expensive LLM for all reranking.
+**Right:** Tiered: ML for ranking, LLM only for final rerank if needed.
+
+---
+
+## Sophisticated Interview Q&A
 
 **Q1: How do you scale this system from current to 10x volume?**
 

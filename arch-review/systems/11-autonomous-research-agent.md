@@ -37,7 +37,55 @@ Request → Plan steps → Execute → Report.
 ## Key Trade-offs
 Depth vs breadth: deep (20 sources, 30min) vs broad (100 sources, 60min).
 
-## Interview Q&A
+## Detailed Trade-off Analysis
+
+| Approach | Turnaround | Sources | Completeness | Cost/Research | Hallucination | Accuracy |
+|----------|-----------|---------|--------------|---------------|---------------|----------|
+| Keyword search | 2 min | 5 | 30% | $0.10 | 10% | 50% |
+| Single-agent broad | 30 min | 50 | 70% | $3.00 | 5% | 75% |
+| Single-agent deep | 60 min | 20 | 80% | $5.00 | 3% | 85% |
+| Multi-agent parallel | 30 min | 100 | 85% | $8.00 | 2% | 90% |
+| Human-in-loop | 4 hours | 50 | 95% | $50.00 | <1% | 98% |
+
+**Decision:** Speed critical → single-agent broad. Quality critical → multi-agent + verification. Regulatory → human-in-loop.
+
+---
+
+## Production Failure Scenarios
+
+**Scenario 1: Agent hallucinates sources**
+- Agent cites "Smith et al. 2024" but source doesn't exist. User follows up, discovers false.
+- Trust destroyed.
+- Fix: Verify citations programmatically. Only cite if actually read. Confidence scoring.
+
+**Scenario 2: Agent goes in circles (infinite loops)**
+- Agent searches, reads, searches again (same query). Never converges. Timeout after 30 min.
+- Incomplete research.
+- Fix: Deduplicate searches. Track visited URLs. Early termination if progress stalls.
+
+**Scenario 3: Cost explosion from API calls**
+- Agent makes 1000 API calls per research (search, parse, LLM). Cost $10/research instead of $5.
+- Project unprofitable.
+- Fix: Budget-aware planning. Limit searches (max 50). Batch LLM calls. Cache results.
+
+**Scenario 4: Synthesis misses key finding**
+- Agent searches 20 sources, reads 15, synthesizes from 5. Misses critical paper.
+- Research incomplete.
+- Fix: Source ranking. Prioritize high-impact sources. Multi-stage synthesis (broad → deep).
+
+---
+
+## Implementation Guidance
+
+**Wrong:** Let agent search indefinitely. Trust it will complete.
+**Right:** Set budgets (max searches, max time, max cost). Early termination on stalled progress.
+
+**Wrong:** Synthesize from first N sources found.
+**Right:** Rank sources by relevance. Prioritize high-impact. Verify citations.
+
+---
+
+## Sophisticated Interview Q&A
 
 **Q1: Turnaround <30 min but 1K/day = 8.6 sec/research. Feasible?**
 

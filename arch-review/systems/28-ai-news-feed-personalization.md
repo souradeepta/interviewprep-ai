@@ -34,12 +34,49 @@ Generic feeds have low engagement. Need personalized + summarized content.
 - Cost optimization strategies
 
 ## Key Trade-offs
-| Aspect | Option A | Option B | Choice | Rationale |
-|--------|----------|----------|--------|-----------|
-| Speed vs Quality | Fast (basic) | Slow (advanced) | Balanced | Trade-off based on SLA |
-| Cost vs Accuracy | Cheap model | Expensive model | Optimal mix | Cost-effective with acceptable accuracy |
 
-## Interview Q&A
+| Approach | Ranking Latency | Summary Latency | Engagement | Cost/Impression | Diversity |
+|----------|--------|--------|-----------|----------|---------|
+| Simple rank (no summary) | 50ms | 0ms | 20% | $0 | High |
+| ML rank + cached summaries | 100ms | 50ms | 35% | $0.00001 | Medium |
+| ML rank + generated summaries | 200ms | 300ms | 40% | $0.0005 | Medium |
+| Personalized summaries | 200ms | 800ms | 42% | $0.001 | Low |
+
+**Decision:** Speed critical → cached summaries. Engagement critical → personalized. Cost critical → simple rank.
+
+---
+
+## Production Failure Scenarios
+
+**Scenario 1: Summary cost explosion**
+- Generate summaries for every feed article (1B/day). Cost $100K/month instead of $10K.
+- Fix: Selective summarization (top-10 articles per user, not all 1000).
+
+**Scenario 2: Filter bubble intensifies**
+- Personalization optimizes for clicks. Users see only confirmed beliefs. Echo chamber.
+- Fix: Diversity injection. Expose users to 20% novel content.
+
+**Scenario 3: Summary hallucination**
+- Summary invents facts not in article. User trusts wrong info from headline.
+- Fix: Strict grounding (only facts from source). Citation required.
+
+**Scenario 4: Summary latency kills engagement**
+- Ranking done in 100ms. Waiting for summary adds 800ms. Users bounce.
+- Fix: Streaming summaries (show headline immediately, summary arrives in background).
+
+---
+
+## Implementation Guidance
+
+**Wrong:** Personalize and summarize everything. Perfection at all cost.
+**Right:** Tiered personalization (fast rank + expensive summary for top-10).
+
+**Wrong:** Optimize engagement alone. Build filter bubble.
+**Right:** Balance engagement + diversity + novelty.
+
+---
+
+## Sophisticated Interview Q&A
 
 **Q1: How do you scale this system from current to 10x volume?**
 

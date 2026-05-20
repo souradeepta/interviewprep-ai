@@ -38,7 +38,52 @@ Query → Retrieve docs → Synthesize → Return.
 ## Key Trade-offs
 Latency vs quality: smaller model (200ms) vs larger (400ms).
 
-## Interview Q&A
+## Detailed Trade-off Analysis
+
+| Approach | Latency | Accuracy | Cost/Query | Hallucination | Maintenance |
+|----------|---------|----------|-----------|---------------|------------|
+| Keyword search | 50ms | 60% | $0.001 | N/A | Low |
+| Semantic (small model) | 200ms | 80% | $0.10 | 5% | Medium |
+| Semantic (large model) | 400ms | 85% | $0.50 | 2% | High |
+| Semantic + reranking | 350ms | 88% | $0.35 | 1% | High |
+| Multi-hop retrieval | 600ms | 90% | $0.60 | 0.5% | Very high |
+
+**Decision:** Speed critical → semantic small model. Accuracy critical → semantic large + reranking. Multi-doc synthesis → multi-hop.
+
+---
+
+## Production Failure Scenarios
+
+**Scenario 1: Embedding drift, relevance drops**
+- Embeddings indexed with E5-small. Later switch to E5-large. Cosine similarity scores incompatible.
+- Relevance drops to 70%. Users complain.
+- Fix: Re-index with new model. Version embeddings. Validate before switch.
+
+**Scenario 2: Hallucination undetected**
+- LLM synthesis makes up facts. Grounding check insufficient (uses synonyms, claims valid). Users trust wrong info.
+- Fix: Strict grounding (only phrases from docs). Check source attribution. Flag if confidence <0.8.
+
+**Scenario 3: Latency SLA breach at peak**
+- 100 queries/min at peak. LLM queue builds up. Response time 800ms (SLA 400ms).
+- Fix: Model quantization (200ms). Request batching. Caching common queries (80% cache hit possible).
+
+**Scenario 4: Embedding index corrupted**
+- Index out-of-sync with docs. Deleted docs still retrievable. New docs not indexed.
+- Fix: Rebuild index weekly. Version snapshots. Validation checks (expected doc count matches).
+
+---
+
+## Implementation Guidance
+
+**Wrong:** LLM synthesis without grounding. Trust LLM output.
+**Right:** Strict grounding against retrieved docs. Remove claims not in source. Show source attribution.
+
+**Wrong:** Optimize latency without measuring accuracy impact.
+**Right:** Measure accuracy-latency frontier. Choose Pareto-optimal point based on SLA.
+
+---
+
+## Sophisticated Interview Q&A
 
 **Q1: Latency <400ms but LLM takes 300ms. How?**
 

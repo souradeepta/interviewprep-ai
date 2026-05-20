@@ -35,12 +35,49 @@ Video platforms need instant scene understanding for recommendations + moderatio
 - Cost optimization strategies
 
 ## Key Trade-offs
-| Aspect | Option A | Option B | Choice | Rationale |
-|--------|----------|----------|--------|-----------|
-| Speed vs Quality | Fast (basic) | Slow (advanced) | Balanced | Trade-off based on SLA |
-| Cost vs Accuracy | Cheap model | Expensive model | Optimal mix | Cost-effective with acceptable accuracy |
 
-## Interview Q&A
+| Approach | Processing Time | Accuracy | Cost/Video | Detail Level | Infrastructure |
+|----------|--------|----------|-----------|----------|---------|
+| Frame sampling (1fps) | <1s | 70% | $0.01 | Low | CPU |
+| Dense sampling (5fps) | 3s | 85% | $0.05 | Medium | GPU |
+| All frames (30fps) | 10s | 90% | $0.30 | High | GPU cluster |
+| Hierarchical (5fps + detail) | 5s | 88% | $0.10 | High | GPU + CPU mix |
+
+**Decision:** Real-time content → 5fps. Archive/batch → all frames. Speed critical → hierarchical.
+
+---
+
+## Production Failure Scenarios
+
+**Scenario 1: GPU memory exceeded**
+- Process all frames. Memory OOM. System crashes. 10K videos queued.
+- Fix: Adaptive sampling (start 5fps, increase if needed). Memory budgeting.
+
+**Scenario 2: LLM narration cost explosion**
+- Narrate every frame (30fps). Cost $10/video instead of $0.30.
+- Fix: Keyframe detection (narrate only scene changes, not every frame).
+
+**Scenario 3: Multi-language inference lag**
+- Narrate in 10 languages sequentially. 5s processing becomes 50s.
+- Fix: Batch translate. Or: narrate English first, translate in background.
+
+**Scenario 4: Quality vs latency conflict**
+- User wants <5s. But 85% accuracy requires 3s processing. Need 2s for other steps.
+- Fix: Streaming response (start narration at 2s, add detail over time).
+
+---
+
+## Implementation Guidance
+
+**Wrong:** Process all frames (30fps). Never drop frames.
+**Right:** Adaptive sampling. Start coarse (1fps), refine on demand.
+
+**Wrong:** Narrate every frame in multiple languages.
+**Right:** Narrate keyframes. Translate asynchronously.
+
+---
+
+## Sophisticated Interview Q&A
 
 **Q1: How do you scale this system from current to 10x volume?**
 

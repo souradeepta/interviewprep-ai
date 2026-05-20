@@ -34,12 +34,50 @@ Operators need instant anomaly alerts + explanations for action.
 - Cost optimization strategies
 
 ## Key Trade-offs
-| Aspect | Option A | Option B | Choice | Rationale |
-|--------|----------|----------|--------|-----------|
-| Speed vs Quality | Fast (basic) | Slow (advanced) | Balanced | Trade-off based on SLA |
-| Cost vs Accuracy | Cheap model | Expensive model | Optimal mix | Cost-effective with acceptable accuracy |
 
-## Interview Q&A
+| Method | Detection Latency | False Positive Rate | Accuracy | Cost | Interpretability |
+|--------|---|---|---|------|---------|
+| Statistical (σ threshold) | 5ms | 10% | 80% | $0 | Very high |
+| ML (isolation forest) | 50ms | 5% | 88% | $100/day | Medium |
+| Deep learning (LSTM) | 200ms | 2% | 93% | $1K/day | Low |
+| Hybrid (ML + LLM explain) | 100ms | 2% | 92% | $500/day | High |
+
+**Decision:** Interpretability critical → statistical + LLM. Accuracy critical → LSTM. Speed critical → statistical.
+
+---
+
+## Production Failure Scenarios
+
+**Scenario 1: LLM hallucination in explanation**
+- Anomaly detected. LLM explanation wrong ("CPU spike due to backup" but no backup running).
+- User takes wrong action.
+- Fix: Explanation grounding (explain only observed facts, not speculation).
+
+**Scenario 2: Cascade of false positives**
+- Single anomaly triggers alert. Operator investigates. False alarm. Operator ignores next real anomaly.
+- Fix: Confidence scoring. Only high-confidence anomalies → alerts.
+
+**Scenario 3: Model trains on bad data**
+- Outliers in training data become "normal". Model doesn't detect real anomalies.
+- Fix: Data validation. Outlier removal. Or: online learning (update model as new anomalies discovered).
+
+**Scenario 4: Seasonal patterns misclassified**
+- October spike is normal (seasonal). Model flags as anomaly. Alert fatigue.
+- Fix: Seasonal decomposition. Compare to last year's pattern, not global baseline.
+
+---
+
+## Implementation Guidance
+
+**Wrong:** Alert on every anomaly. Trust everything.
+**Right:** Multi-level confidence. Only high-confidence anomalies generate alerts.
+
+**Wrong:** Explain using LLM alone. Trust output.
+**Right:** Grounded explanations. Reference actual observed metrics.
+
+---
+
+## Sophisticated Interview Q&A
 
 **Q1: How do you scale this system from current to 10x volume?**
 

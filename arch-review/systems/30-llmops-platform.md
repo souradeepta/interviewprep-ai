@@ -36,12 +36,50 @@ Comprehensive platform, $10K-50K/month depending on scale.
 - Cost optimization strategies
 
 ## Key Trade-offs
-| Aspect | Option A | Option B | Choice | Rationale |
-|--------|----------|----------|--------|-----------|
-| Speed vs Quality | Fast (basic) | Slow (advanced) | Balanced | Trade-off based on SLA |
-| Cost vs Accuracy | Cheap model | Expensive model | Optimal mix | Cost-effective with acceptable accuracy |
 
-## Interview Q&A
+| Platform | Evaluation Speed | Cost Control | Safety | Ease of Use | Scalability |
+|----------|--------|-----------|--------|---------|---------|
+| In-house custom | Slow (weeks) | Manual | Variable | Hard | Limited |
+| MLflow-based | Medium (days) | Basic | Basic | Medium | Good |
+| LangChain + tools | Medium (days) | Manual | Manual | Medium | Good |
+| Managed (Ray Tune) | Fast (hours) | Automated | Good | Easy | Excellent |
+| Full LLMOps platform | Very fast (min) | Full control | Excellent | Very easy | Enterprise |
+
+**Decision:** Startup → MLflow. Growth → managed platform. Enterprise → full platform.
+
+---
+
+## Production Failure Scenarios
+
+**Scenario 1: Cost explodes during evaluation**
+- Evaluate 1K prompt variations on GPT-4. Cost $50K (not budgeted).
+- Fix: Cost estimates before evaluation. Approval gates. Sample-based evaluation.
+
+**Scenario 2: A/B test interferes with production**
+- Fine-tuned model worse than baseline. Rollback fails. Bad model in prod.
+- Fix: Staging evaluation. Validation gates. Automatic rollback on failure.
+
+**Scenario 3: Multi-tenant data leakage**
+- Org A's fine-tuning data exposed to Org B (shared infrastructure).
+- Fix: Data isolation. Encryption. Audit logs.
+
+**Scenario 4: Model monitoring missing**
+- Deploy fine-tuned model. No monitoring. Quality degrades silently.
+- Fix: Continuous evaluation. Drift detection. Auto-revert if quality drops.
+
+---
+
+## Implementation Guidance
+
+**Wrong:** Manual fine-tuning for each use case.
+**Right:** Platform-driven with templates, auto-evaluation, cost control.
+
+**Wrong:** Single model for all use cases.
+**Right:** Model registry with version control + staged rollout.
+
+---
+
+## Sophisticated Interview Q&A
 
 **Q1: How do you scale this system from current to 10x volume?**
 

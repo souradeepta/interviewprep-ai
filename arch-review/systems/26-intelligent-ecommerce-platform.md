@@ -35,12 +35,49 @@ E-commerce competitive. Need AI across entire stack for GMV growth.
 - Cost optimization strategies
 
 ## Key Trade-offs
-| Aspect | Option A | Option B | Choice | Rationale |
-|--------|----------|----------|--------|-----------|
-| Speed vs Quality | Fast (basic) | Slow (advanced) | Balanced | Trade-off based on SLA |
-| Cost vs Accuracy | Cheap model | Expensive model | Optimal mix | Cost-effective with acceptable accuracy |
 
-## Interview Q&A
+| Approach | GMV Lift | Latency | Infrastructure | Maintenance | User Experience |
+|----------|----------|---------|----------------|------------|-----------------|
+| No AI | 0% | 10ms | Minimal | Low | Static |
+| Search + Recs | 5% | 200ms | Medium | Medium | Personalized search |
+| Full stack AI | 20% | 500ms | High | High | Fully personalized |
+| Lightweight AI | 12% | 100ms | Low | Low | Partial personalization |
+
+**Decision:** MVP → lightweight. Mature → full stack. Time-to-market → lightweight first.
+
+---
+
+## Production Failure Scenarios
+
+**Scenario 1: Personalization too aggressive, users feel stalked**
+- Every recommendation knows user history. Feels creepy. User privacy concerns.
+- Fix: Privacy-conscious personalization (anonymized cohorts, not individual tracking).
+
+**Scenario 2: Dynamic pricing discovered by users**
+- Users see different prices. "Why is my price $50, yours $30?" Trust destroyed.
+- Fix: Transparent pricing (discount shown, justified). Or: uniform pricing for same cohort.
+
+**Scenario 3: Recommendation diversity loss**
+- Personalization optimizes for known preferences. New users stuck in filter bubble.
+- Fix: Inject novelty (30% new items). Serendipity metrics.
+
+**Scenario 4: Search + recs conflict**
+- User searches "cheap phones". Recommendations "premium phones". Confusing.
+- Fix: Align intent (if searching cheap, recommend cheap). Or: separate results.
+
+---
+
+## Implementation Guidance
+
+**Wrong:** Maximize GMV alone. Ignore user experience.
+**Right:** Balance GMV + satisfaction + trust. Long-term retention > short-term revenue.
+
+**Wrong:** Centralize all AI. Single-point-of-failure.
+**Right:** Modular (search AI separate from recs, separate from pricing).
+
+---
+
+## Sophisticated Interview Q&A
 
 **Q1: How do you scale this system from current to 10x volume?**
 

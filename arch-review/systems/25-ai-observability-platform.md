@@ -35,12 +35,49 @@ AI systems degrade silently. Need comprehensive observability.
 - Cost optimization strategies
 
 ## Key Trade-offs
-| Aspect | Option A | Option B | Choice | Rationale |
-|--------|----------|----------|--------|-----------|
-| Speed vs Quality | Fast (basic) | Slow (advanced) | Balanced | Trade-off based on SLA |
-| Cost vs Accuracy | Cheap model | Expensive model | Optimal mix | Cost-effective with acceptable accuracy |
 
-## Interview Q&A
+| Monitoring Level | Coverage | Detection Latency | False Positives | Cost | Setup Time |
+|-----------------|----------|---|---|------|---------|
+| None | 0% | N/A | N/A | $0 | 0 hours |
+| Basic (metrics only) | 50% | 1 day | 20% | $1K/mo | 1 week |
+| Standard (drift + alerts) | 80% | 1 hour | 5% | $10K/mo | 2 weeks |
+| Advanced (model + data + cost) | 95%+ | 5 min | <1% | $50K/mo | 1 month |
+
+**Decision:** Startup → basic. Series A → standard. Enterprise → advanced.
+
+---
+
+## Production Failure Scenarios
+
+**Scenario 1: Alert fatigue from false positives**
+- Drift detection triggers 10x/day. 95% false alarms. Team ignores real alerts.
+- Fix: Tighter thresholds. Multi-day confirmation before alerting.
+
+**Scenario 2: Observability system itself fails**
+- Monitoring platform down. No visibility into which models are failing.
+- Fix: Redundant monitoring (multiple dashboards, backup alerts).
+
+**Scenario 3: Drift detected but cause unknown**
+- Model accuracy drops 5%. Drift alert triggered. But WHY? Data drift? Code change? Confusion.
+- Fix: Root cause detection (which features drifted? which cohorts affected?).
+
+**Scenario 4: Cost tracking inaccurate**
+- Monitoring shows $100/day cost, actual is $500/day (missing LLM charges).
+- Fix: Comprehensive cost tracking (all APIs, all models, all infrastructure).
+
+---
+
+## Implementation Guidance
+
+**Wrong:** Log everything (costs explode, noise).
+**Right:** Smart sampling (log 100% of errors, 1% of normal).
+
+**Wrong:** Reactive monitoring (alert after problem already happened).
+**Right:** Predictive (alert before SLA breach).
+
+---
+
+## Sophisticated Interview Q&A
 
 **Q1: How do you scale this system from current to 10x volume?**
 
