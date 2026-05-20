@@ -1,10 +1,10 @@
 # Autonomous Multi-Step Research Agent
 
-## TL;DR
-Agent autonomously researches topics: searches web, reads docs, synthesizes findings. 1K research requests/day, <30 minute turnaround, 80% answer completeness.
+## Overview
+An autonomous research agent conducting multi-step investigation: web search, document reading, information synthesis, and report generation. Handles 1K+ research requests daily with sub-30-minute turnaround and 80% completeness for complex topics. Reduces research time from days to hours.
 
 ## Problem Statement
-Researchers waste days on literature search. Need automated research agent that finds + synthesizes.
+Research-intensive work (analysts, academics, strategists) is bottlenecked by information gathering: (1) time-consuming (literature search, reading papers, extracting relevant info = 5-10 days/research question), (2) incomplete (researcher misses key sources, tunnel vision), (3) expertise dependent (quality varies by researcher knowledge), (4) tedious (same search patterns repeat across team). Economic impact: 100 researchers × 5 days per research question = 500 days of wasted time per month. Solution: autonomous agent (1) searches systematically (web + docs + databases), (2) reads and summarizes, (3) synthesizes across sources, (4) generates report, (5) flags uncertainties. Enables humans to focus on analysis/interpretation instead of gathering.
 
 ## Requirements
 

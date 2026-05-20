@@ -1,10 +1,10 @@
 # Content Moderation Platform with LLM
 
-## TL;DR
-LLM-powered moderation for 100M daily user posts (text, images, video). Classifies: hate speech, violence, spam, adult content. 99.9% uptime, <500ms latency per item, <1% false positive rate.
+## Overview
+An LLM-powered content moderation system processing 100M+ daily user-generated posts (text, images, video) to classify policy violations (hate speech, violence, spam, adult content) with <500ms latency, <1% false positive rate, and 99.9% availability. Balances accuracy with speed while maintaining human appeal workflows.
 
 ## Problem Statement
-Platform receives 100M posts/day. Manual moderation impossible. Need instant automated decisions + human appeal queue.
+Social platforms face exponential growth in user-generated content and regulatory pressure: (1) 100M posts/day is impossible to manually moderate (would require 1000+ moderators @ $40M+/month), (2) regulatory liability (DMCA, Online Safety Bill, hate speech laws vary by jurisdiction), (3) brand damage from unmoderated harmful content (hate speech → advertiser backlash, violence → news coverage), (4) user trust (users report feeling unsafe when exposed to abuse). Current manual processes: 2-7 day review lag, leading to persistent harmful content. Automation targets: (1) sub-500ms response (remove content while still visible to few), (2) <1% false positive rate (minimize innocent content removal), (3) <2% false negative rate (catch serious violations), (4) consistency (apply same rules across all users/regions). Economic impact: $1M/day in brand value at risk from moderation failure, but also $500K/month in moderation costs.
 
 ## Requirements
 

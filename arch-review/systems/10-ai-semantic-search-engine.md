@@ -1,10 +1,10 @@
 # LLM-Powered Enterprise Semantic Search
 
-## TL;DR
-Semantic search over enterprise documents + LLM summaries. 100K docs indexed, 50K daily queries, <400ms latency, 85% relevance.
+## Overview
+An enterprise semantic search engine indexing 100K+ documents and handling 50K+ daily queries with <400ms latency and 85% relevance. Combines dense vector retrieval with LLM-generated summaries to enable instant document discovery without keyword limitations.
 
 ## Problem Statement
-Keyword search misses semantic matches. Users need instant document retrieval + summarized answers.
+Traditional keyword search fails users: (1) semantic mismatch (user asks "how to reset password" but docs say "account recovery"), (2) vocabulary gap (domain-specific terms not indexed), (3) synonyms (multiple ways to describe same concept), (4) long tail (obscure topics poorly ranked), (5) answer fragmentation (answer split across multiple docs, user must read all). Economic impact: (1) users abandon search after 3 irrelevant results, (2) helpdesk calls increase (user can't find answer), (3) employee productivity lost (searching instead of working). Scale challenge: (1) 100K documents is too large for LLM context, (2) latency must be <400ms (user experience), (3) cost must be reasonable (50K queries/day). Solution: dense embeddings for semantic matching, re-ranking for relevance, LLM summaries for quick answers.
 
 ## Requirements
 

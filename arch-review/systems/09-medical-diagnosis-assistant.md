@@ -1,10 +1,10 @@
 # Medical Diagnosis Assistant (Clinical Decision Support)
 
-## TL;DR
-LLM + ML predicts diagnoses from symptoms, medical history, lab results. 5K patient cases/day, 90% accuracy for common diseases, <3 minute decision support. Not autonomous—must be reviewed by physician.
+## Overview
+A clinical decision support system combining LLM and ML to analyze symptoms, medical history, and lab results, generating differential diagnosis lists with confidence scores. Processes 5K+ patient cases daily with 90% accuracy for common conditions and sub-3-minute analysis. Non-autonomous—requires physician review and final diagnosis.
 
 ## Problem Statement
-ER physicians spend 30% time on diagnosis research. Need instant differential diagnosis list + flagged critical conditions.
+Emergency medicine faces time pressure and diagnostic challenges: (1) ER physicians spend 30-40% of time on diagnosis research (looking up conditions, drug interactions, rare presentations), (2) cognitive load (manage 20+ patients simultaneously, high stress), (3) anchoring bias (first diagnosis biases judgment), (4) rare disease blindness (missed zebras - unusual conditions misdiagnosed as common), (5) high stakes (misdiagnosis = patient harm, liability). Economic impact: (1) diagnostic errors in 5% of cases (preventable with better information), (2) excess testing (over-investigation wastes $100K+/day per hospital), (3) length of stay increases (uncertainty → admit for observation). Solution: instant differential diagnosis list backed by evidence, flagged rare conditions, medication interactions - augment physician judgment, not replace it.
 
 ## Requirements
 

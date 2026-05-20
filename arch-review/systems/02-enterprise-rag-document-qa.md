@@ -1,11 +1,10 @@
 # Enterprise RAG: Document Q&A System
 
-## TL;DR
-Retrieval-Augmented Generation system for 100K enterprise documents (500M tokens). Vector search + re-ranking pipeline returns top-5 accurate articles in <500ms. Used by 5K employees daily with 90% answer accuracy.
+## Overview
+A retrieval-augmented generation (RAG) system providing instant semantic search and LLM-summarized answers across 100K enterprise documents (500M tokens total). Enables 5K+ daily employees to find accurate answers in <500ms with 90% precision, eliminating manual document searches and reducing time-to-resolution.
 
 ## Problem Statement
-
-Enterprise has 100K documents (policies, guides, FAQs, technical specs) scattered across drives, wikis, SharePoint. Employees waste 30-60% of time searching. Goal: instant semantic search over all docs with LLM-summarized answers.
+Enterprise knowledge management is fragmented and time-consuming: (1) documents scattered across tools (SharePoint, Confluence, drives, email), (2) search is keyword-based (misses semantic meaning), (3) employees spend 2-3 hours/day searching for answers, (4) important knowledge trapped in emails/chats (hard to find), (5) onboarding slow (new employees take 2-4 weeks to find relevant docs). Economic impact: 5K employees × 2 hours/day wasted = 10K hours/day = $400K/day in lost productivity. Automation targets: (1) unified search across all sources, (2) semantic understanding (find answers to "how do I reset password?" even if docs don't use that exact phrase), (3) instant answers (<500ms), (4) LLM summaries (no need to read full document), (5) accurate (90%+ precision to build trust).
 
 
 ## Requirements

@@ -1,10 +1,10 @@
 # Real-time Multilingual Translation Service
 
-## TL;DR
-Neural translation serving 100+ language pairs, <500ms latency for user-facing translations and <5s for batch. 1M daily translations, cost <$0.01/translation using model caching and regional inference.
+## Overview
+A neural machine translation service supporting 100+ language pairs with <500ms user-facing latency and <5s batch processing. Handles 1M daily translations at $0.01/translation through intelligent model selection, caching, and regional deployment.
 
 ## Problem Statement
-Global apps need instant translation. Manual API integration is complex. Users expect sub-500ms latency.
+Global applications face translation challenges: (1) user expectations (sub-500ms latency for instant translation), (2) cost (naive approach uses expensive large models for all requests), (3) complexity (integrate 3+ translation APIs, handle fallbacks), (4) latency (sequential API calls add overhead), (5) quality variation (some language pairs better on Google, others on AWS). Impact: slow translation drives user churn (users abandon app during translate wait), poor quality embarrasses brand (mistranslations go viral on social). Cost: 1M translations/day × $0.05/translation (naive) = $50K/month. Solution: intelligent routing (simple translations use fast/cheap model, complex use expensive), caching (common phrases), regional deployment (reduce network latency), quality monitoring.
 
 ## Requirements
 

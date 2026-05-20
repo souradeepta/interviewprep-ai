@@ -1,10 +1,10 @@
 # LLM Fine-tuning Infrastructure at Scale
 
-## TL;DR
-Multi-tenant fine-tuning platform supporting 10K concurrent fine-tuning jobs on 100+ model variants (Mistral, Llama, Claude, GPT). Auto-scaling on GPUs, cost <$0.50 per training hour, validation in <1 hour.
+## Overview
+A multi-tenant LLM fine-tuning platform supporting 10K+ concurrent jobs across 100+ model variants (Mistral, Llama, Claude, GPT) with automated GPU scaling, cost tracking, and sub-1-hour validation cycles. Enables organizations to customize LLMs on proprietary data without infrastructure burden.
 
 ## Problem Statement
-Organizations want to fine-tune LLMs on proprietary data but lack infrastructure. Manual setup is complex, costs unpredictable, compute underutilized.
+Organizations need customized LLMs (domain-specific knowledge, company tone/style, task-specific optimization) but face barriers: (1) fine-tuning infrastructure complex (GPU provisioning, distributed training, monitoring), (2) cost unpredictable (overprovisioning wastes money, underprovisioning fails), (3) skill gap (requires ML engineering expertise), (4) turnaround slow (setup infrastructure, train, validate = 1-2 weeks), (5) cost validation slow (no visibility into actual per-job cost). Impact: companies choose off-the-shelf models instead of customizing (sacrifice accuracy), or hire ML teams (expensive, slow). Solution: self-service platform where users: (1) upload data, (2) click "fine-tune", (3) get optimized model in 24 hours, (4) pay only for compute used.
 
 ## Requirements
 

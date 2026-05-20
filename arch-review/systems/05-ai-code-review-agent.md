@@ -1,10 +1,10 @@
 # Automated Code Review with LLM
 
-## TL;DR
-LLM-powered code review agent analyzes PRs, flags bugs, security issues, style violations. Handles 500 PRs/day with 2-minute review time, 85% accuracy for common issues (SQL injection, N+1 queries, memory leaks).
+## Overview
+An LLM-powered code review agent analyzing pull requests to detect bugs, security vulnerabilities, performance issues, and style violations. Processes 500+ PRs daily with 2-minute review time, 85% accuracy for common patterns, and integration with GitHub/GitLab/Bitbucket.
 
 ## Problem Statement
-Code review is bottleneck. Human reviewers spend hours on style/syntax checks instead of logic review. Need fast, consistent automated first-pass review.
+Code review is a critical but resource-intensive bottleneck: (1) human reviewers spend 60% of time on style/syntax (low-value), only 40% on logic/security (high-value), (2) review turnaround 4-8 hours (blocks development velocity), (3) inconsistency (review quality depends on reviewer expertise), (4) scaling problem (each engineer can review 2-3 PRs/day, but production generates 10+/day), (5) context switching cost (reviewer distracted, switches context). Impact: slow code review delays features, bugs slip through inconsistent reviews, junior engineers learn from poor reviews. Economics: 500 PRs/day × 2 hours/PR = 1000 engineer-hours/day = $500K/month in review cost. Solution: automate style/syntax/known-bad-patterns (free up 60% of reviewer time), flag security issues upfront, improve consistency with standards.
 
 ## Requirements
 

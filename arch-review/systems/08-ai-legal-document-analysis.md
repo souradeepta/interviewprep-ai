@@ -1,10 +1,10 @@
 # AI Legal Document Analysis & Contract Review
 
-## TL;DR
-LLM analyzes contracts/legal docs, extracts key clauses (payment terms, liability, IP), flags risks (unfair terms, missing clauses). 10K docs/month, 95% accuracy, <2 minute review time.
+## Overview
+An LLM-powered legal document analysis system extracting key contract clauses, flagging risks, and providing compliance checks across 10K+ monthly documents with 95% accuracy and sub-2-minute review time. Reduces legal review costs by 80% while maintaining accuracy.
 
 ## Problem Statement
-Legal review is expensive ($200-500/hour). Need instant first-pass analysis + flagged risks for lawyer review.
+Legal contract review is expensive and slow: (1) high cost ($200-500/hour expert lawyers), (2) bottleneck (limited lawyers available, backlogs grow), (3) high-stakes (mistakes cost millions in unfavorable terms), (4) tedious (same clause analysis repeated across thousands of contracts), (5) inconsistency (lawyer expertise varies). Economic impact: 10K contracts/month × 3 hours/contract × $300/hour = $9M/month if all manual. For large organizations, this is untenable. Current approach: junior lawyers do first pass (cheaper), mistakes slip through. Solution: AI does first pass (95% accuracy, $100 cost per contract), flags risks, lawyers do final review (15 min instead of 3 hours). Savings: 90% cost reduction + faster turnaround + better risk identification.
 
 ## Requirements
 

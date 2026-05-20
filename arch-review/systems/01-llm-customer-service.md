@@ -1,11 +1,10 @@
 # LLM-Powered Customer Service Platform
 
-## TL;DR
-Real-time customer support using LLM intent routing, RAG for knowledge base, and multi-turn conversation management. Handles 10K concurrent chats with sub-2s response latency and 95% issue resolution without human escalation.
+## Overview
+An LLM-powered customer service platform combining intent routing, retrieval-augmented generation (RAG), and multi-turn conversation management to handle 50K+ daily inquiries across channels (email, chat, phone) with sub-2 second response latency and 95% issue resolution without escalation.
 
 ## Problem Statement
-
-Enterprise customer support receives 50K daily inquiries across multiple channels (email, chat, phone). Current system: manual routing, long response times, inconsistent quality. Goal: automated first-response, instant resolution for common issues, intelligent escalation.
+Enterprise customer support faces scaling challenges: (1) high volume (50K inquiries/day), (2) slow response (2-4 hours average), (3) inconsistent quality (answer depends on agent experience), (4) high cost (support staff 50+ FTE @ $2M/year), (5) customer frustration (long wait times, repetitive questions). Economic impact: poor support drives 5-10% customer churn (lost lifetime value $500-1000 per customer). Automation targets: (1) instant first response (<2 seconds), (2) 90%+ issue resolution without human (common questions: password reset, billing, shipping), (3) intelligent escalation (complex issues → human, route to right team), (4) cost reduction (support cost -60% with automation), (5) quality improvement (consistent, accurate answers).
 
 
 ## Requirements
