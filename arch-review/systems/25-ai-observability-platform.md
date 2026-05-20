@@ -73,10 +73,81 @@ graph TB
 | Alerting | 1000+ alerts/day | <1 min | $10/day | 95% | <2 min notify |
 | **E2E latency** | **Real-time ingestion** | **~5 min** | **~876/day** | **Ensemble** | **<5 min alert** |
 
+### Diagram 2: Drift Detection & Root Cause Analysis Pipeline
+```mermaid
+graph TD
+    A[Incoming Predictions] -->|real-time| B[Metrics Aggregation]
+    B -->|hourly rollup| C[Drift Detector]
+    C -->|statistical tests| D{Drift Detected?}
+    D -->|No| E["Continue Monitoring<br/>No Alert"]
+    D -->|Yes| F[Root Cause Analyzer]
+    F -->|analyze| G{Issue Type?}
+    G -->|Data Drift| H["Distribution Shift<br/>Feature changes"]
+    G -->|Model Drift| I["Accuracy Drop<br/>Model degradation"]
+    G -->|Infrastructure| J["Latency Increase<br/>System issue"]
+    H -->|action| K["Recommendation:<br/>Retrain on new data"]
+    I -->|action| L["Recommendation:<br/>Rollback or patch"]
+    J -->|action| M["Recommendation:<br/>Scale infrastructure"]
+    K -->|alert| N["Alert Engineer<br/>with Context"]
+    L --> N
+    M --> N
+```
+
+### Diagram 3: Monitoring Coverage vs Detection Latency vs Cost
+```mermaid
+graph TB
+    A[Monitoring Strategy] -->|Basic<br/>Metrics Only| B["Coverage: 50%<br/>Latency: 1 day<br/>False Pos: 20%<br/>Cost: $1K/mo"]
+    A -->|Standard<br/>Drift+Alerts| C["Coverage: 80%<br/>Latency: 1 hour<br/>False Pos: 5%<br/>Cost: $10K/mo"]
+    A -->|Advanced<br/>Full Stack| D["Coverage: 95%+<br/>Latency: 5 min<br/>False Pos: <1%<br/>Cost: $50K/mo"]
+    B -->|stage| E["Startups<br/>Early stage"]
+    C -->|stage| F["Series A<br/>Growth stage"]
+    D -->|stage| G["Enterprise<br/>Mission critical"]
+```
+
+### Diagram 4: Model Issues Diagnosis Matrix
+```mermaid
+graph TB
+    A[Problem Detected] -->|check| B[Feature Statistics]
+    B -->|unchanged| C["Data Drift<br/>Unlikely"]
+    B -->|changed| D["Data Drift<br/>CONFIRMED"]
+    A -->|check| E[Model Latency]
+    E -->|unchanged| F["Infra Issue<br/>Unlikely"]
+    E -->|increased| G["Infrastructure<br/>Degradation"]
+    A -->|check| H[Accuracy on<br/>Historical Test Set]
+    H -->|drops| I["Model Drift<br/>CONFIRMED"]
+    H -->|stable| J["Data Drift or<br/>Measurement Error"]
+    D -->|recommend| K["Collect new data<br/>Retrain"]
+    G -->|recommend| L["Scale resources<br/>Optimize code"]
+    I -->|recommend| M["Rollback version<br/>Debug code"]
+    J -->|recommend| N["Investigate<br/>source bias"]
+```
+
 ## AI/ML Integration Points
-- Where LLM/ML models are used
-- Model selection and routing logic
-- Cost optimization strategies
+
+- **Drift Detection Model (Statistical + ML):** Detect performance degradation
+  - Input: Historical prediction results + actual outcomes + features
+  - Methods: Statistical tests (KL divergence for data drift, AUROC change for model drift)
+  - ML augmentation: Isolation Forest for anomaly detection, autoregressive models for trend forecasting
+  - Output: Drift signal + confidence score
+  - Tuning: Sensitivity tradeoff (lower threshold = faster detection, higher false positive rate)
+  
+- **Root Cause Analyzer (ML classifier + domain rules):** Identify issue source
+  - Input: Drift signal + feature statistics + latency metrics + error logs
+  - Classifier: Gradient boosted model trained on historical incident data
+  - Rules: Data drift detection (statistical feature shift), model drift detection (test-set accuracy)
+  - Output: Root cause hypothesis + severity level + recommended action
+  
+- **Cost Optimizer (Rule-based + forecasting):** Budget management
+  - Input: Per-model costs (LLM, GPU, storage), request volume, model version changes
+  - Forecasting: Predict monthly cost based on growth trends
+  - Rules: Alert if cost >110% of budget or trending to 120%
+  - Actions: Suggest model downgrade, inference optimization, batch processing
+  
+- **Bias Detector (Fairness metrics + segmentation):** Monitor for discrimination
+  - Input: Predictions + protected attributes (race, gender, age if available)
+  - Metrics: Statistical parity, equalized odds, demographic parity
+  - Segmentation: Analyze performance per demographic group
+  - Output: Fairness report, alert if disparity >5% between groups
 
 ## Key Trade-offs
 

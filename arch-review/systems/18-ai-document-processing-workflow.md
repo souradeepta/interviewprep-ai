@@ -22,17 +22,91 @@ Manual document processing is a significant cost center: data entry clerks spend
 ## Envelope Calculation
 50K docs × $0.50 = $25K/month.
 
-## Architecture Overview
-[Detailed architecture diagram with Mermaid showing component flow]
+## Architecture Diagrams
+
+### Diagram 1: Document Processing End-to-End Pipeline
+```mermaid
+graph LR
+    A[Document Upload] -->|scan| B[Pre-Processing]
+    B -->|rotate/denoise| C[Classification]
+    C -->|doc type| D[OCR Engine]
+    D -->|text extraction| E[Entity Extraction]
+    E -->|field values| F[Validation]
+    F -->|check consistency| G{Confidence>90%?}
+    G -->|Yes| H[Auto-Process]
+    G -->|No| I[Human Review Queue]
+    H -->|extracted data| J[Database]
+    I -->|analyst review| K{Approved?}
+    K -->|Yes| J
+    K -->|No| L[Manual Entry]
+    L --> J
+```
+
+### Diagram 2: Accuracy-Cost-Latency Trade-off
+```mermaid
+graph TB
+    A[Processing Strategy] -->|OCR Only| B["Accuracy: 85%<br/>Cost: $0.01<br/>Latency: 5s<br/>Manual Review: 15%"]
+    A -->|OCR + Rules| C["Accuracy: 90%<br/>Cost: $0.05<br/>Latency: 10s<br/>Manual Review: 10%"]
+    A -->|OCR + ML| D["Accuracy: 95%<br/>Cost: $0.10<br/>Latency: 30s<br/>Manual Review: 5%"]
+    A -->|Full Pipeline| E["Accuracy: 98%<br/>Cost: $0.25<br/>Latency: 2min<br/>Manual Review: 2%"]
+    B -->|Use Case| F["Simple Receipts<br/>High Volume"]
+    C -->|Use Case| G["Standard Forms<br/>Medium Complexity"]
+    D -->|Use Case| H["Complex Docs<br/>Extract Accuracy"]
+    E -->|Use Case| I["Critical Docs<br/>Financial/Legal"]
+```
+
+### Diagram 3: Confidence-Based Routing Logic
+```mermaid
+graph TD
+    A[Extraction Complete] -->|confidence| B{Confidence Score?}
+    B -->|>95%| C["Very High<br/>Auto-Process<br/>No Review<br/>Cost: $0.01"]
+    B -->|90-95%| D["High<br/>Auto with Audit<br/>Flag for QA<br/>Cost: $0.05"]
+    B -->|80-90%| E["Medium<br/>Escalate<br/>Analyst Review<br/>Cost: $0.15"]
+    B -->|<80%| F["Low<br/>Require Manual<br/>Reprocessing<br/>Cost: $0.30"]
+    C -->|rework rate| G["2% Need Review<br/>Semantic Validation"]
+    D -->|rework rate| H["5% Need Review<br/>Field Mismatch"]
+    E -->|rework rate| I["20% Need Review<br/>Manual Correction"]
+    F -->|rework rate| J["40% Need Review<br/>Data Entry"]
+```
 
 ## Component Breakdown
-- Core components and their responsibilities
-- Latency and cost breakdown per component
+
+| Component | Latency | Cost | Accuracy | Notes |
+|-----------|---------|------|----------|-------|
+| Pre-Processing | 3s | $0.005 | 99% | Orientation detection, denoising, contrast enhancement |
+| Classification | 2s | $0.01 | 92% | Document type identification (invoice, receipt, form, contract) |
+| OCR | 10s | $0.02 | 90% | Text extraction from images (Tesseract, Azure, AWS) |
+| Entity Extraction | 12s | $0.08 | 88% | Field-level extraction (amount, date, customer, address) |
+| Validation | 3s | $0.01 | 95% | Consistency checks, range validation, format validation |
+| Confidence Scoring | 2s | $0.005 | 90% | Aggregate confidence from all stages |
+| Human Review | 2-5 min | $0.15-0.30 | 99% | Manual verification for low-confidence extractions |
 
 ## AI/ML Integration Points
-- Where LLM/ML models are used
-- Model selection and routing logic
-- Cost optimization strategies
+
+- **Classification Model (Custom fine-tuned model):** Document type identification
+  - Input: Document image or text (first page)
+  - Model: ResNet or Vision Transformer fine-tuned on company document types
+  - Output: Document type (invoice, expense report, receipt, contract, form) with confidence
+  - Optimization: Use only first page for fast classification, retrain monthly on new document types
+  
+- **OCR Engine (Multiple models with fallback):** Text extraction
+  - Primary: Tesseract (open-source, good for scans)
+  - Fallback: Azure Form Recognizer or AWS Textract (better for photos, handwriting)
+  - Confidence: Return best-confidence result, flag if top candidates disagree
+  - Optimization: Use region-based OCR (only process expected regions, skip headers/footers)
+  
+- **Entity Extraction (Fine-tuned LLM + rule-based):** Field-level extraction
+  - Approach: Template-based extraction (invoice has fixed fields: amount, date, customer)
+  - For complex docs: Use GPT-3.5 with few-shot examples
+  - Validation: Extract with confidence score, use field-specific validators
+  - Optimization: Use structured output (JSON schema) to force proper formatting
+  
+- **Validation Engine (Rule-based + ML anomaly detection):** Quality assurance
+  - Semantic checks: total = sum of line items, date formats valid
+  - Range checks: amount > 0, reasonable value for document type
+  - CRM/database lookups: customer exists, address is valid
+  - Anomaly detection: amount 10x higher than historical average for this vendor
+  - Output: Confidence score (product of all validation check scores)
 
 ## Detailed Trade-off Analysis
 

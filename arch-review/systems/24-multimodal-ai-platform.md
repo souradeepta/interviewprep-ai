@@ -73,10 +73,87 @@ graph TB
 | Cache Lookup | 2ms | 100 | $100 | Redis | Network |
 | **E2E latency** | **~350ms** | **~5** | **~2460** | Optimized | GPU shortage |
 
+### Diagram 2: Modality Fusion Strategies
+```mermaid
+graph TD
+    A[Image + Text + Audio] -->|Early Fusion| B["Combine inputs<br/>before model"]
+    A -->|Mid Fusion| C["Encode separately<br/>fuse embeddings"]
+    A -->|Late Fusion| D["Encode separately<br/>fuse at output"]
+    A -->|Hybrid| E["Early + Late<br/>Multi-level"]
+    B -->|Accuracy| F["94%<br/>Rich interaction"]
+    C -->|Accuracy| G["92%<br/>Good balance<br/>RECOMMENDED"]
+    D -->|Accuracy| H["88%<br/>Modality loss"]
+    E -->|Accuracy| I["95%<br/>Complex<br/>Slow"]
+    B -->|Latency| B2["200ms<br/>High-dim input"]
+    C -->|Latency| C2["350ms<br/>Standard"]
+    D -->|Latency| D2["250ms<br/>Fast output"]
+    E -->|Latency| E2["500ms<br/>Slowest"]
+```
+
+### Diagram 3: Latency-Accuracy-Cost Trade-off
+```mermaid
+graph TB
+    A[Platform Design] -->|Sequential Calls| B["Latency: 1.5s<br/>Accuracy: 92%<br/>Cost: $0.01<br/>Status: Current<br/>Baseline"]
+    A -->|Parallel Batch| C["Latency: 0.8s<br/>Accuracy: 91%<br/>Cost: $0.005<br/>Status: Feasible"]
+    A -->|Unified Model| D["Latency: 0.4s<br/>Accuracy: 94%<br/>Cost: $0.003<br/>Status: RECOMMENDED"]
+    A -->|Lightweight| E["Latency: 0.25s<br/>Accuracy: 88%<br/>Cost: $0.001<br/>Status: Cost-opt"]
+    B -->|trade| B2["Slow<br/>Cheap<br/>Mid-quality"]
+    C -->|trade| C2["Fast<br/>Affordable<br/>Good"]
+    D -->|trade| D2["Very Fast<br/>Moderate Cost<br/>Excellent"]
+    E -->|trade| E2["Instant<br/>Very Cheap<br/>Good"]
+```
+
+### Diagram 4: Graceful Degradation (Missing Modalities)
+```mermaid
+graph TB
+    A[Request Received] -->|has image| B{Image Present?}
+    B -->|yes| C["Process: ViT-B"]
+    B -->|no| D["Use Dummy<br/>Empty embedding"]
+    A -->|has text| E{Text Present?}
+    E -->|yes| F["Process: BERT"]
+    E -->|no| G["Use Dummy<br/>Empty embedding"]
+    A -->|has audio| H{Audio Present?}
+    H -->|yes| I["Process: Whisper"]
+    H -->|no| J["Use Dummy<br/>Empty embedding"]
+    C -->|fuse| K[Fusion Layer]
+    D --> K
+    F -->|fuse| K
+    G --> K
+    I -->|fuse| K
+    J --> K
+    K -->|partial fusion<br/>accuracy drop| L["Result<br/>Reduced quality<br/>still usable"]
+```
+
 ## AI/ML Integration Points
-- Where LLM/ML models are used
-- Model selection and routing logic
-- Cost optimization strategies
+
+- **Vision Encoder (ViT-B on GPU):** Image understanding
+  - Input: Images (variable resolution, auto-scaled to 224×224)
+  - Output: 768-d image embedding
+  - Cost: $0.0005/request
+  - Optimization: Image downsampling for large uploads, cache embeddings for repeated images
+  
+- **Text Encoder (RoBERTa or BERT):** Text understanding
+  - Input: Text tokens (up to 512 tokens)
+  - Output: 768-d text embedding
+  - Cost: $0.0002/request
+  - Optimization: Token-level caching, batch processing for common phrases
+  
+- **Audio Encoder (Whisper-Large):** Speech transcription
+  - Input: Audio (up to 30 seconds per request)
+  - Output: Transcript + 768-d audio embedding
+  - Cost: $0.001/request
+  - Optimization: Streaming transcription for real-time use cases, language detection
+  
+- **Fusion Layer (Learnable MLP + Attention):** Combine modality embeddings
+  - Approach: Weighted sum with learned attention (modality importance varies by request)
+  - Input: Three 768-d embeddings (image, text, audio)
+  - Output: Unified 768-d representation
+  - Training: Contrastive loss (same semantic content, different modalities should be close)
+  
+- **LLM Interpretation (LLaMA-7B or custom):** Generate understanding
+  - Input: Fused multimodal embedding + request context
+  - Output: Structured response (JSON with interpretations, confidence scores)
+  - Optimization: Cached responses for common inputs, distilled model for efficiency
 
 ## Key Trade-offs
 

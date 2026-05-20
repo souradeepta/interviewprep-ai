@@ -42,10 +42,81 @@ graph TB
 | Re-ranking | 100ms | 1K/sec | 5% | Rule + ML |
 | **E2E feed (100 items)** | **~800ms** | **~100** | **100%** | **Optimized** |
 
+### Diagram 2: Summarization Strategy & Latency-Cost Trade-off
+```mermaid
+graph TB
+    A[Feed Personalization] -->|No Summary| B["Latency: 50ms<br/>Cost: $0<br/>Engagement: 20%<br/>User exp: Fast"]
+    A -->|Cached Summaries| C["Latency: 100ms<br/>Cost: $0.00001<br/>Engagement: 35%<br/>User exp: Good"]
+    A -->|Generated Summary| D["Latency: 300ms<br/>Cost: $0.0005<br/>Engagement: 40%<br/>User exp: Better"]
+    A -->|Personalized Summaries| E["Latency: 800ms<br/>Cost: $0.001<br/>Engagement: 42%<br/>User exp: Best"]
+    B -->|approach| F["Basic ranking<br/>No enrichment<br/>High diversity"]
+    C -->|approach| G["ML ranking<br/>+ caching<br/>Good balance"]
+    D -->|approach| H["Ranking + LLM<br/>Selective summaries<br/>RECOMMENDED"]
+    E -->|approach| I["Full personalization<br/>Slower<br/>Filter bubble risk"]
+```
+
+### Diagram 3: Filter Bubble Mitigation & Content Diversity
+```mermaid
+graph TD
+    A[Ranking Algorithm] -->|optimize| B[Click-through Rate]
+    B -->|user converges<br/>to narrow topic| C["Filter Bubble<br/>Only tech news<br/>Echo chamber"]
+    A -->|inject diversity| D["Diversity Constraint<br/>20% novel content<br/>10% opposing views"]
+    D -->|balanced| E["Diverse Feed<br/>80% personalized<br/>20% exploratory"]
+    E -->|engagement| F["Better retention<br/>Less polarization"]
+    C -->|risk| G["User churn<br/>Regulatory risk"]
+    F -->|measure| H["Diversity Score<br/>Topic coverage %"]
+    H -->|weekly review| I["Adjust constraints<br/>if diversity<5%"]
+```
+
+### Diagram 4: Engagement Feedback & Model Retraining
+```mermaid
+graph LR
+    A[Article Ranked<br/>in Feed] -->|display| B[User Impression]
+    B -->|click| C["Click Signal<br/>Strong engagement"]
+    B -->|skip| D["Negative Signal<br/>Not interested"]
+    B -->|time on page| E["Time Signal<br/>Moderate engagement"]
+    C -->|collect| F[Daily Feedback<br/>100M+ events]
+    D -->|collect| F
+    E -->|collect| F
+    F -->|batch| G[Model Retraining]
+    G -->|weekly| H["Update<br/>User embeddings"]
+    G -->|weekly| I["Update<br/>Article embeddings"]
+    G -->|weekly| J["Retrain<br/>Ranking model"]
+    H -->|deploy| K["New Feed Ranking"]
+    I --> K
+    J --> K
+    K -->|A/B test| L["50% users:<br/>new ranking"]
+    L -->|measure lift| M["Engagement<br/>+3-5% expected"]
+```
+
 ## AI/ML Integration Points
-- Where LLM/ML models are used
-- Model selection and routing logic
-- Cost optimization strategies
+
+- **Content Embedding Model (OpenAI API or custom):** Article understanding
+  - Input: Article title + excerpt + category
+  - Output: 1536-d semantic embedding
+  - Cost: $0.0001/article
+  - Optimization: Cache embeddings, reuse for similar articles
+  
+- **User Embedding Model (Collaborative filtering):** User interest profiling
+  - Input: User click history (articles clicked, time spent, skip patterns)
+  - Method: matrix factorization or neural embedding (learn 256-d user vector)
+  - Output: User embedding capturing interests (tech, sports, politics, etc.)
+  - Update frequency: Daily (new user behavior)
+  - Optimization: Cache for recent users, compute on-demand for cold starts
+  
+- **Ranking Model (LambdaMART):** Predict user-article relevance
+  - Input: User embedding + article embedding + click count + freshness
+  - Features: content similarity, collaborative signal (users like you clicked X), popularity, freshness
+  - Output: Relevance score for ranking
+  - Training: Click feedback from previous days, optimize for CTR
+  - Cost: $50K/month infrastructure
+  
+- **LLM Summarizer (GPT-3.5):** Generate article summaries
+  - Input: Article text + user interests (optional for personalization)
+  - Output: 50-100 word summary capturing key points
+  - Cost optimization: Only summarize top-10 articles per feed (selective)
+  - Alternative: Caching (reuse summaries for multiple users)
+  - Streaming: Return immediately with headline, stream summary in background
 
 ## Key Trade-offs
 

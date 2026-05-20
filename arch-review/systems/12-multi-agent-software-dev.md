@@ -23,17 +23,80 @@ Software development productivity is bottlenecked by boilerplate and routine cod
 ## Envelope Calculation
 50 tasks/day × 15 min avg × 4 agents = ~25 GPU-hours. Cost: ~$200/day.
 
-## Architecture Overview
-[Detailed architecture diagram with Mermaid showing component flow]
+## Architecture Diagrams
+
+### Diagram 1: Multi-Agent Code Generation Pipeline
+```mermaid
+graph LR
+    A[Code Requirements] -->|analyze| B[Planning Agent]
+    B -->|architecture| C[Implementation Agent]
+    C -->|code| D[Testing Agent]
+    D -->|test results| E{Tests Pass?}
+    E -->|Yes| F[Review Agent]
+    E -->|No| C
+    F -->|code review| G{Quality >80%?}
+    G -->|Yes| H[Auto-Merge]
+    G -->|No| I[Human Review]
+    I -->|approved| H
+    J[Deployment] -.->|feedback| K[Monitor & Learn]
+```
+
+### Diagram 2: Autonomy vs Cost vs Quality Trade-off
+```mermaid
+graph TB
+    A[Agent Strategy] -->|Single GPT-4| B["Autonomy: 50%<br/>Quality: 70%<br/>Cost: $5/task<br/>Risk: High"]
+    A -->|Multi-Agent| C["Autonomy: 70%<br/>Quality: 80%<br/>Cost: $8/task<br/>Risk: Medium"]
+    A -->|Hybrid + Review| D["Autonomy: 70%<br/>Quality: 95%<br/>Cost: $8/task<br/>Risk: Low"]
+    B -->|Use Case| E["Simple Scripts<br/>Low Risk"]
+    C -->|Use Case| F["Standard Tasks<br/>Medium Risk"]
+    D -->|Use Case| G["Production Code<br/>Auth/Payment"]
+```
+
+### Diagram 3: Task Routing & Model Selection
+```mermaid
+graph TD
+    A[Incoming Code Task] -->|classify| B{Complexity?}
+    B -->|Low| C["GPT-3.5<br/>Simple logic<br/>CRUD APIs<br/>$2 cost"]
+    B -->|Medium| D["GPT-3.5 + Tests<br/>Business logic<br/>Multi-file<br/>$5 cost"]
+    B -->|High| E["GPT-4 Multi-Agent<br/>Complex arch<br/>Security-critical<br/>$8+ cost"]
+    C -->|risk check| F{Security-Critical?}
+    D -->|risk check| F
+    E -->|risk check| F
+    F -->|Yes| G[Require Human Review]
+    F -->|No| H[Auto-Merge if Tests Pass]
+```
 
 ## Component Breakdown
-- Core components and their responsibilities
-- Latency and cost breakdown per component
+
+| Component | Latency | Cost | Success Rate | Notes |
+|-----------|---------|------|--------------|-------|
+| Planning Agent | 2 min | $2 | 85% | Architecture decomposition, high variance with requirement clarity |
+| Implementation Agent | 5 min | $3 | 75% | Code generation, susceptible to hallucinations |
+| Testing Agent | 2 min | $1.50 | 90% | Test generation and validation, deterministic |
+| Review Agent | 1 min | $0.50 | 95% | Static analysis, dependency checking, pattern matching |
+| Human Review | 5-10 min | $3-5 | 99% | Final gate for security-critical paths |
 
 ## AI/ML Integration Points
-- Where LLM/ML models are used
-- Model selection and routing logic
-- Cost optimization strategies
+
+- **Planning Agent (GPT-4):** Architecture design, dependency analysis, decomposition of large tasks
+  - Input: Natural language requirements, codebase context
+  - Output: JSON architecture specification with components and interfaces
+  - Cost optimization: Cache architecture decisions for similar tasks
+  
+- **Implementation Agent (GPT-3.5/GPT-4):** Code generation based on architecture
+  - Input: Architecture spec, coding standards, existing patterns
+  - Routing: GPT-3.5 for simple tasks (70% of volume), GPT-4 for complex (30%)
+  - Cost optimization: Template-based generation for boilerplate code
+  
+- **Testing Agent (GPT-3.5):** Unit and integration test generation
+  - Input: Code, architecture spec, business logic
+  - Output: Test cases covering happy path, edge cases, security boundaries
+  - Cost optimization: Reuse test templates, detect test-code misalignment
+  
+- **Review Agent (GPT-3.5):** Code quality, security, and style checking
+  - Input: Generated code, security policies, style guides
+  - Output: Quality score, issues list, refactoring suggestions
+  - Integration: Semgrep, Bandit, SAST tools for deterministic checks
 
 ## Detailed Trade-off Analysis
 

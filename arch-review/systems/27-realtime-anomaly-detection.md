@@ -41,10 +41,78 @@ graph TB
 | Auto-Remediate | 500ms | 20% | 80% | Playbooks + API |
 | **E2E (alert to human notified)** | **~800ms** | **~95%** | **~85%** | **Optimized** |
 
+### Diagram 2: Anomaly Detection Method Comparison
+```mermaid
+graph TB
+    A[Detection Approach] -->|Statistical<br/>Threshold| B["Latency: 5ms<br/>FP Rate: 10%<br/>Accuracy: 80%<br/>Cost: Low"]
+    A -->|ML<br/>Isolation Forest| C["Latency: 50ms<br/>FP Rate: 5%<br/>Accuracy: 88%<br/>Cost: Medium"]
+    A -->|Deep Learning<br/>LSTM| D["Latency: 200ms<br/>FP Rate: 2%<br/>Accuracy: 93%<br/>Cost: High"]
+    A -->|Hybrid<br/>ML + LLM| E["Latency: 100ms<br/>FP Rate: 2%<br/>Accuracy: 92%<br/>Cost: Medium"]
+    B -->|use| F["Simple metrics<br/>Alert fatigue"]
+    C -->|use| G["Standard practice<br/>Good balance"]
+    D -->|use| H["Mission critical<br/>Max accuracy"]
+    E -->|use| I["RECOMMENDED<br/>Accurate+Explainable"]
+```
+
+### Diagram 3: Alert Confidence & Escalation Strategy
+```mermaid
+graph TD
+    A[Anomaly Detected] -->|score| B[Confidence Threshold?]
+    B -->|<70%| C["Low Confidence<br/>Discard<br/>Log only"]
+    B -->|70-85%| D["Medium Confidence<br/>Dashboard Alert<br/>Monitor"]
+    B -->|85-95%| E["High Confidence<br/>Slack Notification<br/>Wait for manual"]
+    B -->|>95%| F["Very High Confidence<br/>PagerDuty Alert<br/>Phone call"]
+    C -->|action| G["Quiet"]
+    D -->|action| H["Human Review<br/>Optional"]
+    E -->|action| I["Human Review<br/>5-min SLA"]
+    F -->|action| J["Auto-Remediate<br/>+ Human notify"]
+    J -->|execute| K[Success/Rollback<br/>within 2 min]
+```
+
+### Diagram 4: Baseline Comparison & Seasonal Handling
+```mermaid
+graph TB
+    A[Current Metric] -->|compare| B[Current Baseline<br/>Last 24h average]
+    A -->|compare| C[Seasonal Baseline<br/>Same day last year]
+    A -->|compare| D[Trend Baseline<br/>7-day moving avg]
+    B -->|check delta| E{>3σ above?}
+    C -->|check delta| F{>2σ above<br/>seasonal normal?}
+    D -->|check drift| G{Trend change>5%?}
+    E -->|yes| H["Spike Detected"]
+    F -->|yes| I["Seasonal Anomaly"]
+    G -->|yes| J["Trend Shift"]
+    H -->|alert| K["PagerDuty:<br/>CPU Spike<br/>Likely: Deploy or Traffic"]
+    I -->|alert| L["Dashboard:<br/>Normal Pattern<br/>No alert"]
+    J -->|alert| M["PagerDuty:<br/>Gradual Shift<br/>Likely: Data growth"]
+```
+
 ## AI/ML Integration Points
-- Where LLM/ML models are used
-- Model selection and routing logic
-- Cost optimization strategies
+
+- **Anomaly Detector (Isolation Forest):** Unsupervised outlier detection
+  - Input: Time-series metrics (CPU, memory, latency, error rate)
+  - Method: Isolation Forest (anomalies are easier to isolate than normal points)
+  - Output: Anomaly score (0-1, higher = more anomalous)
+  - Baseline: Refresh daily with last 30 days of data
+  - Optimization: Hierarchical isolation (detect type of anomaly too)
+  
+- **Root Cause LLM (GPT-3.5 with few-shot prompting):** Explain detected anomalies
+  - Input: Anomaly signal + correlated metrics + time context
+  - Approach: Few-shot examples of previous anomalies + causes
+  - Output: Natural language explanation with potential root causes
+  - Grounding: Only reference metrics present in data (avoid hallucination)
+  - Used for: <30% of anomalies (only high-confidence ones to save cost)
+  
+- **Seasonal Decomposition (STL or Prophet):** Handle recurring patterns
+  - Input: 2 years of historical data for each metric
+  - Method: Decompose into trend + seasonal + residual
+  - Output: Expected range for current time (accounting for seasonality)
+  - Used to: Set per-season baselines, avoid false positives during peak hours/days
+  
+- **Feedback Loop (Online learning):** Improve detector over time
+  - Input: Operator feedback on alerts (false positive, missed anomaly, wrong cause)
+  - Action: Retrain model weekly with latest feedback
+  - Mechanism: Treat validated anomalies as training signal, adjust Isolation Forest parameters
+  - Impact: False positive rate decreases 10-20% per month with good feedback
 
 ## Key Trade-offs
 

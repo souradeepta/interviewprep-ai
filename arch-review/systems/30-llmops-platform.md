@@ -50,10 +50,94 @@ graph TB
 | **E2E (with routing)** | **~300ms avg** | **~200 QPS** | **100%** | **Optimized** |
 - Latency and cost breakdown per component
 
+### Diagram 2: Intelligent Model Routing Logic
+```mermaid
+graph TD
+    A[User Request] -->|query + model_id| B{Route by?}
+    B -->|latency critical<br/>P99 < 200ms| C["Fine-tuned LLAMA-7B<br/>200ms, $0.0001"]
+    B -->|cost critical<br/>Budget > priority| D["GPT-3.5 on GPU<br/>500ms, $0.00001"]
+    B -->|accuracy critical<br/>Premium tier| E["GPT-4 API<br/>1s, $0.0001"]
+    B -->|balance all| F["Ensemble<br/>3 models weighted"]
+    C -->|check cache| G[Response Cache]
+    D -->|check cache| G
+    E -->|check cache| G
+    F -->|check cache| G
+    G -->|hit: 60%| H["Return Cached<br/>2ms latency<br/>$0 cost"]
+    G -->|miss: 40%| I[Inference Queue]
+    I -->|execute| J[Response]
+    J -->|log| K["Cost + Latency<br/>Monitoring"]
+```
+
+### Diagram 3: Evaluation & Fine-tuning Workflow
+```mermaid
+graph TB
+    A[New Model/Prompt] -->|submit| B[Safety Check]
+    B -->|pass| C[Evaluation Queue]
+    B -->|fail| D["Rejected<br/>Policy violation"]
+    C -->|benchmark| E[Auto-Evaluation<br/>10 minute sample]
+    E -->|score| F{Quality Acceptable?}
+    F -->|yes| G[Fine-tuning]
+    F -->|no| H["Improve prompt<br/>or hyperparameters"]
+    H -->|resubmit| C
+    G -->|training| I[Fine-tuned Model]
+    I -->|staging eval| J{Beats baseline?}
+    J -->|yes| K[Approval Gate]
+    J -->|no| L["Debug<br/>try different approach"]
+    L --> G
+    K -->|human approval| M[Staged Rollout<br/>5% → 25% → 100%]
+    M -->|monitor| N{Quality drifts?}
+    N -->|yes| O[Auto-rollback]
+    N -->|no| P[Promote to Prod]
+    O -->|investigate| L
+```
+
+### Diagram 4: Cost Management & Budget Control
+```mermaid
+graph TB
+    A[Cost Tracking] -->|per-model| B["Model 1: $5K/mo<br/>Model 2: $3K/mo<br/>Model 3: $2K/mo<br/>Total: $10K/mo"]
+    A -->|per-team| C["Team A: $4K<br/>Team B: $3K<br/>Team C: $3K"]
+    A -->|per-user| D["Premium user: $100/mo<br/>Standard: $50/mo"]
+    B -->|budget set| E["Budget Alert<br/>Threshold: 80%"]
+    E -->|approaching| F["Recommend<br/>use cheaper model"]
+    E -->|exceeded| G["Throttle<br/>add to queue"]
+    C -->|budget allocation| H["Org Budget: $50K<br/>Re-allocate if needed"]
+    D -->|metering| I["Charge back<br/>by usage"]
+    F -->|action| J["Caching<br/>Model downgrade<br/>Batch processing"]
+    J -->|save cost| K["30-50% reduction<br/>possible"]
+```
+
 ## AI/ML Integration Points
-- Where LLM/ML models are used
-- Model selection and routing logic
-- Cost optimization strategies
+
+- **Model Router (Rules + ML classifier):** Intelligent model selection
+  - Input: Query characteristics (length, complexity, latency requirement, budget)
+  - Decision logic: 
+    - If latency <100ms → fine-tuned small model
+    - If cost critical → GPT-3.5 (10x cheaper than GPT-4)
+    - If accuracy critical → GPT-4
+    - Else → balance based on historical performance
+  - Output: Selected model + expected latency/cost
+  - Optimization: Learn from feedback (if fine-tuned model fails, route to GPT-4 next time)
+  
+- **Evaluation Framework (Automated benchmarking):** Quality assurance
+  - Input: Model + evaluation dataset (100-1000 samples per dataset)
+  - Metrics: Accuracy (task-specific), latency (P50, P99), cost
+  - Comparison: vs baseline, vs previous version
+  - Output: Leaderboard score + detailed report
+  - Process: Auto-evaluation <1 hour; manual review gate for staging
+  
+- **Fine-tuning Orchestrator (Ray Tune):** Custom model training
+  - Input: Training data + hyperparameters (learning rate, batch size, epochs)
+  - Process: Train on limited GPU budget, track cost
+  - Safety: Data validation (no PII, appropriate content)
+  - Output: Fine-tuned model weights + evaluation results
+  - Cost control: Limit training to 2 hours max per job
+  
+- **Cost Tracker (Real-time monitoring):** Budget management
+  - Input: Every inference call (model, tokens, latency)
+  - Tracking: Per-model, per-team, per-user cost
+  - Alerts: 80% of budget → recommend optimization, 100% → throttle
+  - Actions: Suggest cheaper alternatives, enable caching, batch processing
+  - Reporting: Monthly bill, cost breakdown by dimension
 
 ## Key Trade-offs
 

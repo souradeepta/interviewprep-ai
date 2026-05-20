@@ -56,10 +56,83 @@ graph TB
 | PDP Recs | 200ms | 12 | Collaborative filtering | 25% |
 | **E2E latency** | **~300ms** | **~100** | **Optimized** | **100%** |
 
+### Diagram 2: AI Components & Interaction Flow
+```mermaid
+graph LR
+    A[User Intent] -->|search/browse| B[Search Ranker<br/>ElasticSearch+LambdaMART]
+    B -->|top-100 candidates| C[Personalization Filter<br/>User2Vec embeddings]
+    C -->|rank by preference| D[Dynamic Price Optimizer<br/>Price elasticity model]
+    E[User Profile] -->|embeddings| C
+    F[Purchase History] -->|conversion signal| C
+    G[Inventory] -->|stock level| D
+    H[Competitor Prices] -->|market signal| D
+    D -->|final ranking<br/>+ prices| I[Display Results]
+    J[User Click] -->|implicit feedback| K[Feedback Loop]
+    K -->|retrain weekly| B
+    L[Conversion] -->|explicit signal| M[Conversion Model]
+    M -->|optimize| C
+    N[Revenue Impact] -->|A/B test| O[Gradual Rollout]
+```
+
+### Diagram 3: GMV Lift vs Latency vs Infrastructure Trade-off
+```mermaid
+graph TB
+    A[E-Commerce AI Strategy] -->|No AI| B["GMV Lift: 0%<br/>Latency: 10ms<br/>Infra: Minimal<br/>Cost: $10K/mo"]
+    A -->|Lightweight<br/>Search+Pricing| C["GMV Lift: 12%<br/>Latency: 100ms<br/>Infra: Low<br/>Cost: $50K/mo"]
+    A -->|Search+Recs| D["GMV Lift: 5-8%<br/>Latency: 200ms<br/>Infra: Medium<br/>Cost: $80K/mo"]
+    A -->|Full Stack<br/>All AI| E["GMV Lift: 20%+<br/>Latency: 500ms<br/>Infra: High<br/>Cost: $200K+/mo"]
+    B -->|stage| F["No personalization<br/>Static catalog"]
+    C -->|stage| G["MVP Phase<br/>Best ROI"]
+    D -->|stage| H["Growth Phase<br/>Balanced"]
+    E -->|stage| I["Enterprise<br/>Max Revenue"]
+```
+
+### Diagram 4: Learning Loop & Optimization Strategy
+```mermaid
+graph TD
+    A[User Interaction] -->|click/purchase| B[Feedback Signal]
+    B -->|explicit conversion| C[Conversion Model]
+    B -->|implicit click| D[Click-through Rate]
+    C -->|weak signal<br/>noisy| E{Confidence >0.7?}
+    D -->|strong signal| E
+    E -->|yes| F[Update Model]
+    E -->|no| G[Discard<br/>Uncertain signal]
+    F -->|weekly retrain| H[A/B Test]
+    H -->|control vs treatment| I{Lift >2%<br/>Statistically Sig?}
+    I -->|yes| J[Roll Out to All]
+    I -->|no| K[Hold/Investigate]
+    J -->|deployed| L[Monitor Metrics]
+    K -->|debug| M[Check data quality]
+    M -->|found issue| F
+```
+
 ## AI/ML Integration Points
-- Where LLM/ML models are used
-- Model selection and routing logic
-- Cost optimization strategies
+
+- **Search Ranker (Learning-to-Rank model):** Ranking e-commerce search results
+  - Input: Query + product features (relevance, popularity, rating, inventory)
+  - Model: LambdaMART (gradient boosted trees trained on click/purchase signals)
+  - Output: Ranked product list with scores
+  - Optimization: Update weekly with latest click feedback
+  - Trade-off: More training examples → better accuracy but stale during updates
+  
+- **Personalization Filter (User embeddings + collaborative filtering):** Rank results by user preference
+  - Input: User behavior history (views, clicks, purchases) + product embeddings
+  - Model: User2Vec embeddings (learn user preferences), collaborative filtering for similar users
+  - Output: User preference scores for each product
+  - Optimization: Cold start solution for new users (use content-based fallback)
+  
+- **Dynamic Price Optimizer (Price elasticity model):** Optimize pricing per product
+  - Input: Historical price × demand data, competitor prices, inventory level
+  - Model: Regression model learning price elasticity (how demand changes with price)
+  - Output: Optimal price for each product per user segment
+  - Constraints: Price bounds (min margin, max acceptable by customers)
+  - Optimization: A/B test prices to estimate elasticity continuously
+  
+- **Conversion Model (Logistic regression or XGBoost):** Predict purchase probability
+  - Input: Product attributes + user profile + price + inventory
+  - Output: Purchase probability per product
+  - Used to: Optimize ranking (favor high-conversion products), personalize pricing
+  - Feedback: Purchase events (positive), timeouts/abandonment (negative)
 
 ## Key Trade-offs
 

@@ -22,17 +22,83 @@ Equity research is resource-intensive: each analyst covers 15-20 companies and s
 ## Envelope Calculation
 100 companies × $10/analysis = $1K/day.
 
-## Architecture Overview
-[Detailed architecture diagram with Mermaid showing component flow]
+## Architecture Diagrams
+
+### Diagram 1: Multi-Agent Equity Research Pipeline
+```mermaid
+graph LR
+    A[Company Symbol] -->|fetch| B[Data Collection Agent]
+    B -->|SEC filings<br/>earnings calls<br/>news| C[Financial Modeling Agent]
+    C -->|DCF, ratios<br/>valuation| D[Analysis Agent]
+    D -->|sentiment<br/>catalysts<br/>risks| E[Report Generation]
+    E -->|structured output| F[Human Review Gate]
+    F -->|approved| G[Publish Report]
+    H[Real-Time Monitoring] -.->|material events<br/>price changes| I{Update Needed?}
+    I -->|Yes| C
+    I -->|No| J[Archive]
+```
+
+### Diagram 2: Valuation Approach vs Accuracy-Latency-Cost Trade-off
+```mermaid
+graph TB
+    A[Valuation Strategy] -->|Data Only<br/>SEC+Earnings| B["Latency: 5min<br/>Accuracy: 95%<br/>Cost: $2<br/>Depth: Shallow"]
+    A -->|Valuation Models<br/>DCF+Ratios| C["Latency: 15min<br/>Accuracy: 80%<br/>Cost: $10<br/>Depth: Medium"]
+    A -->|Full Analysis<br/>All signals| D["Latency: 30min<br/>Accuracy: 75%<br/>Cost: $25<br/>Depth: Deep"]
+    A -->|Human + AI<br/>Expert review| E["Latency: 2hr<br/>Accuracy: 90%<br/>Cost: $100<br/>Depth: Expert"]
+    B -->|Use| F["Quick Screening<br/>Low conviction"]
+    C -->|Use| G["Standard Research<br/>Medium conviction"]
+    D -->|Use| H["Deep Dive<br/>High conviction"]
+    E -->|Use| I["Edge cases<br/>Material decisions"]
+```
+
+### Diagram 3: Risk Monitoring & Freshness Management
+```mermaid
+graph TD
+    A[Equity Analysis] -->|baseline| B[Model Released]
+    B -->|hourly check| C{Material Event?}
+    C -->|No| D["Status: Fresh<br/>Confidence: High"]
+    C -->|Yes| E["Alert: Event<br/>Re-analyze needed"]
+    D -->|track| F[Staleness Timer]
+    F -->|<3 months| G["Status: Fresh"]
+    F -->|3-6 months| H["Status: Aging<br/>Update soon"]
+    F -->|>6 months| I["Status: Stale<br/>Regenerate"]
+    E -->|quarterly| J[New Earnings?]
+    J -->|Yes| K[Refresh Model<br/>Update valuations]
+    J -->|No| D
+```
 
 ## Component Breakdown
-- Core components and their responsibilities
-- Latency and cost breakdown per component
+
+| Component | Latency | Cost | Accuracy | Notes |
+|-----------|---------|------|----------|-------|
+| Data Collection Agent | 3 min | $2 | 98% | Extract from SEC XBRL (structured), cross-validate across filings |
+| Financial Modeling Agent | 8 min | $5 | 85% | DCF valuation, comparable companies, scenario analysis |
+| Analysis Agent | 5 min | $3 | 80% | Sentiment analysis, catalyst identification, competitive positioning |
+| Report Generator | 4 min | $2 | 90% | Format findings, cross-check consistency, generate recommendations |
+| Human Review Gate | 10-30 min | $8-15 | 95%+ | Final quality control, high-conviction positions |
 
 ## AI/ML Integration Points
-- Where LLM/ML models are used
-- Model selection and routing logic
-- Cost optimization strategies
+
+- **Data Collection Agent (GPT-4 with tools):** SEC filing parsing, earnings call transcription processing
+  - Input: Company ticker, financial statements, news feeds
+  - Output: Structured financial data (revenue, EBITDA, FCF, margins)
+  - Optimization: Cache SEC filings (don't re-parse quarterly), use XBRL APIs for structured data extraction
+  
+- **Financial Modeling Agent (Specialized models):** DCF, comparable valuation, precedent transaction analysis
+  - Input: Historical financials, growth assumptions, discount rates
+  - Output: Fair value range with sensitivity analysis
+  - Optimization: Template-based models for sector-standard approaches, reuse macro assumptions (rates, inflation)
+  
+- **Analysis Agent (GPT-4):** Sentiment analysis, catalyst identification, risk assessment
+  - Input: Earnings transcripts, analyst reports, recent news
+  - Domain tuning: Fine-tune on financial texts to improve sentiment accuracy
+  - Output: Bull/bear case scoring, catalyst timeline
+  
+- **Real-Time Monitoring (Rules + ML):** Material event detection, price monitoring
+  - Input: News feeds, SEC filing alerts, market data
+  - Rules-based: Detect delisting, acquisitions, covenant violations, credit rating changes
+  - ML-based: Anomaly detection on trading volumes, insider trading patterns
+  - Integration: CDS spreads, bond yields, analyst downgrades as early warning signals
 
 ## Detailed Trade-off Analysis
 

@@ -22,17 +22,101 @@ Data access bottleneck: business analysts and managers require data queries, but
 ## Envelope Calculation
 1K queries × $0.001 = $1/day (negligible cost).
 
-## Architecture Overview
-[Detailed architecture diagram with Mermaid showing component flow]
+## Architecture Diagrams
+
+### Diagram 1: Text-to-SQL Agent Pipeline
+```mermaid
+graph LR
+    A[Natural Language Question] -->|parse| B[Intent Understanding]
+    B -->|identify intent| C[Schema Reasoning]
+    C -->|relevant tables| D[SQL Generation]
+    D -->|candidate queries| E{Confidence >85%?}
+    E -->|Yes| F[Query Validation]
+    E -->|No| G[Ask for Clarification]
+    G -->|user confirms| F
+    F -->|validate plan| H{Safety Check?}
+    H -->|Safe| I[Execute Query]
+    H -->|Risky| J["Ask Approval<br/>Show cost/risk"]
+    J -->|approve| I
+    J -->|reject| K[Suggest Alternative]
+    I -->|get results| L[Result Validation]
+    L -->|sanity checks| M[Generate Explanation]
+    M -->|human readable| N[Return to User]
+```
+
+### Diagram 2: Query Approach Trade-offs
+```mermaid
+graph TB
+    A[NL-to-SQL Strategy] -->|Rules Only<br/>Pattern Match| B["Correctness: 60%<br/>Latency: 1s<br/>Coverage: 30%<br/>Safety: High"]
+    A -->|Fine-tuned Model<br/>BERT| C["Correctness: 80%<br/>Latency: 5s<br/>Coverage: 70%<br/>Safety: Medium"]
+    A -->|LLM Few-Shot<br/>GPT-4| D["Correctness: 90%<br/>Latency: 10s<br/>Coverage: 90%<br/>Safety: Medium"]
+    A -->|Human Engineer<br/>Manual| E["Correctness: 99%<br/>Latency: 30min<br/>Coverage: 100%<br/>Safety: Very High"]
+    B -->|Use| F["Standard Questions<br/>No Escalation"]
+    C -->|Use| G["Common Patterns<br/>5% Escalate"]
+    D -->|Use| H["Complex Queries<br/>5-10% Escalate"]
+    E -->|Use| I["Sensitive Data<br/>High Stakes"]
+```
+
+### Diagram 3: Query Safety Validation & Result Checking
+```mermaid
+graph TD
+    A[Generated SQL] -->|plan analysis| B[Cost Estimator]
+    B -->|predict cost| C{Cost>$10?}
+    C -->|Yes| D["Show Cost<br/>Ask Approval"]
+    C -->|No| E[Complexity Check]
+    D -->|approve| E
+    D -->|reject| F[Suggest Alternative]
+    E -->|count joins| G{Joins>5?}
+    G -->|Yes| H["Complex Query<br/>Ask Engineer"]
+    G -->|No| I[Access Control]
+    I -->|user role| J{Access Allowed?}
+    J -->|No| K["Deny<br/>Log Attempt"]
+    J -->|Yes| L[Execute Query]
+    L -->|get results| M[Result Sanity Checks]
+    M -->|check row count| N{Anomalous?}
+    N -->|Yes| O["Alert User<br/>Show Flag"]
+    N -->|No| P[Explain Results]
+    O --> P
+    P -->|natural language<br/>derivation| Q[Return to User]
+```
 
 ## Component Breakdown
-- Core components and their responsibilities
-- Latency and cost breakdown per component
+
+| Component | Latency | Cost | Accuracy | Notes |
+|-----------|---------|------|----------|-------|
+| Intent Understanding | 1s | $0.001 | 92% | Parse question, identify key entities and relationships |
+| Schema Reasoning | 2s | $0.002 | 88% | Find relevant tables and columns from 1000+ table schema |
+| SQL Generation | 5s | $0.004 | 90% | Generate correct SQL with proper JOINs and WHERE clauses |
+| Query Validation | 2s | $0.001 | 99% | Check execution plan, cost estimate, access control |
+| Query Execution | Variable | Variable | 100% | Run on database, fetch results (cost depends on query complexity) |
+| Result Validation | 1s | $0.0005 | 95% | Sanity checks, anomaly detection, baseline comparison |
+| Explanation Generation | 2s | $0.002 | 85% | Generate human-readable explanation of results |
 
 ## AI/ML Integration Points
-- Where LLM/ML models are used
-- Model selection and routing logic
-- Cost optimization strategies
+
+- **Intent Understanding (LLM + semantic parsing):** Extract meaning from natural language
+  - Input: User question ("How many active users signed up last week?")
+  - Processing: Identify entities (users), filters (active, signup_date), aggregations (count)
+  - Output: Structured intent representation
+  - Optimization: Few-shot examples help model understand business context
+  
+- **Schema Reasoning (Semantic search + LLM):** Map intent to database schema
+  - Input: Structured intent + database schema
+  - Process: (1) Embed intent, (2) Retrieve top-5 relevant tables from vector DB, (3) LLM reasons through column relationships
+  - Output: List of tables and columns needed for query
+  - Optimization: Maintain schema summaries ("users table: tracks signups, 5M rows")
+  
+- **SQL Generation (Fine-tuned LLM + few-shot):** Generate SQL query
+  - Input: Intent + relevant tables/columns + SQL style guide
+  - Model: GPT-4 with few-shot examples of similar queries
+  - Output: SELECT statement with proper JOINs, WHERE, GROUP BY, ORDER BY
+  - Fallback: If confidence <0.85, show user the proposed SQL for approval
+  
+- **Result Validation (Rule-based + ML):** Check results for correctness
+  - Sanity checks: row count within expected range, data types match, temporal order correct
+  - Anomaly detection: result is 10x higher/lower than baseline, unusual patterns
+  - Baseline comparison: compare with historical results, flag significant deviations
+  - Output: Confidence score, explanation of any anomalies detected
 
 ## Detailed Trade-off Analysis
 

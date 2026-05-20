@@ -22,17 +22,86 @@ Modern security teams face alert fatigue: SIEM systems generate 10K-100K alerts/
 ## Envelope Calculation
 1K alerts × $0.10 = $100/day.
 
-## Architecture Overview
-[Detailed architecture diagram with Mermaid showing component flow]
+## Architecture Diagrams
+
+### Diagram 1: SOC Automation Alert-to-Remediation Pipeline
+```mermaid
+graph LR
+    A[Security Alerts<br/>10K-100K/day] -->|ingest| B[Alert Aggregation]
+    B -->|deduplicate| C[Classification Engine]
+    C -->|known bad| D["Rule Match<br/>30s response"]
+    C -->|suspicious| E[ML Correlation]
+    E -->|pattern detected| F[Threat Enrichment]
+    F -->|reputation<br/>context| G{Confidence?>
+    G -->|>99%| H["Auto-Remediate<br/>Block/Isolate"]
+    G -->|95-99%| I["Ask Human<br/>15min SLA"]
+    G -->|<95%| J["Escalate<br/>Investigate"]
+    H -->|execute| K[Playbook Execution]
+    I -->|approve| K
+    K -->|log| L[Audit Trail]
+```
+
+### Diagram 2: Remediation Confidence & Response Tier
+```mermaid
+graph TB
+    A[Threat Classification] -->|High Confidence<br/>>99%| B["Known Bad<br/>Confirmed Malware<br/>Auto-Remediate<br/>Risk: Very Low"]
+    A -->|Medium Confidence<br/>95-99%| C["Suspicious Pattern<br/>Privilege Escalation<br/>Ask Human First<br/>Risk: Low"]
+    A -->|Low Confidence<br/>80-95%| D["Anomalous Behavior<br/>Unusual Access<br/>Alert Human<br/>Risk: Medium"]
+    A -->|Very Low<br/><80%| E["Statistical Outlier<br/>Reconnaissance<br/>Log Only<br/>Risk: High if auto-act"]
+    B -->|Response| F["Instant Isolation<br/>Block IP<br/>Revoke Credentials"]
+    C -->|Response| G["Human Approval<br/>Staged Response<br/>Monitor First"]
+    D -->|Response| H["Alert Analyst<br/>Wait for Investigation<br/>No Auto-Remediate"]
+    E -->|Response| I["Archive<br/>Baseline Tracking"]
+```
+
+### Diagram 3: Detection Strategy Coverage vs False Positive Trade-off
+```mermaid
+graph TD
+    A[Detection Approach] -->|Rules Only<br/>Signatures| B["Coverage: 30%<br/>FP Rate: <1%<br/>Latency: 30s<br/>Known threats only"]
+    A -->|Rules + ML<br/>Correlation| C["Coverage: 70%<br/>FP Rate: 3%<br/>Latency: 2min<br/>Pattern detection"]
+    A -->|Full Hybrid<br/>Rules+ML+Behavioral| D["Coverage: 90%<br/>FP Rate: 5%<br/>Latency: 5min<br/>Zero-day detection"]
+    A -->|Human-Only<br/>Expert Review| E["Coverage: 100%<br/>FP Rate: <0.1%<br/>Latency: 4hrs<br/>Expensive/Slow"]
+    B -->|Trade| F["High Missed<br/>Threats<br/>But No<br/>False Blocks"]
+    C -->|Trade| G["Good Balance<br/>Most Patterns<br/>Some False<br/>Positives"]
+    D -->|Trade| H["Catch Novel<br/>Threats<br/>Need Whitelisting<br/>Higher Cost"]
+    E -->|Trade| I["Perfect<br/>But Doesn't<br/>Scale"]
+```
 
 ## Component Breakdown
-- Core components and their responsibilities
-- Latency and cost breakdown per component
+
+| Component | Latency | Cost | Accuracy | Notes |
+|-----------|---------|------|----------|-------|
+| Alert Aggregation | 10s | $0.01 | 99% | Deduplicate across SIEM, network, endpoint tools |
+| Classification Engine | 100ms | $0.005 | 95% | Rules-based: known signatures, threat intel feeds |
+| ML Correlation | 30s | $0.03 | 85% | Pattern detection: behavioral anomalies, graph analysis |
+| Threat Enrichment | 30s | $0.02 | 90% | Reputation lookup: IP/domain/hash scoring, context gathering |
+| Playbook Execution | 10s | $0.01 | 98% | Automated response: isolation, blocking, credential revocation |
+| Human Review Gate | 15 min | $2-5 | 98%+ | Final approval for medium-confidence (95-99%) cases |
 
 ## AI/ML Integration Points
-- Where LLM/ML models are used
-- Model selection and routing logic
-- Cost optimization strategies
+
+- **Classification Engine (Rule-based + pattern matching):** Alert categorization and severity assignment
+  - Input: Raw security alerts (SIEM, IDS/IPS, endpoint, network logs)
+  - Rules: Known bad signatures (malware hashes, IP reputation, domain blocklists)
+  - Output: Alert category (malware, intrusion, data exfil, privilege escalation, reconnaissance)
+  - Integration: VirusTotal, OSINT feeds, commercial threat intel subscriptions
+  
+- **ML Correlation Engine (Graph analysis, anomaly detection):** Pattern detection across events
+  - Input: Alert sequences, user behavior, network flows
+  - Models: Isolation Forest for anomalies, GNN for attack chains, statistical baselines
+  - Output: Correlation score, confidence, suspected attack pattern
+  - Optimization: Update baselines weekly, retrain on validated false positives
+  
+- **Threat Enrichment (Lookup + context assembly):** Add context for analyst decision
+  - Input: Suspicious asset (IP, domain, hash), user identity, time of day
+  - Sources: IP reputation (geolocation, ASN), domain WHOIS, file metadata, user role/location history
+  - Output: Risk score, contextual flags (off-hours access, unusual geography, privileged user)
+  
+- **Behavioral Anomaly Detection (Statistical, ML-based):** Zero-day and novel threat detection
+  - Input: Process behavior, network flows, file access patterns
+  - Baseline: Per-user, per-asset normal behavior
+  - Detectors: Unusual process spawning, encryption activity, mass file access, exfiltration patterns
+  - Integration: EDR tools (CrowdStrike, Microsoft Defender) for process telemetry
 
 ## Detailed Trade-off Analysis
 

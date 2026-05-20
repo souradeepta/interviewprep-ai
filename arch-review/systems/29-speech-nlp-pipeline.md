@@ -43,10 +43,93 @@ graph TB
 | **E2E latency (parallel)** | **~400ms** | **~92%** | **100%** | **Optimized** |
 - Latency and cost breakdown per component
 
+### Diagram 2: Latency Optimization Through Parallelization
+```mermaid
+graph TB
+    A["Audio Stream<br/>User speaking"] -->|stream| B[ASR Streaming]
+    B -->|partial transcript<br/>0-100ms| C[Parallel: NLU]
+    B -->|0-200ms: interim| D["Early Route Guess<br/>LLM Cache"]
+    C -->|0-50ms: intent| E[Skill Router]
+    D -->|0-100ms| F["Return Cached<br/>Response"]
+    E -->|high confidence| G[Skill Action]
+    B -->|200ms: complete| H[Final ASR Result]
+    H -->|re-route if wrong| E
+    G -->|action result| I[Response Text]
+    F -->|text| J[TTS Stream]
+    I --> J
+    J -->|150ms start| K["User Hears<br/>First word at ~250ms<br/>Complete at ~400ms"]
+```
+
+### Diagram 3: Component Latency-Accuracy Trade-off
+```mermaid
+graph TB
+    A[Voice Pipeline] -->|Fast ASR| B["Latency: 100ms<br/>WER: 85%<br/>Cost: $0.01<br/>Use: Simple"]
+    A -->|Balanced ASR| C["Latency: 200ms<br/>WER: 92%<br/>Cost: $0.02<br/>Use: Standard"]
+    A -->|Accurate ASR| D["Latency: 300ms<br/>WER: 95%<br/>Cost: $0.05<br/>Use: Complex"]
+    A -->|Rule NLU| E["Latency: 10ms<br/>Accuracy: 80%<br/>Cost: $0<br/>Use: Simple"]
+    A -->|ML NLU| F["Latency: 50ms<br/>Accuracy: 92%<br/>Cost: $0.001<br/>Use: Standard"]
+    B -->|speed| B2["Fast"]
+    C -->|speed| C2["Balanced"]
+    D -->|speed| D2["Slow"]
+    B2 -->|recommend| G["RECOMMENDED<br/>Parallel processing<br/>saves ~100ms"]
+```
+
+### Diagram 4: Confidence-Based Disambiguation & Multi-Language Support
+```mermaid
+graph TD
+    A[ASR Output] -->|confidence| B{Confidence >0.9?}
+    B -->|Yes| C["High Confidence<br/>Proceed with intent"]
+    B -->|No| D["Low Confidence<br/>Ask for confirmation"]
+    D -->|user repeats| E[Second Pass ASR]
+    E -->|confidence| F{Now >0.9?}
+    F -->|Yes| C
+    F -->|No| G["Escalate to<br/>clarification"]
+    G -->|ask directly| H["What did you<br/>want to do?"]
+    C -->|route| I[Language Detect]
+    I -->|language| J{Language ID?}
+    J -->|English| K["EN NLU<br/>EN TTS"]
+    J -->|Spanish| L["ES NLU<br/>ES TTS"]
+    J -->|Mandarin| M["ZH NLU<br/>ZH TTS"]
+    J -->|Unknown| N["Default to<br/>English"]
+    K -->|respond| O[User Hears<br/>Response]
+    L --> O
+    M --> O
+    N --> O
+```
+
 ## AI/ML Integration Points
-- Where LLM/ML models are used
-- Model selection and routing logic
-- Cost optimization strategies
+
+- **ASR Model (Whisper):** Speech recognition
+  - Input: Audio stream (streaming chunks or full)
+  - Output: Text transcript + word-level confidence scores
+  - Accuracy: 92% WER (word error rate) on diverse audio
+  - Latency: 200ms for real-time, 100ms possible with compression
+  - Optimization: Streaming allows parallel processing, start NLU before ASR completes
+  
+- **NLU Model (BERT or DistilBERT):** Intent and slot extraction
+  - Input: Transcript (partial or complete)
+  - Output: Intent class (book_flight, weather, etc.) + slots (origin, destination, date)
+  - Confidence: 92% intent accuracy
+  - Latency: 50ms inference
+  - Optimization: Start on partial transcript (after 100ms) for early routing
+  
+- **Skill Router (Rule-based + learned weights):** Route to appropriate handler
+  - Input: Intent + confidence + context (conversation history)
+  - Logic: If confidence >0.9, route to skill; else route to clarification LLM
+  - Skills: booking, payments, information retrieval, open-ended conversation
+  - Fallback: If intent confidence <0.7, default to general LLM conversation
+  
+- **LLM Response Generator (GPT-3.5 or cached templates):** Generate response
+  - Input: Intent + slots + conversation history
+  - Methods: (1) Template-based for simple intents (fast), (2) LLM for open-ended (slow)
+  - Optimization: Cache responses for common intents, use smaller models for streaming
+  - Output: Natural language response text
+  
+- **TTS Synthesis (Streaming, neural voices):** Convert text to speech
+  - Input: Response text (can stream word-by-word or full)
+  - Output: Audio stream
+  - Latency: 150ms+ (streaming means audio starts before text generation complete)
+  - Languages: Support 20+ languages with native speakers
 
 ## Key Trade-offs
 

@@ -72,10 +72,83 @@ graph TB
 | LLM Narration (selective) | 1000ms | 1 | $180 | GPT-4-vision | API-limited |
 | **E2E latency (1fps video)** | **~1.8s** | **1** | **~325** | Mixed | Needs orchestration |
 
+### Diagram 2: Hierarchical Sampling & Cost Optimization
+```mermaid
+graph TB
+    A[Video Input] -->|sample 1fps| B[Motion Detection]
+    B -->|static scene| C["Use 1fps results<br/>Cost: $0.01"]
+    B -->|motion detected| D["Upgrade to 5fps<br/>in region"]
+    D -->|high-motion| E["Upgrade to 15fps<br/>keyframes only"]
+    C -->|cost| F["1K videos<br/>$10/day"]
+    D -->|cost| G["5K videos<br/>$50/day"]
+    E -->|cost| H["100 videos<br/>$20/day"]
+    F -->|total| I["Daily cost<br/>optimized"]
+    G --> I
+    H --> I
+```
+
+### Diagram 3: Processing Latency vs Accuracy vs Cost
+```mermaid
+graph TB
+    A[Processing Strategy] -->|1fps Coarse| B["Latency: <1s<br/>Accuracy: 70%<br/>Cost: $0.01<br/>Use: Basic metadata"]
+    A -->|5fps Dense| C["Latency: 3s<br/>Accuracy: 85%<br/>Cost: $0.05<br/>Use: Moderation"]
+    A -->|15fps Detail| D["Latency: 5s<br/>Accuracy: 88%<br/>Cost: $0.10<br/>Use: Recommendations"]
+    A -->|30fps Full| E["Latency: 10s<br/>Accuracy: 92%<br/>Cost: $0.30<br/>Use: Premium analysis"]
+    B -->|trade| F["Fast<br/>Cheap<br/>Rough"]
+    C -->|trade| G["Balanced<br/>Standard<br/>Good"]
+    D -->|trade| H["Slow<br/>Expensive<br/>Excellent"]
+    E -->|trade| I["Very Slow<br/>Very Expensive<br/>Comprehensive"]
+```
+
+### Diagram 4: Content Moderation & Multi-Language Flow
+```mermaid
+graph LR
+    A[Video Analysis] -->|objects+scenes| B[Safety Classifier]
+    B -->|confidence| C{Risk Level?}
+    C -->|Very High >99%| D["Auto-Remove<br/>No Review"]
+    C -->|High 90-99%| E["Escalate<br/>Human Review"]
+    C -->|Medium 70-90%| F["Flag<br/>Monitor"]
+    C -->|Safe <70%| G[Approve]
+    D -->|lang detect| H[Multi-Language]
+    E -->|lang detect| H
+    G -->|lang detect| H
+    H -->|detect lang| I{Language?}
+    I -->|English| J["English Captions"]
+    I -->|Multi-lang| K["Translate to<br/>User Language"]
+    J -->|output| L[Video Metadata<br/>+ Captions]
+    K --> L
+```
+
 ## AI/ML Integration Points
-- Where LLM/ML models are used
-- Model selection and routing logic
-- Cost optimization strategies
+
+- **Object Detection (YOLO v8 on GPU):** Real-time object and action recognition
+  - Input: Video frames at variable sampling rate (1-30 fps)
+  - Processing: Detect objects (person, weapon, animal), actions (running, fighting, dancing)
+  - Output: Bounding boxes + confidence scores per frame
+  - Optimization: Hierarchical sampling (coarse 1fps, fine-grained in high-motion regions)
+  
+- **Scene Classification (ResNet-50 fine-tuned):** Semantic understanding of scenes
+  - Input: Video frames and temporal context
+  - Output: Scene categories (beach, office, car, indoor, outdoor, etc.)
+  - Used for: content recommendations, accessibility tagging, moderation context
+  - Optimization: Keyframe-only processing (skip redundant frames in static scenes)
+  
+- **Content Moderation (Multi-model ensemble):** Flag unsafe content for review
+  - Models: Violence detector, explicit content detector, hate speech (text-based)
+  - Confidence-based routing: >99% → auto-remove, 90-99% → human review, <90% → allow
+  - Optimization: Two-stage: fast coarse classifier (CPU), expensive fine classifier (GPU) only on flagged frames
+  
+- **Speech-to-Text & Translation (Whisper + translation API):** Generate accessible captions
+  - Input: Audio track + detected language
+  - Processing: Transcribe (Whisper) + translate to user language (batch off-peak)
+  - Output: Multi-language captions synced to video timeline
+  - Optimization: Cache common language pairs, batch translate at off-peak hours
+  
+- **LLM Scene Narration (GPT-4 Vision, selective):** Generate natural language descriptions
+  - Input: Keyframes + detected objects/scene + speech transcript
+  - Output: Natural description combining visual + audio information
+  - Applied to: <5% of frames (only high-information scenes), <10% of videos (selective)
+  - Cost optimization: Narrate only scene changes, translate to other languages asynchronously
 
 ## Key Trade-offs
 
