@@ -1,32 +1,45 @@
 # Real-time Anomaly Detection with LLM Explanations
 
-## TL;DR
-Detects anomalies + explains root cause using LLM. 1M data points/day, <100ms latency.
+## Overview
+A real-time anomaly detection system for infrastructure, application, and business metrics that combines statistical models with LLM-based root cause analysis to enable operators to act instantly (< 2 minute response time).
 
 ## Problem Statement
-Operators need instant anomaly alerts + explanations for action.
-
-## Requirements
-
-### Functional
-- Time-series analysis
-- Pattern detection
-- LLM explanation
-
-### Non-Functional (Scale Targets)
-- Volume: 1M points/day
-- Latency: <100ms
-- Accuracy: 95%
+Production systems generate millions of metrics daily. Manual monitoring impossible. Typical incident response: (1) alert triggers (5 min), (2) engineer page (2 min), (3) investigate (20 min), (4) identify root cause (20 min), (5) remediate (15 min) = 60+ min MTTR. Cost: each minute of downtime = $5K-10K for major services. Automation enables sub-5-minute MTTR. Challenge: 95% of alerts are false positives (threshold-based rules generate noise). Solution: ML anomaly detection (90% accuracy) + LLM explanations (why did this happen?) + auto-remediation playbooks.
 
 ## Envelope Calculation
-1M points × $0.0001 = $100/day.
+
+**Scale:** 1M metrics/day across 100 services = 10K metrics/second
+**Cost Breakdown:**
+- Anomaly detector (streaming ML): 10K metrics/sec × $0.001/sec = $86K/month
+- LLM explanation (1% of metrics): 100K × $0.0001 = $10K/month
+- Alert routing + escalation: $5K/month
+- **Total: ~$100K/month**
 
 ## Architecture Overview
-[Detailed architecture diagram with Mermaid showing component flow]
+
+```mermaid
+graph TB
+    A[Metrics] -->|time-series| B[Anomaly Detector]
+    B -->|score| C{Anomaly?}
+    C -->|Yes| D[LLM Root Cause]
+    C -->|No| E[Store Baseline]
+    D -->|explanation| F[Alert Routing]
+    F -->|severity| G{High Risk?}
+    G -->|Yes| H[Auto-Remediate]
+    G -->|No| I[Dashboard]
+    H -->|execute| J[Success/Rollback]
+    K[Feedback] -->|improve| B
+```
 
 ## Component Breakdown
-- Core components and their responsibilities
-- Latency and cost breakdown per component
+
+| Component | Latency | Coverage | Accuracy | Technology |
+|-----------|---------|----------|----------|-----------|
+| Anomaly Detection | 10ms | 95% | 90% | Isolation Forest |
+| LLM Root Cause | 200ms | 30% | 75% | GPT-3.5 + few-shot |
+| Alert Routing | 50ms | 100% | 99% | Rules engine |
+| Auto-Remediate | 500ms | 20% | 80% | Playbooks + API |
+| **E2E (alert to human notified)** | **~800ms** | **~95%** | **~85%** | **Optimized** |
 
 ## AI/ML Integration Points
 - Where LLM/ML models are used

@@ -1,33 +1,46 @@
 # Speech-to-NLP-to-Response Pipeline
 
-## TL;DR
-ASR → NLU → Intent routing → LLM response → TTS. <500ms latency for voice agents.
+## Overview
+An end-to-end voice agent pipeline combining speech recognition, natural language understanding, intent routing, response generation, and text-to-speech synthesis to enable real-time conversational AI with sub-500ms latency across multiple languages and domains.
 
 ## Problem Statement
-Voice agents need fast end-to-end pipeline for real-time conversation.
-
-## Requirements
-
-### Functional
-- Speech recognition
-- NLU
-- Intent routing
-- Response generation
-- TTS
-
-### Non-Functional (Scale Targets)
-- Latency: <500ms
-- Accuracy: 95% WER
-- Languages: 20+
+Voice agents face latency challenges: users expect sub-200ms response times (similar to human conversation), but traditional pipelines require: (1) ASR (200ms), (2) NLU (50ms), (3) LLM response (1000ms), (4) TTS (200ms) = 1500ms end-to-end. Users perceive 3-second delay as unnatural, engagement drops 30%. Optimization targets: (1) parallel processing (ASR + route simultaneously), (2) fast models (smaller BERT vs large), (3) response caching, (4) streaming TTS (start speaking mid-generation).
 
 ## Envelope Calculation
-1M requests/month × $0.10 = $100K/month.
+
+**Scale:** 1M requests/month = 40K/day, peak 200 QPS
+**Cost:**
+- ASR (Whisper): 1M × $0.0004 = $400/month
+- NLU (BERT): 1M × $0.0001 = $100/month
+- LLM (GPT-3.5): 1M × $0.001 = $1K/month
+- TTS (natural voices): 1M × $0.0001 = $100/month
+- **Total: ~$1.6K/month**
 
 ## Architecture Overview
-[Detailed architecture diagram with Mermaid showing component flow]
+
+```mermaid
+graph TB
+    A[Audio Stream] -->|streaming| B[ASR Model]
+    B -->|partial transcript| C[NLU Intent]
+    C -->|intent + confidence| D{High Conf?}
+    D -->|Yes| E[Route to Skill]
+    D -->|No| F[LLM Context]
+    E -->|action| G[Response Generation]
+    F -->|clarify| G
+    G -->|text| H[TTS Stream]
+    H -->|audio| I[User Hears]
+    J[User Reaction] -->|feedback| K[Improve Model]
+```
 
 ## Component Breakdown
-- Core components and their responsibilities
+
+| Component | Latency | Accuracy | Cost | Parallelizable |
+|-----------|---------|----------|------|---------|
+| ASR (Whisper) | 200ms | 95% WER | 40% | Streaming |
+| NLU (Skill Routing) | 50ms | 92% | 10% | Parallel |
+| LLM Response | 1000ms | 90% | 40% | Cached fallback |
+| TTS (Streaming) | 150ms+ | N/A | 10% | Streaming |
+| **E2E latency (parallel)** | **~400ms** | **~92%** | **100%** | **Optimized** |
 - Latency and cost breakdown per component
 
 ## AI/ML Integration Points

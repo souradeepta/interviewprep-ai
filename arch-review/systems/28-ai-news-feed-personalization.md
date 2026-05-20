@@ -1,32 +1,46 @@
 # AI-Powered News Feed Personalization
 
-## TL;DR
-ML ranking + LLM-generated summaries for personalized news. 1B feed impressions/day, 40% engagement lift.
+## Overview
+A feed ranking and summarization system that personalizes content discovery for news platforms, combining collaborative filtering, content-based features, and LLM-generated summaries to drive engagement and time-on-app at scale (1B+ impressions daily).
 
 ## Problem Statement
-Generic feeds have low engagement. Need personalized + summarized content.
-
-## Requirements
-
-### Functional
-- Ranking model
-- Summary generation
-- Personalization
-
-### Non-Functional (Scale Targets)
-- Scale: 1B impressions/day
-- Engagement: +40%
-- Latency: <100ms
+News platforms struggle with engagement: (1) information overload—users overwhelmed by 100+ stories/day, (2) low time-on-app—generic feed average 3 min/session (target: 15 min), (3) summary fatigue—full article reading declining, (4) discovery—users miss relevant stories (stuck in narrow interests). Personalization impact: (1) engagement: +20% CTR from basic ranking, +40% from personalized + summarized. (2) retention: users spending 2x time on feed, 15% better daily active user retention. (3) advertiser value: premium positioning for targeted users improves ads CTR 3x. Cost: summaries $100K/month, ranking model $50K/month, but revenue lift $5M+/year.
 
 ## Envelope Calculation
-1B summaries × $0.0001 = $100K/month.
+
+**Scale:** 1B impressions/day = 11.6M QPS, 1M articles/day
+**Cost:**
+- Ranking model (scoring 1B × per user interests): $50K/month
+- Summaries (LLM generation on 1M articles): $100K/month
+- Embeddings (user + article): $20K/month
+- **Total: ~$170K/month**
 
 ## Architecture Overview
-[Detailed architecture diagram with Mermaid showing component flow]
+
+```mermaid
+graph TB
+    A[Article Ingest] -->|content| B[Content Embeddings]
+    C[User Action] -->|clicks, time| D[User Embeddings]
+    B -->|article_vec| E[Ranking Model]
+    D -->|user_vec| E
+    E -->|scored candidates| F[LLM Summarizer]
+    F -->|summary + score| G[Re-ranker]
+    G -->|final ranking| H[Feed Display]
+    I[User Feedback] -->|engagement| J[Feedback Loop]
+    J -->|retrain| D
+    J -->|update| E
+```
 
 ## Component Breakdown
-- Core components and their responsibilities
-- Latency and cost breakdown per component
+
+| Component | Latency | Throughput | Cost Impact | Tech |
+|-----------|---------|----------|----------|------|
+| Content Embedding | 100ms/article | 200/sec | 10% | OpenAI API |
+| User Embedding | 50ms/user | 1K/sec | 5% | Dense passage |
+| Ranking Model | 50ms/batch | 100K/sec | 30% | LambdaMART |
+| LLM Summarization | 500ms/article | 40/sec | 60% | GPT-3.5 |
+| Re-ranking | 100ms | 1K/sec | 5% | Rule + ML |
+| **E2E feed (100 items)** | **~800ms** | **~100** | **100%** | **Optimized** |
 
 ## AI/ML Integration Points
 - Where LLM/ML models are used

@@ -1,10 +1,10 @@
 # End-to-End AI E-Commerce Platform
 
-## TL;DR
-Search + recommendations + personalization + pricing. 1M daily users, 20% GMV lift.
+## Overview
+An integrated e-commerce platform combining AI-powered search, personalized recommendations, dynamic pricing, and inventory optimization to maximize gross merchandise value (GMV) and customer lifetime value at scale (1M+ daily users, $1B+ annual GMV targets).
 
 ## Problem Statement
-E-commerce competitive. Need AI across entire stack for GMV growth.
+E-commerce competition intensifies: Amazon, Shein, etc. drive adoption of AI-powered features. Traditional platforms (category browsing, generic bestseller lists) lose 20-40% of potential revenue. Impact: (1) search: 30% of users abandon search if >3 pages of results (irrelevant). Each 10% search improvement = 5% revenue lift. (2) recommendations: generic bestsellers convert 0.5%, personalized convert 2-3% (4-6x lift). (3) dynamic pricing: fixed prices miss optimization (sell cheaper products higher, expensive products with discounts). (4) inventory: stockouts lose revenue, overstock ties up capital. Solution: unified AI stack addressing all 4 = 15-25% GMV lift. Cost: $500K-1M/month in infrastructure, but ROI >10x for $100M GMV platform.
 
 ## Requirements
 
@@ -20,14 +20,41 @@ E-commerce competitive. Need AI across entire stack for GMV growth.
 - Latency: <100ms per user
 
 ## Envelope Calculation
-1M users × $0.10 = $100K/month.
+
+**Scale:** 1M daily users = 10M searches/day + 5M product views/day + 1M purchases/day
+**Cost Breakdown:**
+- Search ranking (ML): 10M × $0.0001 = $1K/day
+- Recommendations (embeddings + re-rank): 5M × $0.0002 = $1K/day
+- Dynamic pricing optimization: 100K SKUs × $0.01/day = $1K/day
+- Personalization (user embeddings): 1M users × $0.001/refresh = $1K/day
+- **Total: ~$4K/day = $120K/month**
 
 ## Architecture Overview
-[Detailed architecture diagram with Mermaid showing component flow]
+
+```mermaid
+graph TB
+    A[User Query] -->|search + context| B[Search Ranker]
+    B -->|top-100 results| C[Personalization Filter]
+    C -->|ranked by user pref| D[Dynamic Price]
+    E[User Profile] -->|embeddings| C
+    F[Inventory] -->|stock| D
+    D -->|final ranking| G[Display to User]
+    H[User Click] -->|feedback| I[Feedback Loop]
+    I -->|retrain| B
+    J[Competitor Pricing] -->|market signal| D
+    K[User Purchase] -->|conversion signal| L[Conversion Model]
+    L -->|optimize| C
+```
 
 ## Component Breakdown
-- Core components and their responsibilities
-- Latency and cost breakdown per component
+
+| Component | Latency | QPS | Tech | Cost Ratio |
+|-----------|---------|-----|------|-----------|
+| Search Ranker | 100ms | 100 | ElasticSearch + LambdaMART | 25% |
+| Personalization | 50ms | 100 | User2Vec embeddings | 25% |
+| Dynamic Pricing | 50ms | 12 | Price optimization engine | 25% |
+| PDP Recs | 200ms | 12 | Collaborative filtering | 25% |
+| **E2E latency** | **~300ms** | **~100** | **Optimized** | **100%** |
 
 ## AI/ML Integration Points
 - Where LLM/ML models are used

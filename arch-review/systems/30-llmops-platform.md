@@ -1,33 +1,53 @@
 # Complete LLMOps Platform
 
-## TL;DR
-Evaluation, fine-tuning, deployment, monitoring for LLMs. Multi-tenant, cost-aware, auto-scaling.
+## Overview
+An end-to-end platform for managing LLM lifecycle: from evaluation and fine-tuning, through deployment and versioning, to monitoring and cost optimization. Serves 100+ models across teams with multi-tenancy, budget controls, and automated scaling.
 
 ## Problem Statement
-Organizations need unified MLOps for LLMs with cost control + safety.
-
-## Requirements
-
-### Functional
-- Evaluation
-- Fine-tuning
-- Deployment
-- Monitoring
-- Cost control
-
-### Non-Functional (Scale Targets)
-- Models: 100+
-- Throughput: 1B tokens/day
-- Uptime: 99.9%
+Organizations deploying LLMs face operational complexity: (1) model sprawl—100+ models across teams, no unified deployment. (2) cost explosion—LLM inference without metering/routing costs 10x expected ($10K/month budget → $100K/month actual). (3) safety risks—no governance (anyone can fine-tune, deploy unsafe models), (4) debugging difficulty—no visibility into why model behaves unexpectedly, (5) skill gap—teams lack expertise to fine-tune, evaluate, deploy safely. Unified platform enables: (1) governance (approval workflows, safety checks), (2) cost control (routing to cheaper models, caching), (3) observability (drift detection, cost breakdown), (4) self-service (democratize LLM deployment).
 
 ## Envelope Calculation
-Comprehensive platform, $10K-50K/month depending on scale.
+
+**Scale:** 100 models, 1B tokens/day = avg 10M tokens/model/day
+**Cost breakdown:**
+- Model hosting (1B tokens/day, multi-GPU): $500/day
+- Fine-tuning infrastructure: $200/day
+- Evaluation framework: $100/day
+- Monitoring + observability: $100/day
+- **Total: ~$900/day = $27K/month**
 
 ## Architecture Overview
-[Detailed architecture diagram with Mermaid showing component flow]
+
+```mermaid
+graph TB
+    A[User Query] -->|model_id + prompt| B[Model Router]
+    B -->|latency + cost aware| C{Route Decision}
+    C -->|cheap| D[GPT-3.5 on GPU]
+    C -->|fast| E[Fine-tuned LLAMA-7B]
+    C -->|accurate| F[GPT-4 API]
+    D --> G[Response Cache Check]
+    E --> G
+    F --> G
+    G -->|hit| H[Return Cached]
+    G -->|miss| I[Generate + Cache]
+    I -->|response| J[User]
+    K[Cost Tracker] -->|billing| L[Budget Alert]
+    M[Evaluation] -->|benchmark| N[Model Leaderboard]
+    O[Fine-tuning] -->|train| E
+    P[Safety Check] -->|validate| O
+```
 
 ## Component Breakdown
-- Core components and their responsibilities
+
+| Component | Latency | Throughput | Cost | Management |
+|-----------|---------|----------|------|-------------|
+| Model Router | 5ms | Infinite | $0 | Intelligent routing |
+| GPT-3.5 Inference | 500ms | 100 QPS | 30% cost | Default tier |
+| Fine-tuned Models | 200ms | 500 QPS | 40% cost | Custom tier |
+| GPT-4 Inference | 1000ms | 10 QPS | 30% cost | Premium tier |
+| Cache Layer | 2ms | 10K QPS | 5% cost | Hit rate 60% |
+| Evaluation | N/A | Batch | 10% cost | Offline |
+| **E2E (with routing)** | **~300ms avg** | **~200 QPS** | **100%** | **Optimized** |
 - Latency and cost breakdown per component
 
 ## AI/ML Integration Points
