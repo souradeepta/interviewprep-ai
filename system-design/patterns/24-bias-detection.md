@@ -29,6 +29,84 @@ Model 95% accurate overall, but 80% accurate on underrepresented group. Biased. 
 - Fairness vs accuracy: enforcing fairness might reduce overall accuracy
 - Which metric: demographic parity vs equalized odds have trade-offs
 
+## Detailed Trade-off Analysis
+
+| Fairness Metric | Definition | When to Use | Drawback |
+|-----------------|-----------|-----------|----------|
+| Demographic parity | Approval rate equal across groups | Low-stakes (recommendations) | Ignores base rates |
+| Equalized odds | TPR equal across groups | Medium-stakes (hiring, loans) | May reduce overall accuracy |
+| Predictive parity | Precision equal across groups | Different base rates OK | Complex to enforce |
+| Calibration | P(correct\|score) same across groups | Critical (criminal justice) | Requires ground truth |
+| Individual fairness | Similar decisions for similar people | Legal defense needed | Vague definition |
+
+**Decision:** Loans/hiring → equalized odds. Recommendations → demographic parity. Criminal justice → calibration.
+
+---
+
+## Production Failure Scenarios
+
+**Scenario 1: Fairness metric improved, but unfair outcomes increased**
+- Enforce demographic parity (equal approval rates). Males 50% approval, Females 50%. But male threshold lower (30% confidence), female threshold higher (70% confidence).
+- Females need higher confidence to get approved = unfair.
+- Prevention: Use equalized odds (equal TPR). Or: calibrate thresholds, don't just enforce rates.
+
+**Scenario 2: Proxy variables bypass fairness constraint**
+- Remove gender feature. Model learns gender from zip code (correlated). Gender gap persists.
+- Fix: Identify and remove all proxy variables. Or: use adversarial debiasing (train model to NOT predict gender from features).
+
+**Scenario 3: Fairness audit only quarterly, bias introduced in between**
+- Monthly data drift changes cohort balance. Fairness gap increases 5% each month, discovered quarterly (15% gap).
+- Fix: Monthly fairness audits. Real-time monitoring of cohort-specific metrics.
+
+**Scenario 4: Fairness trade-off with overall accuracy**
+- Enforce fairness, overall accuracy drops 5%. Business complains about reduced performance.
+- Root cause: bias was helping overall accuracy (overrepresented group had easier patterns).
+- Fix: Separate models per cohort. Or: accept accuracy drop as cost of fairness.
+
+---
+
+## Implementation Guidance
+
+**Wrong:** Check fairness once before deployment. Assume it stays fair.
+**Right:** Monthly fairness audits. Monitor cohort-specific metrics continuously. Alert on fairness gap >5%.
+
+**Wrong:** Use single fairness metric (e.g., demographic parity). Sufficient.
+**Right:** Use multiple metrics (demographic parity + equalized odds). Understand trade-offs.
+
+---
+
+## Sophisticated Interview Q&A
+
+**Q1: Model has 8% fairness gap (male 95%, female 87%). How fix?**
+A: (1) Root cause: is it data imbalance or biased features? (2) If data: collect more female examples, retrain. (3) If features: identify biased features (e.g., name → gender), remove or decorrelate. (4) If model: use fairness-aware training (add fairness constraint to loss). (5) Measure: gap should decrease to <2%.
+
+**Q2: Fairness metric says "fair" but qualitative feedback says "unfair". Trust metric?**
+A: Metrics can be gamed or context-insensitive. (1) Investigate: what does "unfair" mean to complainants? (2) Check if metric captures that dimension. (3) Use multiple metrics. (4) Involve stakeholders in defining fairness. (5) Metrics + human judgment required.
+
+**Q3: Equalized odds says "not fair" (10% TPR gap). But base rates different—should we force equal TPR?**
+A: Equalized odds assumes equal base rates is OK. If base rates truly different (e.g., male and female fraud rates differ), forcing equal TPR might be unfair. (1) Verify base rates are not due to past bias. (2) If legitimate, accept TPR difference. (3) Monitor: does lower TPR group notice unfair treatment?
+
+**Q4: Two fairness metrics contradict (demographic parity says fair, equalized odds says not). Which to enforce?**
+A: Context-dependent. (1) Loans: use equalized odds (care about equal opportunity). (2) Recommendations: demographic parity OK (no high stakes). (3) Criminal justice: calibration (accuracy across all groups). (4) If conflict, prioritize metric that matches legal/stakeholder expectations. Document trade-off.
+
+---
+
+## Cost & Resource Analysis
+
+**Fairness audit:** Manual slice analysis 8 hours/month = $4K. Automated tools (Fairness Indicators, AI Fairness 360): $500-2K/month.
+**Retraining for fairness:** 1-2 weeks engineer time = $5-10K. May reduce overall accuracy.
+**Litigation cost if bias discovered:** $100K-10M depending on domain and damage.
+
+**ROI:** Proactive fairness audit cost $500-4K/month. Prevents litigation worth $100K+. Break-even: 1 lawsuit prevented per year.
+
+---
+
+## Monitoring & Observability
+
+**Key metrics:** Fairness gap (max cohort difference), TPR/FPR by cohort, precision by cohort, demographic parity ratio, proxy variable correlation, audit completion rate
+
+**Alerts:** Fairness gap exceeds 5%, TPR drops for any cohort, new proxy variable discovered (correlated with protected attribute), fairness audit overdue (>30 days)
+
 ## Common Mistakes / Gotchas
 - Not checking for bias: assume model is fair (wrong)
 - Proxy variables: remove gender, but model learns gender from zip code

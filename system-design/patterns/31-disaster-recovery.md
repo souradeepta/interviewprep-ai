@@ -33,6 +33,85 @@ Disaster = model server down. Users see errors. RTO: how long before users see r
 - Complexity vs RTO: simple fallback vs complex multi-region
 - Testing: DR untested won't work when needed
 
+## Detailed Trade-off Analysis
+
+| Recovery Strategy | RTO | RPO | Cost | Complexity | Tested Frequency |
+|------------------|-----|-----|------|-----------|------------------|
+| Fallback model | 0 | 0 | Low | Low | Daily |
+| Multi-AZ (same region) | 10s | 1min | Medium | Medium | Monthly |
+| Multi-region active-passive | 1-5min | 5min | High | High | Quarterly |
+| Multi-region active-active | <1s | <1s | Very high | Very high | Weekly |
+| Backup restore | 1-4h | 1h | Low | Medium | Quarterly |
+
+**Decision:** Startup → fallback + backup. Series A → multi-AZ. Unicorn/critical → multi-region active-active.
+
+---
+
+## Production Failure Scenarios
+
+**Scenario 1: Model server fails, no fallback**
+- Neural net server crashes. No fallback. Users see errors. Complete outage 2+ hours.
+- Prevention: Fallback rule-based model (RTO=0). Test weekly.
+
+**Scenario 2: Disaster recovery plan untested**
+- DR doc says "failover to region B". During actual disaster, region B setup missing (deferred).
+- RTO = infinite (never recovery).
+- Prevention: Monthly mock disaster drills. Measure actual RTO (not planned). Update plan based on reality.
+
+**Scenario 3: Data loss due to backup too old**
+- Backup 30 days old. Data between backup and failure lost (recent model training data, predictions).
+- Prevention: Daily backups. Hourly snapshots for critical data. RPO <1 hour target.
+
+**Scenario 4: Multi-region failover fails**
+- Primary region fails. Failover to region B. DNS not updated. Region B overloaded. Cascading failure.
+- Prevention: Health checks detect primary failure <10s. LB switches instantly (not DNS). Region B pre-warmed.
+
+---
+
+## Implementation Guidance
+
+**Wrong:** Have DR plan but never test it. Hope it works.
+**Right:** Monthly mock disaster. Measure actual RTO/RPO. Update plan. Automate failover (don't manual).
+
+**Wrong:** Fallback too simplistic (always deny loans, always reject requests).
+**Right:** Fallback rule-based, but intelligent. Maintain service quality even degraded.
+
+---
+
+## Sophisticated Interview Q&A
+
+**Q1: RTO goal 5 minutes, but primary failure recovery takes 10 min. How achieve?**
+A: (1) Fallback rule-based <10 sec (RTO=0 for users, just degraded service). (2) Restore primary in parallel (10 min). (3) Once restored, switch back from fallback. (4) Users never see outage (just degradation). (5) This is acceptable for most use cases.
+
+**Q2: Multi-region setup. Region A fails. Users routed to Region B. But Region B capacity 50%, suddenly 100%. Overload?**
+A: Yes, risk. Solutions: (1) Pre-warm region B to handle 100% (doubles cost). (2) Auto-scale region B on failure (takes time, risky). (3) Degrade service gracefully (rate-limit, queue). (4) Accept short outage for overflow. Most companies choose: accept 1-5 min degradation while scaling.
+
+**Q3: RPO 0 (no data loss). How?**
+A: (1) Multi-region active-active (write to both, <1s RPO). (2) Synchronous replication (slow, ~100ms latency). (3) Cost: 2x infra + complexity. (4) Or: accept RPO=1min (reasonable for most). Only industries like finance need RPO=0.
+
+**Q4: Monthly DR drill. Always passes. But actual disaster failed. Why?**
+A: (1) Drill assumptions unrealistic (didn't test peak traffic). (2) Manual steps not practiced (forgotten). (3) Partial failure (one component OK, others not). (4) Solution: (a) Chaos engineering (kill random components). (b) Test all failure modes. (c) Automate (no manual steps). (d) Test during peak traffic.
+
+---
+
+## Cost & Resource Analysis
+
+**Fallback model:** Development 1-2 weeks = $5-10K. Maintenance <$1K/year.
+**Multi-AZ:** 1.5x infra cost ($1500/month for $1000 baseline). + 1-2 engineer weeks setup.
+**Multi-region:** 2-3x infra cost. + 4-8 engineer weeks for replication, failover. Ongoing: 1 FTE ops.
+**Active-active multi-region:** 3-4x infra. + 12-16 engineer weeks. Very complex.
+
+**Cost of downtime:** $10K/min for critical service. 1 hour downtime = $600K loss.
+**ROI:** DR investment $50-500K prevents $600K+ incident. Break-even: 1 incident per year.
+
+---
+
+## Monitoring & Observability
+
+**Key metrics:** RTO (actual recovery time tested monthly), RPO (actual data loss measured), backup freshness (age of latest backup), failover success rate, primary/secondary health status, replication lag (multi-region), DNS propagation time
+
+**Alerts:** Primary failure detected, fallback activated, backup older than SLA, replication lag exceeds threshold, failover fails, region unreachable, data corruption detected
+
 ## Common Mistakes / Gotchas
 - No fallback: model down → complete outage
 - Untested DR: "DR plan exists" but never tested → fails during disaster
