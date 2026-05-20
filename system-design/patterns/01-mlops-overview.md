@@ -33,6 +33,67 @@ graph LR
 - **Monitoring & Alerting:** Track performance drift, prediction quality, latency
 - **Retraining Pipeline:** Automated retraining on schedule or drift trigger
 
+## Detailed Trade-off Analysis
+
+| Aspect | Manual ML | Basic MLOps | Full MLOps |
+|--------|-----------|------------|-----------|
+| Setup time | 1 week | 2 weeks | 4 weeks |
+| Retraining | Manual | Scheduled | Automated on drift |
+| Rollback time | Hours | 5 min | 1 min |
+| Monitoring | None | Basic | Comprehensive |
+| Cost | Low | Moderate | High |
+
+**Decision:** 1-2 models→manual. 3-5 models→basic MLOps. 10+ models or critical→full MLOps.
+
+---
+
+## Production Failure Scenarios
+
+**Scenario 1: Manual retraining causes skew**
+- Engineer retrains locally, different preprocessing than serving. Model quality drops.
+- Fix: Automate retraining. Use shared preprocessing.
+
+**Scenario 2: No monitoring, drift goes undetected**
+- Model accuracy degrades 10% over 3 months. Unknown until customer complains.
+- Fix: Monitor accuracy, prediction distribution daily. Alert on drift.
+
+**Scenario 3: No versioning, can't rollback**
+- Model v2 breaks. Want v1. But v1 code deleted.
+- Fix: Version everything (code, data, models). Git commit hash with model.
+
+---
+
+## Implementation Guidance
+
+**Wrong:** Manual retraining, no monitoring, no versioning.
+**Right:** Automated pipeline, monitoring alerts, version control on everything.
+
+---
+
+## Sophisticated Interview Q&A
+
+**Q1: 1 model vs 10 models. MLOps investment?**
+A: 1 model: overhead not justified. 10 models: essential (prevents chaos, enables scaling).
+
+**Q2: Training-serving skew. Common?**
+A: Very common. Solutions: feature store (shared definitions), preprocessing shared code, testing.
+
+**Q3: When automate retraining?**
+A: On schedule (hourly/daily) OR on drift (accuracy drops >1%). Both needed for production.
+
+---
+
+## Cost & Resource Analysis
+
+Manual ML: cheap initially, expensive at scale (engineers bottleneck).
+Full MLOps: expensive upfront, cheap at scale (everything automated).
+
+---
+
+## Monitoring & Observability
+
+Metrics: model_accuracy, prediction_distribution, training_frequency, retraining_time. Alerts: accuracy drops, drift detected, retraining fails.
+
 ## Common Mistakes / Gotchas
 - **Manual processes:** retraining by hand is error-prone. Automate.
 - **No versioning:** can't rollback. Version code, data, models.
