@@ -36,8 +36,44 @@ Few-shot LLM prompting: 'Extract from this contract: [payment terms, IP ownershi
 ## Data Flow
 Upload doc → Parse → Classify sections → Extract clauses → Score risks → Flag for lawyer → Lawyer reviews + confirms.
 
-## Key Trade-offs
-Speed (basic extraction) vs depth (full analysis with comparison). Default: basic + flagged items for human review.
+## Detailed Trade-off Analysis
+
+| Approach | Analysis Depth | Latency | Cost/Doc | Accuracy | Lawyer Review |
+|----------|--------|---------|----------|----------|---------|
+| Basic extraction | Low | 30s | $0.50 | 85% | 50% required |
+| Full analysis | High | 2 min | $5 | 95% | 20% required |
+| AI + human review | Very high | 10 min | $20 | 99% | 10% required |
+| High-stakes (always human) | N/A | 30 min | $50 | 100% | 100% required |
+
+**Decision:** Simple contracts → basic. Complex → full analysis. Critical → human always.
+
+### Production Failure Scenarios
+
+**Scenario 1: AI misses liability clause**
+- Analysis flags contract as safe. Buried clause imposes major liability.
+- Fix: Mandatory human review for contracts with unusual clauses. Cross-check against database.
+
+**Scenario 2: Inconsistency between summaries**
+- Basic extraction: "Non-compete clause present". Full analysis: "Non-compete not found".
+- Fix: Reconcile outputs. Flag discrepancies. Require human clarification.
+
+**Scenario 3: Hallucinated clause**
+- AI reports termination clause that doesn't exist. Lawyer relies on it.
+- Fix: Strict grounding. AI must quote source text. Citation required.
+
+**Scenario 4: Regulatory change invalidates analysis**
+- New law passed. Existing contracts need re-review. Analysis outdated.
+- Fix: Re-analyze on legal change. Track regulatory updates. Versioning.
+
+### Implementation Guidance
+
+**Wrong:** Fully automate legal analysis. Remove lawyer review.
+**Right:** AI flags issues, lawyers make final decisions (especially for high-stakes).
+
+**Wrong:** Trust AI summary without source verification.
+**Right:** Require citations. Show exact clause text.
+
+---
 
 ## Interview Q&A
 

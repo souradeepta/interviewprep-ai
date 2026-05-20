@@ -36,8 +36,44 @@ Multi-model ensemble: pick model based on language pair cost + quality requireme
 ## Data Flow
 User text → Detect language → Select model → Translate → Score quality → Cache result → Return.
 
-## Key Trade-offs
-Speed vs quality: small model (50ms, 90% quality) vs large model (200ms, 98% quality). Default: quality preference.
+## Detailed Trade-off Analysis
+
+| Model | Latency | Quality (BLEU) | Cost/1K | Coverage | Infrastructure |
+|-------|---------|--------|---------|----------|---------|
+| Small (fast) | 50ms | 85% | $0.001 | 80 langs | CPU |
+| Medium | 150ms | 92% | $0.005 | 100 langs | GPU |
+| Large (best) | 200ms | 98% | $0.01 | 120 langs | GPU cluster |
+| Cached | 5ms | 95% | $0.0001 | Frequent | Memory |
+
+**Decision:** Speed critical → small + cache. Quality critical → large. Balanced → medium + cache.
+
+### Production Failure Scenarios
+
+**Scenario 1: Cached translation becomes outdated**
+- Terminology updated. Old translation cached. Users see outdated content.
+- Fix: Cache versioning. Invalidate on terminology update. Or: shorter TTL (4 hours).
+
+**Scenario 2: Pivot language translation compounds errors**
+- A→English→B introduces errors (A→English introduces 2% error, English→B another 2%).
+- Fix: Use direct model when available. Pivot only as fallback.
+
+**Scenario 3: Quality drops post-deployment**
+- Deploy new model. BLEU score OK in testing. Production quality 5% worse.
+- Fix: A/B test before full deployment. Compare on real user feedback, not just BLEU.
+
+**Scenario 4: Unsupported language pair requested**
+- User requests A→C (unsupported). System defaults to A→English→C.
+- Fix: Detect upfront. Offer alternative languages. Or train new model.
+
+### Implementation Guidance
+
+**Wrong:** Optimize latency without quality checks.
+**Right:** Measure quality-latency frontier. Use smaller model only for non-critical content.
+
+**Wrong:** Cache all translations indefinitely.
+**Right:** Cache with versioning and TTL. Update when terminology changes.
+
+---
 
 ## Interview Q&A
 

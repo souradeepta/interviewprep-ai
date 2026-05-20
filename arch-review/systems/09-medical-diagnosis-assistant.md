@@ -36,8 +36,44 @@ LLM generates differential diagnoses + reasoning. ML model scores probability fo
 ## Data Flow
 Patient → Symptoms + history + labs → LLM: 'Top 5 differential diagnoses with likelihoods' → Physician reviews → Confirms diagnosis.
 
-## Key Trade-offs
-Accuracy vs recall: narrow (specific tests) vs broad (all possibilities). Default: recall (avoid missing serious condition).
+## Detailed Trade-off Analysis
+
+| Strategy | Specificity | Sensitivity | False Positives | False Negatives | Risk |
+|----------|--------|-----------|---|---|---------|
+| Narrow (specific diseases) | 95% | 70% | Low | High | Miss serious condition |
+| Broad (all possibilities) | 70% | 95% | High | Low | Unnecessary tests |
+| Risk-stratified | 85% | 92% | Medium | Low | Balanced |
+| AI + physician review | 90% | 98% | <5% | <2% | Minimal |
+
+**Decision:** High-risk conditions → AI + physician. Routine → AI triage. Critical → physician always.
+
+### Production Failure Scenarios
+
+**Scenario 1: AI misses rare serious diagnosis**
+- Patient has rare presentation of cancer. AI suggests GERD. Patient delays treatment.
+- Fix: Physician review mandatory. AI as assistant, not replacement. Training on rare cases.
+
+**Scenario 2: Unnecessary tests from over-broad diagnosis list**
+- AI suggests 50 possible diagnoses. Patient undergoes expensive, unnecessary tests.
+- Fix: Prioritize by probability. Show top-3 diagnoses only. Confidence scores.
+
+**Scenario 3: Regulatory liability from AI diagnosis**
+- Lawsuit: "AI caused misdiagnosis". Legal liability unclear. Insurance doesn't cover.
+- Fix: Clear UI: "AI-assisted, not diagnostic". Physician responsible for diagnosis.
+
+**Scenario 4: Data privacy breach of patient records**
+- Training data contains identifiable patient information. Leaked.
+- Fix: De-identify all training data. HIPAA compliance. Data minimization.
+
+### Implementation Guidance
+
+**Wrong:** Replace physician with AI. Fully automate diagnosis.
+**Right:** AI for triage and differential. Physician makes final diagnosis.
+
+**Wrong:** Optimize for narrow high-specificity diagnosis.
+**Right:** Optimize for sensitivity (catch serious conditions), accept lower specificity.
+
+---
 
 ## Interview Q&A
 

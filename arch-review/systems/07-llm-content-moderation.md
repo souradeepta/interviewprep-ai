@@ -36,8 +36,45 @@ Ensemble: patterns + vision model + text LLM. Pick majority vote or use confiden
 ## Data Flow
 User post → Extract text/images/video → Classify → Score confidence → Queue if uncertain → Human review → Action (remove/label/keep).
 
-## Key Trade-offs
-Speed vs accuracy: fast regex (500ms, 85% recall) + slow LLM (1s, 95% recall). Hybrid: regex first, LLM for uncertain cases.
+## Detailed Trade-off Analysis
+
+| Approach | Latency | Recall | Precision | False Positive | Cost/Item |
+|----------|---------|--------|-----------|---|---------|
+| Keyword blocklist | 10ms | 70% | 60% | 20% | $0 |
+| Regex rules | 50ms | 85% | 85% | 10% | $0 |
+| ML classifier | 200ms | 90% | 92% | 5% | $0.001 |
+| LLM judgment | 1000ms | 98% | 98% | <1% | $0.01 |
+| Hybrid (ML + LLM) | 300ms | 96% | 96% | 2% | $0.003 |
+
+**Decision:** Speed critical → regex. Accuracy critical → LLM. Balanced → hybrid.
+
+### Production Failure Scenarios
+
+**Scenario 1: False positives cause over-moderation**
+- System removes legitimate post (e.g., discussion about suicide prevention). User backlash.
+- Fix: Conservative thresholds. Always show moderation reason. Appeal process.
+
+**Scenario 2: LLM hallucination in moderation explanation**
+- Post removed. Explanation says "contains hate speech" but doesn't. User disputes.
+- Fix: LLM must cite specific phrases. Grounding required.
+
+**Scenario 3: Context misunderstood**
+- Satire post flagged as offensive. Or quote (praising good behavior) flagged as promoting bad behavior.
+- Fix: Include broader context. Sarcasm detection. Domain-specific rules.
+
+**Scenario 4: Cost explosion from LLM escalation**
+- System escalates 50% of posts to LLM. Cost $10K/day (budget $1K).
+- Fix: Reduce escalation to high-risk only (10%). Or use smaller model for filtering.
+
+### Implementation Guidance
+
+**Wrong:** Escalate all uncertain cases to LLM.
+**Right:** Tiered: regex → ML → human for extreme cases. LLM only for edge cases.
+
+**Wrong:** Remove without explanation.
+**Right:** Always explain moderation decision. Allow appeal.
+
+---
 
 ## Interview Q&A
 
