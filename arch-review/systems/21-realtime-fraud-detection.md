@@ -1,10 +1,10 @@
 # Real-time Fraud Detection (ML + LLM)
 
-## TL;DR
-Combines ML scoring with LLM explanation. 100M transactions/day, <50ms latency, 99% TPR at 0.1% FPR.
+## Overview
+A real-time fraud detection system combining XGBoost ML scoring with LLM-based explanations, processing 100M+ daily transactions with <50ms latency, 99% true positive rate, and 0.1% false positive rate. Balances fraud prevention with customer experience through intelligent rule-based filtering, ML ranking, and LLM decision explanations.
 
 ## Problem Statement
-Fraud evolves. Need real-time detection + explainable decisions.
+Payment fraud is a major business risk: (1) financial loss (fraud losses $30B+ annually globally, merchants liable for chargebacks), (2) customer experience impact (false declines block legitimate customers, abandon rate 1-2% per decline), (3) fraud evolution (attackers constantly develop new patterns), (4) scale challenge (100M transactions/day impossible to manually review), (5) compliance (PCI-DSS, AML regulations require fraud prevention). Trade-off: be too aggressive → block 1-2% of good transactions (10K-100K customers/day blocked) = churn/negative reviews. Be too lenient → fraud slips through = financial loss. Solution: ML model detects patterns + LLM explains decisions (why was this transaction flagged) + customer feedback loop to improve. Target: 99% catch rate at <0.1% false positive rate.
 
 ## Requirements
 

@@ -1,10 +1,10 @@
 # Autonomous Coding System (Devin-like)
 
-## TL;DR
-Multi-agent system that writes production code: planning agent, coding agent, test agent, review agent. 50 tasks/day, 70% can complete autonomously, 30% require human clarification.
+## Overview
+A multi-agent autonomous coding system orchestrating planning, implementation, testing, and review to generate production-ready code from requirements. Processes 50+ tasks daily with 70% autonomous completion rate and 30% requiring human clarification.
 
 ## Problem Statement
-Developers spend 30% time on boilerplate. Need autonomous coding that understands requirements → code → test → deploy.
+Software development productivity is bottlenecked by boilerplate and routine coding: (1) developers spend 30-40% of time on low-value work (scaffolding, CRUD APIs, test writing), (2) ramp-up for junior engineers slow (6-12 months to independent), (3) technical debt accumulation (short timelines → skip tests, documentation), (4) cost (engineering salaries dominate software budgets). Impact: with 100 engineers, 30 FTE wasted on boilerplate = $3M/year. Solution: autonomous agents handle routine coding, engineers focus on architecture/complex logic/decisions. Target: 2-3x productivity increase, faster ramp-up, better code quality (agents don't cut corners on tests).
 
 ## Requirements
 
