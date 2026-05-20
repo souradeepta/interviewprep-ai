@@ -34,6 +34,85 @@ Black-box model predicts 0.92 (approve loan). Why? Explainability answers: "beca
 - Computation: SHAP expensive, LIME cheap
 - Trust: explanations must be correct (garbage in → garbage explanation)
 
+## Detailed Trade-off Analysis
+
+| Aspect | SHAP | LIME | Decision Trees | Prototype-Based |
+|--------|------|------|----------------|-----------------|
+| Computation time | 10 min per 1K samples | 10 sec per sample | Instant | 1 min per sample |
+| Rigor (Shapley values) | Yes | No | Yes | No |
+| Local explanations | Yes | Yes | Yes | Yes |
+| Global explanations | Yes | No | Yes | Yes |
+| Model agnostic | No | Yes | No | Yes |
+| Latency (per-prediction) | Prohibitive | 5-10ms | <1ms | 10-50ms |
+
+**Decision:** Batch analysis → SHAP. Real-time API → LIME or trees. Compliance required → SHAP or trees.
+
+---
+
+## Production Failure Scenarios
+
+**Scenario 1: Explanation misleads on causality**
+- SHAP shows "age important", model always predicts high for old users. Team assumes age causes decisions.
+- Root cause: age correlated with income. Real driver: income, not age.
+- Fix: Validate explanations with domain experts. Test by removing feature, retraining, checking if accuracy changes.
+
+**Scenario 2: SHAP values computed incorrectly**
+- SHAP assumes feature independence. But features correlated (age + years_employed). Explanation invalid.
+- Fix: Use conditional SHAP (TreeExplainer) or document assumptions.
+
+**Scenario 3: Explanations overly complex**
+- SHAP explanation: "Average impact of this feature across 10K background samples is +0.034". Customer doesn't understand.
+- Fix: Simplify for end users. Use LIME (linear approximation) or prototype examples ("similar approved loans had income >$X").
+
+**Scenario 4: Explanation contradicts business logic**
+- Model says "approved because high income". But manual review finds model is rejecting high-income applicants 30% of the time.
+- Root cause: LIME locally linear, but model is non-linear. Local approximation wrong.
+- Fix: Use SHAP for rigor. Or add sanity checks (does explanation flip appropriately when feature changes?).
+
+---
+
+## Implementation Guidance
+
+**Wrong:** Trust SHAP explanation without validation. Assume it's causally correct.
+**Right:** Validate with domain experts. Test by modifying feature, retraining, checking if explanation changes.
+
+**Wrong:** Use SHAP for every prediction in production (too slow).
+**Right:** SHAP for batch analysis and auditing. LIME or rules-based for real-time API.
+
+---
+
+## Sophisticated Interview Q&A
+
+**Q1: SHAP explanation takes 5 minutes per prediction. Production needs <100ms. Solution?**
+A: Tiering. (1) Real-time: use simpler method (LIME, decision rules, prototypes) <100ms. (2) Audit: SHAP for sampled predictions, batch processing offline. (3) Caching: precompute SHAP for common inputs.
+
+**Q2: Feature A shows +0.3 impact in SHAP. Does it cause prediction or correlate?**
+A: Can't tell from SHAP alone. Validate: (1) ablate feature A, retrain, check accuracy. (2) Does domain expert agree? (3) Test on holdout: if A important, removing A should hurt. If explanation wrong, accuracy stays same.
+
+**Q3: Regulator requires explanations for every loan decision. SHAP too slow. What do you do?**
+A: Hybrid approach. (1) Train interpretable model (e.g., Generalized Additive Model) as surrogate. (2) Use surrogate for real-time explanations (<100ms). (3) Validate surrogate against complex model (should agree >95% of time). (4) Periodically recompute SHAP for audit/validation.
+
+**Q4: LIME local model R² = 0.6. Is explanation trustworthy?**
+A: No. Low R² means linear approximation doesn't fit local model behavior. Either (1) use SHAP instead, (2) use more complex local model (e.g., small decision tree), (3) increase local neighborhood size, or (4) accept lower confidence.
+
+---
+
+## Cost & Resource Analysis
+
+**SHAP computation:** 10 min for 1K samples. $100-500 per 1M samples (cloud compute).
+**LIME:** Real-time capable. Infrastructure: <$10/month (negligible compute).
+**Model surrogate:** Train once, <$100. Validation: 2 engineer hours = $500.
+
+**Compliance cost:** Missing explanations = regulatory fine ($1M+). Cost of explainability infrastructure: $5-20K/year. Break-even on first incident prevented.
+
+---
+
+## Monitoring & Observability
+
+**Key metrics:** Explanation stability (same prediction, same explanation?), explanation-model agreement (does SHAP match local behavior?), explanation complexity (average number of features), explanation latency, audit coverage (% of predictions explained)
+
+**Alerts:** Low agreement between explanation and model (indicates wrong explanation), latency spike on explanation computation, explanation confidence drops (model became non-linear), regulatory audit failures
+
 ## Common Mistakes / Gotchas
 - Explanation wrong: SHAP values computed incorrectly
 - Over-confident: explanation seems clear but isn't (confounding)

@@ -26,6 +26,85 @@ Model makes wrong predictions. Where does error come from? Trace back: data → 
 - Coverage: focus on high-impact errors first
 - Complexity: root cause often multi-factorial
 
+## Detailed Trade-off Analysis
+
+| Aspect | Manual Error Analysis | Automated Slicing | ML-Based Anomaly | Active Learning |
+|--------|----------------------|------------------|-----------------|-----------------|
+| Detection time | 1-2 weeks | 1-2 days | Hours | Continuous |
+| False positive rate | Low (curated) | 10-20% noise | 5% | Low (labeled) |
+| Actionability | High (expert review) | Medium (automated) | High (novel patterns) | Highest (human loop) |
+| Scalability | Low (manual) | Medium (rules) | High (patterns) | Medium (requires labeling) |
+| Cost | Engineer time $10K | $500 tools | $1K tools | $2K+labels |
+
+**Decision:** Small issues → manual. Scale issues → automated. Novel patterns → ML. Continuous → active learning.
+
+---
+
+## Production Failure Scenarios
+
+**Scenario 1: Fix wrong thing**
+- High error on age>60. Engineer assumes model capacity too low. Retrains on larger model. Error stays 70%.
+- Root cause: training data had <1% age>60. Real fix: collect stratified data for age groups.
+- Prevention: ask "why" 5 times before fixing. Verify hypothesis with ablation.
+
+**Scenario 2: Label errors confound analysis**
+- Error analysis shows "high error on region X". Start collecting more region X data.
+- Later discovery: region X labels were wrong in original dataset (80% mislabeled).
+- Prevention: validate label quality before error analysis. Run consensus labeling on subset.
+
+**Scenario 3: Overfitting to error cohort**
+- Fix age>60 errors by training specifically on age>60 data. Age>60 accuracy improves but age<30 accuracy drops.
+- Prevention: error analysis includes fairness check—ensure fix doesn't degrade other cohorts.
+
+**Scenario 4: Confusing correlation with causation**
+- Error analysis: high error on Mondays. Add "day_of_week" feature. Accuracy improves.
+- But root cause: model performs poorly on Sunday predictions (system issue), carry-over to Monday.
+- Prevention: dig deeper into Monday errors. Are they truly Monday-specific or spillover from Sunday?
+
+---
+
+## Implementation Guidance
+
+**Wrong:** Look at overall accuracy, make broad changes (retrain on more data).
+**Right:** Slice errors by cohort, identify pattern, test hypothesis with ablation, fix root cause.
+
+**Wrong:** Trust training labels. Assume they're correct.
+**Right:** Validate 100 random labels before analysis. If >5% errors, stop and clean data first.
+
+---
+
+## Sophisticated Interview Q&A
+
+**Q1: Model accuracy 90%. Where would you improve first?**
+A: Error analysis to find low-accuracy cohorts. Example: 95% on common cases, 60% on rare cases. Prioritize by impact: rare case errors × business cost. If rare=0.1% of traffic but 100x higher cost, fix rare. Otherwise fix common.
+
+**Q2: Age>60 has 70% error, age<20 has 80%. Which fix first?**
+A: Calculate impact. Age>60: 5% of traffic × 70% error × cost. Age<20: 10% of traffic × 80% error × cost. If costs equal, fix age<20 (larger segment). Consider: which is easier to fix? (More data available? Simpler patterns?)
+
+**Q3: Error decreases but fairness metrics worsen. What happened?**
+A: Trade-off scenario. Reducing overall error may harm minority groups. Example: fix age<20 errors by favoring age<20 in training, accidentally decrease age>60 accuracy. Resolve: define acceptable fairness thresholds upfront. May not be possible to maximize accuracy AND fairness simultaneously.
+
+**Q4: How do you prevent fixing the wrong problem?**
+A: Hypothesis-driven debugging. (1) State hypothesis (e.g., "age>60 data insufficient"). (2) Design test (e.g., train on more age>60 data only). (3) Measure (did accuracy improve?). (4) Validate (does improvement persist on holdout?). If hypothesis fails, move to next.
+
+---
+
+## Cost & Resource Analysis
+
+**Manual error analysis:** 1 engineer × 1 week = $5K. Identifies ~3-5 actionable cohorts per model.
+**Automated slicing tools:** Evidently, Datarobot, etc. $200-500/month. Identifies patterns 10x faster.
+**Active learning (ML-assisted):** Label unclear cases incrementally. Cost: $50-100 per label × 1000 labels = $50-100K for one iteration.
+
+**ROI:** Error analysis preventing 1% accuracy drop on $10M platform = $100K value. Cost breakeven at one analysis per month.
+
+---
+
+## Monitoring & Observability
+
+**Key metrics:** Error rate by cohort, error count by cause (label quality, feature missing, data insufficient), time spent in error analysis, cost to fix vs cost of error
+
+**Alerts:** New cohort with >10% error rate, error rate drift (increasing errors on previously good cohort), label quality drops below threshold
+
 ## Common Mistakes / Gotchas
 - Looking at overall accuracy only (missing specific cohort failures)
 - Assuming training data is correct (actually has label errors)
