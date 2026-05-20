@@ -1,10 +1,12 @@
 # Model Versioning
 
-## TL;DR
-Semantic versioning (MAJOR.MINOR.PATCH) for trained models. Pin code commit, data version, hyperparameters. Enables reproduction: exact same inputs → exact same model.
+## Detailed Description
+
+Semantic versioning (MAJOR.MINOR.PATCH) for trained models. MAJOR: architecture change (XGBoost→GBDT). MINOR: feature set change (add feature). PATCH: hyperparameter tuning. Enables reproducibility, rollback, clear communication.
 
 ## Core Intuition
-Model v1.0.0 is a snapshot: specific code, specific data, specific hyperparameters. Re-run same code + data = reproducible model. No version → can't reproduce.
+
+Versioning = clear semantics. v1.2.3 says: same architecture (1), new features (2), tweaked hyperparams (3). v1.3.0 says: new features added, probably need revalidation. Without versioning: confusing (which is better, 1.1 or 1.2?). With it: clear.
 
 ## How It Works
 
@@ -43,6 +45,80 @@ Model v1.0.0 is a snapshot: specific code, specific data, specific hyperparamete
 - **Backward compatibility:** never tag the same version twice. Each model is immutable.
 - **Deprecation policy:** versions < 6 months old marked deprecated, removed after 12 months.
 
+## Detailed Trade-off Analysis
+
+| Aspect | Semantic | Calendar | Git Hash |
+|--------|----------|----------|----------|
+| Readability | Clear (major/minor/patch) | Timestamp | Unique |
+| Rollback clarity | "v1.9.0" obvious | Yesterday's | Specific |
+| Metadata tracking | Manual | Auto | Auto |
+| When to use | Code-driven | Daily retrains | CI/CD driven |
+
+---
+
+## Production Failure Scenarios
+
+### Scenario 1: Can't rollback (model code deleted)
+**Recover:** Git hash enables rebuild from commit. Without it: impossible.
+**Prevent:** Always store git commit hash with model version.
+
+### Scenario 2: Version incompatibility
+**What breaks:** v2.0.0 uses new features not in v1.0.0 data.
+**Prevent:** Tag breaking changes (major version). Never reuse version tag.
+
+### Scenario 3: Data drift
+**What breaks:** v1.0.0 trained on 2024-01 data, used with 2024-03 data (different distribution).
+**Prevent:** Track data version. Monitor distribution shift.
+
+---
+
+## Implementation Guidance & Gotchas
+
+**❌ Wrong: Unversioned or ambiguous versions**
+```python
+model.save("model.pkl")  # What version? No git? Impossible to rollback.
+```
+
+**✅ Right: Semantic + git commit**
+```python
+version = "v1.2.0"
+git_hash = "abc123"
+tag = f"{version}_{git_hash}"
+registry.register(tag, model, metadata)
+# Can rebuild from git if needed
+```
+
+---
+
+## Sophisticated Interview Q&A
+
+**Q1: Version 2.0.0 breaks backward compatibility. Handle?**
+A: Major version indicates breaking change. Coordinate deployment: keep v1.9.0 available for gradual migration. Deprecate v1.x over 3 months. Update clients explicitly.
+
+**Q2: Model 1.0.0 trained on data version A, now training on B. Same version?**
+A: No. Different data = different model. Bump minor version (1.1.0). Monitor distribution shift.
+
+---
+
+## Cost & Resource Analysis
+
+**Minimal cost.** Versioning overhead: 5 min per model registration.
+
+**ROI:** Prevents rollback outages (time saved >> cost).
+
+---
+
+## Monitoring & Observability Patterns
+
+**Metrics:**
+- Versions deployed per environment
+- Time since version deployed (age)
+- Deprecation status
+
+**Alerts:**
+- if version >= 6 months old: mark deprecated
+- if version >= 12 months old: archive
+
 ## Code Example
 
 ```python
@@ -74,12 +150,29 @@ class ModelVersioning:
 
 ## Interview Q&A
 
-**Q: How do you ensure reproducibility across model versions?**
-A: Pin three things: (1) code version via git commit hash, (2) data version via DVC or data hash, (3) hyperparameters explicitly. Given all three, re-run training produces identical model (within floating-point precision). Test: periodically rebuild old models from stored metadata, validate metrics match.
+Q: When bump MAJOR vs MINOR vs PATCH?
+A: A: MAJOR: architecture change (LSTM→CNN). MINOR: feature set change (add X). PATCH: hyperparameter only. Uncertain? Use MINOR (safe).
 
-**Q: Model v2.0.0 is worse than v1.9.0. Rollback?**
-A: Versioning enables instant rollback: switch production traffic to v1.9.0 (config change, no rebuild). Investigate v2.0. Find bug. Create v2.0.1 with fix. Redeploy. SLA: rollback <5 minutes.
+Q: v2.0.0 worse than v1.9.0?
+A: A: Registry stores both. Deploy v1.9.0 (5min). Investigate v2.0.0 bug. Fix, retrain as v2.0.1.
 
+Q: Have v1.2.0, v1.2.1, v1.2.2. Deploy which?
+A: A: Compare validation: highest accuracy? Also check latency, size, cost. Deploy best.
+
+Q: Version in code or assigned at deployment?
+A: A: Assigned at deployment. Code doesn't mention version. System increments based on what changed (prevents mismatch).
+
+Q: v1.0.0 on data_v1, v1.1.0 on data_v2, accuracy dropped?
+A: A: Track data version with model. v1.1.0={code:abc, data:v2, accuracy:0.91}. Understand: accuracy dropped due to data, not code.
+
+Q: Two teams release v1.2.0?
+A: A: Prevent with central authority. One registry, one version number generator. Teams coordinate.
+
+Q: Maintain how many old versions?
+A: A: Production + 1 prior (rollback). Latest 3 for comparison. Archive older.
+
+Q: v1.5.0 passes validation but fails in production?
+A: A: Tag versions: v1.5.0{caveat:'works on segment_A, lower on segment_B'}. Use tags: 'stable', 'experimental', 'production_ready'.
 ## Interview Quick-Reference
 
 | Semver | Example | When |
@@ -95,3 +188,4 @@ A: Versioning enables instant rollback: switch production traffic to v1.9.0 (con
 ## Resources
 - [Semantic Versioning](https://semver.org/)
 - [DVC: Data Version Control](https://dvc.org/)
+
