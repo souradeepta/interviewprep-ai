@@ -1,10 +1,12 @@
 # Request Batching
 
-## TL;DR
-Accumulate per-request inference queries, batch them together, run single inference pass. 10-100x throughput gain (GPU fully utilized vs idle). Trade-off: add 10-50ms latency vs single-request.
+## Detailed Description
+
+Accumulate incoming per-request queries, batch them, run single inference pass. Process 32 requests simultaneously = 32x speedup vs single. Trade-off: latency vs throughput. Batch size: 32-256 (depends on memory). Max wait: 10-100ms.
 
 ## Core Intuition
-Single GPU requests = GPU idle between requests. Batching 32 requests = GPU 32x more efficient. Process once instead of 32 times.
+
+Batching = fill a bus before driving. Single requests = driving bus with 1 passenger. Batch 32 requests = 32 passengers, same trip. Throughput 32x better. Latency: individual request waits (50ms for batch to fill). Throughput win outweighs latency cost for most systems.
 
 ## How It Works
 
@@ -29,6 +31,74 @@ Single GPU requests = GPU idle between requests. Batching 32 requests = GPU 32x 
 - No wait time limit: requests queue forever waiting for batch
 - Queue overflow: no backpressure → OOM
 - Variable input sizes: can't batch sequences of different lengths
+
+## Detailed Trade-off Analysis
+
+| Batch Size | Throughput | Latency | GPU Util | Queue Wait |
+|------------|-----------|---------|----------|-----------|
+| 1 | 20/sec | 50ms | 5% | 0ms |
+| 8 | 120/sec | 75ms | 40% | 10ms |
+| 32 | 600/sec | 100ms | 95% | 30ms |
+| 256 | 2000/sec | 200ms | 99% | 100ms |
+
+**Decision:** Start batch=32. If latency >SLA, reduce. If throughput <target, increase.
+
+---
+
+## Production Failure Scenarios
+
+**Scenario 1: Batch timeout too long**
+- Request waits 500ms for batch. SLA 100ms. Timeout.
+- Fix: Set max_wait=50ms. Accept partial batches.
+
+**Scenario 2: Queue overflow**
+- No backpressure. Queue grows to 10K. OOM crash.
+- Fix: Reject requests if queue>1000. Circuit breaker.
+
+**Scenario 3: Variable sequence lengths**
+- Batch 32 sequences. Lengths: 10, 500, 20, 480... Can't batch different lengths.
+- Fix: Pad to max length or sort by length before batching.
+
+---
+
+## Implementation Guidance
+
+**Wrong:** No timeout, requests queue forever.
+```python
+batch.add(request)  # Waits indefinitely
+```
+
+**Right:** Timeout after max_wait_ms.
+```python
+batch.add(request, timeout=50ms)  # Times out if batch not full in 50ms
+if batch.full() or batch.timed_out():
+    infer(batch)
+```
+
+---
+
+## Sophisticated Interview Q&A
+
+**Q1: Batch 32 adds 30ms latency. SLA 50ms. Accept?**
+A: Yes. Throughput gain (30x) outweighs 30ms latency for most systems. If SLA violated, reduce batch to 8-16.
+
+**Q2: Queue growing, requests piling up. Fix?**
+A: Reject if queue>threshold. Circuit breaker. Force clients to backoff. Prevents OOM.
+
+**Q3: Batch size tuning strategy?**
+A: Start 32. Measure throughput/latency. If latency >SLA, reduce. If throughput <target, increase. Find sweet spot.
+
+---
+
+## Cost & Resource Analysis
+
+Batching reduces infrastructure 30-50% (fewer GPUs needed for same throughput).
+
+---
+
+## Monitoring & Observability
+
+Metrics: batch_size_actual, queue_length, latency_added_by_batching. Alert: queue>1000, latency>SLA.
 
 ## Best Practices
 - **Start small:** batch=8, measure throughput/latency
@@ -77,12 +147,30 @@ class BatchProcessor:
 ```
 
 ## Interview Q&A
-**Q: Batch size 32 works great, but latency suddenly spikes. Cause?**
-A: Queue backed up. If incoming rate > outgoing rate, queue grows. Investigation: (1) Check GPU util—if 100%, increase batch_size or add replicas. (2) Check model latency—may have degraded. (3) Feature extraction time—blocking on DB queries. Fix: identify bottleneck, unblock.
 
-**Q: Variable-length sequences in a batch?**
-A: Option A: Pad to max_length. Simple, wastes compute. Option B: Sort by length, create variable-length batches. More complex, efficient.
+Q: Single request latency 50ms. Batch 32 requests?
+A: A: Latency per request: 50ms (fill batch) + 10ms (inference) = 60ms. Single request: 50ms. Trade: 10ms slower, but 32x more throughput. Worth it for most use cases.
 
+Q: Batch size too small (1-2)?
+A: A: GPU idle, low throughput. Increase to 32, GPU utilization jumps from 10% to 95%.
+
+Q: Max wait time too long (>200ms)?
+A: A: Queued requests wait too long. SLA violation. Lower max_wait to 50ms (batch fills faster with traffic, or timeout and send smaller batch).
+
+Q: No backpressure: queue grows unbounded?
+A: A: OOM. Add backpressure: if queue >1000, reject new requests (HTTP 503). Signals to client: server busy.
+
+Q: Batching different models together?
+A: A: Don't. Incompatible batch dimensions. Separate queue per model. Batch independently.
+
+Q: Dynamic batch size?
+A: A: Start small (8), increase if queue_depth >50. Adapt to traffic. High traffic → larger batches. Low traffic → smaller batches.
+
+Q: Fallback if wait exceeds SLA?
+A: A: Bypass queue, process single request (slow but meets SLA). Or return cached prediction if available.
+
+Q: Variable-length inputs (text sequences)?
+A: A: Pad short sequences to max_length (wastes compute but simple). Or sort by length, batch similar lengths (more complex, efficient).
 ## Interview Quick-Reference
 | Config | Throughput | Latency | When |
 |--------|-----------|---------|------|
@@ -96,3 +184,4 @@ A: Option A: Pad to max_length. Simple, wastes compute. Option B: Sort by length
 
 ## Resources
 - [Clipper: Prediction Serving System](https://arxiv.org/abs/1612.03079)
+

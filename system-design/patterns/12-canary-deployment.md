@@ -1,10 +1,12 @@
 # Canary Deployment
 
-## TL;DR
-Gradual rollout: deploy to 5% of users first. Monitor metrics. If good, 25% → 50% → 100%. If bad, rollback immediately. Reduces blast radius of buggy models.
+## Detailed Description
+
+Gradual rollout: 5%→25%→50%→100%. Monitor, auto-rollback if errors exceed threshold. Balances risk and visibility. Slower than blue-green but cheaper.
 
 ## Core Intuition
-Don't release to everyone at once. Release to brave few first (canaries). If they're OK, expand. If problem, only 5% affected, easy rollback.
+
+Canary = test with small group first. 5% users get new model, 95% get old. Monitor: does new model work? Accuracy same? No errors? If good, increase to 25%. If bad, rollback to 0%. Gradual reduces risk.
 
 ## How It Works
 
@@ -32,6 +34,65 @@ Don't release to everyone at once. Release to brave few first (canaries). If the
 - Rollback too slow (wait for multiple failures before acting)
 - Canary % too high (50% canary defeats the purpose)
 - Not isolating canary traffic (canary sees different data than rest)
+
+## Detailed Trade-off Analysis
+
+| Aspect | Canary | Blue-Green | Shadow |
+|--------|--------|-----------|--------|
+| Cost | 5% overhead | 100% overhead | 50% overhead |
+| Time | Hours | Minutes | N/A |
+| Risk | Medium | Low | Lowest |
+| Rollback | Gradual (slow) | Instant | N/A |
+
+**Decision:** Risk averse→canary. Speed critical→blue-green. Validation only→shadow.
+
+---
+
+## Production Failure Scenarios
+
+**Scenario 1: Canary metrics hidden by noise**
+- Canary error 1%, baseline 0.9%. Promote. At 100%, errors 10x.
+- Fix: Higher confidence threshold (delta>1%, not >0.1%).
+
+**Scenario 2: Slow rollout, SLA urgent**
+- Canary takes 2 hours. SLA needed now.
+- Fix: Use blue-green (instant switch) instead.
+
+**Scenario 3: Canary and stable serve same user**
+- Session routes between canary/stable. Inconsistent behavior.
+- Fix: Sticky routing (user+version).
+
+---
+
+## Implementation Guidance
+
+**Wrong:** Canary 1% for 5 minutes. Misses slow issues.
+**Right:** Canary 5% for 30 minutes. Detect issues early.
+
+---
+
+## Sophisticated Interview Q&A
+
+**Q1: Canary % and duration?**
+A: 1-5%, 30 min minimum. Monitor error rate, latency, prediction distribution closely.
+
+**Q2: Metric threshold for promotion?**
+A: Canary error within 10% of baseline (prevents promoting on noise).
+
+**Q3: Slow rollout conflicts with SLA?**
+A: Use blue-green instead (instant).
+
+---
+
+## Cost & Resource Analysis
+
+5% compute overhead. ROI: catch 1 bad model/week.
+
+---
+
+## Monitoring & Observability
+
+Metrics: canary_error_rate, canary_latency_p99, canary_pred_distribution. Alerts: error>threshold, latency>SLA.
 
 ## Best Practices
 - **Monitor early:** liveness (alive?), readiness (loaded?), deep (quality metrics)
@@ -66,12 +127,30 @@ class CanaryDeployment:
 ```
 
 ## Interview Q&A
-**Q: Canary at 5% detects bug affecting 10% of users (edge case). Problem?**
-A: Bad luck—edge case didn't trigger in first 5%. Solution: targeted canary—route canary traffic to users likely to hit edge case (e.g., specific geo, user segment). Or: longer canary duration (2 hours instead of 30 min).
 
-**Q: How do you choose metric thresholds for rollback (error rate 1%)?**
-A: Start conservative: 0.5% (half of baseline). Lower threshold → more rollbacks (false positives). Higher threshold → miss real issues. AB test thresholds: compare automatic vs manual rollback decisions. Calibrate over time.
+Q: How do you decide 5% vs 10% vs 50%?
+A: A: Depends on confidence and risk tolerance. High confidence (extensive testing): 50%. Medium (some tests): 10%. Low (risky change): 5%. Also depends on error impact: fraud = lower %, recommendations = higher %.
 
+Q: Auto-rollback if error rate >5%?
+A: A: Yes. Monitor error rate continuously. If new model's error >5%, rollback automatically (humans notified). Prevents bad deploys reaching 100%.
+
+Q: Canary conflicts with feature flags?
+A: A: Complementary. Canary: infrastructure rollout (version A→B). Feature flags: code logic toggle. Use both: canary deploy new code version, feature flags control which users see new logic.
+
+Q: Time per stage: 5%→25%→50%?
+A: A: Depends on traffic and confidence. 1M DAU: 5% = 50K users (sufficient data). 1 hour at each stage = 3 hours total. High-traffic: faster. Low-traffic: slower (need more time for statistical significance).
+
+Q: Gradual rollout but need ASAP deployment?
+A: A: Trade-off. Can accelerate: 5%→50%→100% (skip 25%). Or skip canary, blue-green deploy (instant but risky).
+
+Q: Two models differ significantly (different accuracy)?
+A: A: Stay at 5% canary longer. Collect more data. Compare 95th percentile metrics (not just mean). If confident, increase. If not, investigate why models differ.
+
+Q: Canary breaks for 1% of traffic, 99% happy?
+A: A: Depends on impact. 1% errors acceptable? If issue only for power users (1%), might worth fixing before expanding. If random (any user could hit), unacceptable.
+
+Q: How do you measure 'good enough' to expand?
+A: A: Define metrics upfront. Accuracy >94%, latency <100ms, errors <1%. Compare canary vs baseline. If canary meets thresholds, expand. Otherwise, investigate.
 ## Interview Quick-Reference
 | Stage | Traffic | Duration | Decision |
 |-------|---------|----------|----------|
@@ -86,3 +165,4 @@ A: Start conservative: 0.5% (half of baseline). Lower threshold → more rollbac
 
 ## Resources
 - [Canary Deployments](https://martinfowler.com/bliki/CanaryRelease.html)
+
