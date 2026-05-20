@@ -20,19 +20,81 @@ Fraud evolves. Need real-time detection + explainable decisions.
 - TPR: 99% @ 0.1% FPR
 
 ## Envelope Calculation
-100M txns × $0.0001 = $10K/month.
+
+### Transaction Scale
+- 100M transactions/day = 1.16K QPS average, 15K QPS peak (3x peak amplifier)
+- Session: 1 transaction per user session
+- Time zone distribution: assume peak 9am-5pm US time
+
+### ML Model Inference
+- Feature engineering: 10ms per transaction
+- Model scoring: 20ms per transaction  
+- LLM explanation (10% of flagged): 5% flagged × $0.0005 LLM cost = $2.5K/day
+
+### Infrastructure Cost Breakdown
+- GPU inference (8 A100s for 100M txns): $15K/month
+- Vector DB (fraud patterns): $2K/month
+- Kafka queue + storage: $3K/month
+- Monitoring: $1K/month
+- **Total infrastructure: $21K/month**
+
+### Cost Per Transaction
+- Inference: $15K / 3B txns/month = $0.000005
+- LLM (5%): $0.000025
+- Infrastructure: $0.000007
+- **Total: ~$0.00004/txn (within $0.0001 target)**
+
+### Latency Budget (50ms SLA)
+- Feature engineering: 10ms
+- Model inference: 20ms
+- Decision + logging: 10ms
+- LLM explanation (async, off-path): 1000ms (background)
+- **Critical path: 40ms (within SLA)**
 
 ## Architecture Overview
-[Detailed architecture diagram with Mermaid showing component flow]
+
+```mermaid
+graph LR
+    A[Transaction Stream] -->|Kafka| B[Feature Engineering]
+    B -->|Redis Cache| C[ML Scoring Engine]
+    C --> D{Fraud Risk}
+    D -->|Low Risk| E[Approve]
+    D -->|Medium Risk| F[LLM Analysis]
+    D -->|High Risk| G[Block]
+    F -->|Async| H[Explanation Queue]
+    H -->|LLM| I[Explanation]
+    E -->|Log| J[(Transaction Log)]
+    G -->|Log| J
+    I -->|Store| J
+    C -->|Feature Metrics| K[Monitoring]
+    K -->|Drift Detection| L[Retraining Trigger]
+```
 
 ## Component Breakdown
-- Core components and their responsibilities
-- Latency and cost breakdown per component
+
+| Component | Latency | QPS | Technology | Cost |
+|-----------|---------|-----|-----------|------|
+| Feature Engineering | 10ms | 15K | GPU (TensorRT) | $3K/mo |
+| ML Scoring | 20ms | 15K | PyTorch (A100) | $12K/mo |
+| LLM Explanation | 1000ms | 750 (async) | GPT-4-turbo | $5K/mo |
+| Decision + Logging | 10ms | 15K | Redis + Kafka | $3K/mo |
+| Monitoring | N/A | N/A | Prometheus + ELK | $1K/mo |
 
 ## AI/ML Integration Points
-- Where LLM/ML models are used
-- Model selection and routing logic
-- Cost optimization strategies
+
+1. **ML Fraud Scoring**: XGBoost ensemble
+   - Features: 50 (transaction amount, user history, geographic velocity, device fingerprint)
+   - Confidence threshold: >0.8 = auto-approve, <0.2 = auto-block, 0.2-0.8 = LLM review
+   - Retraining: weekly on false positives
+
+2. **LLM Explanation** (for borderline cases):
+   - Input: features + fraud probability
+   - Output: human-readable explanation (e.g., "Geographic mismatch: transaction in Singapore 1hr after NYC purchase")
+   - Grounding: cite top 3 features contributing to fraud score
+
+3. **Monitoring & Drift**: Detect feature distribution changes
+   - KS-test on transaction amount, frequency per user
+   - If KS p-value <0.05: flag for retraining
 
 ## Key Trade-offs
 
