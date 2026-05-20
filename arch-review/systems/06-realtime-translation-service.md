@@ -24,6 +24,57 @@ Global applications face translation challenges: (1) user expectations (sub-500m
 ## Envelope Calculation
 1M translations/day → avg 12 QPS. Peak 100 QPS (9am-12pm). Batch: 100K nighttime translations. Cost: GPU serving @ $0.001/request = $1K/day ≈ $30K/month.
 
+## Architecture Diagrams
+
+### Diagram 1: Translation Pipeline & Routing
+```mermaid
+graph LR
+    A[User Input] -->|text| B[Language Detection]
+    B -->|lang pair| C{Cache Hit?}
+    C -->|Yes| D[Return Cached]
+    C -->|No| E{Quality Priority?}
+    E -->|Speed| F[Small Model<br/>CPU]
+    E -->|Quality| G[Large Model<br/>GPU Cluster]
+    E -->|Balanced| H[Medium Model<br/>GPU]
+    F -->|translated| I[Post-process]
+    G -->|translated| I
+    H -->|translated| I
+    I -->|quality score| J[Cache Result]
+    J -->|output| K[User Response]
+    D -->|cached| K
+```
+
+### Diagram 2: Model Selection & Cost-Quality Trade-off
+```mermaid
+graph TD
+    A[Language Pair Request] -->|analyze| B{Decision Logic}
+    B -->|common phrase| C[5ms Cache]
+    B -->|simple content| D[Small Model<br/>50ms, $0.001]
+    B -->|technical/complex| E[Large Model<br/>200ms, $0.01]
+    B -->|standard| F[Medium Model<br/>150ms, $0.005]
+    C --> G[Return to User]
+    D -->|quality check| H{Pass?}
+    E -->|quality check| H
+    F -->|quality check| H
+    H -->|yes| I[Cache & Return]
+    H -->|no, retry| E
+    I --> G
+```
+
+### Diagram 3: Regional Deployment & Latency Optimization
+```mermaid
+graph TB
+    A[Global User] -->|request| B{GeoIP Routing}
+    B -->|NA| C[US Region<br/>GPU Cluster]
+    B -->|EU| D[EU Region<br/>GPU Cluster]
+    B -->|ASIA| E[Asia Region<br/>GPU Cluster]
+    C -->|50ms inference| F[Local Cache]
+    D -->|50ms inference| F
+    E -->|50ms inference| F
+    F -->|150ms TTFB| G[User]
+    H[Global Cache<br/>Redis] -.->|replication| F
+```
+
 ## High-Level Architecture
 Input → Language Detection (fast) → Model Selector (cost + quality) → Translation Encoder-Decoder → Post-processing → Output. Caching layer for common phrases.
 

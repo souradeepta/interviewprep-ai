@@ -22,12 +22,53 @@ Support organizations face a fundamental capacity challenge: incoming ticket vol
 ## Envelope Calculation
 10K tickets × $0.50 = $5K/day. LLM cost dominant.
 
-## Architecture Overview
-[Detailed architecture diagram with Mermaid showing component flow]
+## Architecture Diagrams
+
+### Diagram 1: Support Ticket Resolution Pipeline
+```mermaid
+graph LR
+    A[Support Ticket] -->|intake| B[Classification Agent]
+    B -->|category| C[KB Search Agent]
+    C -->|relevant docs| D[Response Draft Agent]
+    D -->|draft response| E{Confidence >0.85?}
+    E -->|Yes| F[Auto-Send Response]
+    E -->|No| G[Escalate Queue]
+    F -->|customer reads| H[Feedback]
+    G -->|human agent| I[Expert Review]
+    I -->|refined response| J[Send Response]
+    H -->|feedback signal| K[Improve Model]
+    J -->|feedback signal| K
+```
+
+### Diagram 2: Auto-Resolution vs. Escalation Decision
+```mermaid
+graph TD
+    A[Ticket Received] -->|analyze| B[Intent Classifier]
+    B -->|high confidence| C["Auto-Resolve<br/>70% of tickets<br/>$0.10 cost"]
+    B -->|medium confidence| D["Escalate to Human<br/>25% of tickets<br/>$5.00 cost"]
+    B -->|low confidence| E["Complex Case<br/>5% of tickets<br/>$10.00 cost"]
+    C -->|automated response| F[Customer Satisfaction]
+    D -->|human review + response| F
+    E -->|specialist handling| F
+    F -->|feedback| G[Accuracy Metrics]
+```
+
+### Diagram 3: Accuracy vs. Cost-per-Ticket Trade-off
+```mermaid
+graph TB
+    A[Support Strategy] -->|LLM Only| B["CSAT: 72%<br/>Cost: $0.50<br/>Auto: 70%"]
+    A -->|LLM + Human<br/>Hybrid| C["CSAT: 82%<br/>Cost: $2.00<br/>Auto: 60%"]
+    A -->|Human Only| D["CSAT: 85%<br/>Cost: $13.00<br/>Auto: 0%"]
+    B -->|Risk| E["Hallucinated<br/>Answers"]
+    C -->|Balance| F["Good CSAT<br/>Cost Controlled"]
+    D -->|Risk| G["Expensive<br/>Unscalable"]
+```
 
 ## Component Breakdown
-- Core components and their responsibilities
-- Latency and cost breakdown per component
+- Classifier (intent, category): 50ms, 95% accuracy
+- KB Search: 100ms, 90% relevance  
+- Response Generator: 200ms, 78% quality
+- Escalation Logic: 10ms, rules-based
 
 ## AI/ML Integration Points
 - Where LLM/ML models are used

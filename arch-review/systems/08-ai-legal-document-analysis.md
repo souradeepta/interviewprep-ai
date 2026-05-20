@@ -24,6 +24,55 @@ Legal contract review is expensive and slow: (1) high cost ($200-500/hour expert
 ## Envelope Calculation
 10K docs/month = 330 docs/day. Avg doc: 5KB = 5K tokens. LLM: 10K tokens input + 500 output = 105M tokens/month. Cost: $315 (GPT-4 @ $0.003/1K).
 
+## Architecture Diagrams
+
+### Diagram 1: Document Processing Pipeline
+```mermaid
+graph LR
+    A[Contract PDF] -->|extract| B[Text Extraction]
+    B -->|OCR + parsing| C[Section Classifier]
+    C -->|identify sections| D[Clause Extractor]
+    D -->|extract clauses| E[Risk Scorer]
+    E -->|grade each clause| F[Template Comparison]
+    F -->|vs. standard terms| G[Compliance Checker]
+    G -->|regulatory rules| H[Report Generator]
+    H -->|summary + risks| I[Lawyer Review Queue]
+    I -->|human review| J[Final Analysis]
+```
+
+### Diagram 2: Risk Assessment Matrix
+```mermaid
+graph TB
+    A[Contract Analysis] -->|extract terms| B[Payment Terms]
+    A -->|extract terms| C[Liability Clauses]
+    A -->|extract terms| D[IP Ownership]
+    A -->|extract terms| E[Non-Compete]
+    B -->|score risk| F{Risk Level}
+    C -->|score risk| F
+    D -->|score risk| F
+    E -->|score risk| F
+    F -->|High Risk| G[Flag for Lawyer]
+    F -->|Medium Risk| H[Review Recommended]
+    F -->|Low Risk| I[Auto-Approve]
+    G -->|human decision| J[Approval/Rejection]
+    H -->|human decision| J
+    I -->|auto-approved| K[Signed]
+```
+
+### Diagram 3: Accuracy vs. Lawyer Review Trade-off
+```mermaid
+graph TD
+    A[Analysis Approach] -->|Basic| B["Extraction Only<br/>85% Accuracy<br/>50% Lawyer Review"]
+    A -->|Full Analysis| C["Risk + Template Check<br/>95% Accuracy<br/>20% Lawyer Review"]
+    A -->|AI + Human| D["AI + Lawyer Review<br/>99% Accuracy<br/>10% Lawyer Review"]
+    B -->|Cost| E["$100/doc<br/>Still requires review"]
+    C -->|Cost| F["$300/doc<br/>Faster turnaround"]
+    D -->|Cost| G["$500/doc<br/>High confidence"]
+    E -->|Risk| H["Miss unfair terms"]
+    F -->|Balance| I["Good ROI"]
+    G -->|Cost| J["Most expensive<br/>Highest quality"]
+```
+
 ## High-Level Architecture
 PDF → Text extraction → Section classification (Definitions, Payment, IP, etc.) → Clause extraction → Risk scoring → Comparison to template → Report generation.
 

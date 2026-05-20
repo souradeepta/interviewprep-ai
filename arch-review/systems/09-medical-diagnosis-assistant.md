@@ -24,6 +24,52 @@ Emergency medicine faces time pressure and diagnostic challenges: (1) ER physici
 ## Envelope Calculation
 5K patients/day × 2K tokens/patient (history + labs) = 10M tokens input. LLM cost: $30/day. Infra: $100/day. Total: $130/day = $4K/month.
 
+## Architecture Diagrams
+
+### Diagram 1: Clinical Decision Support Pipeline
+```mermaid
+graph LR
+    A[Patient Data] -->|EHR integration| B[Intake Parser]
+    B -->|symptoms + history| C[Lab Result Analyzer]
+    C -->|critical values| D[LLM Diagnosis Engine]
+    D -->|top-5 differentials| E[Confidence Scorer]
+    E -->|probability estimates| F[Risk Flagging]
+    F -->|critical conditions| G[Escalate to Physician]
+    G -->|physician reviews| H{Accepts?}
+    H -->|Yes| I[Confirm & Document]
+    H -->|No| J[Request More Data]
+    I -->|final diagnosis| K[Treatment Plan]
+    J -->|additional tests| D
+```
+
+### Diagram 2: Differential Diagnosis Generation
+```mermaid
+graph TD
+    A[Patient Presentation] -->|chief complaint| B[Symptom Classifier]
+    B -->|symptom pattern| C[Differential Generator]
+    C -->|LLM top-5| D[Likelihood Scorer]
+    D -->|probability| E[Rank by P of Disease]
+    E -->|high probability| F[Common Diseases]
+    E -->|medium probability| G[Consider These]
+    E -->|low probability| H[Rare - Research]
+    F -->|confidence| I["High Confidence<br/>80-95%"]
+    G -->|confidence| J["Medium Confidence<br/>40-80%"]
+    H -->|confidence| K["Low Confidence<br/>Escalate"]
+```
+
+### Diagram 3: Physician Review vs Autonomous Trade-off
+```mermaid
+graph TB
+    A[Diagnosis Mode] -->|Autonomous| B["AI-Only<br/>Fast, Wrong Risk"]
+    A -->|AI + Physician| C["AI Flag + Review<br/>Safe, Slower"]
+    B -->|Latency| D["2 min total<br/>But: Miss rare"]
+    C -->|Latency| E["3 min + physician<br/>Safe coverage"]
+    B -->|Cost| F["$50/case<br/>High risk"]
+    C -->|Cost| G["$150/case<br/>Low risk"]
+    B -->|Risk| H["Liability High"]
+    C -->|Risk| I["Liability Low<br/>Physician-owned"]
+```
+
 ## High-Level Architecture
 Patient intake → Symptom/history parsing → EHR integration → Differential diagnosis generation → Explanation → Physician review → Confirmation.
 

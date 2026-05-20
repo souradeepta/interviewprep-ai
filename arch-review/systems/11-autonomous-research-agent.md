@@ -22,6 +22,58 @@ Research-intensive work (analysts, academics, strategists) is bottlenecked by in
 ## Envelope Calculation
 1K researches/day × $5 = $5K/day. Search API: 5K × 10 searches × $0.001 = $50/day.
 
+## Architecture Diagrams
+
+### Diagram 1: Multi-Step Research Agent Pipeline
+```mermaid
+graph LR
+    A[Research Request] -->|topic| B[Plan Agent]
+    B -->|research plan| C[Search Agent]
+    C -->|queries| D[Web Search API]
+    D -->|results| E[Read Agent]
+    E -->|extract info| F[Analysis Agent]
+    F -->|process findings| G[Synthesis Agent]
+    G -->|integrate sources| H[Report Generator]
+    H -->|formatted report| I[User Review]
+    I -->|feedback| J[Quality Score]
+    B -->|refine plan| K{Completeness <80%?}
+    K -->|Yes| C
+    K -->|No| H
+```
+
+### Diagram 2: Research Agent Decision Points
+```mermaid
+graph TD
+    A[Research Topic] -->|analyze| B[Planning Agent]
+    B -->|generate plan| C[Search Strategy]
+    C -->|broad search| D[100 Sources<br/>60 min<br/>High coverage]
+    C -->|deep search| E[20 Sources<br/>30 min<br/>High depth]
+    C -->|focused| F[50 Sources<br/>45 min<br/>Balanced]
+    D --> G[Synthesize]
+    E --> G
+    F --> G
+    G -->|cross-link| H[Extract Insights]
+    H -->|cite sources| I[Generate Report]
+    I -->|confidence| J{Quality OK?}
+    J -->|No| K[Targeted Search]
+    K -->|fill gaps| I
+    J -->|Yes| L[Output Report]
+```
+
+### Diagram 3: Depth vs. Breadth Trade-off
+```mermaid
+graph TB
+    A[Research Scope] -->|Broad| B["100 Sources<br/>60 min<br/>Comprehensive<br/>$10 cost"]
+    A -->|Deep| C["20 Sources<br/>30 min<br/>Detailed<br/>$3 cost"]
+    A -->|Balanced| D["50 Sources<br/>45 min<br/>Good Balance<br/>$5 cost"]
+    B -->|Outcome| E["80% Coverage<br/>60% Depth"]
+    C -->|Outcome| F["40% Coverage<br/>90% Depth"]
+    D -->|Outcome| G["70% Coverage<br/>75% Depth"]
+    E -->|Use Case| H["Exploratory<br/>New Topics"]
+    F -->|Use Case| I["Focused<br/>Deep Dives"]
+    G -->|Use Case| J["Standard<br/>Balanced"]
+```
+
 ## High-Level Architecture
 Request → Planning → Search → Reading → Analysis → Synthesis → Report.
 

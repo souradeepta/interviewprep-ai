@@ -23,6 +23,48 @@ Traditional keyword search fails users: (1) semantic mismatch (user asks "how to
 ## Envelope Calculation
 50K queries/day × 500 tokens LLM = 25M tokens. Cost: $75/day.
 
+## Architecture Diagrams
+
+### Diagram 1: Semantic Search & Retrieval Pipeline
+```mermaid
+graph LR
+    A[User Query] -->|intent| B[Query Embedding]
+    B -->|semantic vector| C[Dense Retrieval<br/>Faiss HNSW]
+    C -->|top-100 candidates| D[Re-ranker<br/>ML Model]
+    D -->|scored top-10| E[LLM Summary]
+    E -->|extract key info| F[Result Formatting]
+    F -->|answer + links| G[Display to User]
+    H[(Embedding Cache)] -.->|hit| C
+    I[(Document Index)] -->|stored embeddings| C
+```
+
+### Diagram 2: Retrieval Accuracy vs. Latency Trade-off
+```mermaid
+graph TD
+    A[Search Approach] -->|Keyword Only| B["Fast 50ms<br/>Low Accuracy 60%<br/>Many False Matches"]
+    A -->|Dense + Keyword| C["Fast 150ms<br/>Good Accuracy 85%<br/>Balanced"]
+    A -->|Dense + Re-rank| D["Slower 400ms<br/>High Accuracy 95%<br/>Expensive"]
+    B -->|Cost| E["$0.001/query"]
+    C -->|Cost| F["$0.005/query"]
+    D -->|Cost| G["$0.02/query"]
+    E -->|User Exp| H["Frustration<br/>Re-search needed"]
+    F -->|User Exp| I["Satisfied<br/>Finds answer"]
+    G -->|User Exp| J["Very Satisfied<br/>Premium exp"]
+```
+
+### Diagram 3: Embedding & Indexing Strategy
+```mermaid
+graph TB
+    A[100K Documents] -->|batch| B[Embedding Generation]
+    B -->|768-d vectors| C[Vector Index<br/>Faiss HNSW]
+    C -->|fast retrieval| D[Query Time]
+    D -->|<100ms for 100K| E[Top-100 Results]
+    A -->|metadata| F[BM25 Index<br/>Keyword Fallback]
+    F -->|hybrid search| E
+    G[User Feedback] -->|relevance| H[Model Retraining]
+    H -->|new embeddings| C
+```
+
 ## High-Level Architecture
 Query → Embed → Vector search → LLM synthesis → Summary.
 

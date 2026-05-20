@@ -24,6 +24,61 @@ Social platforms face exponential growth in user-generated content and regulator
 ## Envelope Calculation
 100M posts/day → 1.2M items/hour → 333 QPS. Peak: 500 QPS (evening traffic). Cost: 100M × $0.001 (LLM cost) = $100K/month.
 
+## Architecture Diagrams
+
+### Diagram 1: Content Moderation Pipeline
+```mermaid
+graph LR
+    A[User Post] -->|extract| B[Parse Content]
+    B -->|text + image| C[Fast Path<br/>Regex Rules]
+    C -->|match score| D{High Confidence?}
+    D -->|Yes| E[Auto Remove/Label]
+    D -->|No| F[LLM Classification]
+    G[Vision Model<br/>CLIP] -->|image features| F
+    F -->|confidence score| H{Score >0.9?}
+    H -->|Yes| I[Auto Action]
+    H -->|No| J[Human Review Queue]
+    I -->|execute| K[Action Log]
+    J -->|analyst reviews| L{Appeal?}
+    E -->|action| K
+    L -->|user appeals| M[Escalation]
+    K -->|outcome| N[User Notified]
+    M -->|final decision| N
+```
+
+### Diagram 2: Hybrid Detection Strategy (Rule + ML + LLM)
+```mermaid
+graph TD
+    A[Content Item] -->|analyze| B[Rule Engine]
+    B -->|keywords| C{Obvious Violation?}
+    C -->|Yes| D[Remove - Confidence 99%]
+    C -->|No| E[ML Classifier]
+    E -->|pattern| F{ML Score >0.85?}
+    F -->|Yes| G[Remove - Confidence 90%]
+    F -->|No| H[LLM Analysis]
+    H -->|nuanced| I{LLM Score >0.95?}
+    I -->|Yes| J[Remove - Confidence 95%]
+    I -->|No| K[Human Review]
+    D --> L[Action Queue]
+    G --> L
+    J --> L
+    K -->|reviewer decision| L
+    L -->|remove/label/keep| M[Content Feed]
+```
+
+### Diagram 3: False Positive vs False Negative Trade-off
+```mermaid
+graph TB
+    A[Moderation Strategy] -->|Conservative| B[Remove More]
+    A -->|Aggressive| C[Remove Less]
+    B -->|Lower FP| D["FP: 2%<br/>FN: 5%<br/>CSAT: 96%"]
+    C -->|Higher FP| E["FP: 10%<br/>FN: 1%<br/>CSAT: 90%"]
+    A -->|Balanced<br/>Hybrid| F["FP: 2%<br/>FN: 2%<br/>CSAT: 95%"]
+    D -->|Risk| G[User Backlash<br/>Wrongful Removals]
+    E -->|Risk| H[Safety Risk<br/>Harmful Content]
+    F -->|Optimal| I[Balanced<br/>Trust + Safety]
+```
+
 ## High-Level Architecture
 Input → Fast Path (regex patterns for obvious violations) → If uncertain, LLM Classification → Confidence Threshold → Auto-Decision or Human Queue → User Appeal.
 
