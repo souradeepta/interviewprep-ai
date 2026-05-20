@@ -150,16 +150,48 @@ sequenceDiagram
 
 ## Key Trade-offs
 
-| Aspect | Approach A | Approach B | Choice |
-|--------|-----------|-----------|--------|
-| LLM Model | GPT-4 (better but $$$) | Claude 3 (cheaper) | Claude 3 (cost: $0.003/1K in) |
-| RAG Source | Structured KB only | KB + ticket history | KB only (control + freshness) |
-| Escalation | Automatic at low conf | Always ask user | Auto escalate (speed) |
-| Memory | Per-session only | Across customer history | Per-session (privacy) |
-| Latency | 500ms target | 2s target | 2s target (UX acceptable) |
+| Approach | Automation Rate | Accuracy | Cost/Chat | Latency | Infrastructure |
+|----------|--------|----------|----------|---------|---------|
+| Rule-based routing | 60% | 75% | $0.01 | 100ms | CPU |
+| ML intent routing | 80% | 88% | $0.05 | 200ms | GPU |
+| LLM routing + RAG | 85% | 92% | $0.10 | 2000ms | GPU cluster |
+| Hybrid (ML + LLM) | 82% | 90% | $0.07 | 1200ms | GPU + CPU |
 
+**Decision:** Cost critical → ML. Accuracy critical → LLM + RAG. Speed critical → Rule-based.
 
-## Interview Q&A
+---
+
+## Production Failure Scenarios
+
+**Scenario 1: LLM hallucination in response**
+- Customer: "What's my account balance?" LLM invents balance ("$5,234.56"). Customer trusts wrong info.
+- Fix: Grounding - only use retrieved KB articles. Validate against real data before response.
+
+**Scenario 2: RAG knowledge base stale**
+- KB article outdated ("Free shipping on $50+"). Customer gets wrong info. Support team flooded with complaints.
+- Fix: KB refresh pipeline. Test articles before shipping. Version KB. Auto-deprecate old articles.
+
+**Scenario 3: Escalation queue bottleneck**
+- 15% of chats escalate to humans. Queue builds up. SLA breached (5min target → 30min actual).
+- Fix: Improve ML routing accuracy to reduce escalations. Add more agents. Tiered escalation.
+
+**Scenario 4: Training-serving skew**
+- Intent classifier trained on formal questions. Production has colloquial language ("yo what's up?"). Accuracy drops.
+- Fix: Online validation. Monitor misclassifications. Retrain weekly on production data.
+
+---
+
+## Implementation Guidance
+
+**Wrong:** Use LLM for everything. Trust all outputs.
+**Right:** Hybrid approach - LLM for natural language, rules for sensitive operations (money, account changes).
+
+**Wrong:** Escalate on low confidence alone.
+**Right:** Escalate on low confidence + business impact (billing issues always escalate, FAQ questions don't).
+
+---
+
+## Sophisticated Interview Q&A
 
 **Q1: How do you handle adversarial inputs where users try to jailbreak the LLM?**
 

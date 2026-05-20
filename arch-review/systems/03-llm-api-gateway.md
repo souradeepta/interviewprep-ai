@@ -162,16 +162,44 @@ sequenceDiagram
 ```
 
 
-## Key Trade-offs
+## Detailed Trade-off Analysis
 
-| Decision | Option A | Option B | Choice |
-|----------|----------|----------|--------|
-| Cache TTL | 1 day | 30 days | 30 days (high hit rate, low freshness risk) |
-| Fallback | 1 provider | 3 providers | 2-3 providers (availability vs complexity) |
-| Cost optim | Model selection | Batching | Both (selection: 40% savings, batching: 10% more) |
-| Routing latency | 5ms (heuristic) | 50ms (ML-based) | Heuristic (5ms enough, ML overhead not worth it) |
-| Local fallback | Run Llama locally | Don't use local | Local (covers 20% of traffic, reduces provider cost) |
+| Approach | Cost/Request | Latency | Availability | Cache Hit | Route Complexity |
+|----------|---------|---------|---------|----------|---------|
+| Single provider | $0.002 | 200ms | 99% | 40% | None |
+| Multi-provider round-robin | $0.003 | 250ms | 99.9% | 30% | Low |
+| Smart routing (latency-based) | $0.0025 | 220ms | 99.95% | 35% | High |
+| Smart routing + local fallback | $0.0015 | 300ms | 99.99% | 50% | Very high |
 
+**Decision:** Cost critical → single provider. Availability critical → multi-provider + local fallback. Balanced → smart routing.
+
+### Production Failure Scenarios
+
+**Scenario 1: Provider outage, requests timeout**
+- OpenAI down for 10 minutes. Requests hang. Cascading failures.
+- Fix: Fast failover to backup provider (<100ms detection). Circuit breaker.
+
+**Scenario 2: Cache hit rate drops to 5%**
+- Users asking unique questions. Cache misses = 5x cost increase.
+- Fix: Response compression. Semantic caching (cache similar queries). Or accept higher cost.
+
+**Scenario 3: Routing latency becomes bottleneck**
+- ML-based routing adds 50ms. Total latency 250ms (SLA 200ms).
+- Fix: Heuristic routing (5ms). Pre-compute provider selection.
+
+**Scenario 4: Local fallback quality bad**
+- Llama running locally generates poor responses (90% quality). Users complain.
+- Fix: Confidence thresholds. Only use local for easy queries. Or upgrade to better local model.
+
+### Implementation Guidance
+
+**Wrong:** Route all traffic to cheapest provider. Ignore availability.
+**Right:** Multi-provider with cost + availability trade-off (80/20 split).
+
+**Wrong:** Caching without staleness management.
+**Right:** Cache with versioning. Invalidate on model update.
+
+---
 
 ## Interview Q&A
 

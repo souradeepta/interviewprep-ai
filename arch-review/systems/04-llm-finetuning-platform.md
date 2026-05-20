@@ -155,16 +155,44 @@ sequenceDiagram
 ```
 
 
-## Key Trade-offs
+## Detailed Trade-off Analysis
 
-| Decision | Full FT | LoRA | QLoRA | Choice |
-|----------|---------|------|-------|--------|
-| Cost/hour | $50 | $15 | $5 | QLoRA default (cost), upgrade on request |
-| Speed | 1x | 0.9x | 0.8x | LoRA sweet spot |
-| Quality | Best | 95% quality | 90% quality | LoRA (good quality, 70% cheaper) |
-| Memory | 80GB | 20GB | 8GB | QLoRA for large models |
-| Supported models | All | Llama/Mistral | All | LoRA as default |
+| Technique | Cost/Hour | Quality | Speed | Memory | Setup Time |
+|----------|---------|---------|---------|----------|---------|
+| Full fine-tuning | $50 | 100% | 1.0x | 80GB | 1 day |
+| LoRA | $15 | 95% | 0.9x | 20GB | 2 hours |
+| QLoRA | $5 | 90% | 0.8x | 8GB | 1 hour |
+| Prompt engineering | $0.01 | 80% | Instant | 0KB | 30 min |
 
+**Decision:** Quality critical → full FT. Cost critical → QLoRA. Fast iteration → prompt engineering.
+
+### Production Failure Scenarios
+
+**Scenario 1: LoRA adapter causes catastrophic forgetting**
+- Fine-tune on customer domain. Model forgets general knowledge. Quality drops 40%.
+- Fix: Validate on both domain + general test sets. Use lower LoRA rank to avoid overfitting.
+
+**Scenario 2: Cost explosion from runaway training**
+- User leaves long training job running. $500/hour. Forgot to set max epochs.
+- Fix: Cost limits. Automatic stopping. Quota enforcement.
+
+**Scenario 3: LoRA merging produces worse model than base**
+- After merging, model accuracy drops 5%. Unmerge, redeploy old version.
+- Fix: Validate merged model before deployment. A/B test on subset.
+
+**Scenario 4: Memory OOM during QLoRA training**
+- Batch size too large. Training crashes. Re-run with smaller batch (slower).
+- Fix: Auto batch size tuning. Graceful degradation.
+
+### Implementation Guidance
+
+**Wrong:** Default to full fine-tuning (most expensive).
+**Right:** Start with LoRA. Upgrade to full FT only if quality gap >5%.
+
+**Wrong:** Store only LoRA adapters, lose base model version.
+**Right:** Version both base model and adapters together.
+
+---
 
 ## Interview Q&A
 

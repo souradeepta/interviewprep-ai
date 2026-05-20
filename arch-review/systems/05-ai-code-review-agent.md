@@ -142,16 +142,44 @@ sequenceDiagram
 ```
 
 
-## Key Trade-offs
+## Detailed Trade-off Analysis
 
-| Aspect | Auto-Approve | Manual Only | Hybrid (Current) |
-|--------|--------------|------------|------------------|
-| Speed | Fast (<1min) | Slow (hours) | Balanced (2min) |
-| Accuracy | 80% | 95% | 85% |
-| Coverage | All PRs | All PRs | All PRs |
-| Cost | Low ($0.63/PR) | $0 (human time) | Medium ($0.63 + human) |
-| Adoption | High (fast feedback) | Low (blocking) | High (non-blocking) |
+| Approach | Accuracy | Coverage | False Positives | Cost/PR | Review Time |
+|----------|----------|----------|-----------------|---------|---------|
+| Manual review only | 98% | 100% | <1% | $20 (engineer) | 30 min |
+| AI auto-approve | 75% | 100% | 15% | $0.50 | <1 min |
+| AI + human verification | 90% | 100% | 5% | $5 | 5 min |
+| AI triage (flag) only | 85% | 100% | 8% | $0.50 | 10 min |
 
+**Decision:** Quality critical → manual. Speed critical → AI auto. Balanced → AI triage + human.
+
+### Production Failure Scenarios
+
+**Scenario 1: AI approves bad code silently**
+- AI flags code as OK. Ships. Later causes production incident.
+- Fix: Conservative thresholds. Only auto-approve low-risk changes (docs, tests). Human for logic.
+
+**Scenario 2: False positive rate too high**
+- AI flags 20% of good PRs as needing review. Team ignores AI feedback.
+- Fix: Tune confidence threshold. Target <5% false positive rate. Continuous evaluation.
+
+**Scenario 3: AI security check misses vulnerability**
+- AI doesn't detect SQL injection pattern. Code ships. Exploit found.
+- Fix: Use specialized security model. Not general-purpose code review.
+
+**Scenario 4: Style reviews too pedantic**
+- AI comments on every style issue. Developer frustration. Turn off AI.
+- Fix: Separate security/logic reviews from style. Style as warnings, not blockers.
+
+### Implementation Guidance
+
+**Wrong:** Use one model for all review types (security, style, logic).
+**Right:** Specialized models per review type (security stricter, style lenient).
+
+**Wrong:** Auto-approve without human safety checks.
+**Right:** AI flags issues, humans decide to merge or request changes.
+
+---
 
 ## Interview Q&A
 

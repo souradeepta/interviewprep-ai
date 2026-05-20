@@ -156,16 +156,44 @@ sequenceDiagram
 ```
 
 
-## Key Trade-offs
+## Key Trade-offs & SDE3 Analysis
 
-| Aspect | Option A | Option B | Choice | Rationale |
-|--------|----------|----------|--------|-----------|
-| Retrieval | Vector only | Vector + BM25 | Hybrid (vector 80%, BM25 20%) | Hybrid captures both semantic + keyword |
-| Re-ranker | Cross-encoder (slow) | Lighter model | Cross-encoder (accuracy > speed at 100ms) | Worth the latency for 88% accuracy |
-| Model Size | small (fast) | large (accurate) | Large (5B params) | Accuracy critical for enterprise |
-| Indexing | Real-time | Batch 1x/day | Batch 1x/hour | Compromise: fresh enough, no latency spike |
-| Cost Focus | Embedding cost | Infra cost | Infra (embed negligible, compute dominant) | GPU re-ranking most expensive |
+| Approach | Latency | Accuracy | Cost/Query | Indexing Lag | Infrastructure |
+|----------|---------|----------|-----------|---------|---------|
+| Keyword-only (BM25) | 50ms | 75% | $0.001 | Real-time | CPU |
+| Vector-only (semantic) | 150ms | 85% | $0.01 | 1 hour | GPU |
+| Hybrid (vector + BM25) | 200ms | 90% | $0.015 | 1 hour | GPU + CPU |
+| Hybrid + re-ranking | 300ms | 94% | $0.03 | 1 hour | GPU cluster |
 
+**Decision:** Speed critical + accuracy <85% → keyword. Quality critical → hybrid + re-ranking. Enterprise → hybrid.
+
+### Production Failure Scenarios
+
+**Scenario 1: Embedding index becomes stale**
+- Documents updated hourly. Index updated once/day. Users get outdated answers.
+- Fix: Batch indexing every 1 hour. Or: streaming index updates (new docs added immediately).
+
+**Scenario 2: Re-ranker latency breaches SLA**
+- Re-ranker adds 100ms. Peak traffic (250 QPS) exhausts GPU. Latency 1000ms (SLA 500ms).
+- Fix: Model quantization. Batch re-ranking. Add GPU replicas.
+
+**Scenario 3: LLM hallucinates answer**
+- Retrieved docs say "Pricing starts at $100". LLM invents "$50". Users trust wrong info.
+- Fix: Grounding checks. Answer must cite doc content. Citation required.
+
+**Scenario 4: Document versioning conflict**
+- Old version cached. New version indexed. User sees conflicting info.
+- Fix: Version tagging. Cache invalidation on doc update. Show latest version.
+
+### Implementation Guidance
+
+**Wrong:** Use vector search alone (loses keyword precision).
+**Right:** Hybrid retrieval (semantic + keyword, 80/20 split).
+
+**Wrong:** Optimize latency without accuracy checks.
+**Right:** Measure accuracy-latency frontier. Choose Pareto-optimal point.
+
+---
 
 ## Interview Q&A
 
