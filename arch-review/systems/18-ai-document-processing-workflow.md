@@ -1,10 +1,10 @@
 # Intelligent Document Processing Pipeline
 
-## TL;DR
-Ingests, classifies, extracts data from documents (invoices, contracts, forms). 50K docs/month, 95% extraction accuracy.
+## Overview
+A document processing system that automates classification, OCR, layout analysis, entity extraction, and validation across diverse document types (invoices, contracts, forms, receipts). Enables data pipeline automation at scale with explainable extraction confidence scores.
 
 ## Problem Statement
-Manual data entry for documents is expensive. Need intelligent extraction.
+Manual document processing is a significant cost center: data entry clerks spend 5-10 minutes per document (reading, typing, validation) at $20-30/hour loaded cost. For 50K documents/month, this is 4K-8K hours = $80K-240K monthly. Common errors: 1-2% transcription error rate (wrong customer, amount, date), costing downstream problems (double shipments, payment mismatches, compliance issues). Automation enables: (1) reduce per-doc cost from $0.50 to $0.05 (90% savings), (2) improve accuracy to 98%+ (fewer downstream errors), (3) scale without headcount (fixed infrastructure vs variable labor), (4) faster cycle time (instant processing vs 2-3 day manual queue).
 
 ## Requirements
 
@@ -34,45 +34,79 @@ Manual data entry for documents is expensive. Need intelligent extraction.
 - Model selection and routing logic
 - Cost optimization strategies
 
-## Key Trade-offs
-| Aspect | Option A | Option B | Choice | Rationale |
-|--------|----------|----------|--------|-----------|
-| Speed vs Quality | Fast (basic) | Slow (advanced) | Balanced | Trade-off based on SLA |
-| Cost vs Accuracy | Cheap model | Expensive model | Optimal mix | Cost-effective with acceptable accuracy |
+## Detailed Trade-off Analysis
+
+| Approach | Accuracy | Latency | Cost/Doc | Confidence | Downstream Rework |
+|----------|----------|---------|----------|------------|----------|
+| OCR only (no AI) | 85% | 5s | $0.01 | Low | 15% need manual review |
+| OCR + rule-based extraction | 90% | 10s | $0.05 | Medium | 10% need review |
+| OCR + ML entity extraction | 95% | 30s | $0.10 | High | 5% need review |
+| Full pipeline (OCR + classification + extraction + validation) | 98% | 2 min | $0.25 | Very high | 2% need review |
+
+**Decision:** Full pipeline for standard documents (invoices, forms). Rule-based for high-volume simple types (receipts). Escalate <90% confidence to human review queue.
+
+### Production Failure Scenarios
+
+**Scenario 1: OCR reads "0" as "O" (zero vs letter O), invoice amount becomes wrong**
+- Invoice reads "100" but OCR sees "O0O", system extracts amount = 0. Payment system auto-processes zero payment. Vendor paid nothing, creates conflict.
+- Fix: OCR confidence scoring. If confidence <0.8 on numeric fields (critical), escalate to human review. Add validation: amount field should be numeric-only, flag if contains letters.
+
+**Scenario 2: Document is rotated 90 degrees, OCR fails, extraction is gibberish**
+- Fax scans document rotated sideways. OCR reads top-to-bottom as left-to-right. Text is scrambled.
+- Fix: Pre-processing step: document orientation detection. Rotate if needed before OCR. Or: use modern OCR (Tesseract 4+) which handles rotation better. Always check confidence score.
+
+**Scenario 3: Extraction confidence >90%, but AI hallucinated field that doesn't exist**
+- System reports "Invoice total: $1,500". Analyst checks original document: total is $150, system misread decimal. But confidence was 90%, so went straight to auto-processing.
+- Fix: Semantic validation: total should equal sum of line items. Cross-check with other fields (date format, customer name exists in CRM, amount is reasonable). If checks fail, lower confidence.
+
+**Scenario 4: Document type classifier gets it wrong, applies wrong extraction rules**
+- Document is an expense report, but classifier thinks it's an invoice. Extraction template looks for "Amount Due" (not on expense report). No data extracted.
+- Fix: Classifier confidence threshold: <90% → ask human "Is this an invoice or expense report?". Also: rejection sampling (if extraction yields no meaningful data, escalate to human).
+
+### Implementation Guidance
+
+**Wrong:** Extract all fields, return even if low confidence.
+**Right:** Extract only high-confidence (>90%) fields. Flag low-confidence and escalate to human review queue. Don't guess.
+
+**Wrong:** Single OCR engine (breaks on scans, photos, poor quality).
+**Right:** Multiple OCR fallbacks (Tesseract + Azure Form Recognizer + Anthropic Vision). Use best result by confidence.
+
+**Wrong:** After extraction, assume data is correct.
+**Right:** Validation layer: semantic checks (total = sum of items), range checks (amount >0), format checks (dates valid), CRM lookups (customer exists).
 
 ## Interview Q&A
 
-**Q1: How do you scale this system from current to 10x volume?**
+**Q1: Accuracy target 98%. Remaining 2% error sources?**
 
-A: Identify bottleneck (usually inference or storage). Auto-scaling: add GPUs for model serving, replicate databases, implement caching at retrieval layer. Example: for 10x compute, scale from 8 A100s to 80 A100s with load balancing.
+A: Breakdown: (1) OCR errors (0.5%, scanning quality issues). (2) Handwritten text (0.5%, hard to OCR). (3) Layout confusion (0.3%, unusual formats). (4) Hallucination (0.3%, AI confidence wrong). (5) Natural ambiguity (0.4%, "is this field X or Y?"). To improve #3 and #4, focus on better models and validation checks.
 
-**Q2: What's the cost optimization strategy as volume grows?**
+**Q2: Confidence scoring: how do you decide confidence >90% = auto, <90% = escalate?**
 
-A: Batch processing where possible (saves 50%), model distillation (cheaper inference), caching (reduce LLM calls), negotiate volume discounts with cloud providers. Target: cost per request drops 30-50% at 10x scale.
+A: Business decision balancing: cost of false accept (auto-process wrong data: 100 doc-minutes of rework) vs cost of escalation (1 min human review). If false accept costs more, lower threshold. If escalation volume grows too high (>30%), increase threshold tolerance.
 
-**Q3: How do you handle model failures or hallucinations?**
+**Q3: Cost $0.10/doc currently. Target $0.05. How to achieve?**
 
-A: Confidence thresholds (only auto-act if confidence >0.95), human review queue for uncertain cases, validation checks (does output make sense?), continuous monitoring with alerts if error rate increases.
+A: (1) Batch processing (accumulate 1000 docs, process together): save 10%. (2) Caching (40% of docs are very similar): instant return. (3) Cheaper model (use smaller LLM, -50% cost but -5% accuracy). (4) Parallel inference (process multiple docs simultaneously). Combined: target $0.05.
 
-**Q4: What metrics do you track for system health?**
+**Q4: Handwritten forms: OCR fails. How to handle?**
 
-A: Latency (P50, P99), error rate, cost per request, model accuracy, throughput, user satisfaction. Dashboard updated real-time. Alert if latency >2x SLA or accuracy drops >5%.
+A: Handwriting models exist (Google Vision, AWS Textract) but are slower + more expensive. Options: (1) detect handwritten regions, escalate to human. (2) Use handwriting OCR + lower confidence threshold. (3) Field-level: if critical field is handwritten, require human confirmation. (4) Collect training data: fine-tune on company-specific handwriting.
 
-**Q5: Privacy and compliance: how do you protect user data?**
+**Q5: Multi-language documents (English + Spanish mixed on one page)?**
 
-A: Data minimization (keep only necessary data), encryption in transit + at rest, RBAC for access, audit logs. For regulated domains (medical, financial), additional: data residency, compliance certifications, annual penetration testing.
+A: Language detection per region. Apply appropriate OCR + language models. For mixed: tricky. Option: (1) detect primary language, translate full document to primary, extract. (2) Extract per language, merge results. (3) Use multilingual models (Google Vision handles 100+ languages). Be aware: accuracy drops for non-dominant languages.
 
-**Q6: Multi-region deployment: latency vs cost trade-off?**
+**Q6: Document is 50 pages. Extraction slow. How to speed up?**
 
-A: Deploy in 3-5 regions, route user to closest region (100ms latency savings). Cost: ~3x infrastructure. Benefit: global coverage + disaster recovery. For most systems, worth it.
+A: (1) Parallel processing: process multiple pages simultaneously (10x speedup). (2) Smart selection: extract only relevant pages (page 1 = address, last page = signature, middle = details). (3) Summarization: if document >10 pages, summarize first with LLM, then extract key fields. (4) Progressive extraction: start with critical fields, skip non-critical if budget spent.
 
-**Q7: Monitoring model drift: how do you detect performance degradation?**
+**Q7: How to handle adversarial documents (intentionally formatted to fool AI)?**
 
-A: Continuous evaluation on production data (10% sample). Weekly accuracy report. If accuracy drops >2%, alert and investigate (data drift, model bug, or expected variation). Retrain if needed.
+A: Explicit field detection: instead of "guess the total field", provide field template (coordinates, expected format). For high-stakes (contracts, financial), require human-in-the-loop review. Use signature verification (cryptographic signing) to prevent tampering. Monitor for new document formats, retrain when needed.
 
-**Q8: Cost target vs reality: if you're 2x over budget, what do you do?**
+**Q8: Data retention: what to do with extracted data after processing?**
 
-A: (1) Cheaper model (GPT-3.5 vs GPT-4): 10x cost reduction, 15% accuracy drop. (2) Caching (save 30%). (3) More selective LLM usage (only for hard cases). (4) Volume discounts. Target: get to 1.1-1.2x budget.
+A: Regulatory requirement: varies (GDPR = delete within 30 days if requested, SOC2 = 1 year minimum). Solution: (1) Extract + delete source document immediately (reduces PII exposure). (2) Extracted data stored in secure database (encrypted, audited). (3) Audit trail: log who accessed, when, why. (4) Anonymization: mask PII (SSN, bank account) in logs/reports. (5) Regular deletion: implement retention policy (automatic purge after X days).
 
 ## Interview Quick-Reference
 

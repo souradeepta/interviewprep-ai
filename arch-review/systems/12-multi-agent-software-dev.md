@@ -35,45 +35,79 @@ Developers spend 30% time on boilerplate. Need autonomous coding that understand
 - Model selection and routing logic
 - Cost optimization strategies
 
-## Key Trade-offs
-| Aspect | Option A | Option B | Choice | Rationale |
-|--------|----------|----------|--------|-----------|
-| Speed vs Quality | Fast (basic) | Slow (advanced) | Balanced | Trade-off based on SLA |
-| Cost vs Accuracy | Cheap model | Expensive model | Optimal mix | Cost-effective with acceptable accuracy |
+## Detailed Trade-off Analysis
+
+| Strategy | Autonomy | Code Quality | Latency | Cost/Task | Safety | Use Case |
+|----------|----------|----------|---------|-----------|--------|----------|
+| Single GPT-4 agent | 50% | 70% | 8 min | $5 | Low (hallucination) | Simple scripts |
+| Multi-agent ensemble | 70% | 80% | 12 min | $8 | Medium | Standard tasks |
+| Agent + human review | 70% | 95% | 20 min | $15 | High | Critical code |
+| Hybrid (auto + escalate) | 70% | 85% | 10 min | $6 | High | Production |
+
+**Decision:** Hybrid approach for most tasks. Single agents for low-risk (tests, docs). Human review for auth/payment code.
+
+### Production Failure Scenarios
+
+**Scenario 1: Agent generates exploitable code (SQL injection)**
+- Planning agent designs schema. Coding agent writes queries without parameterization. Security review skipped (60% of PRs bypass). Production breach.
+- Fix: Mandatory security scan (Semgrep/Bandit) before auto-merge. Flag all SQL/auth code for human review. Confidence threshold >0.95 for security-critical code.
+
+**Scenario 2: Generated code passes tests but fails in production**
+- Unit tests pass locally. Agent doesn't generate integration tests. Deployed code fails with race conditions in multi-threaded environment.
+- Fix: Require both unit + integration tests. Generate tests for concurrency. A/B test new code on staging (5% traffic) before full rollout.
+
+**Scenario 3: Agent hallucinates dependencies/packages**
+- Agent generates `import exotic_ml_lib` that doesn't exist. Code fails in CI. Blocks deploy pipeline.
+- Fix: Validate all imports before commit. Cross-reference against requirements.txt + pip. Restrict to approved libraries only.
+
+**Scenario 4: Cost explosion from repeated re-planning**
+- User sends ambiguous request. Agent re-plans 5 times (cost $25). Eventually produces wrong code.
+- Fix: Clarify requirements upfront (LLM asks 2-3 yes/no questions first). Cap replans at 2. If >2 needed, escalate to human.
+
+### Implementation Guidance
+
+**Wrong:** Single LLM agent writes code directly (fast but high risk).
+**Right:** Multi-stage: planner → coder → tester → reviewer → human approval for critical paths.
+
+**Wrong:** Auto-merge all generated code (cost $2/task, 50% pass rate).
+**Right:** Auto-merge only low-risk (tests, docs). Human review for logic/security (cost $8/task, 95% pass rate).
+
+**Wrong:** Use GPT-4 for all tasks (expensive).
+**Right:** GPT-3.5 for simple tasks (70% success), GPT-4 for complex (90% success). Route based on task complexity.
 
 ## Interview Q&A
 
-**Q1: How do you scale this system from current to 10x volume?**
+**Q1: How do you prevent hallucinated code that passes tests but fails in production?**
 
-A: Identify bottleneck (usually inference or storage). Auto-scaling: add GPUs for model serving, replicate databases, implement caching at retrieval layer. Example: for 10x compute, scale from 8 A100s to 80 A100s with load balancing.
+A: Multi-layer: (1) Synthetic data tests (adversarial inputs). (2) Integration tests on staging. (3) Load tests for perf issues. (4) Code review for patterns (race conditions, resource leaks). Monitor production error rate; if >2% spike, rollback.
 
-**Q2: What's the cost optimization strategy as volume grows?**
+**Q2: Cost per task is $5-8. How would you reduce to $2?**
 
-A: Batch processing where possible (saves 50%), model distillation (cheaper inference), caching (reduce LLM calls), negotiate volume discounts with cloud providers. Target: cost per request drops 30-50% at 10x scale.
+A: (1) Use GPT-3.5 for 70% of tasks (70% success → skip GPT-4 planning, save $3). (2) Cache architecture decisions (reuse templates). (3) Skip full testing for low-risk changes. Trade-off: success rate drops to 60%. Better to keep quality at $8/task.
 
-**Q3: How do you handle model failures or hallucinations?**
+**Q3: Safety: agent writes auth code with hardcoded secrets. How to prevent?**
 
-A: Confidence thresholds (only auto-act if confidence >0.95), human review queue for uncertain cases, validation checks (does output make sense?), continuous monitoring with alerts if error rate increases.
+A: Rule-based filter: reject code containing hardcoded passwords, API keys, or credentials. Force use of secret management (AWS Secrets Manager, HashiCorp Vault). Require human review for any auth code. Automated secret scanning on all PRs.
 
-**Q4: What metrics do you track for system health?**
+**Q4: How do you handle multi-file refactors where agent needs full context?**
 
-A: Latency (P50, P99), error rate, cost per request, model accuracy, throughput, user satisfaction. Dashboard updated real-time. Alert if latency >2x SLA or accuracy drops >5%.
+A: Provide full context window (128K tokens for GPT-4). But latency increases 3x. Trade-off: split large refactors into smaller chunks (human decides decomposition) or accept 10-minute latency for holistic refactor.
 
-**Q5: Privacy and compliance: how do you protect user data?**
+**Q5: Agent generates code but doesn't document it. How to enforce documentation?**
 
-A: Data minimization (keep only necessary data), encryption in transit + at rest, RBAC for access, audit logs. For regulated domains (medical, financial), additional: data residency, compliance certifications, annual penetration testing.
+A: Post-generation validation: LLM checks if code has docstrings, type hints, inline comments. If missing, regenerate. Cost +$0.50/task. Alternative: require developer to add docs before merge (cheaper but slower).
 
-**Q6: Multi-region deployment: latency vs cost trade-off?**
+**Q6: Handling ambiguous requirements: when to escalate vs clarify?**
 
-A: Deploy in 3-5 regions, route user to closest region (100ms latency savings). Cost: ~3x infrastructure. Benefit: global coverage + disaster recovery. For most systems, worth it.
+A: Confidence threshold on intent extraction. If <0.7, agent asks user 2-3 clarifying questions. If still <0.7 after questions, escalate. This adds 2 min latency but prevents 40% of bad generations.
 
-**Q7: Monitoring model drift: how do you detect performance degradation?**
+**Q7: How do you measure "code quality" objectively?**
 
-A: Continuous evaluation on production data (10% sample). Weekly accuracy report. If accuracy drops >2%, alert and investigate (data drift, model bug, or expected variation). Retrain if needed.
+A: Metrics: (1) Test pass rate (>95%). (2) Code coverage (>80%). (3) Static analysis (0 critical issues). (4) Performance (latency within 10% of baseline). (5) Security (0 known CVEs). Combine into quality score; reject if <0.8.
 
-**Q8: Cost target vs reality: if you're 2x over budget, what do you do?**
+**Q8: Multi-agent coordination: how do planner and coder stay in sync?**
 
-A: (1) Cheaper model (GPT-3.5 vs GPT-4): 10x cost reduction, 15% accuracy drop. (2) Caching (save 30%). (3) More selective LLM usage (only for hard cases). (4) Volume discounts. Target: get to 1.1-1.2x budget.
+A: Shared intermediate representation (architecture graph). Planner outputs JSON schema. Coder references schema. If coder deviates, flag and re-plan. Adds latency (10→12 min) but ensures consistency.
 
 ## Interview Quick-Reference
 
