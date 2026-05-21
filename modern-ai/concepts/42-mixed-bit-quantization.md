@@ -63,14 +63,14 @@ graph TD
 | Middle FFN layers (25-75% depth) | Low | INT4 | Most redundant layers |
 | Attention output projections | Medium | INT8 | Aggregates multi-head attention |
 
-### Hardware Throughput by Precision (A100 80GB)
+### Hardware Throughput by Precision (A100 80GB vs H100)
 
-| Precision | Matrix Multiply TFLOPS | Memory Bandwidth | Best Use Case |
-|-----------|----------------------|-----------------|--------------|
-| FP16 | 312 | 2 TB/s | Training, reference |
-| INT8 | 624 | 2 TB/s | Inference, 2x compute |
-| INT4 | 1248 (H100) | 2 TB/s | High-throughput inference |
-| FP8 (E4M3) | 624 | 2 TB/s | Training + inference |
+| Precision | A100 TFLOPS | H100 TFLOPS | Memory Bandwidth | Best Use Case |
+|-----------|------------|------------|-----------------|--------------|
+| FP16 | 312 | 600 | 2 TB/s | Training, reference |
+| INT8 | 624 | 1200 | 2 TB/s | Inference, 2x compute |
+| INT4 | 624 (via INT8 path) | 1248 | 2 TB/s | High-throughput inference |
+| FP8 (E4M3) | 624 | 1200 | 2 TB/s | Training + inference |
 
 ## Interview Q&A
 
