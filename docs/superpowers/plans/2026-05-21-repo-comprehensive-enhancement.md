@@ -1217,23 +1217,751 @@ def template(arr):
 
 ---
 
-## Execution Order
+---
 
-Sub-projects are fully independent. Recommended parallel execution:
+## Sub-Project F: Reinforcement Learning Section (New)
+
+**Priority: HIGH** — Zero RL coverage anywhere in the repo. Critical for RLHF (used in every modern LLM), game AI, robotics, and direct interview questions at FAANG.
+
+**New directory:** `rl/` with `concepts/`, `notebooks/`, `implementations/`
+
+### 20 RL Concepts to Create
+
+| # | Slug | Category | Key Algorithm |
+|---|------|----------|--------------|
+| 01 | markov-decision-processes | Foundations | MDP tuple (S, A, P, R, γ) |
+| 02 | bellman-equations | Foundations | V(s) = max_a [R + γ·V(s')] |
+| 03 | dynamic-programming-rl | Planning | Value iteration, policy iteration |
+| 04 | monte-carlo-methods | Model-Free | First-visit MC, every-visit MC |
+| 05 | temporal-difference-learning | Model-Free | TD(0), TD(λ), eligibility traces |
+| 06 | q-learning | Value-Based | Off-policy TD, Q(s,a) update |
+| 07 | sarsa | Value-Based | On-policy TD, ε-greedy |
+| 08 | deep-q-networks | Deep RL | DQN, experience replay, target net |
+| 09 | policy-gradient | Policy-Based | REINFORCE, log-gradient trick |
+| 10 | actor-critic | Policy-Based | A2C, advantage function |
+| 11 | proximal-policy-optimization | Advanced | PPO clip, KL penalty, RLHF use |
+| 12 | soft-actor-critic | Advanced | SAC, entropy regularization, continuous action |
+| 13 | multi-armed-bandit | Exploration | ε-greedy, UCB, Thompson sampling |
+| 14 | exploration-exploitation | Core Concept | ε-greedy, UCB, intrinsic motivation |
+| 15 | reward-shaping | Engineering | Potential-based, sparse→dense reward |
+| 16 | model-based-rl | Model-Based | Dyna-Q, world models, MBPO |
+| 17 | rlhf | LLM Alignment | Reward model, PPO fine-tuning, KL divergence penalty |
+| 18 | inverse-rl | Advanced | Learning reward from demonstrations |
+| 19 | multi-agent-rl | Advanced | Nash equilibrium, CTDE, MADDPG |
+| 20 | offline-rl | Advanced | Conservative Q-learning, BCQ, dataset constraints |
+
+### Algorithm Details for Key Concepts
+
+#### 01 — Markov Decision Processes
+**Formal definition**: Tuple (S, A, P, R, γ). `P(s'|s,a)` = transition probability. `R(s,a,s')` = reward. `γ` = discount. Policy `π(a|s)` maps state to action distribution. Goal: find `π*` that maximizes `E[Σ_t γ^t·R_t]`.
+- Level 1: GridWorld MDP in numpy — states, actions, transitions, rewards, policy evaluation
+- Level 2: Value iteration on stochastic MDP with discount sweep, convergence analysis
+- RW1: Inventory management MDP — order/hold/sell decision with stochastic demand
+- RW2: Routing MDP — shortest path with stochastic edge costs (vs Dijkstra)
+- RW3: Portfolio optimization MDP — discrete allocation with market state transitions
+
+#### 06 — Q-Learning
+**Algorithm**: `Q(s,a) ← Q(s,a) + α[r + γ·max_a'Q(s',a') - Q(s,a)]`. Off-policy: learn optimal Q regardless of behavior policy. Convergence guaranteed if (1) all state-action pairs visited infinitely often, (2) learning rate satisfies Robbins-Monro: `Σα=∞, Σα²<∞`.
+- Level 1: Tabular Q-learning on GridWorld in numpy with ε-greedy, convergence plot
+- Level 2: Q-table with eligibility traces (Q(λ)), comparison across λ values
+- RW1: Taxi problem (gym-compatible) — 500 states, 6 actions, trained to convergence
+- RW2: Cliff walking — compare Q-learning (optimal, risky path) vs SARSA (safe path)
+- RW3: Multi-step Q-learning — n-step returns, bias-variance tradeoff across n
+
+#### 11 — PPO (used in RLHF)
+**Algorithm**: Clip objective: `L_CLIP(θ) = E[min(r_t(θ)·Â_t, clip(r_t(θ), 1-ε, 1+ε)·Â_t)]` where `r_t = π_θ(a|s)/π_θ_old(a|s)`. KL penalty variant: `L_KL = L_CLIP - β·KL[π_old||π_new]`. RLHF use: `π_θ` is LLM, reward from reward model, `β·KL` prevents reward hacking.
+- Level 1: Policy gradient (REINFORCE) from scratch in numpy on bandit problem
+- Level 2: PPO with clipped objective in torch — actor/critic, GAE advantage, multiple epochs
+- RW1: CartPole benchmark — compare vanilla PG vs PPO sample efficiency
+- RW2: RLHF simulation — synthetic reward model, PPO fine-tuning of toy language model
+- RW3: PPO hyperparameter analysis — clip_ε, GAE λ, KL β sweep on continuous control
+
+#### 17 — RLHF
+**Algorithm**: (1) SFT on demonstrations; (2) Train reward model: `R(x,y) ← σ(r_θ(x,y_w) - r_θ(x,y_l))` on preference pairs; (3) PPO: `L = E[r_θ(x,y)] - β·KL[π_θ(x)||π_ref(x)]`. Bradley-Terry model for pairwise preferences. KL penalty prevents policy from diverging to reward hack. `β=0.1-0.2` typical.
+- Level 1: Preference learning — Bradley-Terry model, pairwise comparison in numpy
+- Level 2: Full RLHF pipeline in torch — toy LM + reward model + PPO fine-tuning + KL tracking
+- RW1: Reward hacking detection — generate examples where high reward ≠ high quality
+- RW2: DPO as RLHF alternative — compare PPO vs DPO compute/quality/stability
+- RW3: Constitutional AI simulation — AI feedback replacing human preference labels
+
+### Task F1: RL concepts 01-10
+
+**Files to Create:**
+- `rl/concepts/01-markov-decision-processes.md` through `rl/concepts/10-actor-critic.md`
+- `rl/notebooks/01-markov-decision-processes.ipynb` through `rl/notebooks/10-actor-critic.ipynb`
+- `rl/implementations/01-markov-decision-processes.py` through `rl/implementations/10-actor-critic.py`
+- `rl/README.md`
+
+- [ ] **Step 1: Create `rl/README.md`**
+  ```markdown
+  # Reinforcement Learning
+  
+  20 concepts from MDP foundations to RLHF. Each concept has a markdown explanation,
+  runnable notebook, and standalone implementation.
+  
+  ## Prerequisites
+  - Python, numpy, torch
+  - Basic probability and linear algebra
+  
+  ## Concepts
+  | # | Concept | Category | Notebook |
+  |---|---------|----------|---------|
+  | 01 | Markov Decision Processes | Foundations | [notebook](notebooks/01-markov-decision-processes.ipynb) |
+  ...
+  ```
+
+- [ ] **Step 2: Create concepts 01-10** (same 8-section format as modern-ai)
+- [ ] **Step 3: Create notebooks 01-10** (same 16-cell format)
+- [ ] **Step 4: Create implementations 01-10** (150-250 lines each)
+- [ ] **Step 5: Verify**
+  ```bash
+  ls rl/concepts/ | wc -l  # 10
+  python3 -c "
+  import json, glob
+  for f in sorted(glob.glob('rl/notebooks/0[1-9]-*.ipynb')):
+      nb = json.load(open(f))
+      code_lines = sum(len(''.join(c['source']).split('\n')) for c in nb['cells'] if c['cell_type'] == 'code')
+      print(f'{\"✅\" if code_lines >= 400 else \"⚠️ \"} {f.split(\"/\")[-1]}: {code_lines} lines')
+  "
+  ```
+- [ ] **Step 6: Commit**
+  ```bash
+  git add rl/
+  git commit -m "feat: add RL concepts 01-10 (MDP through Actor-Critic) with notebooks and implementations"
+  ```
+
+---
+
+### Task F2: RL concepts 11-20
+
+**Files:** `rl/concepts/11-*.md` through `rl/concepts/20-*.md` + notebooks + implementations
+
+- [ ] **Step 1: Create concepts 11-20** (PPO, SAC, MAB, exploration, reward shaping, model-based, RLHF, inverse RL, multi-agent RL, offline RL)
+- [ ] **Step 2: Create notebooks 11-20**
+  Special attention for notebook 17 (RLHF): simulate full pipeline with toy 10-vocab LM + reward model + PPO, show KL divergence tracking, reward hacking example
+- [ ] **Step 3: Create implementations 11-20**
+- [ ] **Step 4: Add RL roadmap `roadmaps/rl-roadmap.md`** with 4-phase progression: (1) Foundations MDP/Bellman, (2) Model-Free Q/TD, (3) Deep RL DQN/PPO, (4) Modern RLHF/Offline
+- [ ] **Step 5: Commit**
+  ```bash
+  git add rl/ roadmaps/rl-roadmap.md
+  git commit -m "feat: add RL concepts 11-20 (PPO through Offline RL) with notebooks, implementations, roadmap"
+  ```
+
+---
+
+## Sub-Project G: Statistics & Probability Deep-Dive (New)
+
+**Priority: HIGH** — Only 1 file (`ml/concepts/probability-statistics.md`). Statistics underpins every ML interview: hypothesis testing, experimental design, Bayesian reasoning, information theory.
+
+**New directory:** `stats/` with `concepts/` and `notebooks/`
+
+### 15 Stats Concepts
+
+| # | Slug | Category |
+|---|------|----------|
+| 01 | probability-fundamentals | Foundations |
+| 02 | distributions-reference | Foundations |
+| 03 | bayesian-inference | Bayesian |
+| 04 | maximum-likelihood-estimation | Estimation |
+| 05 | hypothesis-testing | Inference |
+| 06 | confidence-intervals | Inference |
+| 07 | statistical-power-sample-size | Experimental Design |
+| 08 | ab-testing-statistics | Experimental Design |
+| 09 | causal-inference | Causal |
+| 10 | information-theory | Information |
+| 11 | monte-carlo-sampling | Computational |
+| 12 | markov-chains-mcmc | Computational |
+| 13 | multivariate-statistics | Advanced |
+| 14 | time-series-statistics | Time Series |
+| 15 | statistical-ml-connections | Synthesis |
+
+### Key Content Per Concept
+
+#### 05 — Hypothesis Testing
+Core content must include:
+- H0/H1 setup, Type I/II error, p-value definition (NOT "probability H0 is true")
+- One-tailed vs two-tailed tests
+- t-test, chi-square, Mann-Whitney U (non-parametric)
+- Multiple comparison correction: Bonferroni, FDR (Benjamini-Hochberg)
+- Common mistake: p<0.05 ≠ effect is large (need effect size: Cohen's d)
+- Interview Q: "Your A/B test shows p=0.03 after 3 days. Do you ship?" → No: peeking, novelty effect, insufficient power
+
+#### 08 — A/B Testing Statistics
+Beyond the system-design pattern (which covers infrastructure), this covers the math:
+- Sample size formula: `n = (z_{α/2} + z_β)² × 2σ² / Δ²`
+- Sequential testing (SPRT) — when to stop early
+- Bayesian A/B testing — posterior distributions, credible intervals
+- Multi-metric testing — False Discovery Rate across 20 metrics
+- Variance reduction: CUPED (`Y_cuped = Y - θ(X - E[X])`)
+
+#### 10 — Information Theory
+Essential for LLM interviews:
+- Entropy: `H(X) = -Σ p(x)·log p(x)`
+- Cross-entropy loss: `H(p,q) = -Σ p(x)·log q(x)` (what models minimize)
+- KL divergence: `KL(P||Q) = Σ P·log(P/Q)` (asymmetric, used in KD, RLHF)
+- Mutual information: `I(X;Y) = H(X) - H(X|Y)` (feature selection)
+- Perplexity: `PP = 2^H` (language model evaluation)
+- Coding: implement from-scratch entropy, cross-entropy, KL in numpy
+
+### Task G1: Stats concepts 01-08 with notebooks
+
+**Files to Create:**
+- `stats/concepts/01-probability-fundamentals.md` through `stats/concepts/08-ab-testing-statistics.md`
+- `stats/notebooks/01-probability-fundamentals.ipynb` through `stats/notebooks/08-ab-testing-statistics.ipynb`
+- `stats/README.md`
+
+- [ ] **Step 1: Create `stats/README.md`** with concept table and prerequisites
+- [ ] **Step 2: Create concepts 01-08** (8-section format, 800-1200 words, with Mermaid diagrams and comparison tables)
+- [ ] **Step 3: Create notebooks 01-08** (12-cell format: numpy simulations, matplotlib visualizations)
+
+  Special requirement for notebook 08 (A/B testing statistics):
+  - Cell 5: CUPED variance reduction implementation
+    ```python
+    def cuped_adjustment(y_treatment, y_control, x_treatment, x_control):
+        """CUPED: Controlled-experiment Using Pre-Experiment Data."""
+        # Estimate theta: correlation between pre-experiment and post-experiment metric
+        x_pooled = np.concatenate([x_treatment, x_control])
+        y_pooled = np.concatenate([y_treatment, y_control])
+        theta = np.cov(y_pooled, x_pooled)[0,1] / np.var(x_pooled)
+        
+        # Adjust metrics
+        y_t_adj = y_treatment - theta * (x_treatment - x_pooled.mean())
+        y_c_adj = y_control - theta * (x_control - x_pooled.mean())
+        return y_t_adj, y_c_adj, theta
+    ```
+  - Cell 7: Sequential SPRT implementation
+  - Cell 9: Bayesian A/B with Beta-Binomial conjugate prior
+
+- [ ] **Step 4: Commit**
+  ```bash
+  git add stats/
+  git commit -m "feat: add stats section with 8 core probability and inference concepts"
+  ```
+
+---
+
+### Task G2: Stats concepts 09-15 with notebooks
+
+- [ ] **Step 1: Create concepts 09-15** (causal inference, information theory, Monte Carlo, MCMC, multivariate, time-series stats, connections)
+- [ ] **Step 2: Create notebooks 09-15**
+
+  Special requirement for notebook 10 (information theory):
+  ```python
+  import numpy as np
+  
+  def entropy(p: np.ndarray) -> float:
+      """Shannon entropy H(X) = -Σ p·log2(p)."""
+      p = p[p > 0]  # avoid log(0)
+      return -np.sum(p * np.log2(p))
+  
+  def cross_entropy(p: np.ndarray, q: np.ndarray) -> float:
+      """H(p,q) = -Σ p·log q. Cross-entropy loss in neural networks."""
+      q = np.clip(q, 1e-10, 1)  # numerical stability
+      return -np.sum(p * np.log(q))
+  
+  def kl_divergence(p: np.ndarray, q: np.ndarray) -> float:
+      """KL(P||Q) = Σ P·log(P/Q). Asymmetric. Used in KD, RLHF."""
+      mask = p > 0
+      return np.sum(p[mask] * np.log(p[mask] / q[mask]))
+  
+  def mutual_information(joint: np.ndarray) -> float:
+      """I(X;Y) = Σ p(x,y)·log[p(x,y)/(p(x)·p(y))]."""
+      p_x = joint.sum(axis=1, keepdims=True)
+      p_y = joint.sum(axis=0, keepdims=True)
+      product = p_x * p_y
+      mask = joint > 0
+      return np.sum(joint[mask] * np.log(joint[mask] / product[mask]))
+  
+  def perplexity(log_probs: np.ndarray) -> float:
+      """Perplexity = 2^H. Lower = better language model."""
+      avg_neg_log2 = -np.mean(log_probs) / np.log(2)
+      return 2 ** avg_neg_log2
+  ```
+
+- [ ] **Step 3: Commit**
+  ```bash
+  git add stats/concepts/0[9]-*.md stats/concepts/1[0-5]-*.md \
+          stats/notebooks/0[9]-*.ipynb stats/notebooks/1[0-5]-*.ipynb
+  git commit -m "feat: add stats concepts 09-15 including information theory and causal inference"
+  ```
+
+---
+
+## Sub-Project H: ML Interview Deep-Dive (New)
+
+**Priority: HIGH** — Currently only 10 theory Q, 2 case studies. A complete ML interview prep hub needs 50+ theory Q, 15+ case studies, company-specific guides, behavioral prep.
+
+**New/expanded files:**
+
+### Task H1: Expand ML theory questions to 50
+
+**File:** `ml/interview-prep/ml-theory-questions.md`
+
+Current: 10 questions. Target: 50 questions across 6 domains.
+
+- [ ] **Step 1: Add questions 11-20: Supervised Learning Deep Cuts**
+  Questions to add:
+  - Q11: Why does gradient boosting work better than random forests on tabular data?
+  - Q12: How would you handle 1000 features with 500 samples? (regularization, dimensionality reduction, feature selection order)
+  - Q13: Your model AUC=0.95 in offline eval, but only 0.72 in production. What's wrong? (training-serving skew checklist)
+  - Q14: When would you NOT use cross-entropy loss? (imbalanced data → focal loss; ordinal targets → ordinal loss)
+  - Q15: Design a model that must be explainable to regulators. (SHAP, LIME, decision tree constraint, documentation)
+  - Q16: A feature has 40% missing values. Drop it or impute? (framework: missing at random vs MCAR vs MNAR)
+  - Q17: How do you prevent target leakage in time-series data? (time-based splits, causality check)
+  - Q18: Your learning curves show high train accuracy but high test loss. 3 things to try? (more data, regularization, simpler model)
+  - Q19: How do you pick k in k-means when you don't have labels? (elbow method, silhouette score, BIC for GMM)
+  - Q20: Explain precision-recall tradeoff. When do you care more about precision? About recall? (fraud: recall. spam: precision. explain why)
+
+- [ ] **Step 2: Add questions 21-35: Neural Networks and Deep Learning**
+  Topics: BatchNorm vs LayerNorm in transformers, why ReLU over sigmoid, vanishing gradient symptoms and fixes, when to use attention vs conv, transformer without positional encoding, weight decay vs dropout differences, learning rate warmup purpose, gradient clipping when and why, batch size effect on generalization, knowledge distillation loss temperature intuition
+
+- [ ] **Step 3: Add questions 36-50: LLM and Production**
+  Topics: why fine-tuning fails (catastrophic forgetting, insufficient data, wrong hyperparams), RAG vs fine-tuning decision framework, how to evaluate LLM outputs at scale (LLM-as-judge, human eval, task-specific metrics), prompt injection defense, quantization quality drop causes, RLHF reward hacking examples, serving latency optimization hierarchy (model size → batching → quantization → caching), context window scaling techniques, multi-modal training challenges, model collapse in RLHF
+
+- [ ] **Step 4: Commit**
+  ```bash
+  git add ml/interview-prep/ml-theory-questions.md
+  git commit -m "feat: expand ML theory questions from 10 to 50 across 6 domains"
+  ```
+
+---
+
+### Task H2: Expand ML case studies to 15
+
+**File:** `ml/interview-prep/case-studies.md`
+
+Current: 2 case studies (recommendation, content). Target: 15 covering major ML system types.
+
+Format per case study (existing 6-step format):
+1. Clarifying Questions to Ask
+2. ML Problem Formulation
+3. System Design (data, features, model, serving)
+4. Offline Evaluation
+5. Online Evaluation and A/B Test
+6. Production Monitoring
+
+- [ ] **Step 1: Add case studies 03-08 (Core ML systems)**
+  - **03: Ad Click Prediction** — feature engineering for user×ad, sparse ID features, embedding tables, calibration, real-time scoring at 1M QPS
+  - **04: Fraud Detection** — imbalanced (0.1% positive rate), real-time scoring <50ms, rule-based+ML ensemble, concept drift from fraud pattern evolution
+  - **05: Search Ranking** — query understanding, document features, learning-to-rank (pointwise/pairwise/listwise), position bias correction
+  - **06: Customer Lifetime Value Prediction** — censored survival analysis (customers still alive), business target vs model metric alignment
+  - **07: Spam Detection** — text features, adversarial robustness, feedback loop from user reports, latency requirements for email
+  - **08: Price Optimization** — demand elasticity modeling, explore-exploit in dynamic pricing, business constraints (min margin)
+
+- [ ] **Step 2: Add case studies 09-12 (LLM systems)**
+  - **09: Enterprise Semantic Search** — embedding models, vector DB at scale, hybrid BM25+dense, reranking, evaluation (MRR@10, NDCG)
+  - **10: Code Completion** — latency SLA (50ms prefix, 200ms full), context window management, model distillation for edge
+  - **11: Document Q&A System** — multi-document RAG, hallucination detection, citation accuracy, knowledge freshness
+  - **12: Multimodal Product Search** — image+text queries, CLIP-style retrieval, catalog with 100M items
+
+- [ ] **Step 3: Add case studies 13-15 (Advanced/Infra)**
+  - **13: Real-Time Personalization** — feature freshness, feature store design, online learning vs batch, cold start
+  - **14: Model Monitoring at Scale** — drift detection pipeline, automated retraining triggers, shadow models, canary evaluation
+  - **15: Cost Optimization for ML Platform** — GPU utilization, auto-scaling, spot instances, model distillation ROI
+
+- [ ] **Step 4: Commit**
+  ```bash
+  git add ml/interview-prep/case-studies.md
+  git commit -m "feat: expand ML case studies from 2 to 15 covering ads, fraud, search, LLM systems"
+  ```
+
+---
+
+### Task H3: Company-specific interview guides
+
+**New files:**
+- `ml/interview-prep/company-guides/meta.md`
+- `ml/interview-prep/company-guides/google.md`
+- `ml/interview-prep/company-guides/amazon.md`
+- `ml/interview-prep/company-guides/microsoft.md`
+- `ml/interview-prep/company-guides/openai.md`
+
+Format per company:
+```markdown
+# ML Interview at [Company]
+
+## What They're Looking For
+[3-5 sentences on their specific values and ML philosophy]
+
+## Interview Rounds
+| Round | Type | Duration | What's Tested |
+|-------|------|----------|--------------|
+
+## Most Common Question Topics
+[Ranked list of most frequent topics based on public reports]
+
+## Their Tech Stack (Known)
+[ML frameworks, infrastructure, model types they use]
+
+## Sample Questions from This Company
+[5-10 questions with format: Q / What they're testing / Red flags / Green flags]
+
+## Preparation Strategy
+[2-3 week prep plan specific to this company]
+```
+
+- [ ] **Step 1: Create `ml/interview-prep/company-guides/meta.md`**
+
+  Key content for Meta:
+  - Ranking systems (news feed, marketplace, ads) — their core ML domain
+  - Extreme classification (100M+ classes in content recommendation)
+  - Real-time feature engineering at 3B+ DAU scale
+  - PyTorch (they built it), internal stack: FBLearner, Jarvis
+  - Sample Q: "How would you redesign news feed ranking to reduce misinformation without hurting engagement?" (tests values + ML tradeoffs)
+
+- [ ] **Step 2: Create company guides for Google, Amazon, Microsoft, OpenAI**
+
+  Google: search ranking, YouTube recommendation, Gemini/TPU, Vertex AI; emphasis on scale (billions of users), ML theory depth, whiteboard coding
+  
+  Amazon: demand forecasting (core business), recommendation (every product page), Alexa NLP, AWS SageMaker; behavioral heavily weighted (Leadership Principles × ML decisions)
+  
+  Microsoft: Azure AI, Copilot/LLMs, Teams NLP, Xbox recommendation; emphasis on product sense + ML integration, less hardcore theory than Google
+  
+  OpenAI: LLM training pipeline, RLHF deep knowledge, safety/alignment, scaling laws; expects ability to discuss frontier research papers
+
+- [ ] **Step 3: Commit**
+  ```bash
+  git add ml/interview-prep/company-guides/
+  git commit -m "feat: add company-specific ML interview guides for Meta, Google, Amazon, Microsoft, OpenAI"
+  ```
+
+---
+
+### Task H4: Behavioral interview prep for ML engineers
+
+**New file:** `ml/interview-prep/behavioral.md`
+
+ML engineers face behavioral questions that mix technical judgment with soft skills.
+
+- [ ] **Step 1: Create `ml/interview-prep/behavioral.md`**
+
+  Structure:
+  ```markdown
+  # ML Engineer Behavioral Interview Prep
+  
+  ## The STAR Framework for ML Stories
+  [Situation, Task, Action, Result — adapted for ML context]
+  
+  ## 20 Most Common Behavioral Questions for ML Roles
+  
+  ### Q: Tell me about a time your model failed in production.
+  **What they're really testing:** ability to detect, diagnose, and learn from ML failures
+  **Green flags:** metric-driven detection, root cause analysis, systematic fix, process improvement
+  **Red flags:** "it never failed" or blaming data quality without owning it
+  **Story structure:**
+  - Situation: [describe the model and business context]
+  - What failed: [specific metric, specific user impact]
+  - How you detected it: [monitoring, user reports, periodic evaluation]
+  - Root cause: [data drift / training-serving skew / label shift / bug]
+  - Fix: [what you changed and how you validated the fix]
+  - Process improvement: [what monitoring/testing you added after]
+  
+  ### Q: Tell me about a time you had to make a trade-off between model accuracy and latency.
+  ...
+  
+  ### Q: Describe a project where you had to explain a complex ML decision to non-technical stakeholders.
+  ...
+  [18 more questions with full STAR templates]
+  
+  ## Story Bank Template
+  [Blank STAR template for candidates to fill in their own stories]
+  ```
+
+- [ ] **Step 2: Commit**
+  ```bash
+  git add ml/interview-prep/behavioral.md
+  git commit -m "feat: add ML engineer behavioral interview prep with 20 STAR templates"
+  ```
+
+---
+
+## Sub-Project I: Cheat Sheets (New)
+
+**Priority: MEDIUM** — Zero quick-reference materials. Cheat sheets are high-value for last-minute review before interviews.
+
+**New directory:** `cheatsheets/`
+
+### 10 Cheat Sheets to Create
+
+| File | Content |
+|------|---------|
+| `ml-algorithms.md` | Algorithm comparison: time/space complexity, when to use, hyperparams |
+| `neural-network-architectures.md` | CNN, RNN, Transformer, ViT, Diffusion — diagram + use case |
+| `optimizers.md` | SGD, Adam, AdaW, LAMB — update rules, best use cases |
+| `evaluation-metrics.md` | Classification, regression, ranking, generation metrics |
+| `llm-models.md` | Model comparison table: GPT-4, Claude, Llama, Mistral, Gemini — context, cost, capability |
+| `regularization.md` | L1/L2/dropout/batch-norm — formula, effect on weights, when to use |
+| `deployment-strategies.md` | Blue-green, canary, shadow, rolling — decision matrix |
+| `system-design-quick-ref.md` | ML system components, capacity estimates, latency budgets |
+| `python-ml-snippets.md` | Copy-paste sklearn, torch, numpy snippets for common tasks |
+| `interview-formulas.md` | All formulas you need to know: gradient descent, attention, loss functions, evaluation |
+
+### Task I1: Create all 10 cheat sheets
+
+**Files to Create:** `cheatsheets/` directory + 10 `.md` files
+
+- [ ] **Step 1: Create `cheatsheets/ml-algorithms.md`**
+
+  Must include a master comparison table:
+  ```markdown
+  | Algorithm | Type | Train Time | Inference | Memory | Best For | Avoid When |
+  |-----------|------|-----------|-----------|--------|---------|-----------|
+  | Linear Regression | Regression | O(nd²) | O(d) | O(d) | Interpretable baseline | Non-linear patterns |
+  | Logistic Regression | Classification | O(ndi) | O(d) | O(d) | Probability calibration | Complex boundaries |
+  | Decision Tree | Both | O(nd log n) | O(depth) | O(nodes) | Interpretable, mixed features | Noisy data |
+  | Random Forest | Both | O(T·nd log n) | O(T·depth) | O(T·nodes) | Robust, out-of-box good | Ultra-low latency |
+  | Gradient Boosting | Both | O(T·nd) | O(T·depth) | O(T·nodes) | Best tabular accuracy | Real-time serving |
+  | SVM | Both | O(n²d)-O(n³d) | O(sv·d) | O(sv) | Small data, high dim | n > 100K |
+  | KNN | Both | O(1) fit | O(nd) | O(nd) | Non-parametric baseline | Large datasets |
+  | K-Means | Clustering | O(nkdi) | O(kd) | O((n+k)d) | Fast segmentation | Non-spherical clusters |
+  | Neural Network | Both | O(layers·nd) | O(layers·d) | O(params) | Unstructured data, scale | Small data, interpretability |
+  | Transformer | Both | O(n²d) attention | O(n²d) | O(n²+params) | Sequences, language, vision | Long sequences at edge |
+  ```
+
+- [ ] **Step 2: Create `cheatsheets/interview-formulas.md`**
+
+  Must include all formulas a candidate might need to write on a whiteboard:
+  ```markdown
+  ## Loss Functions
+  MSE: L = (1/n)·Σ(y - ŷ)²
+  Cross-entropy: L = -Σ y·log(ŷ)
+  Focal loss: L = -(1-ŷ)^γ · y·log(ŷ)
+  
+  ## Gradient Descent
+  θ ← θ - α·∇_θL
+  Adam: m = β₁m + (1-β₁)g; v = β₂v + (1-β₂)g²; θ ← θ - α·m̂/√v̂+ε
+  
+  ## Attention
+  Attention(Q,K,V) = softmax(QKᵀ/√d_k)·V
+  
+  ## Evaluation
+  Precision = TP/(TP+FP)
+  Recall = TP/(TP+FN)
+  F1 = 2·P·R/(P+R)
+  AUC = P(score_pos > score_neg)
+  NDCG@K = DCG@K / IDCG@K
+  
+  ## Statistics
+  Confidence interval: x̄ ± z_{α/2}·σ/√n
+  Sample size: n = (z_{α/2} + z_β)² · 2σ² / Δ²
+  Cohen's d: d = (μ₁ - μ₂) / σ_pooled
+  ```
+
+- [ ] **Step 3: Create remaining 8 cheat sheets** (neural-network-architectures, optimizers, evaluation-metrics, llm-models, regularization, deployment-strategies, system-design-quick-ref, python-ml-snippets)
+
+- [ ] **Step 4: Create `cheatsheets/README.md`** with table of contents and "how to use before interview"
+
+- [ ] **Step 5: Commit**
+  ```bash
+  git add cheatsheets/
+  git commit -m "feat: add 10 cheat sheets for quick interview reference"
+  ```
+
+---
+
+## Sub-Project J: Production ML Post-Mortems (New)
+
+**Priority: MEDIUM** — No failure case studies exist. Senior engineers are expected to know how real ML systems fail.
+
+**New directory:** `arch-review/post-mortems/`
+
+### 8 Post-Mortem Case Studies
+
+| # | Title | Failure Type | Systems Involved |
+|---|-------|-------------|-----------------|
+| 01 | Recommendation Model Silent Drift | Feature drift undetected for 3 months | Feature store, monitoring |
+| 02 | Training-Serving Skew at Launch | Preprocessing mismatch | Feature pipeline, model serving |
+| 03 | Reward Hacking in RLHF Fine-Tune | Reward model exploited | RLHF pipeline, safety filters |
+| 04 | Fraud Model Bias Discovered Post-Launch | Demographic performance gap | Bias detection, model evaluation |
+| 05 | Vector DB Cold Start After Migration | Cache invalidation, index rebuild | RAG pipeline, vector DB |
+| 06 | Cascade Failure from Model Confidence | Overconfident model fed wrong inputs downstream | Model cascading, error handling |
+| 07 | Data Pipeline Poisoning | Upstream schema change corrupts features | Data validation, schema contracts |
+| 08 | LLM Prompt Injection in Production | User-supplied prompt escapes system context | LLM API gateway, output validation |
+
+### Post-Mortem Format
+
+```markdown
+# Post-Mortem: [Title]
+
+## Incident Summary
+**Date:** [simulated date]
+**Duration:** [time to detect + time to resolve]
+**Business Impact:** [users affected, revenue lost, accuracy degradation]
+**Severity:** P1 / P2 / P3
+
+## Timeline
+| Time | Event |
+|------|-------|
+| T+0 | Incident begins |
+| T+2h | First alert fires |
+| T+4h | Root cause identified |
+| T+6h | Mitigation deployed |
+| T+24h | Full resolution |
+
+## What Happened (Technical)
+[3-4 paragraphs: normal state, what changed, why it wasn't caught, blast radius]
+
+## Root Cause Analysis
+**Contributing factors:**
+1. [Primary cause]
+2. [Contributing factor]
+3. [Process gap that allowed it]
+
+**5 Whys:**
+- Why did the model degrade? → [answer]
+- Why wasn't it caught earlier? → [answer]
+- Why didn't the alert fire? → [answer]
+- Why was the alert threshold wrong? → [answer]
+- Why wasn't it reviewed after last incident? → [answer]
+
+## What Went Well
+- [Thing 1 that helped or limited damage]
+
+## Action Items
+| Item | Owner | Due | Status |
+|------|-------|-----|--------|
+| Add feature drift alert on top-20 features | ML Platform | 1 week | Done |
+...
+
+## Interview Discussion Points
+- What would you have done differently?
+- How would you prevent this category of failure?
+- What monitoring gaps does this reveal?
+```
+
+### Task J1: Create 8 production post-mortems
+
+**Files to Create:** `arch-review/post-mortems/01-*.md` through `arch-review/post-mortems/08-*.md`
+
+- [ ] **Step 1: Create post-mortem 01 (Recommendation Model Silent Drift)**
+
+  Key narrative: Model trained on pre-COVID data. During COVID, user behavior shifts (home content vs commute content). Feature "hour_of_day" distribution drifts. Model continues to predict "commute shows" at prime time. Revenue dips 8% over 3 months. Finally caught when new model A/B test shows "no improvement" vs baseline that is already degraded.
+  
+  Root cause: PSI only monitored on 5 features (not the drifting 12), PSI threshold too high (0.2 vs standard 0.1), no accuracy monitoring on held-out sample.
+  
+  Action items: PSI monitoring on all top-30 features, weekly accuracy eval on fresh labeled data, shadow model always running for comparison.
+
+- [ ] **Step 2: Create post-mortems 02-08** using the same format with specific technical narratives
+
+- [ ] **Step 3: Create `arch-review/post-mortems/README.md`** summarizing all 8 post-mortems and indexing by failure type
+
+- [ ] **Step 4: Commit**
+  ```bash
+  git add arch-review/post-mortems/
+  git commit -m "feat: add 8 production ML post-mortems covering drift, skew, bias, cascades, and prompt injection"
+  ```
+
+---
+
+## Sub-Project K: Computer Vision and NLP Pre-LLM Sections (New)
+
+**Priority: MEDIUM** — No dedicated CV section. No pre-LLM NLP (Word2Vec, BERT, seq2seq). These appear in ~30% of ML interviews.
+
+### K1: Computer Vision Deep-Dive (8 concepts)
+
+**New directory:** `cv/concepts/`
+
+| # | Topic | Key Content |
+|---|-------|-------------|
+| 01 | image-classification | CNN pipeline, ImageNet, data augmentation, transfer learning |
+| 02 | object-detection | YOLO v8, Faster R-CNN, anchor boxes, NMS, mAP@50 |
+| 03 | image-segmentation | Semantic vs instance vs panoptic, U-Net, SAM, Mask R-CNN |
+| 04 | vision-transformers | ViT architecture, patch embeddings, CLS token, comparison to CNN |
+| 05 | contrastive-learning-vision | CLIP, SimCLR, self-supervised pretraining, downstream tasks |
+| 06 | diffusion-models | DDPM forward/reverse process, U-Net denoiser, DDIM sampling, guidance |
+| 07 | video-understanding | Optical flow, 3D convolutions, temporal attention, action recognition |
+| 08 | multimodal-vision-llm | LLaVA architecture, visual instruction tuning, VQA |
+
+### Task K1: CV concepts and notebooks
+
+**Files to Create:**
+- `cv/concepts/01-image-classification.md` through `cv/concepts/08-multimodal-vision-llm.md`
+- `cv/notebooks/01-image-classification.ipynb` through `cv/notebooks/08-multimodal-vision-llm.ipynb`
+- `cv/README.md`
+
+- [ ] **Step 1: Create `cv/README.md`** and all 8 concept files (8-section format)
+- [ ] **Step 2: Create all 8 notebooks** (12-cell format, torch + torchvision)
+
+  Special requirement for notebook 06 (diffusion models):
+  - Level 1: DDPM forward process in numpy — add noise schedule, visualize
+  - Level 2: Simplified DDPM with U-Net in torch — train on MNIST, visualize denoising
+  - RW1: DDIM accelerated sampling — 50-step vs 1000-step quality comparison
+  - RW2: Classifier-free guidance — unconditional vs guided generation
+  
+- [ ] **Step 3: Commit**
+  ```bash
+  git add cv/
+  git commit -m "feat: add CV section with 8 concepts from image classification to multimodal vision LLMs"
+  ```
+
+---
+
+### K2: NLP Pre-LLM Foundations (8 concepts)
+
+**New directory:** `nlp/concepts/`
+
+| # | Topic | Key Content |
+|---|-------|-------------|
+| 01 | text-preprocessing | Tokenization, stemming, lemmatization, TF-IDF |
+| 02 | word-embeddings | Word2Vec (CBOW/Skip-gram), GloVe, FastText, analogy tasks |
+| 03 | recurrent-neural-networks | LSTM, GRU, vanishing gradients, sequence modeling |
+| 04 | seq2seq-attention | Encoder-decoder, Bahdanau attention, alignment |
+| 05 | bert-and-pretraining | MLM, NSP, fine-tuning, sentence embeddings |
+| 06 | text-classification | BERT fine-tuning, few-shot, zero-shot |
+| 07 | named-entity-recognition | Sequence labeling, BIO tags, CRF, spaCy |
+| 08 | information-retrieval | BM25, dense retrieval, re-ranking, BEIR benchmark |
+
+### Task K2: NLP concepts and notebooks
+
+**Files to Create:** `nlp/` directory structure + 8 concepts + 8 notebooks + `nlp/README.md`
+
+- [ ] **Step 1: Create all 8 NLP concept files** (8-section format)
+- [ ] **Step 2: Create all 8 NLP notebooks** (12-cell format)
+
+  Special requirement for notebook 02 (word embeddings):
+  - Level 1: Skip-gram from scratch in numpy — training on toy corpus, word vector arithmetic
+  - Level 2: Full Word2Vec with negative sampling in torch, nearest neighbors evaluation
+  - RW1: Sentiment with GloVe vectors — fine-tune vs freeze comparison
+  - RW2: Word analogies — "king - man + woman = ?" evaluation on standard datasets
+
+- [ ] **Step 3: Commit**
+  ```bash
+  git add nlp/
+  git commit -m "feat: add NLP pre-LLM section with 8 concepts from text preprocessing to information retrieval"
+  ```
+
+---
+
+## Updated Execution Order
 
 ```
-Week 1: A1 + A2 (concepts) | B1 + B2 (patterns) | D1 (core DS)
-Week 2: A3 + A4 (notebooks) | B3 (patterns) | D2 (algo patterns)
-Week 3: A5 (implementations) | C1 + C2 (diagrams) | D3 + D4 (advanced DS)
-Week 4: C3 (diagrams) | E1 + E2 (navigation)
+Week 1 (Fix existing gaps):
+  A1 + A2 (modern-ai concepts 36-55) | B1 + B2 (system-design patterns 14-23) | D1 (core DS)
+
+Week 2 (Continue fixes + start new content):
+  A3 + A4 (modern-ai notebooks) | B3 (patterns 24-31) | D2 + D3 (algo patterns)
+  F1 (RL concepts 01-10) | G1 (stats 01-08) | I1 start (cheatsheets)
+
+Week 3 (New content heavy):
+  A5 (implementations 36-55) | C1 + C2 (arch diagrams 03-20)
+  F2 (RL concepts 11-20) | G2 (stats 09-15) | H1 (theory questions)
+
+Week 4 (Interview prep + completion):
+  C3 (arch diagrams 21-30) | H2 + H3 + H4 (case studies, company guides, behavioral)
+  J1 (post-mortems) | K1 + K2 (CV + NLP sections) | E1 + E2 (navigation)
 ```
 
-**Optimal agent dispatch for parallel execution:**
-- Agent 1: Sub-Project A (60 modern-ai files)
-- Agent 2: Sub-Project B (18 system-design patterns)
-- Agent 3: Sub-Project C (81 diagram files)
-- Agent 4: Sub-Project D (21 coding files)
-- Agent 5: Sub-Project E (INDEX + README)
+**Optimal parallel agent dispatch (10 agents):**
+- Agent 1: Sub-Project A — 60 modern-ai stub files
+- Agent 2: Sub-Project B — 18 system-design patterns
+- Agent 3: Sub-Project C — 81 arch diagram files
+- Agent 4: Sub-Project D — 21 coding algorithm files
+- Agent 5: Sub-Project E — INDEX + README navigation
+- Agent 6: Sub-Project F — 20 RL concepts + notebooks + implementations
+- Agent 7: Sub-Project G — 15 stats concepts + notebooks
+- Agent 8: Sub-Project H — interview deep-dive (50 Q, 15 case studies, company guides, behavioral)
+- Agent 9: Sub-Project I + J — 10 cheat sheets + 8 post-mortems
+- Agent 10: Sub-Project K — 8 CV + 8 NLP pre-LLM concepts
 
 ---
 
