@@ -37,14 +37,71 @@ Canary = test with small group first. 5% users get new model, 95% get old. Monit
 
 ## Detailed Trade-off Analysis
 
-| Aspect | Canary | Blue-Green | Shadow |
-|--------|--------|-----------|--------|
-| Cost | 5% overhead | 100% overhead | 50% overhead |
-| Time | Hours | Minutes | N/A |
-| Risk | Medium | Low | Lowest |
-| Rollback | Gradual (slow) | Instant | N/A |
+### Canary Metrics & Decision Logic
 
-**Decision:** Risk averse→canary. Speed critical→blue-green. Validation only→shadow.
+**Key metrics to monitor during canary:**
+```
+Error rate delta: (canary_errors - baseline_errors) / baseline_errors
+  Threshold: < 1% (canary within 1% of baseline)
+  
+Latency delta: (canary_p99 - baseline_p99) / baseline_p99
+  Threshold: < 5% (p99 latency within 5% of baseline)
+  
+CPU delta: (canary_cpu - baseline_cpu) / baseline_cpu
+  Threshold: < 10% (resource usage within 10%)
+  
+Prediction distribution shift: KS-test(canary_preds vs baseline_preds)
+  Threshold: KS < 0.1 (distributions similar enough)
+```
+
+**Promotion decision tree:**
+```
+if (error_delta < 1% AND latency_delta < 5% AND cpu_delta < 10%):
+    if (KS_test < 0.1):  # distributions match
+        promote_to_next_stage()
+    else:
+        investigate_distribution_shift()
+        wait_for_more_data()
+else:
+    if (error_delta > 5% OR latency_delta > 10%):
+        rollback_immediately()
+    else:
+        wait_longer_at_current_stage()
+```
+
+**Traffic ramp schedule (typical model deployment):**
+```
+Stage 1: 1% traffic for 15 min (100-500 QPS depending on service)
+Stage 2: 5% traffic for 30 min (500-2500 QPS)
+Stage 3: 10% traffic for 1 hour (1000-5000 QPS)
+Stage 4: 25% traffic for 1 hour (2500-12500 QPS)
+Stage 5: 50% traffic for 1 hour (5000-25000 QPS)
+Stage 6: 100% traffic (full rollout)
+
+Total time: 4-5 hours for full rollout
+```
+
+**Cost-benefit analysis:**
+- Canary cost: 5% extra traffic on new model = $250/month (extra 5% GPU)
+- Benefit: Catch 1 bad model per month = prevent $10K loss
+- ROI: Save $10K, spend $250 = 40x return
+
+### Deployment Strategy Comparison
+
+| Aspect | Canary | Blue-Green | Rolling | Shadow |
+|--------|--------|-----------|---------|--------|
+| **Cost overhead** | 5% | 100% | 0% | 50% |
+| **Rollback speed** | 10-20 min (gradual) | 30 sec (instant) | 5-10 min | N/A |
+| **Risk level** | Medium (5% exposed) | Low (full test first) | High (live traffic) | Lowest (shadow) |
+| **Rollout duration** | 4-5 hours | 30 seconds | 10-30 minutes | N/A |
+| **Ideal for** | Safe model updates | Critical systems | Hotfixes | Risky ML experiments |
+| **Example use case** | New recommendation model | Payment system update | Bug patch | ML model A/B test |
+
+**Decision matrix by change risk:**
+- Low risk (bugfix, tuning): Rolling (fast, no extra cost)
+- Medium risk (new model): Canary (4h, 5% cost, catch issues)
+- High risk (new system): Blue-green (30s, 100% cost, guaranteed safety)
+- Very risky (experimental): Shadow (validate offline first)
 
 ---
 
