@@ -42,15 +42,51 @@ Shadow = test in dark. New model gets same inputs as production. Makes predictio
 
 ## Detailed Trade-off Analysis
 
-| Aspect | Shadow | Canary | Blue-Green |
-|--------|--------|--------|-----------|
-| Cost | 50% | 5% | 100% |
-| Risk | Lowest | Medium | Low |
-| Time | Days | Hours | Minutes |
-| Customer impact | None | Some | None |
-| Validation quality | Best | Good | OK |
+### Shadow Mode Cost Model (1M requests/day, $5K baseline)
 
-**Decision:** Uncertain→shadow. Confident→canary. Urgent→blue-green.
+**Shadow infrastructure cost:**
+- Production model: $5K/month
+- Shadow model (duplicate, 50% traffic): $2.5K/month (run in parallel)
+- Request mirroring/logging overhead: $500/month (send to shadow, log divergence)
+- **Total: $8K/month** (60% overhead vs 100% blue-green)
+
+**When shadow pays for itself:**
+- Catch 1 bad model per month = prevent $10K loss
+- Cost: $8K/month
+- Net: saves $2K/month
+- **ROI: 1.25x** (compared to 40x for canary, but safer validation)
+
+### Deployment Strategy Decision Tree
+
+| Scenario | Best Strategy | Reason | Time | Cost |
+|----------|---------------|--------|------|------|
+| **New ML model (high confidence)** | Canary | Confident from testing, fast rollout | 4h | 5% |
+| **New ML model (low confidence)** | Shadow | Uncertain, validate on real traffic first | 3-7 days | 50% |
+| **Payment system update (any)** | Blue-green | Zero-downtime is non-negotiable | 30 min | 100% |
+| **Bug hotfix (low risk)** | Rolling | Fast, minimal risk | 15 min | 0% |
+| **Risky architecture change** | Shadow first, then Canary | Validate fundamentals, then gradual rollout | 10 days | 55% total |
+
+### Shadow vs Canary Comparison
+
+**Use Shadow when:**
+- Model quality uncertain (new algorithm, new data source, new domain)
+- Willing to wait 3-7 days for validation
+- Want 100% traffic exposure before production (most realistic)
+- Cost not critical (50% overhead acceptable)
+- Example: ML model for fraud detection (high risk of bad model)
+
+**Use Canary when:**
+- Model quality confident (tested extensively)
+- Need faster rollout (4 hours acceptable)
+- Cost matters (5% overhead vs 50%)
+- Want to catch issues affecting real users (but limited exposure)
+- Example: Improved recommendation model (incremental improvement)
+
+**Use Blue-green when:**
+- Downtime unacceptable (payment, auth systems)
+- Zero-downtime requirement overrides cost
+- Speed critical
+- Example: Infrastructure update, critical dependency change
 
 ---
 
