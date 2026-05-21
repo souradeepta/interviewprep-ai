@@ -56,14 +56,16 @@ graph LR
 
 | Aspect | Batch (Daily) | Stream (Real-time) | Hybrid (Batch + Stream) |
 |--------|---------------|-------------------|------------------------|
-| Latency | 24 hours | 100ms - 5 sec | 24h batch + 5sec stream |
-| Infrastructure cost | $500/month | $5,000/month | $2,500/month |
-| Operational overhead | 30 min/day | 8 hours/week (24/7 monitoring) | 2 hours/day |
-| Throughput | 100M events/day | 10K events/sec | 100M batch + 10K stream |
-| Data consistency | Exactly-once | At-least-once (duplicates) | Exactly-once (batch) |
-| Team size to operate | 1-2 engineers | 4-6 engineers | 2-3 engineers |
-| Time to implement | 1-2 weeks | 3-4 weeks | 2-3 weeks |
-| Max data volume | Petabyte-scale | Terabyte-scale | Petabyte + real-time |
+| **Latency** | 24 hours | 100ms - 5 sec | 24h batch + 5sec stream |
+| **Infrastructure cost** | $500/month | $5,000/month | $2,500/month |
+| **Operational overhead** | 30 min/day | 8 hours/week (24/7 monitoring) | 2 hours/day |
+| **Throughput** | 100M events/day | 10K events/sec | 100M batch + 10K stream |
+| **Data consistency** | Exactly-once | At-least-once (duplicates) | Exactly-once (batch) |
+| **Team size to operate** | 1-2 engineers | 4-6 engineers | 2-3 engineers |
+| **Time to implement** | 1-2 weeks | 3-4 weeks | 2-3 weeks |
+| **Max data volume** | Petabyte-scale | Terabyte-scale | Petabyte + real-time |
+| **Debuggability** | Easy (replay, deterministic) | Hard (distributed state, ordering) | Mixed (batch path easier) |
+| **Failure recovery time** | 30-60 minutes | 5-15 minutes (faster failover) | 30 min batch path, 15 min stream |
 
 ### Cost Breakdown (Example: 100M events/day)
 
@@ -107,26 +109,38 @@ graph LR
 
 ### Decision Matrix
 
+| Scenario | Recommendation | Reasoning | Cost/Month | Time to Implement |
+|----------|----------------|-----------|-----------|-------------------|
+| **Training datasets (6h latency OK)** | Batch | Low cost, deterministic, reproducible. Example: overnight ML model retraining. | $500-1K | 1-2 weeks |
+| **Real-time personalization (<100ms)** | Stream | Latency critical for user experience. Cost secondary. Example: next-product recommendations. | $20-30K | 4-6 weeks |
+| **Fraud detection (<5 min)** | Stream | Sub-minute latency detects patterns fast. False positives OK (block + verify). | $15-20K | 3-4 weeks |
+| **Daily analytics dashboard** | Batch | Freshness acceptable at daily boundaries. Most cost-efficient. | $500-1K | 1 week |
+| **ML feature store (mix of latencies)** | Hybrid | 90% batch (cheap), 10% stream (expensive but small volume). Best cost/latency balance. | $5-8K | 3-4 weeks |
+| **IoT sensor aggregation (5min SLA)** | Stream or Hybrid | Continuous data, low latency required. Use Hybrid if budget constrained. | $10-15K stream / $3-5K hybrid | 3-4 weeks |
+| **Data warehouse (multi-tenant)** | Batch | Multiple teams benefit from shared, tested logic. Batch eliminates duplication. | $2-3K | 2-3 weeks |
+| **Real-time notifications to users** | Stream | Sub-second latency essential. Example: order status, payment confirmation. | $20-25K | 4-5 weeks |
+
 **Use BATCH if:**
 - Latency requirement > 1 hour (training datasets, daily reports)
 - Cost is primary constraint ($2-3K/month vs $20K/month)
 - Data arrives in bulk (daily or hourly batches)
 - Simple operations (SQL transformations, aggregations)
-- Team is small (<5 people)
+- Team is small (<5 people) and inexperienced with distributed systems
 
 **Use STREAM if:**
-- Latency requirement < 5 minutes (fraud detection, real-time rankings)
-- Can afford operational complexity and cost
-- Data arrives continuously (events, clicks, IoT sensor data)
+- Latency requirement < 5 minutes (fraud detection, real-time rankings, notifications)
+- Can afford operational complexity and cost ($15K+/month)
+- Data arrives continuously (events, clicks, IoT sensor data, user activity)
 - Need immediate alerts (anomaly detection requires sub-minute latency)
-- Team has distributed systems expertise
+- Team has distributed systems expertise (Kafka, Flink, Spark Streaming)
 
-**Use HYBRID if:**
-- 90% of data can wait (daily/hourly batch acceptable)
-- 10% needs urgency (high-priority features stream)
-- Cost matters but some real-time features needed
-- Want simplicity of batch + freshness of stream
-- Most production ML systems use this
+**Use HYBRID if (recommended for most):**
+- 90% of data can wait (daily/hourly batch acceptable, 95% of features)
+- 10% needs urgency (high-priority features stream, 5% of features)
+- Cost matters but some real-time features required
+- Want simplicity and cost-effectiveness of batch + freshness of stream
+- Teams want to start simple (batch) and add stream selectively
+- **This is the pattern used at Netflix, Uber, LinkedIn at scale**
 
 ### Real Production Metrics
 
@@ -920,37 +934,77 @@ Total: $300 + $115 + $50 + $833 = $1,298/month
 
 ### Key Metrics to Instrument
 
+**Pipeline Execution Metrics:**
 ```
-Pipeline Execution:
-- pipeline_completion_latency_minutes (histogram with p50, p95, p99)
-- pipeline_stage_duration_minutes (per-stage breakdown)
+- pipeline_completion_latency_minutes (histogram: p50, p95, p99)
+  Target: p99 < SLA threshold (e.g., 240 min for 4-hour SLA)
+- pipeline_stage_duration_minutes (per-stage: read, transform, validate, write)
+  Shows which stage is bottleneck
 - input_row_count, output_row_count
-- data_quality_check_failures
-
-Data Quality:
-- null_count_pct: percentage of nulls
-- invalid_value_count: range violations
-- schema_version_mismatch
-
-Feature Freshness:
-- feature_age_hours: how old is latest feature
-- last_pipeline_run_time: when did pipeline complete
+  Alert: if (output < input * 0.99) then warn (>1% data loss)
+- pipeline_retry_count, pipeline_error_count
+  Alert: if (errors > 0) then notify (track failure patterns)
 ```
 
-### Alert Thresholds
+**Data Quality Metrics:**
+```
+- null_count_pct: percentage of nulls in each feature
+  Alert: if (null_pct > 0.1%) then warn (check source or transformation)
+- invalid_value_count: range violations (negative customer_id, price > max, etc)
+  Alert: if (count > 0) then critical (stop pipeline)
+- schema_version_mismatch: does input match expected schema?
+  Alert: if (version != expected) then critical (upstream API changed)
+- value_distribution_shift (KS-test vs baseline)
+  Alert: if (KS_statistic > 0.1) then warn (distribution changed unexpectedly)
+```
 
-**Critical alerts (page on-call):**
+**Feature Freshness Metrics:**
 ```
-if (pipeline_status == FAILED) → CRITICAL
-if (feature_age > 25 hours) → CRITICAL (SLA breach)
-if (output_count < input_count * 0.99) → CRITICAL (>1% data loss)
+- feature_age_hours: (current_time - max(feature_timestamp)) / 3600
+  Target: <6 hours for most use cases
+  Alert: if (age > 24 hours) then critical (SLA breach)
+- last_pipeline_run_time: when did pipeline last complete successfully?
+  Alert: if (time > SLA + 30 min) then critical (investigate)
+- feature_availability: % of keys with current feature value
+  Alert: if (availability < 95%) then warn
 ```
 
-**Warning alerts (slack #data-team):**
+**System Resource Metrics:**
 ```
-if (pipeline_latency > 150 min) → WARNING (trending toward SLA)
-if (null_count > 0.01%) → WARNING
-if (schema_mismatch) → WARNING
+- pipeline_memory_usage_gb: peak memory during execution
+  Alert: if (> 80% of allocated) then warn (approaching OOM)
+- pipeline_disk_usage_gb: intermediate results and checkpoints
+  Alert: if (> 90% of allocated) then warn (cleanup needed)
+- pipeline_compute_duration_cost: estimated cost in USD for compute
+  Track trending to detect cost increase from growing data volume
+```
+
+### Alert Thresholds & Escalation
+
+**CRITICAL Alerts (Page on-call immediately):**
+| Condition | Action | Recovery Time |
+|-----------|--------|----------------|
+| `pipeline_status == FAILED` | Page oncall instantly, check logs, auto-retry | 5-10 min |
+| `feature_age_hours > SLA_threshold + 1` | Page oncall, activate runbook, start backfill | 30-60 min |
+| `output_row_count < input_row_count * 0.99` | Page oncall (>1% data loss), investigate root cause | 15-30 min |
+| `invalid_value_count > 0` | Page oncall, stop pipeline, identify bad data | 10-20 min |
+| `schema_version_mismatch` | Page oncall (upstream API changed), escalate to API team | 1-2 hours |
+| `pipeline_memory_usage_gb > allocated * 0.95` | Page oncall, stop pipeline (prevent OOM crash), increase resources | 30-60 min |
+
+**WARNING Alerts (Slack #data-engineering, no page):**
+| Condition | Action | Notes |
+|-----------|--------|-------|
+| `pipeline_latency > SLA_threshold * 0.8` | Notify team, profile bottleneck | Trending toward SLA breach |
+| `null_count_pct > 0.01%` | Notify team, investigate data quality | Expected <0.01% nulls |
+| `feature_availability < 95%` | Notify team, check upstream sources | Some keys missing values |
+| `pipeline_retry_count > 1` | Notify team, check for transient issues | Manual investigation may be needed |
+| `disk_usage > 80%` | Notify team to clean up intermediate files | Prevent future disk full errors |
+
+**Low Priority Alerts (Email summary, weekly):**
+```
+- Data volume trending (showing growth)
+- Cost trending (showing infrastructure expense increase)
+- Performance trending (completion time trending slower)
 ```
 
 ### Health Checks
