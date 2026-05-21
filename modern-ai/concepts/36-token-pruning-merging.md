@@ -55,12 +55,12 @@ graph TD
 
 ### Comparison: Importance Score Methods
 
-| Score Method | Compute Cost | Quality | Works Without Labels | Notes |
-|--------------|-------------|---------|----------------------|-------|
-| Attention rollout | Low (reuse attention) | Good | Yes | Reliable for encoder models |
-| Gradient norm | High (backward pass) | Best | No | Needs calibration data |
-| Activation magnitude | Very low | Moderate | Yes | Fast but less precise |
-| Random (baseline) | None | Poor | Yes | Only for ablation |
+| Score Method | Compute Overhead (ms/layer, V100) | Quality | Works Without Labels | Recall@50% Tokens | Notes |
+|--------------|----------------------------------|---------|----------------------|-------------------|-------|
+| Attention rollout | 0.8–1.2ms (reuse attention weights) | Good | Yes | 88–92% | Reliable for encoder models |
+| Gradient norm | 12–18ms (backward pass required) | Best | No | 94–97% | Needs calibration data |
+| Activation magnitude | 0.2–0.4ms (single pass) | Moderate | Yes | 82–87% | Fast but less precise |
+| Random (baseline) | 0ms | Poor | Yes | 50% | Only for ablation |
 
 ### Trade-off Analysis
 
@@ -100,13 +100,13 @@ A: Avoid in: (1) decoder generation — the KV cache assumes fixed token positio
 
 - **Position embedding corruption after pruning**: Removing tokens from a sequence with absolute position embeddings corrupts the position IDs of all subsequent tokens. Symptom: model accuracy degrades far more than expected, especially on positional tasks. Fix: use RoPE or ALiBi embeddings before applying pruning, or reindex surviving tokens immediately after each pruning step.
 
-- **Over-pruning the attention sink token**: The first token (often `[CLS]` or BOS) accumulates disproportionately high attention in many models — this is the "attention sink" phenomenon. Pruning it because it scores high in attention rollout (it receives attention, not necessarily carries meaning) breaks downstream attention patterns entirely. Fix: always exempt the first and last tokens from pruning/merging.
+- **Over-pruning the attention sink token**: The first token (often `[CLS]` or BOS) accumulates disproportionately high attention in many models — this is the "attention sink" phenomenon. Pruning it because it scores high in attention rollout (it receives attention, not necessarily carries meaning) breaks downstream attention patterns entirely. **Symptom:** Model accuracy on coreference resolution and long-range dependency tasks drops 3–8% while sentence-level classification is unaffected — the attention sink token that holds global context is being pruned. Fix: always exempt the first and last tokens from pruning/merging.
 
 - **Applying ToMe to autoregressive decoders during generation**: The KV cache stores key/value pairs at fixed sequence positions. Merging tokens mid-generation invalidates cache entries and forces recomputation. Symptom: generation appears correct but is 2-3x slower than expected. Fix: apply ToMe only during prefill (encoding the prompt), then run generation on the compressed KV cache without further merging.
 
 - **Using gradient-norm importance scores without calibration data**: Gradient norms require a backward pass, adding 100-300% latency overhead during importance computation. Without a proper calibration set, importance scores can be noisy or domain-mismatched. Symptom: tokens important for your task are pruned while generic stop-words are retained. Fix: use attention rollout (no backward pass) for production, gradient norms only during offline sensitivity analysis.
 
-- **Comparing throughput without fixing batch size**: Token merging reduces sequence length but throughput gains depend on batch size. At batch size 1, the gain may only be 1.3x despite removing 40% of tokens (memory bandwidth bound). At batch size 32, gains approach theoretical 2-5x (compute bound). Always benchmark at your production batch size.
+- **Comparing throughput without fixing batch size**: Token merging reduces sequence length but throughput gains depend on batch size. At batch size 1, the gain may only be 1.3x despite removing 40% of tokens (memory bandwidth bound). At batch size 32, gains approach theoretical 2-5x (compute bound). **Symptom:** End-to-end latency improves only 1.1–1.3x despite removing 40% of tokens — throughput benchmark used variable batch sizes, masking the true per-token speedup. Always benchmark at your production batch size.
 
 ## Related Concepts
 

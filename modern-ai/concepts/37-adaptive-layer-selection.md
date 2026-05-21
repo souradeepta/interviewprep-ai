@@ -52,12 +52,12 @@ graph TD
 
 ### Comparison: Early Exit Architectures
 
-| Architecture | Exit Head Type | Training Strategy | Exit Points | Best For |
-|--------------|---------------|-------------------|------------|---------|
-| DeeBERT | Linear + softmax | Two-stage: freeze backbone, train exits | Every 2nd layer | Classification |
-| PABEE | Linear + patience criterion | Multi-exit joint training | Every layer | Sequence labeling |
-| BERxiT | Learned gating | End-to-end with auxiliary loss | Every 3rd layer | Regression + classification |
-| SkipBERT | RL router | Reinforcement learning | Dynamic | Variable-length tasks |
+| Architecture | Exit Head Type | Training Strategy | Exit Points | Speedup Range | Avg Exit Layer (12-layer) | Best For |
+|--------------|---------------|-------------------|------------|---------------|--------------------------|---------|
+| DeeBERT | Linear + softmax | Two-stage: freeze backbone, train exits | Every 2nd layer | 1.5–2.0x | 7.2 | Classification |
+| PABEE | Linear + patience criterion | Multi-exit joint training | Every layer | 1.8–2.5x | 6.8 | Sequence labeling |
+| BERxiT | Learned gating | End-to-end with auxiliary loss | Every 3rd layer | 1.4–1.9x | 8.1 | Regression + classification |
+| SkipBERT | RL router | Reinforcement learning | Dynamic | 2.0–3.0x | 5.5 | Variable-length tasks |
 
 ### Trade-off Analysis
 

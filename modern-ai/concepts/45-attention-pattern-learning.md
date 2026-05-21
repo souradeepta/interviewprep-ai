@@ -44,11 +44,11 @@ graph TD
 
 | Pattern Type | Label Source | Head Specialization | Task Benefit | Annotation Cost |
 |-------------|-------------|--------------------|--------------|--------------------|
-| Syntactic dependency | Dependency parser | Subject-verb-object links | Parsing, NLI | High (parser needed) |
-| Entity coreference | Coreference annotator | Same-entity mentions | QA, summarization | High |
-| Local context (n-gram) | None (window) | Adjacent tokens | Generation fluency | None (computed) |
-| Sentence boundary | Sentence splitter | Cross-sentence linking | Long-document tasks | Low |
-| Self-attention (diagonal) | None (identity) | Token identity | Skip connection behavior | None |
+| Syntactic dependency | Dependency parser | Subject-verb-object links | Parsing, NLI | 20–50ms/sentence online; 0ms if precomputed offline |
+| Entity coreference | Coreference annotator | Same-entity mentions | QA, summarization | 30–80ms/sentence online; 0ms if precomputed offline |
+| Local context (n-gram) | None (window) | Adjacent tokens | Generation fluency | 0ms (no annotation needed; window computed on-the-fly) |
+| Sentence boundary | Sentence splitter | Cross-sentence linking | Long-document tasks | ~5ms/sentence; lightweight rule-based splitter |
+| Self-attention (diagonal) | None (identity) | Token identity | Skip connection behavior | 0ms (identity matrix; no annotation required) |
 
 ### Lambda (Auxiliary Loss Weight) vs Quality Trade-off
 

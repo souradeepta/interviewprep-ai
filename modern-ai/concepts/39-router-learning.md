@@ -48,12 +48,12 @@ graph TD
 
 ### Router Designs: Top-k vs Hash-based vs Soft
 
-| Router Type | Assignment | Gradient Flow | Load Balance | Latency | Best For |
-|------------|-----------|---------------|--------------|---------|---------|
-| Top-1 (Switch Transformer) | Hard, 1 expert | Via probs weighting | Requires aux loss, alpha=0.01 | Lowest | Maximum efficiency |
-| Top-2 (GShard, Mixtral) | Hard, 2 experts | Via probs weighting | Easier to balance | +15% vs Top-1 | Quality + efficiency balance |
-| Soft MoE | Soft, all experts | Direct through all | Natural | 2-3x vs Top-1 | Training stability |
-| Hash routing | Deterministic | None (no learning) | Perfect | Lowest | Reproducibility |
+| Router Type | Assignment | Gradient Flow | Load Balance | Latency | Throughput vs Learned Router | Best For |
+|------------|-----------|---------------|--------------|---------|------------------------------|---------|
+| Top-1 (Switch Transformer) | Hard, 1 expert | Via probs weighting | Requires aux loss, alpha=0.01 | Lowest | baseline (1.0x) | Maximum efficiency |
+| Top-2 (GShard, Mixtral) | Hard, 2 experts | Via probs weighting | Easier to balance | +15% vs Top-1 | -10 to -15% tokens/sec | Quality + efficiency balance |
+| Soft MoE | Soft, all experts | Direct through all | Natural | 2-3x vs Top-1 | -40 to -55% tokens/sec | Training stability |
+| Hash routing | Deterministic | None (no learning) | Perfect | Lowest | +15–20% tokens/sec | Reproducibility |
 
 ### Load Balance Alpha Trade-off (8 experts, Top-2)
 
@@ -106,7 +106,7 @@ A: The challenge is that different tokens in a batch go to different experts, cr
 
 - **Token drop rate not monitored in production**: Capacity overflow silently drops tokens — their FFN transformation is skipped and hidden state passes through unchanged. This degrades quality but produces no error. Symptom: subtle quality degradation under high load that does not appear in offline testing. Fix: log token drop rate per batch as a metric; alert if drop rate exceeds 2%.
 
-- **Gradient instability from discrete top-k selection**: The top-k selection operation is non-differentiable — gradients only flow through the selected experts, not through the selection decision itself. Early in training, this causes the router to optimize only for making good use of experts it has already assigned tokens to, ignoring potentially better experts. Fix: use straight-through estimator during the first 1000 training steps, or start with soft MoE (all experts, soft weighting) and anneal to top-k.
+- **Gradient instability from discrete top-k selection**: The top-k selection operation is non-differentiable — gradients only flow through the selected experts, not through the selection decision itself. Early in training, this causes the router to optimize only for making good use of experts it has already assigned tokens to, ignoring potentially better experts. **Symptom:** Router auxiliary loss decreases as expected but by step 5,000 two experts handle 80%+ of all tokens; remaining 6 experts receive <3% of traffic each despite the balance loss. Fix: use straight-through estimator during the first 1000 training steps, or start with soft MoE (all experts, soft weighting) and anneal to top-k.
 
 ## Related Concepts
 
