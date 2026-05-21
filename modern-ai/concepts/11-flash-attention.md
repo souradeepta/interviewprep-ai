@@ -27,31 +27,53 @@ graph TD
 
 ## Architecture / Trade-offs
 
-| Aspect | Fast Track | Balanced | Thorough |
-|--------|-----------|----------|----------|
-| Speed | Very Fast | Medium | Slower |
-| Accuracy | Medium | High | Very High |
-| Complexity | Low | Medium | High |
-| Cost | Low | Medium | High |
+Flash Attention's main variants present different trade-offs between memory efficiency, speed, and implementation complexity. The choice depends on your hardware, sequence length, and backward pass requirements.
 
-Choose the approach based on your constraints. Most production systems use the Balanced approach.
+| Implementation | Memory Usage | Backward Speed | Setup Complexity | GPU Support |
+|---|---|---|---|---|
+| Standard Attention | Very High (O(N²)) | Fast (single pass) | None | All GPUs |
+| Flash Attention v1 | 50% reduction | Slower (recompute) | Medium (custom kernel) | A100, H100 |
+| Flash Attention v2 | 60% reduction | Fast (improved) | Medium (custom kernel) | A100, H100, RTX |
+| torch.scaled_dot_product_attention | 40% reduction | Moderate | None (built-in) | All recent GPUs |
+
+**When to use each approach:**
+- **Standard Attention:** Prototyping, short sequences (<512 tokens), backward compatibility critical
+- **Flash Attention v2:** Production, long sequences (4K+), tolerating custom compilation
+- **torch.scaled_dot_product_attention:** Portable production, mixed GPU environments, automatic optimization
+- **Flash Attention v1:** Legacy systems, specific architecture requirements (A100)
+
+**Key trade-offs:**
+- Memory efficiency vs. backward pass speed: Flash Attention reduces memory but requires gradient recomputation
+- Hardware specificity: Flash Attention gains are most dramatic on modern GPUs (A100+), negligible on older hardware
+- Gradient checkpointing complexity: Combining Flash Attention with gradient checkpointing adds implementation overhead
 
 ## Interview Q&A
 
-**Q: When would you use Flash Attention?**
-A: When you need to optimize for specific metrics while having constraints on others. For example, use this when latency matters more than perfect accuracy, or when cost is the primary constraint.
+**Q: When is Flash Attention worth the complexity?**
+A: Flash Attention matters when sequences exceed 1024 tokens on A100+ GPUs. For shorter sequences (<512 tokens) or older GPUs (V100), the overhead of custom kernels outweighs gains. Always benchmark your actual use case—synthetic benchmarks don't reflect production batching.
 
-**Q: What are the main trade-offs?**
-A: The primary trade-off is between speed and quality. Other trade-offs include engineering complexity versus ease of implementation, and flexibility versus standardization.
+**Q: What breaks when using Flash Attention on older GPUs?**
+A: Flash Attention kernels are compiled for specific GPU architectures (compute capability 8.0+). On older GPUs (V100, T4), kernels fail to compile or fall back to standard attention. Use torch.scaled_dot_product_attention for portability—it automatically selects optimizations available on your hardware.
 
-**Q: How do you debug when this approach fails?**
-A: Start by measuring each component separately. Compare against baselines. Check edge cases and failure modes. Most failures come from assumptions that don't hold for your specific data.
+**Q: How does Flash Attention affect the backward pass?**
+A: Flash Attention doesn't store intermediate attention matrices during forward pass, so backward requires recomputing them. This increases backward time by 20-40% but saves massive memory during forward. Combine with gradient checkpointing (checkpoint_segments=2) to recompute activation checkpoints instead for better balance.
 
-**Q: What's recent evolution in this area?**
-A: Recent work focuses on making these techniques more efficient and accessible. Libraries now handle much of the complexity automatically.
+**Q: How do you detect if Flash Attention is actually helping?**
+A: Measure wall-clock time with/without it on your hardware and model size. Common misconception: thinking peak memory is the bottleneck when actual bottleneck is compute. Profile with torch.profiler to find if attention dominates latency. If attention is <10% of total time, Flash Attention won't help much.
 
-**Q: How does this relate to other modern techniques?**
-A: It's often used together with other methods. Different techniques optimize different aspects of the system.
+**Q: Why would you NOT use Flash Attention?**
+A: Debugging is harder (custom CUDA kernels are opaque), you lose backward compatibility (requires recompilation per GPU model), and gains vanish for short sequences or non-attention bottlenecks. Use standard attention for research or prototyping, switch only when you have a proven bottleneck.
+
+**Q: How do you handle gradient accumulation with Flash Attention?**
+A: Flash Attention's recomputation overhead scales with gradient accumulation steps. If accumulating 8 steps, you're recomputing 8x during backward. Mitigate by adjusting batch_size and num_accumulation_steps to reduce recomputation—prefer larger batches with fewer accumulation steps if memory allows.
+
+## Design Challenges
+
+- **Hardware dependency variability:** Flash Attention v2 gains are GPU-specific (A100 gets 5x, RTX gets 2x). Kernels may not compile on your target hardware or fallback silently to standard attention, making optimization invisible. Test compilation and fallback behavior before assuming speedups carry across deployments.
+
+- **Numerical precision trade-offs:** Flash Attention uses lower precision intermediate computations for memory efficiency. Training with fp16 + Flash Attention can accumulate rounding errors, causing training instability. Mitigation: use amp.autocast(dtype=torch.float32) for the attention module, or validate gradient magnitude distributions during early training.
+
+- **Gradient checkpointing complexity:** Combining Flash Attention with gradient checkpointing requires careful orchestration—checkpointing at wrong granularity causes redundant recomputation or memory spills. Determining optimal checkpoint_segments requires profiling specific models; no universal best value exists.
 
 ## Best Practices
 
@@ -65,11 +87,15 @@ A: It's often used together with other methods. Different techniques optimize di
 
 ## Common Pitfalls
 
-- Optimizing the wrong metric: benchmark scores don't equal real-world performance
-- Ignoring edge cases: works on typical data, fails on outliers
-- Not measuring trade-offs: implementing without measuring actual impact
-- Skipping baseline comparisons: always compare to simpler alternatives
-- Deploying without monitoring: optimizations degrade silently in production
+- **Using on unsupported hardware:** Flash Attention kernels silently fall back to standard attention on incompatible GPUs (V100, T4), providing zero speedup despite code changes. Symptom: no error raised but memory usage stays O(N²). Debug by checking kernel compilation logs or manually timing attention forward/backward—compare wall-clock time, not just memory profiles.
+
+- **Ignoring numerical precision:** fp16 intermediate values in Flash Attention can accumulate rounding errors, especially with long sequences. Symptom: loss diverges or spikes after 10K+ training steps. Fix: validate gradient distributions with `torch.autograd.profiler` or use float32 attention with fp16 elsewhere.
+
+- **Not benchmarking actual speedup:** Assuming Flash Attention is faster without measuring. Flash Attention excels for long sequences (>4K tokens) but may be slower for short sequences (<512) due to kernel launch overhead. Symptom: seeing "Flash Attention enabled" in logs but actual training time unchanged. Fix: profile with torch.profiler or compare wall-clock times with/without enabled=True.
+
+- **Gradient checkpointing misconfiguration:** Combining Flash Attention with wrong checkpoint_segments or use_reentrant=True defeats memory savings. Symptom: memory still approaches O(N²) despite Flash Attention. Fix: experiment with checkpoint_segments in [1, 2, 4, 8] and validate GPU memory actually decreases.
+
+- **Backward pass timeout:** Flash Attention's recomputation during backward can exceed gradient timeout budgets in distributed training. Symptom: backward pass suddenly slow or missing gradients in multi-GPU setups. Mitigate: profile per-rank backward time and adjust gradient_communication_timeout accordingly.
 
 ## Code Examples
 

@@ -30,31 +30,68 @@ graph TD
 
 ## Architecture / Trade-offs
 
-| Aspect | Lightweight | Balanced | Enterprise |
-|--------|------------|----------|-----------|
-| Setup | Minutes | Hours | Days |
-| Features | Core | Full | Custom |
-| Scalability | Single | Multiple | Global |
-| Cost | Low | Medium | Variable |
+MCP can be deployed in different integration patterns, each with distinct trade-offs. The choice depends on your architecture, team expertise, and standardization goals.
 
-Choose based on your deployment complexity and team size.
+### Integration Approach Comparison
+
+| Aspect | Direct API Integration | MCP Wrapper Layer | MCP Gateway |
+|--------|------------------------|-------------------|------------|
+| Setup Complexity | Low (native code) | Medium (adapter code) | High (separate service) |
+| Protocol Standardization | None (custom per API) | Full (single protocol) | Full + centralized |
+| Tool Discovery | Manual (hardcoded) | Automatic (schema-driven) | Automatic (registry) |
+| Versioning Control | Per implementation | Independent from apps | Decoupled completely |
+| Deployment Overhead | Minimal (in-process) | Low (added layer) | Medium (network calls) |
+| Scaling to 100+ tools | Difficult (coupling) | Moderate (manageable) | Easy (centralized) |
+
+**Direct API**: Fastest to start, couples application logic to tool details. Breaks when tools change. Best for POCs with 1-2 stable tools.
+
+**MCP Wrapper**: Adds standardization layer without operational overhead. Good balance for teams adopting MCP in existing apps. Requires wrapper maintenance.
+
+**MCP Gateway**: Enterprise pattern for multi-team, multi-model deployments. Centralizes tool management and versioning. Adds network latency (50-200ms per call) but enables organization-wide governance.
+
+### Protocol Complexity vs Flexibility
+
+| Scenario | Approach | Rationale |
+|----------|----------|-----------|
+| Single LLM, 2-3 tools | Direct API | Standardization overhead not justified |
+| Multi-LLM, 5-10 tools | MCP Wrapper | Benefits outweigh wrapper cost |
+| Organization-wide (20+ teams) | MCP Gateway | Centralization essential, latency acceptable |
+| Cost-sensitive inference | Direct API | Every network hop matters |
+| Rapid tool iteration | MCP Pattern | Schema-driven discovery reduces friction |
+
+## Design Challenges
+
+MCP abstracts tool integration but introduces its own challenges in production:
+
+- **Protocol Versioning & Compatibility**: When you deploy an MCP server v2.0 but clients still expect v1.x, silent failures occur. Tools may partially respond or drop fields. Requires explicit version negotiation, semantic versioning, and graceful degradation. Best practice: always include API version in protocol handshake; maintain backward compatibility for at least one version.
+
+- **Resource Discovery**: In direct API integration, you hardcode endpoints. With MCP, tools advertise what they offer via schema. If schemas are incomplete or incorrect (missing parameters, wrong types), agents hallucinate tool usage. Discovery becomes a contract that must be tested and versioned. Requires comprehensive schema validation and integration tests.
+
+- **Error Handling Across Diverse Tools**: MCP clients must handle errors from tools they've never seen before. A database tool returns timeout, an API returns rate-limit, a file tool returns permission denied. Standardizing error codes across independent tool providers is nearly impossible. Requires middleware that maps diverse errors to canonical MCP error types with retry logic.
+
+- **Latency & Cascading Failures**: In monolithic systems, internal calls are fast. MCP adds network boundaries. When a tool is slow or unreachable, agents must decide: retry, fallback, or fail? Without proper timeouts and circuit breakers, one slow tool stalls an entire agent. Requires structured observability and latency budgets per tool.
+
+- **Security & Multi-Tenancy**: MCP servers may serve multiple agents/organizations. A payment tool must not expose customer data across tenants. Authentication/authorization must be MCP-level, not just network-level. Requires careful isolation, audit logging, and token management.
 
 ## Interview Q&A
 
-**Q: When would you use MCP (Model Context Protocol)?**
-A: When you need to give LLMs/agents access to external resources, standardize integrations, or enable memory persistence. For example, use this when deploying agents across multiple models or organizations.
+**Q: What problems does MCP solve that function calling doesn't?**
+A: Function calling couples your LLM to specific tools defined at deploy time. MCP decouples: tools are discovered at runtime, schemas are versioned independently, and the same agent works with different tool sets. Example: function calling requires you to rebuild+redeploy the model config. MCP means you restart the agent server, tools auto-discover via MCP.
 
-**Q: What are the main trade-offs?**
-A: The trade-off is between standardization (everyone uses same protocol) and flexibility (custom integrations). Standardization wins at scale.
+**Q: How do you discover what tools are available via MCP without hardcoding?**
+A: MCP servers advertise their capabilities via a discovery mechanism (tools list, schemas). Clients query this at startup or on-demand to learn what's available. The agent then dynamically adapts. This breaks the static function-calling model where tools are baked into prompts. Requires middleware to convert discovery responses into usable tool descriptions for the LLM.
 
-**Q: How does MCP (Model Context Protocol) differ from alternatives?**
-A: Alternatives require model-specific implementations. MCP (Model Context Protocol) defines once, works everywhere. This is huge for production systems.
+**Q: When would you NOT use MCP?**
+A: Single-model deployments with 2-3 stable tools where direct function calling is simpler. MCP adds protocol overhead (network hops, schema negotiation). For latency-critical applications (<50ms RTT requirement), MCP gateway adds unacceptable overhead. For deeply integrated systems where tool and model are co-developed, tight coupling via function calling may be faster.
 
-**Q: What's the learning curve?**
-A: If you understand APIs and REST, you understand MCP (Model Context Protocol). The protocol is straightforward; the complexity is usually in your implementations.
+**Q: How do you handle versioning when tools change but agents must keep working?**
+A: MCP requires explicit version tags in schemas. When a tool changes, old clients continue calling v1 (if server maintains it), new clients use v2. Requires schema migration strategy: maintain 2 versions, deprecate old one after grace period. Without this, you force all clients to upgrade atomically—defeating MCP's decoupling benefit.
 
-**Q: How do you debug MCP (Model Context Protocol) connections?**
-A: Enable logging on both sides, check protocol compliance, test with simple examples first, then scale. Most issues are integration bugs, not protocol issues.
+**Q: What's the difference between tool discovery via MCP vs static function definitions?**
+A: Static (function calling): Model learns tools during training/fine-tuning, tools are immutable at runtime, adding a tool requires model rebuild. Dynamic (MCP): Agent queries schemas at runtime, agent adapts behavior based on available tools, adding a tool is service deployment. MCP wins for flexibility; function calling wins for performance and control.
+
+**Q: How do you debug a failing tool call through MCP?**
+A: Check three layers: (1) MCP protocol (is request valid JSON-RPC? Schema matches?), (2) Tool implementation (does tool exist? correct parameters?), (3) Error mapping (did MCP correctly translate tool error to LLM-readable format?). Enable logging at protocol boundaries. Test tools independently first with curl/client, then in agent context.
 
 ## Best Practices
 
@@ -68,11 +105,15 @@ A: Enable logging on both sides, check protocol compliance, test with simple exa
 
 ## Common Pitfalls
 
-- Tight coupling: embedding MCP (Model Context Protocol) logic in application code (use adapters/layers)
-- Not versioning: breaking changes in implementations without version management
-- Ignoring errors: assuming resources always work (implement retries + timeouts)
-- Over-engineering: adding features you don't need yet
-- Poor documentation: unclear schemas make integrations painful
+- **Tools don't implement MCP spec correctly**: A tool claims to support MCP but returns JSON with wrong structure, missing required fields, or non-standard error formats. The agent silently misinterprets the response or crashes. Result: tool works in isolation but fails in agent loop. Fix: Use strict schema validation, test tool responses against MCP spec before production.
+
+- **Protocol version mismatch causes silent failures**: Client v1.0 talks to server v2.0. Both parse JSON successfully but interpret fields differently. Tool returns new v2 field that v1 client ignores. Agent doesn't get critical information, makes wrong decision. Result: hard to debug—no error, just wrong behavior. Fix: Include version in every request/response, implement version negotiation, log version mismatches.
+
+- **No error handling on tool failure**: Agent calls tool, tool times out or returns error, agent continues with null/empty result, makes nonsensical follow-up calls. Users see incoherent agent behavior. Fix: Implement timeout per tool (not global), map all errors to canonical MCP error types, fail fast with user notification.
+
+- **Assuming tools are always available**: Hardcode assumption that calculator tool exists in schema. Deploy agent, tool is temporarily down, agent crashes at first calculation. Result: production outage. Fix: Check tool availability before routing request, implement fallback strategies (use different tool, simplify task), monitor tool health separately.
+
+- **Infinite recursion in tool chains**: Agent calls Tool A, which calls Tool B (via MCP), which calls Agent to refine query, which calls Tool A again. Creates circular dependency. May not manifest until tools are live. Fix: Implement call depth limits (max 3-4 levels), track tool call history, prevent agents calling themselves recursively.
 
 ## Code Examples
 
