@@ -227,6 +227,32 @@ A: No—review is non-blocking. LLM comments posted, dev can ignore. But critica
 | **Auto-comment threshold** | Confidence >0.85 |
 
 
+
+## Animated Architecture Visualization
+
+See the system in action with dynamic visualizations:
+
+### System Deployment Animation
+![System Deployment](../animated-diagrams/01-system-architecture-deployment.gif)
+
+Infrastructure components appearing and connecting in real-time, showing load balancers, API gateways, microservices, and data layer setup.
+
+### Request Flow Animation
+![Request Flow](../animated-diagrams/02-request-flow-pipeline.gif)
+
+A single request flowing through the complete pipeline with latency accumulation at each stage, demonstrating the critical path and timing constraints.
+
+### Data Flow Animation
+![Data Flow](../animated-diagrams/03-data-flow-movement.gif)
+
+Concurrent data packets flowing through processors and ML models to storage systems, showing simultaneous traffic and I/O patterns.
+
+### Auto-Scaling Animation
+![Auto-Scaling](../animated-diagrams/04-auto-scaling-load.gif)
+
+Dynamic scaling response to traffic load, showing pod count adjusting up and down with capacity headroom management over time.
+
+
 ## Related Systems
 - 12-multi-agent-software-dev.md (integrated in coding agent)
 - 25-ai-observability.md (monitors review accuracy)
