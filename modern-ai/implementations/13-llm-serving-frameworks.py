@@ -9,8 +9,6 @@ See notebook for detailed explanations and outputs
 # ## Learning Objectives
 # 1. Understand request batching, dynamic batching, and PagedAttention concepts
 # 2. Implement a mini serving engine with request handling and response buffering
-# 3. Measure throughput and latency with different batching strategies
-# 4. Compare serving approaches for production deployments
 # ======================================================================
 
 import numpy as np
@@ -387,20 +385,6 @@ print('✅ Comparison visualization saved')
 # ## Key Takeaways
 # ### Core Concept
 # LLM serving frameworks optimize throughput via batching. Key insight: larger batches improve throughput but increase P99 latency (batching trade-off).
-# ### Serving Strategies
-# | Strategy | Throughput | P99 Latency | Best For |
-# |----------|---|---|---|
-# | Simple Batching | Moderate | Low for batch | Static workloads |
-# | Dynamic Batching | High | Moderate | Variable request rate |
-# | Continuous Batching | Very High | Low overall | High throughput |
-# ### Key Technologies
-# - **PagedAttention:** Virtual memory for KV cache → larger batches without OOM
-# - **Continuous Batching:** New requests join mid-decoding → 3-5x higher throughput
-# - **Token-level scheduling:** Fair resource allocation across requests
-# ### Common Pitfalls
-# - **Blocking on full batch:** Static batching wastes time. Use dynamic batching.
-# - **Memory runaway:** Track KV cache growth. Use PagedAttention or eviction.
-# - **Unfair latency:** Early requests finish much faster. Use priority queues.
 # ======================================================================
 
 # ======================================================================

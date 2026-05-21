@@ -9,8 +9,6 @@ See notebook for detailed explanations and outputs
 # ## Learning Objectives
 # 1. Implement CLIP-style contrastive loss from scratch for image-text alignment
 # 2. Add multimodal training with vision and language encoders
-# 3. Apply parameter-efficient fine-tuning (PEFT/LoRA) to multimodal models
-# 4. Compare vision-only vs language-only vs multimodal performance
 # ======================================================================
 
 import numpy as np
@@ -492,16 +490,6 @@ print(f"{'Multimodal':<20} {np.mean(multimodal):.3f}{' '*10} {'Image-Text Matchi
 # ### Core Concept
 # Multimodal fine-tuning aligns vision and language representations through contrastive learning. CLIP-style models learn joint embeddings where matching image-text pairs are close in embedding space. LoRA enables efficient fine-tuning with 95% fewer trainable parameters.
 # ### Key Patterns
-# 1. **Contrastive Loss:** NT-Xent loss pulls matching pairs together, pushes non-matching apart
-# 2. **LoRA Fine-tuning:** Add small rank-8 adapters to encoder layers (~5% of parameters)
-# 3. **Alignment Metrics:** Cosine similarity of image-text embeddings indicates quality
-# 4. **Multimodal > Single:** Consistently outperforms vision-only or language-only on cross-modal tasks
-# ### Production Patterns
-# - **Data:** Pair images with textual descriptions (manual or auto-generated)
-# - **Batch size:** 256-512 pairs (contrastive loss needs large batches for good negatives)
-# - **Temperature:** 0.07 (CLIP default) - controls sharpness of similarity distribution
-# - **Learning rate:** 1e-4 to 1e-3 (start low, warm up over 1000 steps)
-# - **Evaluation:** Retrieval metrics (recall@1/5/10), VQA accuracy, captioning BLEU
 # ======================================================================
 
 # ======================================================================
@@ -509,5 +497,4 @@ print(f"{'Multimodal':<20} {np.mean(multimodal):.3f}{' '*10} {'Image-Text Matchi
 # 1. **Temperature tuning:** Change temperature from 0.01 to 0.5 in contrastive loss. How does it affect convergence?
 # 2. **LoRA rank:** Modify rank from 4 to 32. Plot accuracy vs trainable parameters.
 # 3. **Data efficiency:** Fine-tune on 10%, 50%, 100% of data. Measure sample efficiency.
-# 4. **Cross-modal retrieval:** Build a retriever that finds images matching text descriptions.
 # ======================================================================

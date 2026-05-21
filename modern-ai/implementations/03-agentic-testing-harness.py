@@ -9,8 +9,6 @@ See notebook for detailed explanations and outputs
 # ## Learning Objectives
 # 1. Understand agent-environment interaction patterns and observe-plan-act loops
 # 2. Implement a mock agent executor with tool registry and assertion frameworks
-# 3. Test agent error handling, recovery, and multi-step reasoning
-# 4. Design comprehensive test suites that validate agent behavior across happy paths and failures
 # ======================================================================
 
 import numpy as np
@@ -576,31 +574,10 @@ for scenario, cov in zip(test_scenarios, scenario_coverage):
 # ## Key Takeaways
 # ### Core Concept
 # Agent testing validates the observe-plan-act loop by systematically testing tool execution, error handling, and multi-step reasoning. Trace-based testing allows inspection of every decision step, making failures observable and reproducible.
-# ### Test Scenarios and Coverage
-# | Scenario | Test Type | Coverage | Priority |
-# |----------|-----------|----------|----------|
-# | Happy path | Functionality | 100% | CRITICAL |
-# | Tool timeout | Error handling | 90% | HIGH |
-# | Tool failure | Recovery | 90% | HIGH |
-# | Invalid input | Validation | 85% | MEDIUM |
-# | Resource limits | Stress | 70% | MEDIUM |
-# | Concurrent calls | Concurrency | 75% | LOW |
-# ### Common Failure Modes
-# - **Untested error paths**: Agents fail in production on errors never tested. Test tool timeouts, failures, and invalid outputs explicitly.
-# - **No observability of agent reasoning**: Can't debug failures without traces. Log every observe/plan/act step with full context.
-# - **Brittle assertions**: Tests pass with weak assertions then fail in production. Assert on meaningful behaviors, not implementation details.
-# - **Missing recovery strategies**: Agent hangs instead of recovering when tool fails. Implement explicit retry logic and fallback behaviors.
-# - **No state validation**: Agent state corruption undetected. Validate that agent memory matches expected state after each step.
-# ### Related Concepts
-# - [Agentic SDK](./25-agentic-sdk.ipynb) — Framework for building tested agents
-# - [Structured Generation](./14-structured-generation.ipynb) — Ensure agents produce valid tool calls
-# - [Reflexion / Self-Critique](./15-reflexion-self-critique.ipynb) — Agents validate their own outputs
 # ======================================================================
 
 # ======================================================================
 # ## Try It Yourself
 # 1. **Add custom assertions**: Extend `TraceBasedTestHarness` with assertions for tool output validation and resource usage.
 # 2. **Test concurrent agent execution**: Run multiple agents in parallel and verify they don't interfere or corrupt shared state.
-# 3. **Build regression detector**: Compare current traces to baseline traces and flag behavior changes.
-# 4. **Implement timeout testing**: Create tools that intentionally slow down and verify agent timeout handling.
 # ======================================================================

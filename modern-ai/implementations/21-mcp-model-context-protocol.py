@@ -9,8 +9,6 @@ See notebook for detailed explanations and outputs
 # ## Learning Objectives
 # 1. Understand MCP server architecture with resource registry and tool discovery
 # 2. Implement request/response marshaling with schema validation
-# 3. Build clients that call MCP tools and handle responses
-# 4. Test error handling and versioning in distributed tool systems
 # ======================================================================
 
 # Prerequisites & Imports
@@ -620,24 +618,6 @@ print(f"Highest throughput: {tool_names[0]} ({throughput[0]} req/s)")
 # **MCP Architecture:**
 # 1. Server maintains tool registry with metadata (schema, description, version)
 # 2. Client discovers tools, then calls them via JSON-RPC 2.0
-# 3. Request/response marshaling enables versioning and schema evolution
-# **Error Handling Strategy:**
-# - Parse errors: Client sent invalid JSON
-# - Validation errors: Missing required fields or type mismatches
-# - Tool errors: Execution failed (division by zero, timeout, etc.)
-# - Retryable vs non-retryable: Distinguish timeout/transient from permanent failures
-# **Production Patterns:**
-# - Tool discovery before calling (prevents invalid tool names)
-# - Schema validation per tool (fail fast on bad input)
-# - Exponential backoff retry (for transient failures)
-# - Fallback strategies (primary → alternative tool)
-# - Call history tracking (observability, debugging)
-# **When to use MCP:**
-# - Model needs access to external tools (search, calculator, API)
-# - Multiple clients may call same tools (centralized server)
-# - Tool schema evolution required (versioning support)
-# - Complex error scenarios (validation, timeouts, retries)
-# **Related Concepts:** [[tool-use]], [[function-calling]], [[agent-architecture]], [[distributed-systems]]
 # ======================================================================
 
 # ======================================================================

@@ -9,8 +9,6 @@ See notebook for detailed explanations and outputs
 # ## Learning Objectives
 # 1. Understand extractive vs abstractive context compression techniques
 # 2. Implement importance scoring and document selection from scratch
-# 3. Build multi-document distillation pipelines with quality metrics
-# 4. Apply context distillation to real-world LLM scenarios (long documents, transcripts, retrieval)
 # ======================================================================
 
 import numpy as np
@@ -624,20 +622,6 @@ for r, c, l in zip(ratios, compressions, information_losses):
 # ## Key Takeaways
 # **Core Idea:** Context distillation reduces token usage while preserving critical information through extractive (sentence selection) or abstractive (summary generation) methods.
 # **Approaches and When to Use:**
-# | Method | Speed | Compression | Info Preservation | Best For |
-# |--------|-------|-------------|------------------|----------|
-# | Extractive (TF-IDF) | Very Fast | 30-50% | 80-95% | Real-time, bounded latency |
-# | Semantic (Embeddings) | Medium | 40-60% | 85-95% | Quality-focused, offline |
-# | Abstractive (Models) | Slow | 50-80% | 70-85% | Content generation, summarization |
-# | Token Pruning | Fast | 20-40% | 90-98% | Light compression, quick wins |
-# **Common Failure Modes:**
-# - **Information Bottleneck:** Distilling too aggressively (>70%) loses crucial details. Fix: Validate compression ratio empirically on downstream tasks.
-# - **Redundancy Overfitting:** Selecting similar sentences wastes tokens. Fix: Use semantic diversity constraints (MMR, MMD).
-# - **Order Sensitivity:** Extractive methods break coherence if context order matters. Fix: Preserve original sentence order when reconstructing.
-# **Related Concepts:**
-# - [Retrieval-Augmented Generation (RAG)](./05-retrieval-augmented-generation.ipynb) – Uses distillation in retrieval pipelines
-# - [Quantization & Pruning](./12-quantization-pruning.ipynb) – Compress models similarly
-# - [Long-Context Modeling](./04-long-context-modeling.ipynb) – Handles larger context windows efficiently
 # ======================================================================
 
 # ======================================================================

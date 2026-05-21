@@ -9,8 +9,6 @@ See notebook for detailed explanations and outputs
 # ## Learning Objectives
 # 1. Understand draft generation and quality scoring mechanisms from scratch
 # 2. Implement iterative refinement loops with convergence detection
-# 3. Apply chain-of-draft patterns to real production tasks (summarization, code generation)
-# 4. Optimize refinement strategies with token budgets and quality thresholds
 # ======================================================================
 
 import numpy as np
@@ -557,29 +555,10 @@ print(f"Beyond iteration 3: Diminishing returns, costs grow linearly but quality
 # ### Core Concept
 # Chain-of-Draft is a scratchpad reasoning technique where an initial draft is iteratively refined to catch errors and improve reasoning. The key insight: a second refinement pass catches logical inconsistencies without full recomputation, delivering 15-20% quality gains for 2-3x token cost.
 # ### Strategies and Their Trade-offs
-# | Strategy | Quality | Speed | Token Cost | Best For |
-# |----------|---------|-------|------------|----------|
-# | Single-Pass | 65-75% | 1x | 1x | Real-time, latency-critical (<500ms) |
-# | Draft+Refine (1 iteration) | 80-85% | 2-3x | 2-3x | Balanced quality/cost, most APIs |
-# | Multi-Refine (2-3 iterations) | 85-90% | 3-4x | 3-4x | High-stakes decisions, offline |
-# | Multi-Draft+Selection | 90%+ | 5-6x | 5-6x | Critical (medical, legal), max accuracy |
-# ### Common Failure Modes
-# - **Refinement makes output worse:** When initial draft is fundamentally flawed, refinement reinforces errors. *Fix:* Add consistency checks, compare refined vs original, keep better version.
-# - **Token cost explosion:** Each refinement doubles cost. Million requests/day = $5K→$15K monthly. *Fix:* Log tokens separately, implement cost-aware routing, skip refinement for low-value queries.
-# - **No convergence signal:** Infinite refinement loops or variable latency. *Fix:* Use fixed iteration counts (1-2 by default) or semantic similarity thresholds.
-# - **Benchmarks ≠ Production:** MATH +20% on benchmarks; real queries +2-5%. *Fix:* Evaluate on production data, include partial-credit metrics.
-# ### Production Patterns
-# 1. **Multi-draft selection for quality:** Generate 3 drafts, score on heuristics (length, coherence), select best.
-# 2. **Budget-constrained refinement:** Allocate 60% tokens for draft, 40% for refinement. Skip refine if budget tight.
-# 3. **Convergence detection:** Compare consecutive refinements; stop if similarity >0.85 (diminishing returns).
-# 4. **Fallback to original:** If refined score < original, return original. Always validate improvement.
 # ======================================================================
 
 # ======================================================================
 # ## Exercises: Try It Yourself
 # 1. **Modify Example 1:** Change the summarization quality metrics (e.g., prioritize diversity over coherence). How does it change which draft is selected?
 # 2. **Combine approaches:** Run Example 2's code generation comparison with Example 3's budget constraints. At what budget level does draft+refine become infeasible?
-# 3. **Debug the failure:** In Example 3, the refinement sometimes fails (quality drops). Add a custom failure detector that looks for specific tokens or patterns that signal degradation.
-# 4. **Scaling analysis:** If you have 1 million requests/day, calculate monthly cost for single-pass vs draft+refine vs multi-draft. At what quality threshold does refinement become cost-effective?
-# 5. **Real model integration:** Replace the mock draft generation with actual HuggingFace models (if transformers available). Compare real quality scores vs heuristic scores.
 # ======================================================================

@@ -9,8 +9,6 @@ See notebook for detailed explanations and outputs
 # ## Learning Objectives
 # 1. Understand memory-efficient attention mechanisms and their trade-offs
 # 2. Implement vanilla attention and Flash Attention variants from scratch
-# 3. Benchmark memory and compute performance across implementations
-# 4. Apply Flash Attention to real transformer layers and long sequences
 # ======================================================================
 
 import numpy as np
@@ -505,22 +503,6 @@ print('✅ Comparison visualization saved')
 # ## Key Takeaways
 # ### Core Concept
 # Flash Attention reduces memory from O(N²) to O(N) by processing attention in blocks and avoiding storing the full attention matrix. This enables training with longer sequences and larger batch sizes.
-# ### When to Use Flash Attention
-# | Scenario | Recommendation | Reason |
-# |----------|---|---|
-# | Short sequences (<512) | Vanilla attention | Flash overhead > gains |
-# | Long sequences (2K-8K) on A100/H100 | Flash Attention v2 | Maximum speedup (3-5x) |
-# | Long sequences on older GPUs (V100, T4) | torch.scaled_dot_product_attention | Better portability |
-# | Research/prototyping | Vanilla attention | Simpler debugging |
-# | Production, mixed GPU environments | torch.scaled_dot_product_attention | Automatic fallback |
-# ### Common Failure Modes
-# - **Silent fallback:** Flash Attention kernels silently fall back to vanilla on unsupported hardware. Symptom: No speedup despite code changes. Fix: Check `torch.cuda.get_device_capability()` and validate wall-clock time improvement.
-# - **Precision issues:** fp16 + Flash Attention can accumulate rounding errors with long sequences. Symptom: Loss diverges after many steps. Fix: Use float32 for attention or validate gradient distributions.
-# - **Backward pass timeout:** Recomputation during backward can exceed timeout budgets in distributed training. Fix: Profile per-rank backward time and adjust timeout.
-# ### Related Concepts
-# - **Gradient Checkpointing:** Combine with Flash Attention for extreme memory efficiency (checkpoint_segments=2-4)
-# - **Paged Attention:** Further optimization for serving by using virtual memory for KV cache
-# - **Multi-Query Attention:** Reduce KV size to amplify Flash Attention's benefits
 # ======================================================================
 
 # ======================================================================

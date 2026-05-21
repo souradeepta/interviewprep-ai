@@ -9,8 +9,6 @@ See notebook for detailed explanations and outputs
 # ## Learning Objectives
 # 1. Understand self-instruct and template-based data generation pipelines
 # 2. Implement quality filtering and diversity metrics from scratch
-# 3. Build scalable synthetic data generation with error handling
-# 4. Apply synthetic data in real-world scenarios (code generation, instruction following, domain-specific tasks)
 # ======================================================================
 
 import numpy as np
@@ -633,20 +631,6 @@ print(f"Filtering removed {len(unfiltered_scores) - len(filtered_scores)}/{len(u
 # ## Key Takeaways
 # **Core Idea:** Synthetic data generation bootstraps training data via templates, seed instructions, and language models, with quality filtering to maintain data quality.
 # **Approaches and When to Use:**
-# | Method | Speed | Quality | Diversity | Best For |
-# |--------|-------|---------|-----------|----------|
-# | Template-based | Very Fast | Low | Low | Quick prototyping |
-# | Self-instruct | Fast | Medium | Medium | Scalable generation |
-# | LM-based | Medium | High | High | High-quality diverse data |
-# | Hybrid (LM + Filtering) | Medium | Very High | High | Production pipelines |
-# **Common Failure Modes:**
-# - **Low Diversity:** All samples follow same template. Fix: Vary templates, use different prompts, sample stochastically.
-# - **Quality Degradation:** Generated responses incoherent. Fix: Add quality filtering (heuristic or learned classifiers).
-# - **Exposure Bias:** Model sees only its own outputs during generation. Fix: Mix in real data, use rejection sampling.
-# **Related Concepts:**
-# - [Instruction Tuning](./03-instruction-tuning.ipynb) – Fine-tune models on synthetic instruction data
-# - [RAFT](./09-raft-retrieval-augmented-finetuning.ipynb) – Combine retrieval with synthetic data
-# - [Constitutional AI](./08-constitutional-ai-rlaif.ipynb) – Use synthetic feedback for RLHF
 # ======================================================================
 
 # ======================================================================

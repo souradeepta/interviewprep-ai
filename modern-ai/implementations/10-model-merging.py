@@ -9,8 +9,6 @@ See notebook for detailed explanations and outputs
 # ## Learning Objectives
 # 1. Implement SLERP and Task Arithmetic merging from scratch using numpy
 # 2. Merge multiple fine-tuned LoRA adapters into a single model
-# 3. Measure task performance trade-offs when merging multiple models
-# 4. Build interpolation strategies to balance multi-task performance
 # ======================================================================
 
 import numpy as np
@@ -486,25 +484,6 @@ print(f"Analyzed {len(all_results)} merge configurations")
 # ## Key Takeaways
 # **Core Idea:** Model merging combines multiple fine-tuned adapters into a single model, enabling multi-task capabilities without training separate models.
 # **Methods:**
-# | Method | Speed | Quality | Stability |
-# |--------|-------|---------|----------|
-# | Linear Interp | Very Fast | Moderate | High |
-# | SLERP | Fast | Moderate-High | High |
-# | Task Arithmetic | Fast | High | Medium |
-# | DARE | Medium | Very High | Medium |
-# **Trade-offs:**
-# - **Task Coverage:** More weight on one task → worse on others
-# - **Stability:** Merging dissimilar tasks harder
-# - **Performance:** Individual task performance < single-task model
-# **When to Merge:**
-# - Multi-task serving (cost efficiency)
-# - Limited storage/memory
-# - Similar fine-tuned models
-# - Avoid: Very different tasks, strict accuracy requirements
-# **Related:**
-# - [LoRA](./XX) – Efficient fine-tuning for merging
-# - [RAFT](./09-raft-retrieval-augmented-finetuning.ipynb) – Fine-tuning strategy
-# - [Quantization](./XX) – Compress after merging
 # ======================================================================
 
 # ======================================================================

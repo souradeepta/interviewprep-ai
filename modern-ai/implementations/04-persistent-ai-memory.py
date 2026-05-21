@@ -9,8 +9,6 @@ See notebook for detailed explanations and outputs
 # ## Learning Objectives
 # 1. Build episodic memory (raw transcript storage) and semantic memory (embeddings + search) systems
 # 2. Implement memory CRUD operations with staleness detection and pruning
-# 3. Use sentence embeddings for semantic search over conversation history
-# 4. Design memory systems that automatically retrieve relevant past interactions
 # ======================================================================
 
 import numpy as np
@@ -556,29 +554,10 @@ for scenario, sizes, quality in zip(scenarios, memory_sizes, retrieval_quality):
 # ## Key Takeaways
 # ### Core Concept
 # Persistent memory systems combine episodic (raw transcript) and semantic (embedding-based) storage. Episodic memory preserves exact conversations; semantic memory enables similarity-based retrieval. Together they allow agents to retrieve relevant past context automatically.
-# ### Memory Architecture Comparison
-# | Approach | Speed | Recall | Storage | Best For |
-# |----------|-------|--------|---------|----------|
-# | Raw transcripts only | Fast | Low | High | Simple rule-based retrieval |
-# | Embeddings only | Slow | High | Medium | Semantic search, relevance ranking |
-# | Hybrid episodic+semantic | Medium | Very High | High | Production agents needing both precision and relevance |
-# | With pruning | Medium | High | Low | Long-running agents with space constraints |
-# ### Common Failure Modes
-# - **Unbounded memory growth**: Without pruning, memory grows infinitely, slowing search. Set max size and implement staleness detection.
-# - **Irrelevant retrieval**: Simple keyword matching returns noise. Use embedding-based semantic search with cosine similarity.
-# - **Stale information returned**: Old memories high-ranked if not deprioritized. Weight by age, access frequency, and importance score.
-# - **No concurrent access handling**: Simultaneous reads/writes cause race conditions. Use thread-safe queues or locking.
-# - **Missing context**: Only returning most similar snippet loses narrative. Return context window (previous/next entries too).
-# ### Related Concepts
-# - [RAG / Advanced RAG Patterns](./05-advanced-rag-patterns.ipynb) — Retrieving external knowledge, not just past conversations
-# - [MCP / Memory Store](./22-mcp-memory.ipynb) — Protocol for memory storage and access
-# - [LLM Serving Frameworks](./13-llm-serving-frameworks.ipynb) — Scaling memory systems across distributed agents
 # ======================================================================
 
 # ======================================================================
 # ## Try It Yourself
 # 1. **Implement real embeddings**: Replace mock embeddings with `sentence-transformers` or OpenAI embeddings.
 # 2. **Add multi-turn context**: When retrieving context, return previous/next entries to preserve narrative flow.
-# 3. **Build memory visualization**: Plot memory access patterns and identify frequently-used entries.
-# 4. **Test concurrent access**: Run multiple threads accessing memory simultaneously and verify consistency.
 # ======================================================================

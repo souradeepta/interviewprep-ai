@@ -9,8 +9,6 @@ See notebook for detailed explanations and outputs
 # ## Learning Objectives
 # 1. Implement a routing engine with cost/latency scoring and fallback logic
 # 2. Build adaptive routing strategies based on request characteristics
-# 3. Simulate model availability and failure handling in production
-# 4. Optimize routing decisions with cost-benefit analysis
 # ======================================================================
 
 import numpy as np
@@ -414,18 +412,6 @@ for model_name, metrics in sorted(models_data.items(), key=lambda x: x[1]['cost'
 # ### Core Concept
 # AI Gateway routing intelligently directs requests to models based on cost, latency, accuracy, and availability. Essential for systems with multiple model endpoints to optimize quality, cost, and performance.
 # ### Routing Strategies
-# | Strategy | Latency | Cost | Accuracy | Use Case |
-# |----------|---------|------|----------|----------|
-# | Fast-Only | <200ms | $0.005 | 80-85% | Real-time search, autocomplete |
-# | Balanced | 200-400ms | $0.01 | 85-90% | Q&A, general queries |
-# | Accurate | 500-1000ms | $0.05 | 95%+ | Analysis, complex reasoning |
-# | Adaptive | Varies | Varies | Varies | Dynamic based on load/budget |
-# ### Production Patterns
-# 1. **Cost-based routing:** Route cheaper models during high load or budget constraints
-# 2. **Request-type routing:** Different models for different task types
-# 3. **Failover chains:** Primary → secondary → tertiary models
-# 4. **Health checks:** Monitor model availability, skip unhealthy models
-# 5. **Budget-aware routing:** Throttle expensive models when budget is tight
 # ======================================================================
 
 # ======================================================================
@@ -433,5 +419,4 @@ for model_name, metrics in sorted(models_data.items(), key=lambda x: x[1]['cost'
 # 1. **Multi-criteria optimization:** Modify routing to balance all 3 dimensions (cost, latency, accuracy).
 # 2. **Request-type mapping:** Add 10+ request types with optimal model assignment.
 # 3. **Cost simulation:** Track daily spending across 1 week with varying loads.
-# 4. **Failover chains:** Test cascading failures (3+ models down sequentially).
 # ======================================================================

@@ -9,8 +9,6 @@ See notebook for detailed explanations and outputs
 # ## Learning Objectives
 # 1. Implement HyDE (Hypothetical Document Expansion) and BM25-style retrieval fusion from scratch
 # 2. Build full retrieval pipelines with query rewriting and multi-hop retrieval
-# 3. Understand GraphRAG approaches with relationship extraction and path-based retrieval
-# 4. Design iterative retrieval loops that refine queries based on intermediate results
 # ======================================================================
 
 import numpy as np
@@ -507,31 +505,10 @@ for method, prec, recall, lat in zip(retrieval_methods, precision_at_k, recall_a
 # ## Key Takeaways
 # ### Core Concept
 # Advanced RAG combines multiple retrieval strategies: HyDE expands queries to hypothetical documents; BM25 provides sparse retrieval; multi-hop traverses knowledge; iterative refinement improves coverage. Fusion of methods balances precision, recall, and latency.
-# ### RAG Method Trade-offs
-# | Method | Precision | Recall | Speed | Complexity | Best For |
-# |--------|-----------|--------|-------|-----------|----------|
-# | Dense only | 0.65 | 0.60 | Fast | Low | Simple semantic search |
-# | BM25 only | 0.60 | 0.55 | Very fast | Low | Keyword-heavy queries |
-# | HyDE fusion | 0.78 | 0.75 | Medium | Medium | Balanced quality/speed |
-# | Multi-hop | 0.82 | 0.80 | Slow | High | Complex reasoning needs |
-# | Iterative | 0.85 | 0.83 | Very slow | High | Maximum quality needed |
-# | GraphRAG | 0.80 | 0.82 | Medium | Medium | Knowledge graph available |
-# ### Common Failure Modes
-# - **Query drift in multi-hop**: Each refinement can go off-track. Validate query similarity to original before refining.
-# - **Fusion method importance**: Simple averaging underperforms; learn weighted fusion. Use calibrated re-ranking.
-# - **Graph incompleteness**: GraphRAG only works if relationships are complete. Fall back to dense/BM25 for unknown entities.
-# - **Iterative timeout**: Refinement loops never converge. Set iteration limit and satisfaction threshold.
-# - **Latency explosion**: Multi-hop + re-ranking + iterative = slow. Cache intermediate results and use parallel retrieval.
-# ### Related Concepts
-# - [Persistent AI Memory](./04-persistent-ai-memory.ipynb) — Store and retrieve past conversations, not external knowledge
-# - [LLM Serving Frameworks](./13-llm-serving-frameworks.ipynb) — Scale RAG inference across distributed systems
-# - [Structured Generation](./14-structured-generation.ipynb) — Ensure LLM generates valid retrieval queries
 # ======================================================================
 
 # ======================================================================
 # ## Try It Yourself
 # 1. **Implement real HyDE**: Replace mock expansion with actual LLM-based query expansion (e.g., using an LLM to generate hypothetical documents).
 # 2. **Add BM25 optimization**: Implement real BM25 algorithm with term frequency and inverse document frequency (TF-IDF).
-# 3. **Extract graph relationships**: Build entity extractor using NER (Named Entity Recognition) to automatically construct knowledge graphs.
-# 4. **Implement learned fusion**: Train a small model to learn optimal weights for combining dense + sparse retrieval scores.
 # ======================================================================

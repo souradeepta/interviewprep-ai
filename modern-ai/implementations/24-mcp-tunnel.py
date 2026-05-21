@@ -9,8 +9,6 @@ See notebook for detailed explanations and outputs
 # ## Learning Objectives
 # 1. Implement local request proxy with auth and retry logic
 # 2. Add circuit breaker and health checks
-# 3. Support request queuing and TLS simulation
-# 4. Test failure scenarios and recovery patterns
 # ======================================================================
 
 # Prerequisites & Imports
@@ -496,24 +494,6 @@ for load, err, cb, lat, succ in zip(load_levels, error_rates, cb_open_times, lat
 # **Tunnel Architecture:**
 # 1. Auth validation on every request
 # 2. Request forwarding with retry logic
-# 3. Circuit breaker prevents cascading failures
-# 4. Health checks enable graceful degradation
-# **Failure Handling:**
-# - Timeout: Set per-request deadline
-# - Auth failure: Return 401 immediately (non-retryable)
-# - Server errors: Retry with backoff
-# - Overload: Return 429, throttle or queue
-# **Production Patterns:**
-# - Rate limiting per client/token
-# - Request queuing for load smoothing
-# - Latency histograms (p50, p99)
-# - Circuit breaker: 3 failures → OPEN
-# - Health check: Every 5 seconds
-# **Scaling Limits:**
-# - Single tunnel: ~500 req/s
-# - Multiple tunnels: Shard by token or path
-# - Load balancer: Distribute across tunnels
-# **Related Concepts:** [[resilience-patterns]], [[api-gateway]], [[service-mesh]], [[load-balancing]]
 # ======================================================================
 
 # ======================================================================

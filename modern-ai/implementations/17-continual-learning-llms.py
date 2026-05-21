@@ -9,8 +9,6 @@ See notebook for detailed explanations and outputs
 # ## Learning Objectives
 # 1. Understand and demonstrate catastrophic forgetting in sequential learning tasks
 # 2. Implement Elastic Weight Consolidation (EWC) and replay buffer strategies
-# 3. Measure forward and backward transfer metrics for continual learning evaluation
-# 4. Optimize replay ratio and fine-tuning strategies for multi-task learning
 # ======================================================================
 
 import numpy as np
@@ -558,22 +556,10 @@ print(f"  EWC: {0.85 - ewc[-1]:.3f} ({(1-ewc[-1]/0.85)*100:.1f}% degradation)")
 # ### Core Concept
 # Catastrophic forgetting is a critical challenge in continual learning: when training on Task B, a model loses knowledge of Task A. Without mitigation, Task A accuracy drops 60-80%. Solutions include replay buffers (keeping old data) and Elastic Weight Consolidation (penalizing weight changes).
 # ### Mitigation Strategies
-# | Strategy | Task A Retention | Task B Learning | Complexity | Cost |
-# |----------|-----------------|-----------------|------------|-----------|
-# | No Mitigation | 30-40% | Fast | Low | 1x |
-# | Replay Buffer (30%) | 70-80% | Slightly slower | Low | 1.3x |
-# | EWC (λ=0.4) | 75-85% | Medium | Medium | 1x |
-# | Combined | 85%+ | Balanced | High | 1.4x |
-# ### Production Patterns
-# 1. **Replay Buffer (Simplest & Most Effective):** Keep 20-30% old task data during new task training. Mix batches: 30% old, 70% new.
-# 2. **Elastic Weight Consolidation:** Compute Fisher Information Matrix for important weights. Add L2 penalty to prevent changes. Use λ=0.4.
-# 3. **Combined Approach:** Use replay buffer + EWC for best results (85%+ task retention).
 # ======================================================================
 
 # ======================================================================
 # ## Exercises: Try It Yourself
 # 1. **Adjust Replay Ratio:** Test 10%, 20%, 40%, 50%. Plot the trade-off curve and find optimal ratio.
 # 2. **Tune EWC Lambda:** Modify lambda_ewc from 0.1 to 1.0. How does it affect retention vs new task learning?
-# 3. **Multi-Task Sequence:** Extend to 5-6 tasks. Do forgetting curves continue linearly or plateau?
-# 4. **Combined Strategy:** Implement EWC + Replay Buffer together. Does combined approach outperform individual strategies?
 # ======================================================================

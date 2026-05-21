@@ -9,8 +9,6 @@ See notebook for detailed explanations and outputs
 # ## Learning Objectives
 # 1. Understand adversarial attack patterns against LLMs (injection, jailbreaks, role-play escapes)
 # 2. Build a red-teaming harness that generates adversarial prompts and analyzes responses
-# 3. Implement vulnerability scoring systems to rank attack severity
-# 4. Design comprehensive test suites that validate model safety across attack categories
 # ======================================================================
 
 import numpy as np
@@ -510,31 +508,10 @@ for cat in categories:
 # ## Key Takeaways
 # ### Core Concept
 # AI red-teaming systematically probes for safety vulnerabilities by generating adversarial prompts that attempt to bypass model safeguards. Success is measured by whether the model produces harmful content it should refuse, indicating a jailbreak or attack succeeded.
-# ### Attack Categories and Likelihood
-# | Attack Type | Success Rate | Why It Works | Mitigation |
-# |-------------|--------------|-------------|------------|
-# | Role-play escape | 30% | Models comply with character instructions | Detect role-play keywords, train refusal |
-# | Prompt injection | 25% | Hidden instructions override original prompt | Input validation, prompt boundaries |
-# | Hypothetical scenario | 20% | Distancing via "what if" or "in fiction" | Recognize context-switching patterns |
-# | Authority appeal | 15% | Appeals to false authority or permissions | Verify claimed authorization independently |
-# | Encoding bypass | 10% | Indirect instruction phrasing | Detect semantic intent, not surface forms |
-# | Direct instruction | 5% | Models naturally refuse | Very low risk, baseline |
-# ### Common Failure Modes
-# - **Single attack type testing**: Models may defend well against direct attacks but fail on subtle variants. Test 10+ patterns.
-# - **No baseline metrics**: Can't detect improvement without baseline. Record baseline vulnerability rate before safety improvements.
-# - **Overfitting to detected attacks**: Model learns to refuse specific phrasing but complies with synonyms. Test variations and paraphrases.
-# - **Insufficient severity scoring**: Not all vulnerabilities are equally critical. Rank by impact (data disclosure > style violation).
-# - **Missing domain-specific attacks**: Role-playing patterns differ by domain. Test industry-specific attack vectors.
-# ### Related Concepts
-# - [Constitutional AI / RLHF](./08-constitutional-ai-rlaif.ipynb) — Safety training to defend against red-teaming
-# - [Reflexion / Self-Critique](./15-reflexion-self-critique.ipynb) — Models self-evaluate harmful outputs
-# - [Structured Generation](./14-structured-generation.ipynb) — Constrain outputs to safe formats
 # ======================================================================
 
 # ======================================================================
 # ## Try It Yourself
 # 1. **Add custom attack patterns**: Extend `BasicAdversarialPromptGenerator.templates` with 3 new attack patterns based on recent research.
 # 2. **Implement semantic similarity detector**: Use embeddings to detect jailbreak success more robustly (not just keyword matching).
-# 3. **Build attack intensity levels**: Modify prompts to be incrementally more aggressive (soft-request → direct instruction → complex obfuscation).
-# 4. **Test on your model**: Run the test suite against any LLM you have access to. Compare vulnerability rates across versions.
 # ======================================================================

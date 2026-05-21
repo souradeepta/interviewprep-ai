@@ -9,8 +9,6 @@ See notebook for detailed explanations and outputs
 # ## Learning Objectives
 # 1. Implement RAFT pipeline: retrieve → generate training pairs → fine-tune
 # 2. Use real retrieval with sentence-transformers and PEFT fine-tuning
-# 3. Validate performance improvements from retrieval-augmented training
-# 4. Build iterative RAFT where in-domain retrieval improves progressively
 # ======================================================================
 
 import numpy as np
@@ -431,24 +429,6 @@ plt.show()
 # ## Key Takeaways
 # **Core Idea:** RAFT combines retrieval and fine-tuning: retrieve relevant documents, generate training pairs from retrieved context, fine-tune model to improve in-domain performance.
 # **Pipeline:**
-# 1. Retrieve top-k docs for each query using semantic similarity
-# 2. Generate training pairs: (query, context, response)
-# 3. Fine-tune model on retrieved context (PEFT LoRA for efficiency)
-# 4. Validate on downstream task, iterate if needed
-# **Trade-offs:**
-# | Component | Benefit | Cost |
-# |-----------|---------|------|
-# | Retrieval | Ground in external knowledge | Retrieval latency |
-# | Fine-tuning | In-domain adaptation | Requires labeled data |
-# | Iterative | Compound improvements | Multi-round training |
-# **Common Issues:**
-# - **Noisy Retrieval:** Bad documents hurt fine-tuning. Fix: Use higher similarity threshold.
-# - **Domain Mismatch:** Retrieved docs differ from task. Fix: Retrieval model fine-tuning.
-# - **Overfitting:** Small datasets. Fix: Use PEFT (LoRA), data augmentation.
-# **Related:**
-# - [RAG](./05-retrieval-augmented-generation.ipynb) – Retrieval at inference time
-# - [Context Distillation](./06-context-distillation.ipynb) – Compress retrieved context
-# - [Synthetic Data](./07-synthetic-data-generation.ipynb) – Generate training data
 # ======================================================================
 
 # ======================================================================

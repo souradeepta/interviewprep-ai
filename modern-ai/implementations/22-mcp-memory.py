@@ -9,8 +9,6 @@ See notebook for detailed explanations and outputs
 # ## Learning Objectives
 # 1. Understand episodic and semantic memory storage structures
 # 2. Implement memory read/write/search/evict operations
-# 3. Build cache coherence and staleness detection mechanisms
-# 4. Test concurrent access and garbage collection under load
 # ======================================================================
 
 # Prerequisites & Imports
@@ -479,21 +477,6 @@ for s, r, h in zip(strategies, retention_rates, hit_rates):
 # **Memory Architecture:**
 # 1. Episodic: Time-bound events, conversations, experiences
 # 2. Semantic: Facts, knowledge, general information
-# 3. Hybrid retrieval: Search both stores, bias by type
-# **Eviction Strategies:**
-# - LRU: Simple, effective for uniform access
-# - Staleness-based: Remove old entries automatically
-# - Relevance-based: Compute score from recency + popularity
-# **Concurrency Patterns:**
-# - Write lock for consistency (prevent phantom reads)
-# - Lock-free reads (Python atomic)
-# - Separate episodic/semantic reduces lock contention
-# **Production Considerations:**
-# - GC runs periodically (hourly for 24h threshold)
-# - Monitor hit rates to tune eviction policy
-# - Cache warm-up for hot entries
-# - Separate hot/cold tiers for scale
-# **Related Concepts:** [[caching]], [[information-retrieval]], [[multi-agent-memory]], [[vector-search]]
 # ======================================================================
 
 # ======================================================================

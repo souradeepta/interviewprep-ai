@@ -9,8 +9,6 @@ See notebook for detailed explanations and outputs
 # ## Learning Objectives
 # 1. Implement critique loop: generate → critique → score → refine
 # 2. Build rule-based and model-based critics
-# 3. Apply to summarization, QA with quality metrics
-# 4. Measure improvement per iteration and convergence
 # ======================================================================
 
 import numpy as np
@@ -347,19 +345,4 @@ print('✅ Saved visualization')
 # ## Key Takeaways
 # ### Core Concept
 # Self-critique enables iterative improvement without retraining. Loop: generate → critique → refine → repeat.
-# ### Critic Types
-# | Type | Cost | Accuracy | Best For |
-# |------|---|---|---|
-# | Rule-based | Cheap | 70% | Length, format checks |
-# | Model-based | Expensive | 85%+ | Semantic quality |
-# | Hybrid | Moderate | 80%+ | Balance of quality/cost |
-# ### Convergence Patterns
-# - Quality typically plateaus after 3-5 iterations
-# - Diminishing returns: biggest gains in first iteration
-# - Stop when improvement < 1% to save compute
-# ### Common Pitfalls
-# - **Critic feedback is bad:** Validate critic on gold labels
-# - **No stopping condition:** Add convergence detection
-# - **Infinite loops:** Set max iterations and timeouts
-# - **Single critique:** Ensemble multiple critics for robustness
 # ======================================================================

@@ -9,8 +9,6 @@ See notebook for detailed explanations and outputs
 # ## Learning Objectives
 # 1. Understand how test-time compute (reasoning) improves model performance
 # 2. Implement best-of-N, beam search, and iterative refinement strategies
-# 3. Measure quality-vs-compute trade-offs and find optimal budgets
-# 4. Apply test-time scaling to real generation tasks
 # ======================================================================
 
 import numpy as np
@@ -599,27 +597,6 @@ print('✅ Comparison visualization saved')
 # ## Key Takeaways
 # ### Core Concept
 # Test-time compute scaling (like o1 models) allocates extra computation during inference to improve quality. Key insight: spending more time reasoning at test time can dramatically improve answers without retraining.
-# ### Strategies and Trade-offs
-# | Strategy | Quality Gain | Compute Cost | Best For |
-# |----------|---|---|---|
-# | Best-of-N | Moderate (30-50%) | Linear (O(N)) | Quick quality boost |
-# | Beam Search | High (50-80%) | Sub-linear | Structured problems |
-# | Iterative Refinement | High (40-70%) | Controllable | Polishing answers |
-# | Chain-of-Thought | Very High (50-100%) | Moderate | Complex reasoning |
-# ### When to Use Each Approach
-# - **Best-of-N:** Simple tasks, small N (3-5), quick inference needed
-# - **Beam Search:** Constrained generation (code, SQL), deterministic problems
-# - **Iterative Refinement:** Output improvement (fixing errors, polishing)
-# - **Chain-of-Thought:** Math, logic, multi-step reasoning
-# ### Common Pitfalls
-# - **Diminishing returns:** Quality improvement plateaus after modest budget increase (e.g., 2-5x compute)
-# - **Selection bias:** Choosing best from bad candidates doesn't help. Requires good baseline.
-# - **Budget wastefulness:** Allocating budget evenly across phases is suboptimal. Profile and rebalance.
-# ### Practical Guidance
-# - Start with best-of-N (N=3-5) for quick wins
-# - Measure quality-vs-compute Pareto frontier for your task
-# - Combine multiple strategies: best-of-N at start, refinement at end
-# - For production: cache intermediate reasoning to avoid recomputation
 # ======================================================================
 
 # ======================================================================

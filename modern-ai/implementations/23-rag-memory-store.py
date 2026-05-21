@@ -9,8 +9,6 @@ See notebook for detailed explanations and outputs
 # ## Learning Objectives
 # 1. Implement vector store with cosine similarity search
 # 2. Add FAISS-style indexing for fast retrieval
-# 3. Support chunking strategies and metadata filtering
-# 4. Test retrieval quality vs chunk size trade-offs
 # ======================================================================
 
 # Prerequisites & Imports
@@ -552,21 +550,6 @@ print("\nOptimal: 256 chars - best balance of quality and performance")
 # **Vector Store Architecture:**
 # 1. Vectors normalized for cosine similarity
 # 2. Metadata index enables efficient filtering
-# 3. Chunking with overlap balances granularity and context
-# **Search Strategy:**
-# - Brute-force O(n) suitable for <1M docs
-# - FAISS indexing needed for larger scales
-# - Metadata filters reduce effective search space
-# **Chunking Trade-offs:**
-# - Small chunks: Higher precision, more retrieval points
-# - Large chunks: Better context preservation, fewer docs
-# - Optimal ~256-512 tokens for most tasks
-# **Production Patterns:**
-# - Dedup identical chunks before indexing
-# - Cache frequent queries
-# - Monitor hit rates by source/domain
-# - Separate cold/hot tiers
-# **Related Concepts:** [[semantic-search]], [[embeddings]], [[faiss-indexing]], [[rag-evaluation]]
 # ======================================================================
 
 # ======================================================================

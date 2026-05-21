@@ -9,8 +9,6 @@ See notebook for detailed explanations and outputs
 # ## Learning Objectives
 # 1. Implement regex-constrained token sampling from scratch
 # 2. Add grammar validation and JSON schema enforcement
-# 3. Measure constraint compliance rates
-# 4. Apply to JSON generation, emails, numbers
 # ======================================================================
 
 import numpy as np
@@ -221,18 +219,4 @@ print('✅ Saved visualization')
 # ## Key Takeaways
 # ### Core Concept
 # Structured generation enforces output format via constraints. Approaches: regex masking, grammar validation, schema enforcement.
-# ### Constraint Types
-# | Type | Compliance | Implementation |
-# |------|---|---|
-# | Regex | 95%+ | Token masking based on pattern |
-# | JSON Schema | 90%+ | Validate and repair JSON |
-# | Email/Date | 99%+ | Format-specific validators |
-# ### Common Pitfalls
-# - **Overly strict constraints** reduce model quality
-# - **Invalid token masking** requires exhaustive checking
-# - **No fallback** when constraint impossible to satisfy
-# ### Related Patterns
-# - Grammar-based: Use formal grammar (EBNF) for complex constraints
-# - Token-level: Mask invalid tokens during sampling
-# - Post-process: Generate then repair/validate output
 # ======================================================================

@@ -9,8 +9,6 @@ See notebook for detailed explanations and outputs
 # ## Learning Objectives
 # 1. Build minimal agent loop (observe-think-act) with tool registry
 # 2. Implement state management and error recovery
-# 3. Support task decomposition and goal tracking
-# 4. Test multi-step reasoning and tool usage patterns
 # ======================================================================
 
 # Prerequisites & Imports
@@ -498,28 +496,6 @@ for agent, success, recovery, steps, time_ms in zip(agent_types, success_rates, 
 # **Agent Architecture:**
 # 1. Observe-Think-Act loop is core pattern
 # 2. Tool registry enables dynamic dispatch
-# 3. Task decomposition handles complexity
-# 4. Error recovery improves reliability
-# **Decision Making:**
-# - Heuristic-based routing (simple)
-# - Plan-based (sequence of steps)
-# - Reasoning-based (multi-hop inference)
-# **Resilience Patterns:**
-# - Retry with backoff
-# - Primary + fallback tools
-# - Health metrics guide routing
-# - Graceful degradation
-# **Production Considerations:**
-# - Agent trace logging (audit trail)
-# - Performance monitoring (latency, success rate)
-# - Token usage tracking (cost control)
-# - Tool health dashboards
-# **When to use agents:**
-# - Complex multi-step problems
-# - Need error recovery and retries
-# - Tool composition required
-# - Interactive task solving
-# **Related Concepts:** [[tool-use]], [[planning]], [[state-machines]], [[error-recovery]]
 # ======================================================================
 
 # ======================================================================

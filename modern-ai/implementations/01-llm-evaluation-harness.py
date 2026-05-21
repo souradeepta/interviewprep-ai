@@ -9,8 +9,6 @@ See notebook for detailed explanations and outputs
 # ## Learning Objectives
 # 1. Understand how to compute BLEU, ROUGE, and other evaluation metrics from scratch
 # 2. Build a production evaluation harness with batch processing and timing
-# 3. Apply evaluation metrics to real LLM outputs and datasets
-# 4. Design regression detection systems that flag model performance degradation
 # ======================================================================
 
 import numpy as np
@@ -489,30 +487,10 @@ for r in results_data:
 # ## Key Takeaways
 # ### Core Concept
 # LLM evaluation requires multiple metrics because no single metric captures all aspects of output quality. BLEU measures precision (how much generated text matches references), ROUGE measures recall (how much reference content appears in output), and F1 balances both.
-# ### Evaluation Metrics Comparison
-# | Metric | Strength | Weakness | Best For |
-# |--------|----------|----------|----------|
-# | BLEU | Matches reference word choices | Penalizes synonyms unfairly | Machine translation |
-# | ROUGE | Captures important content words | Ignores word order | Summarization |
-# | F1 | Balances precision/recall | Equally weights both | General-purpose QA |
-# | Exact Match | No ambiguity | Too strict for NLG | Factoid QA |
-# | Semantic Similarity | Captures meaning | Requires embeddings | Open-ended generation |
-# ### Common Failure Modes
-# - **Metric optimization without human validation**: BLEU-gaming via surface copying loses semantic meaning. Always validate with human judges.
-# - **Single metric reliance**: BLEU alone misses errors in style/tone. Use 3+ metrics and correlate with human ratings.
-# - **Ignoring reference diversity**: Multiple valid answers exist (e.g., "cat" vs "feline"). Use multi-reference evaluation or semantic similarity.
-# - **Batch size too small**: High variance in metrics with <20 samples. Always batch evaluate with representative samples.
-# - **Regression detection without baselines**: Comparing versions requires tracked baseline metrics and statistical significance testing.
-# ### Related Concepts
-# - [LLM Fine-tuning](./09-raft-retrieval-augmented-finetuning.ipynb) — Evaluation drives training objectives
-# - [Synthetic Data Generation](./07-synthetic-data-generation.ipynb) — Evaluation metrics validate synthetic data quality
-# - [Structured Generation](./14-structured-generation.ipynb) — Evaluation ensures output format compliance
 # ======================================================================
 
 # ======================================================================
 # ## Try It Yourself
 # 1. **Create your own QA dataset**: Add 5 more question-answer pairs to `qa_dataset` and evaluate. Notice how BLEU/ROUGE vary with answer similarity.
 # 2. **Implement n-gram precision for all n**: Extend `compute_bleu_multi_ngram` to separately return precision for 1,2,3,4-grams. Plot how each n-gram precision decreases for lower-quality matches.
-# 3. **Test metric sensitivity**: Create variants of references (spelling errors, synonyms, reordered words) and see which metrics are robust vs sensitive.
-# 4. **Regression test your own model**: Generate 10 outputs from any model you have access to, compute baseline metrics, then perturb the model slightly and detect regression.
 # ======================================================================

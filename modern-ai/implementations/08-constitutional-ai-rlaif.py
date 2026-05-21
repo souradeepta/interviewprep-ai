@@ -9,8 +9,6 @@ See notebook for detailed explanations and outputs
 # ## Learning Objectives
 # 1. Understand rule-based critique systems and reward scoring
 # 2. Implement constitutional principles as feedback mechanisms
-# 3. Build iterative refinement loops with RLAIF (RL from AI Feedback)
-# 4. Apply constitutional AI to improve model outputs
 # ======================================================================
 
 import numpy as np
@@ -457,20 +455,6 @@ print(f"Final Average Reward: {all_rewards[-1]:.3f}")
 # ## Key Takeaways
 # **Core Idea:** Constitutional AI uses rule-based critiques and reward signals from AI feedback to align models with desired behaviors without human-in-the-loop rating.
 # **Approaches:**
-# | Method | Speed | Coverage | Quality |
-# |--------|-------|----------|----------|
-# | Rule-based | Very Fast | Limited | Moderate |
-# | Learned Critic | Medium | Broad | High |
-# | Constitutional CAI | Fast | Broad | High |
-# | Iterative Refinement | Medium | Targeted | Very High |
-# **Common Issues:**
-# - **Gaming:** Model optimizes for critique score rather than true quality. Fix: Ensure principles cover all important dimensions.
-# - **Rigid Rules:** Hard thresholds miss nuance. Fix: Use learned critics with confidence scores.
-# - **Circular Feedback:** AI feedback reinforces AI biases. Fix: Mix human feedback, diverse critics.
-# **Related Concepts:**
-# - [RLHF](./XX) – Human feedback variant
-# - [Synthetic Data](./07-synthetic-data-generation.ipynb) – Generate training data with feedback
-# - [RAFT](./09-raft-retrieval-augmented-finetuning.ipynb) – Fine-tune with feedback
 # ======================================================================
 
 # ======================================================================

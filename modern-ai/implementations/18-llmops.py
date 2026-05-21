@@ -9,8 +9,6 @@ See notebook for detailed explanations and outputs
 # ## Learning Objectives
 # 1. Implement a mini experiment tracker with prompt versioning and hash-based change tracking
 # 2. Build metrics logging and performance dashboards for prompt experiments
-# 3. Analyze experiment correlation and identify which changes improved or degraded performance
-# 4. Design rollback and regression detection mechanisms for production LLM systems
 # ======================================================================
 
 import numpy as np
@@ -514,10 +512,6 @@ print(f"Best version: v{versions[accuracies.index(max(accuracies))]} (Accuracy: 
 # LLMOps is systematic experiment tracking: prompt versioning (hashing), metrics logging, experiment correlation, regression detection, and automated rollback. Essential for production LLM systems with frequent prompt updates.
 # ### Production Patterns
 # 1. **Prompt Versioning:** Hash prompts (SHA256) for reproducibility and change tracking
-# 2. **Track Metrics:** Accuracy, latency (p50/p95/p99), token cost per request
-# 3. **A/B Testing:** Statistical significance (p < 0.05) required before deploy
-# 4. **Regression Detection:** Automatic alerts for >5% metric degradation
-# 5. **Version Control:** Enable quick rollback (single command)
 # ======================================================================
 
 # ======================================================================
@@ -525,5 +519,4 @@ print(f"Best version: v{versions[accuracies.index(max(accuracies))]} (Accuracy: 
 # 1. **Multi-metric A/B testing:** Track accuracy, latency, and cost. Implement composite decision rule.
 # 2. **Correlation analysis:** Add 8+ feature combinations. Identify optimal combo.
 # 3. **Version history:** Create 10 versions with simulated metrics. Plot quality over time.
-# 4. **Automated alerts:** Set up regression detection for >5% accuracy drop.
 # ======================================================================
