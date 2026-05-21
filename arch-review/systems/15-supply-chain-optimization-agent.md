@@ -33,6 +33,47 @@ Daily optimization: 1K SKUs × $0.001 = $1K/month.
 - Model selection and routing logic
 - Cost optimization strategies
 
+## Architecture Diagrams
+
+### Diagram 1: Demand Forecasting & Inventory Optimization
+```mermaid
+graph LR
+    A[Historical Sales] -->|train| B[Demand Forecaster<br/>ARIMA/ML]
+    B -->|predict| C[Forecast Accuracy]
+    C -->|demand curve| D[Inventory Optimizer]
+    E[Holding Cost] -->|penalty| D
+    F[Stockout Cost] -->|penalty| D
+    D -->|optimal quantity| G[Reorder Point]
+    G -->|signal| H[Procurement Agent]
+    H -->|supplier selection| I[Purchase Order]
+    I -->|submit| J[Supplier]
+    J -->|deliver| K[Inventory]
+    L[Actual Sales] -->|feedback| B
+    M[Supplier Performance] -->|feedback| H
+```
+
+### Diagram 2: Forecasting Accuracy vs. Inventory Efficiency
+```mermaid
+graph TD
+    A[Forecast Approach] -->|Static Reorder| B["Accuracy: 70%<br/>Stockout: 3%<br/>Excess: High<br/>Manual, Slow"]
+    A -->|ARIMA| C["Accuracy: 80%<br/>Stockout: 2.5%<br/>Excess: Medium<br/>Better"]
+    A -->|ML + Optimization| D["Accuracy: 88%<br/>Stockout: 1.5%<br/>Excess: Low<br/>Best Balance"]
+    B -->|Risk| E["Frequent Stockouts<br/>Lost Sales"]
+    C -->|Balance| F["Good Balance<br/>Reasonable Cost"]
+    D -->|Optimal| G["Minimal Stockouts<br/>Low Excess"]
+```
+
+### Diagram 3: Supply Chain Resilience vs. Cost
+```mermaid
+graph TB
+    A[Sourcing Strategy] -->|Single Source| B["Cost: Baseline<br/>Resilience: Low<br/>Risk: Supplier Down"]
+    A -->|Dual Source| C["Cost: +15%<br/>Resilience: High<br/>Risk: Mitigated"]
+    A -->|Multi-Region| D["Cost: +25%<br/>Resilience: Very High<br/>Risk: Diversified"]
+    B -->|Implication| E["Cheaper<br/>But Fragile"]
+    C -->|Implication| F["Balanced<br/>Recommended"]
+    D -->|Implication| G["Expensive<br/>Very Stable"]
+```
+
 ## Detailed Trade-off Analysis
 
 | Strategy | Forecast Accuracy | Stockout Rate | Inventory Efficiency | Procurement Cost | Implementation Complexity |

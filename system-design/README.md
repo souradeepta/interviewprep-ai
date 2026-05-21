@@ -5,8 +5,7 @@ Patterns, case studies, and interview prep for designing ML-powered systems at s
 ## Contents
 | Folder | What's inside |
 |--------|--------------|
-| [patterns/](patterns/) | Reusable design patterns (feature stores, inference, pipelines) |
-| [case-studies/](case-studies/) | End-to-end system design case studies |
-| [interview-prep/](interview-prep/) | Framework and practice questions (Template B) |
+| [patterns/](patterns/) | 31 design patterns covering feature stores, inference, deployment, monitoring, fairness |
+| [interview-prep/](interview-prep/) | Framework, practice questions, and system design strategies |
 
 Start with the [System Design Roadmap](../roadmaps/system-design-roadmap.md) for a guided path.

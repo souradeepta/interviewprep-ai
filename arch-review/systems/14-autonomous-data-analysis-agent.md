@@ -34,6 +34,55 @@ Data analysts spend 60-70% of their time on routine exploratory analysis: loadin
 - Model selection and routing logic
 - Cost optimization strategies
 
+## Architecture Diagrams
+
+### Diagram 1: EDA Pipeline - From Raw Data to Insights
+```mermaid
+graph LR
+    A[Dataset Upload] -->|ingest| B[Data Profiling]
+    B -->|check quality| C[Data Quality Report]
+    C -->|identify issues| D{Issues Found?}
+    D -->|Yes| E[Flag Problems]
+    D -->|No| F[Statistical Analysis]
+    E --> F
+    F -->|compute metrics| G[Distribution Analysis]
+    G -->|outliers| H[Correlation Analysis]
+    H -->|relationships| I[Hypothesis Testing]
+    I -->|insights| J[Visualization Generator]
+    J -->|charts| K[EDA Report]
+    K -->|summary + insights| L[User Review]
+```
+
+### Diagram 2: Data Quality Assessment
+```mermaid
+graph TD
+    A[Raw Data] -->|analyze| B[Missing Data Check]
+    B -->|% null| C{>20% Missing?}
+    C -->|Yes| D["Flag: Data Quality<br/>Risk Level: High"]
+    C -->|No| E[Duplicate Check]
+    E -->|% dup| F{>5% Duplicates?}
+    F -->|Yes| G["Flag: Dedupe<br/>Risk Level: Medium"]
+    F -->|No| H[Type Consistency]
+    H -->|schema| I{Mixed Types?}
+    I -->|Yes| J["Flag: Type Err<br/>Risk Level: Med"]
+    I -->|No| K["Data Quality: Good<br/>Proceed"]
+    D --> L[Overall Quality Score]
+    G --> L
+    J --> L
+    K --> L
+```
+
+### Diagram 3: Analysis Depth vs. Time Trade-off
+```mermaid
+graph TB
+    A[Analysis Scope] -->|Basic| B["10 sec<br/>Mean/Median/Std<br/>$0.10<br/>50% actionable"]
+    A -->|Full EDA| C["3 min<br/>Dist+Corr+Outliers<br/>$0.50<br/>70% actionable"]
+    A -->|Advanced| D["8 min<br/>+ Hypothesis Test<br/>$2.00<br/>85% actionable"]
+    B -->|User Type| E["Quick Check<br/>Non-critical"]
+    C -->|User Type| F["Standard Use<br/>Most Common"]
+    D -->|User Type| G["Deep Dive<br/>Complex Data"]
+```
+
 ## Detailed Trade-off Analysis
 
 | Approach | Depth | Latency | Cost | Actionable | Human Time | Use Case |

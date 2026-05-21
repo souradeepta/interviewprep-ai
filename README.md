@@ -7,13 +7,15 @@
 
 ## What's Inside
 
-| Domain | Topics |
-|--------|--------|
-| **Machine Learning** | Supervised/unsupervised learning, neural nets, deep learning, optimization |
-| **Large Language Models** | Transformers, RAG, fine-tuning, inference optimization, evals |
-| **Agentic AI** | Tool use, memory, planning, multi-agent systems, production agents |
-| **System Design** | ML system patterns, case studies, MLOps, LLM/agent system design |
-| **Coding** | DSA (data structures + algorithms) + ML algorithm implementation |
+| Domain | Coverage |
+|--------|----------|
+| **AI Fundamentals** | 40 core concepts (optimization, classical ML, neural networks, evaluation) |
+| **Machine Learning** | 37 concepts + 8 from-scratch implementation notebooks |
+| **Large Language Models** | 44 concepts + 46 implementation notebooks covering transformers → production |
+| **Agentic AI** | 64 concepts + 64 notebooks on agents, tool use, memory, multi-agent systems |
+| **MLOps** | 16 concepts + 17 notebooks (pipelines, monitoring, deployment) |
+| **System Design** | 31 ML/AI system design patterns + architecture reviews of 30 real systems |
+| **Coding Interview Prep** | Data structures + algorithm implementations |
 
 ---
 
@@ -30,12 +32,12 @@
 
 | Goal | Start here |
 |------|-----------|
+| Build foundational AI/ML knowledge | [AI Fundamentals](ai/) + [ML Roadmap](roadmaps/ml-roadmap.md) |
 | Crack ML engineering interviews | [ML Roadmap](roadmaps/ml-roadmap.md) |
 | Learn LLMs from scratch to production | [LLM Roadmap](roadmaps/llm-roadmap.md) |
 | Build and understand AI agents | [Agentic AI Roadmap](roadmaps/agentic-roadmap.md) |
 | Ace ML system design interviews | [System Design Roadmap](roadmaps/system-design-roadmap.md) |
 | DSA + ML coding practice | [Coding](coding/README.md) |
-| Browse all roadmaps | [Roadmaps Overview](roadmaps/README.md) |
 
 ---
 
@@ -43,18 +45,23 @@
 
 ```
 interviewprep-ml/
-├── roadmaps/          # Learning paths per domain (Beginner → Advanced)
-├── ml/                # Classical ML + deep learning
-├── llm/               # Large language models: theory → production
-├── agentic-ai/        # Agents, tool use, multi-agent systems
-├── system-design/     # ML/AI system design patterns and case studies
-└── coding/            # DSA + ML algorithm coding
+├── roadmaps/          # Learning paths: ML, LLM, Agentic AI, System Design
+├── ai/                # AI Fundamentals — 40 concepts + 40 notebooks
+├── llm/               # Large Language Models — 44 concepts + 46 notebooks
+├── agentic-ai/        # Agentic AI — 64 concepts + 64 notebooks
+├── ml/                # Classical ML — 37 concepts + 8 implementation notebooks
+├── mlops/             # MLOps — 16 concepts + 17 notebooks + case studies
+├── system-design/     # System Design Patterns (31) + interview prep
+├── arch-review/       # Real System Architecture Reviews (30 systems)
+├── coding/            # Data structures + algorithm implementations
+├── scripts/           # Generation and utility scripts
+├── tests/             # Test suite
+└── data/              # Concept mappings and schemas
 ```
 
-Each domain folder has:
-- `concepts/` — Theory notes (Template A)
-- `implementations/` — Jupyter notebooks with runnable code (Template C)
-- `interview-prep/` — Full interview simulations (Template B)
+Each learning folder (ai/, llm/, ml/, agentic-ai/) contains:
+- `concepts/` — Comprehensive concept files with explanations and Q&A
+- `notebooks/` — Jupyter notebooks with working implementations and examples
 
 ---
 

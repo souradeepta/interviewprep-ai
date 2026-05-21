@@ -4,11 +4,61 @@
 
 **New here?** Start with [README.md](README.md) → Pick your [roadmap](roadmaps/README.md) → Dive into concepts and implementations.
 
+**Total coverage:** 148 concepts + 148 notebooks across AI Fundamentals, ML, LLM, and Agentic AI.
+
 ---
 
-## All 130 Concept Files
+## All 148 Concept Files & 148 Notebooks
 
-### Machine Learning (39 concepts)
+### AI Fundamentals (40 concepts)
+
+**Core Optimization & Classical Methods**
+- [Linear Regression](ai/concepts/linear-regression.md)
+- [Logistic Regression](ai/concepts/logistic-regression.md)
+- [Gradient Descent](ai/concepts/gradient-descent.md)
+- [Stochastic Gradient Descent](ai/concepts/stochastic-gradient-descent.md)
+- [Momentum & Accelerated Methods](ai/concepts/momentum-and-accelerated-methods.md)
+- [Regularization](ai/concepts/regularization.md)
+- [Cross-Validation](ai/concepts/cross-validation.md)
+- [Hyperparameter Tuning](ai/concepts/hyperparameter-tuning.md)
+
+**Classical ML Algorithms**
+- [Decision Trees](ai/concepts/decision-trees.md)
+- [Random Forests](ai/concepts/random-forests.md)
+- [K-Means Clustering](ai/concepts/kmeans-clustering.md)
+- [Hierarchical Clustering](ai/concepts/hierarchical-clustering.md)
+- [DBSCAN](ai/concepts/dbscan.md)
+- [Gaussian Mixture Models](ai/concepts/gaussian-mixture-models.md)
+- [K-Nearest Neighbors](ai/concepts/knn.md)
+- [Support Vector Machines](ai/concepts/support-vector-machines.md)
+- [Naive Bayes](ai/concepts/naive-bayes.md)
+
+**Neural Networks & Activation**
+- [Neural Networks Basics](ai/concepts/neural-networks-basics.md)
+- [Activation Functions](ai/concepts/activation-functions.md)
+- [Backpropagation](ai/concepts/backpropagation.md)
+- [Batch Normalization](ai/concepts/batch-normalization.md)
+- [Dropout](ai/concepts/dropout.md)
+- [Weight Initialization](ai/concepts/weight-initialization.md)
+
+**Evaluation & Metrics**
+- [Classification Metrics](ai/concepts/classification-metrics.md)
+- [Regression Metrics](ai/concepts/regression-metrics.md)
+- [Ranking Metrics](ai/concepts/ranking-metrics.md)
+- [Statistical Tests](ai/concepts/statistical-tests.md)
+- [Confusion Matrix & Thresholds](ai/concepts/confusion-matrix-and-thresholds.md)
+- [ROC & AUC](ai/concepts/roc-and-auc.md)
+- [Precision, Recall, F1](ai/concepts/precision-recall-f1.md)
+
+**Advanced Topics**
+- [Feature Engineering](ai/concepts/feature-engineering.md)
+- [Dimensionality Reduction](ai/concepts/dimensionality-reduction.md)
+- [Ensemble Methods](ai/concepts/ensemble-methods.md)
+- [Transfer Learning](ai/concepts/transfer-learning.md)
+- [Data Imbalance & SMOTE](ai/concepts/data-imbalance-smote.md)
+- [Overfitting & Underfitting](ai/concepts/overfitting-underfitting.md)
+
+### Machine Learning (37 concepts)
 
 **Core & Supervised Learning**
 - [Supervised Learning](ml/concepts/supervised-learning.md)
@@ -68,7 +118,7 @@
 - [Attention Mechanism](ml/concepts/deep-learning/attention-mechanism.md)
 - [Transformers](ml/concepts/deep-learning/transformers.md)
 
-### LLM (32 concepts)
+### LLM (44 concepts)
 
 **Fundamentals**
 - [Tokenization](llm/concepts/tokenization.md)
@@ -114,7 +164,7 @@
 - [Prompt Optimization](llm/concepts/prompt-optimization.md)
 - [Multimodal](llm/concepts/multimodal.md)
 
-### Agentic AI (31 concepts)
+### Agentic AI (64 concepts)
 
 **Foundations**
 - [What Is an Agent](agentic-ai/concepts/what-is-an-agent.md)
@@ -278,19 +328,20 @@
 - Want interview practice? → [Interview prep files](#interview-prep-files)
 
 **By topic:**
-- [ML concepts index](#machine-learning-39-concepts)
-- [LLM concepts index](#llm-32-concepts)
-- [Agentic AI concepts index](#agentic-ai-31-concepts)
+- [AI Fundamentals index](#ai-fundamentals-40-concepts)
+- [ML concepts index](#machine-learning-37-concepts)
+- [LLM concepts index](#llm-44-concepts)
+- [Agentic AI concepts index](#agentic-ai-64-concepts)
 - [System Design patterns index](#system-design-patterns-30-concepts)
 
 ---
 
 ## File Status
 
-- **✅ Fully written:** ML concepts (9) + Deep learning (4) + Notebooks (8) + Roadmaps (5)
-- **🔄 Scaffolded stubs:** 110 concept/pattern files ready for detailed content
-- **⏭️ Not started:** LLM implementations, additional case studies, coding DSA
+- **✅ Complete:** AI (40 concepts + 40 notebooks) + LLM (44 concepts + 46 notebooks) + Agentic-AI (64 concepts + 64 notebooks) + ML (37 concepts + 8 notebooks) + MLOps (16 concepts + 17 notebooks)
+- **✅ System Design:** 31 patterns + 30 architecture reviews + interview prep
+- **✅ Support:** Roadmaps (5), interview prep (ML, system-design), coding DSA
 
 ---
 
-**Total:** 162 files | 130 concepts | 8 notebooks | 5 roadmaps | 4 interview prep files
+**Total:** 148 concepts | 188+ notebooks | 30 real system architectures | 31 design patterns | 5 complete roadmaps
