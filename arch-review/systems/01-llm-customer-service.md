@@ -49,7 +49,9 @@ Enterprise customer support faces scaling challenges: (1) high volume (50K inqui
 - Post-processing & response: 200ms
 
 
-## High-Level Architecture
+## Architecture Diagrams
+
+### Logical Architecture (Data Flow)
 
 ```mermaid
 graph TD
@@ -70,6 +72,38 @@ graph TD
     E --> N[(Vector DB<br/>Knowledge)]
     E --> O[(KB Index<br/>10K docs)]
 ```
+
+### System Architecture (Infrastructure & Deployment)
+See: [System Architecture Diagram](../diagrams/01-customer-service-01-system-architecture.md)
+
+Covers:
+- Kubernetes cluster with auto-scaling (5-50 pods)
+- Load balancing and CDN
+- PostgreSQL + Redis + Pinecone + S3
+- External APIs (OpenAI, SendGrid, Twilio)
+- Monitoring stack (Prometheus, ELK, Jaeger)
+
+### Application Architecture (Components & Layers)
+See: [Application Architecture Diagram](../diagrams/01-customer-service-02-application-architecture.md)
+
+Covers:
+- Presentation layer (REST API, WebSockets)
+- Orchestration layer (routing, pipelines, context)
+- NLP services (intent, embeddings, sentiment)
+- RAG services (retrieval, ranking, augmentation)
+- LLM services (caching, generation, validation)
+- Data services (databases, cache, vector store)
+
+### Process Flow (Request to Response)
+See: [Process Flow Diagram](../diagrams/01-customer-service-03-process-flow.md)
+
+Covers:
+- Request validation and deduplication
+- Intent classification with confidence thresholds
+- RAG vs agent routing decisions
+- LLM generation with error retry logic
+- Sentiment-based escalation
+- Channel-specific response delivery
 
 ## Dynamic System Visualization
 
