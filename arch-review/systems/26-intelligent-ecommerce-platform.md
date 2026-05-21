@@ -46,6 +46,137 @@ graph TB
     L -->|optimize| C
 ```
 
+## Architecture Diagrams
+
+### System Architecture (Infrastructure & Deployment)
+
+## System Architecture
+
+```mermaid
+graph TB
+    subgraph Ingestion["Document Ingestion"]
+        UPLOAD["File Upload<br/>(REST)"]
+        PROCESS["Document Processor<br/>(PDF, DOCX)"]
+        CHUNK["Chunking<br/>(Batch)"]
+    end
+
+    subgraph Vectorization["Vectorization Pipeline"]
+        EMBED["Embedding Service<br/>(text-embedding-3)"]
+        BATCH["Batch Processor<br/>(1000s docs)"]
+    end
+
+    subgraph Storage["Vector & Document Storage"]
+        VECTOR_DB["Vector DB<br/>(Pinecone)"]
+        DOC_STORE["Document Store<br/>(S3)"]
+        INDEX["Search Index<br/>(Elasticsearch)"]
+    end
+
+    subgraph Query["Query & Generation"]
+        SEARCH["Hybrid Search<br/>(Vector + BM25)"]
+        RERANK["Re-ranking<br/>(Cross-encoder)"]
+        LLM["LLM Generator<br/>(Claude/GPT)"]
+    end
+
+    subgraph Storage2["Result Storage"]
+        RESULT_DB["Results DB<br/>(PostgreSQL)"]
+        CACHE["Result Cache<br/>(Redis)"]
+    end
+
+    UPLOAD --> PROCESS
+    PROCESS --> CHUNK
+    CHUNK --> BATCH
+    BATCH --> EMBED
+    EMBED --> VECTOR_DB
+    CHUNK --> DOC_STORE
+    CHUNK --> INDEX
+    SEARCH --> VECTOR_DB
+    SEARCH --> INDEX
+    SEARCH --> RERANK
+    RERANK --> LLM
+    LLM --> RESULT_DB
+    LLM --> CACHE
+```
+
+### Application Architecture (Components & Layers)
+
+## Application Architecture
+
+```mermaid
+graph TB
+    subgraph API["API Layer"]
+        UPLOAD_EP["POST /documents"]
+        QUERY_EP["POST /query"]
+    end
+
+    subgraph Processing["Processing Pipeline"]
+        DOC_PROC["Document Processor"]
+        CHUNKER["Chunker"]
+        EMBEDDER["Embedder"]
+    end
+
+    subgraph Retrieval["Retrieval Engine"]
+        RETRIEVER["Hybrid Retriever"]
+        RANKER["Re-ranker"]
+    end
+
+    subgraph Generation["Generation Engine"]
+        CONTEXT_BUILDER["Context Builder"]
+        LLM_WRAPPER["LLM Wrapper"]
+        POST_PROCESS["Post-processor"]
+    end
+
+    subgraph Storage["Data Access Layer"]
+        VECTOR_CLIENT["Vector Client"]
+        DOC_CLIENT["Document Client"]
+        CACHE_CLIENT["Cache Client"]
+    end
+
+    UPLOAD_EP --> DOC_PROC
+    DOC_PROC --> CHUNKER
+    CHUNKER --> EMBEDDER
+    EMBEDDER --> VECTOR_CLIENT
+    QUERY_EP --> RETRIEVER
+    RETRIEVER --> RANKER
+    RANKER --> CONTEXT_BUILDER
+    CONTEXT_BUILDER --> LLM_WRAPPER
+    LLM_WRAPPER --> POST_PROCESS
+    POST_PROCESS --> CACHE_CLIENT
+    VECTOR_CLIENT --> CACHE_CLIENT
+    DOC_CLIENT --> CACHE_CLIENT
+```
+
+### Process Flow (Request Pipeline)
+
+## Process Flow
+
+```mermaid
+graph TD
+    USER_QUERY["User Submits Query"] --> CLEAN["Clean Query Text"]
+    CLEAN --> CACHE_CHECK{"Cache Hit?"}
+
+    CACHE_CHECK -->|Yes| RETURN_CACHE["Return Cached Result"]
+    CACHE_CHECK -->|No| EMBED["Embed Query"]
+
+    EMBED --> VECTOR_SEARCH["Vector Search"]
+    VECTOR_SEARCH --> BM25["BM25 Search"]
+    BM25 --> FUSION["Fusion Ranking"]
+
+    FUSION --> RERANK["Re-rank Results"]
+    RERANK --> SELECT["Select Top-K"]
+
+    SELECT --> CONTEXT["Build Context"]
+    CONTEXT --> BUILD_PROMPT["Build Prompt"]
+
+    BUILD_PROMPT --> GENERATE["Generate Answer<br/>(LLM)"]
+    GENERATE --> CITE["Add Citations"]
+
+    CITE --> CACHE_STORE["Store in Cache"]
+    CACHE_STORE --> RETURN["Return with Sources"]
+
+    RETURN_CACHE --> END["Complete"]
+    RETURN --> END
+```
+
 ## Component Breakdown
 
 | Component | Latency | QPS | Tech | Cost Ratio |
