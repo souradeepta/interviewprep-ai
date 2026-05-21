@@ -37,17 +37,93 @@ Cache = remember previous predictions. Request 'user=123' → model runs, predic
 
 ## Production Failure Scenarios
 
-### Scenario 1: Cache stampede
-**What breaks:** Cache expires. 100 concurrent requests see miss. All hit model simultaneously = 100x traffic spike.
-**Prevent:** Probabilistic early refresh (at 90% TTL, one request recomputes, others get stale).
+**Scenario 1: Cache Stampede (Thundering Herd)**
 
-### Scenario 2: Stale model cached
-**What breaks:** Model updated v1→v2. Cache still serves v1 responses.
-**Prevent:** Include model version in cache key. Auto-invalidate on update.
+**What breaks:** Popular cache entry expires at exactly 10:00am. 1000 concurrent requests all see cache miss. All hit GPU model simultaneously = 1000x traffic spike. GPU overloads, requests timeout, users see errors.
 
-### Scenario 3: Non-deterministic caching
-**What breaks:** LLM with temperature=0.5 cached. Returns same response always (wrong, should be varied).
-**Prevent:** Only cache temp=0 or deterministic outputs.
+**Why it happens:**
+- Cache TTL = 1 hour, exact expiration time
+- Popular queries (trending topic) generate high volume
+- All requests expire at same time
+
+**Detection:**
+```
+Alert: if (model_latency spike > 3x normal OR error_rate > 5%) → CRITICAL
+Monitor: concurrent_requests_to_model
+```
+
+**Recovery:**
+1. Detect: Logs show 1000 requests hitting model at 10:00:10
+2. Increase cache timeout temporarily (1 hour → 2 hours)
+3. Add load shedding: reject requests if queue > threshold
+4. Manual cache refresh: precompute popular entries before expiry
+
+**Prevention:** Probabilistic early refresh
+```python
+if (time_to_ttl < 5_minutes and random.rand() < 0.01):
+    # 1% of requests trigger refresh before expiry
+    refresh_cache_entry(key)
+else:
+    return cached_value  # 99% get instant cache hit
+```
+
+---
+
+**Scenario 2: Stale Model Cached (Version Mismatch)**
+
+**What breaks:** Model updated from v1.0 to v2.0 (better accuracy). Cache still serves old v1.0 predictions. Users get inferior predictions until cache naturally expires (could be hours/days).
+
+**Why it happens:**
+- Cache key: hash(query) — no model version
+- Deploy v2.0 model, but old predictions still cached under same key
+- Cache invalidation "is one of the hardest things in CS"
+
+**Detection:**
+```
+Alert: if (model deployed but latency didn't change) → WARN
+  (Usually new model has slight latency change due to size difference)
+Check: Compare predictions before/after deploy on same query
+```
+
+**Recovery:**
+1. Detect: Query same input, compare v1 vs v2 output — they differ
+2. Identify: Cache is serving old version
+3. Invalidate: Clear cache or wait for TTL expiry
+4. Redeploy: Next prediction uses v2
+
+**Prevention:** Include model version in cache key
+```python
+cache_key = f"v2.0_{hash(query)}"  # model version embedded
+# When deploy v2.1, all keys are v2.0_* and never served
+```
+
+---
+
+**Scenario 3: Cache Inconsistency (Non-Deterministic Model)**
+
+**What breaks:** LLM with temperature=0.7 (randomness enabled) is cached. First user gets response "A", second user with same query gets response "A" (cached, not re-rolled). But LLM should generate varied responses. Both users expect diversity.
+
+**Why it happens:**
+- Cache doesn't know about randomness parameter
+- Same input → cached output (ignores temperature)
+- Model configuration not part of cache key
+
+**Detection:**
+```
+Alert: if (users report repetitive responses with temperature > 0) → WARN
+```
+
+**Recovery:**
+- Disable cache for temperature > 0 (only cache deterministic outputs)
+- Include temperature in cache key: `f"temp0.7_{hash(query)}"`
+
+**Prevention:** Only cache deterministic outputs (temperature=0 or non-probabilistic models)
+```python
+if temperature == 0:
+    cache_result(query, response)  # OK to cache
+else:
+    skip_cache(response)  # Don't cache randomness
+```
 
 ---
 
@@ -77,6 +153,43 @@ A: Probabilistic early refresh. At 90% TTL, one request recomputes. Others get s
 ---
 
 ## Cost & Resource Analysis
+
+### Cost Model (1M queries/day)
+
+**Without Cache:**
+- GPU inference: 1M queries × 100ms = 100K GPU seconds = ~$50/day = $1,500/month
+
+**With 25% Cache Hit Rate (exact-match):**
+- GPU inference: 750K queries (75% miss) × 100ms = $1,125/month
+- Cache lookup: 250K queries (25% hit) × 5ms on Redis = negligible
+- Redis cluster: 3 nodes × $0.07/GB/hour for 10GB = ~$50/month
+- **Total: $1,175/month** (saves $325/month = 22%)
+
+**With 50% Cache Hit Rate (exact + semantic):**
+- GPU inference: 500K queries × 100ms = $750/month
+- Embedding lookup: 500K queries × semantic search = ~$100/month
+- Cache infrastructure: $50/month
+- **Total: $900/month** (saves $600/month = 40%)
+
+### ROI Analysis
+
+**Scenario 1: E-commerce recommendations (high repeat rate)**
+- Cache hit rate: 40-50% (users re-check products)
+- Cost savings: 40% × $1,500/month = $600/month
+- Cache infrastructure cost: $50/month
+- **ROI: ($600 - $50) / $50 = 11x return**
+
+**Scenario 2: LLM chatbot (variable user behavior)**
+- Cache hit rate: 20-30% (less repetition)
+- Cost savings: 25% × $5,000/month = $1,250/month
+- Cache infrastructure: $100/month
+- **ROI: ($1,250 - $100) / $100 = 12.5x return**
+
+**Scenario 3: Image generation (rarely exact match)**
+- Cache hit rate: 5-10% (images unique)
+- Cost savings: 7.5% × $10,000/month = $750/month
+- Cache infrastructure: $200/month
+- **ROI: ($750 - $200) / $200 = 2.75x return** (still worth it)
 
 30% hit rate = 30% cost savings. ROI: 6:1 (savings >> overhead).
 
