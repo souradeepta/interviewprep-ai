@@ -71,6 +71,39 @@ graph TD
     E --> O[(KB Index<br/>10K docs)]
 ```
 
+## Dynamic System Visualization
+
+### Request Latency Breakdown
+![Request Flow Animation](../animations/01-request-flow.gif)
+
+A single request flows through 5 stages with tight latency constraints to meet the <2s SLA:
+- **Ingestion** (50ms): Validate, enqueue, assign session ID
+- **Intent Classification** (200ms): Multi-label intent model inference (28 classes)
+- **Vector Search** (150ms): Semantic retrieval from 10K-doc knowledge base
+- **LLM Generation** (1400ms): Multi-turn response generation with context (critical path)
+- **Formatting & Routing** (200ms): Channel-specific formatting, response enqueue
+
+**Total: 2000ms P99 latency** — Optimization focus should be on reducing LLM generation latency (streaming, caching) and vector search (indexing).
+
+### Daily Traffic Load
+![Daily Load Pattern](../animations/02-daily-load.gif)
+
+The system experiences realistic business-hours traffic distribution:
+- **Peak**: 1pm (3500 QPS, 10K concurrent users)
+- **Baseline**: 200-500 QPS off-hours
+- **Scaling**: Currently at ~70% capacity during peak; room for growth to 5000 QPS
+
+Decision: Over-provision by 30-50% during peak hours to maintain sub-2s latency (queue depth grows 1ms per 1% over capacity).
+
+### Cost Accumulation
+![Cost Timeline](../animations/04-cost-timeline.gif)
+
+**Daily operational cost: ~$200** ($73K annually)
+- Token usage: 200M tokens/day × $0.001/1K = ~$200/day (90% of cost)
+- Cost drivers: RAG context (3K input tokens) + LLM generation (1K output tokens) = 4K tokens/request
+
+**Cost optimization:** Caching retrieved KB articles (save 30% input tokens), few-shot prompt optimization (reduce output tokens by 20%).
+
 
 ## Component Breakdown
 
