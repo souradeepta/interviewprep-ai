@@ -35,30 +35,141 @@ LB = traffic cop. All requests hit one load balancer. LB routes: 'req1→replica
 
 ## Detailed Trade-off Analysis
 
-| Algorithm | Distribution | Overhead | Sticky Sessions | Heterogeneous |
-|-----------|--------------|----------|-----------------|---------------|
-| Round-robin | Even | Low | No | Poor |
-| Least-conn | Balanced | Medium | No | Good |
-| Weighted | Custom | Low | No | Good |
-| Hash-based | Consistent | Medium | Yes | Fair |
+### Load Balancing Algorithm Comparison
 
-**Decision:** Heterogeneous servers→weighted/least-conn. Homogeneous→round-robin. Need sessions→hash-based.
+| Algorithm | Latency Distribution | Overhead (LB CPU) | Sticky Sessions | Works with Heterogeneous | Failure Resilience |
+|-----------|----------------------|-------------------|-----------------|-------------------------|-------------------|
+| **Round-robin** | Even (if homogeneous) | Very low (<1%) | No | Poor (overloads slow) | Fair (doesn't detect dead) |
+| **Least-connections** | Balanced (adaptive) | Medium (5-10%) | No | Good (routes by load) | Good (prefers healthy) |
+| **Weighted** | Custom (via weights) | Low (2-5%) | No | Excellent (manual tuning) | Fair (weights fixed) |
+| **Hash-based (sticky)** | Uneven (depends on hash) | Low (1-2%) | Yes (guaranteed) | Poor (ignores capacity) | Good if backend die rare |
+| **Health-aware (dynamic)** | Best (adaptive+health) | High (20-30%) | Optional | Excellent | Excellent |
+
+### Cost Model (3 replicas, 100 QPS, $0.50/hour each)
+
+**Round-robin (simple):**
+- 3 replicas: $36/month
+- LB (lightweight, shared): $5/month
+- Total: $41/month
+
+**Least-conn (adaptive):**
+- 2 replicas sufficient (better distribution): $24/month
+- LB (more complex): $10/month
+- Total: $34/month (17% cheaper despite more complex LB)
+
+**Weighted (tuned for heterogeneous):**
+- 1 fast + 2 standard: $26/month
+- LB (moderate complexity): $8/month
+- Total: $34/month
+
+**Health-aware (production-grade):**
+- 4 replicas (1 failover): $48/month
+- LB (complex, health checks): $15/month
+- Total: $63/month (premium for reliability)
+
+### Decision Matrix by Scenario
+
+| Scenario | Algorithm | Reasoning | Cost vs Benefit |
+|----------|-----------|-----------|-----------------|
+| **Test environment (1-2 servers)** | Round-robin | Simple to set up | $5/month |
+| **Homogeneous prod cluster** | Least-conn | Adaptive, no overhead | $35/month saves replicas |
+| **Heterogeneous hardware** | Weighted | Explicit capacity tuning | $34/month, manual tuning |
+| **Session-heavy app (shopping cart)** | Hash-based | Sticky sessions required | $30/month, session affinity |
+| **Critical high-availability** | Health-aware | Fault tolerance essential | $60+/month, premium safety |
 
 ---
 
 ## Production Failure Scenarios
 
-**Scenario 1: Uneven distribution**
-- Round-robin on [fast, fast, slow]. Slow server overloaded.
-- Fix: Weighted LB or least-conn.
+**Scenario 1: Uneven Load Distribution (Heterogeneous Servers)**
 
-**Scenario 2: Unhealthy replica still gets traffic**
-- Health check fails but LB still routes traffic. Cascading failures.
-- Fix: Remove unhealthy from rotation. Circuit breaker.
+**What breaks:** 3-replica setup: 2 fast (4-core GPU), 1 slow (2-core GPU). Round-robin distributes equally (33% each). Slow replica gets overloaded (handles 1/3 of load on half the resources). Queue time 500ms on slow replica vs 50ms on fast. Users hit slow replica sometimes (66% chance fair, 33% get lucky with fast).
 
-**Scenario 3: Sticky sessions break**
-- Client session pinned to replica A. Replica A dies. Session lost.
-- Fix: Replicate sessions (Redis) or stateless design.
+**Why it happens:**
+- Assumption: all replicas are identical
+- Round-robin works only for homogeneous hardware
+- Setup didn't account for hardware differences
+
+**Detection:**
+```
+Metric: replica_latency_distribution (p99 per replica)
+Alert: if (p99_differ > 2x) → WARN (uneven load)
+
+Check: kubectl get nodes → see 2 GPU vs 1 GPU difference
+```
+
+**Recovery:**
+1. Reconfigure LB to weighted:
+   - Fast replica: weight=2.0 (gets 50% traffic)
+   - Slow replica: weight=1.0 (gets 25% traffic)
+2. Shift traffic gradually: 5% → 25% → 50% over 10 minutes
+3. Monitor: verify slow replica latency normalizes
+
+**Prevention:**
+- Inventory: document replica capacity before deployment
+- Auto-weighting: LB automatically learns capacity and adjusts weights
+- Health check latency: if replica p99 > 2x others, reduce weight
+
+---
+
+**Scenario 2: Unhealthy Replica Still Receives Traffic**
+
+**What breaks:** Replica B experiences database connection issue. Becomes slow (500ms latency). Health check is basic (just ping TCP port 8080). Ping still works, so health check passes. LB keeps routing traffic to Replica B. Cascading failures: clients timeout, retry, hit Replica B again.
+
+**Why it happens:**
+- Health check is shallow (TCP ping, not actual request)
+- No circuit breaker (doesn't remove unhealthy from rotation)
+- Assumption: "if port responds, replica is healthy" is wrong
+
+**Detection:**
+```
+Alert: if (replica_error_rate > 5%) → WARN
+Alert: if (replica_latency > baseline * 3) → WARN
+
+Better: deep health check
+GET /health → checks DB connectivity, returns 200 only if truly healthy
+```
+
+**Recovery:**
+1. Detect: error_rate on Replica B is 20% (vs 0.1% on others)
+2. Remove Replica B from LB: mark as unhealthy, route 0% traffic
+3. Investigate: check database connection, logs, restart if needed
+4. Restore: once fixed, gradually re-add to rotation (10% → 100%)
+
+**Prevention:**
+- Deep health checks: actually query database, not just ping TCP
+- Health check frequency: every 5 seconds (catch issues quickly)
+- Remove threshold: if health check fails 2x in a row, remove from rotation
+- Circuit breaker: after 3 failures in 1 min, stop sending traffic
+
+---
+
+**Scenario 3: Sticky Sessions Break (Session Loss on Replica Failure)**
+
+**What breaks:** E-commerce session-based (shopping cart stored in Replica A memory). Client session hashed to Replica A. User adds items to cart (stored in Replica A RAM). Replica A crashes. LB detects failure, hashes client to Replica B. Replica B has no cart data. User's cart is lost.
+
+**Why it happens:**
+- Assumption: sticky sessions are durable
+- No session replication (only on one replica)
+- Replica failure loses session state
+
+**Detection:**
+```
+Alert: if (replica_fails AND sticky_sessions_enabled) → CRITICAL
+Monitor: session_loss_count (clients with broken sessions)
+```
+
+**Recovery:**
+1. Immediate: Client forced to re-login, loss of 1 session
+2. Short-term (if happens often):
+   - Switch to stateless: session stored in Redis (shared)
+   - Or: replicate session data (write to 2 replicas)
+
+**Prevention:**
+- Session replication: after session modification, write to 2 replicas
+- Use external session store (Redis): survives replica failures
+- Or: stateless design (session in JWT token, signed by LB)
+- Acceptable loss: if single replica failure loses <0.1% sessions, acceptable
 
 ---
 
