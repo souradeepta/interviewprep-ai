@@ -13,7 +13,7 @@
 | **Machine Learning** | 37 concepts + 8 from-scratch implementation notebooks |
 | **Large Language Models** | 44 concepts + 46 implementation notebooks covering transformers → production |
 | **Agentic AI** | 64 concepts + 64 notebooks on agents, tool use, memory, multi-agent systems |
-| **Modern AI Engineering** | 20 contemporary concepts (evaluation, memory, training, inference, operations) |
+| **Modern AI Engineering** | 25 contemporary concepts (evaluation, memory, training, inference, operations, MCP, Agentic SDK) |
 | **MLOps** | 16 concepts + 17 notebooks (pipelines, monitoring, deployment) |
 | **System Design** | 31 ML/AI system design patterns + architecture reviews of 30 real systems |
 | **Coding Interview Prep** | Data structures + algorithm implementations |
