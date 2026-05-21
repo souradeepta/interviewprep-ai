@@ -212,8 +212,3 @@ Concurrent data packets flowing through processors and ML models to storage syst
 
 Dynamic scaling response to traffic load, showing pod count adjusting up and down with capacity headroom management over time.
 
-
-## Related Systems
-- [Related system 1]
-- [Related system 2]
-- [Related system 3]
