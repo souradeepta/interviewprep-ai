@@ -13,6 +13,7 @@
 | **Machine Learning** | 37 concepts + 8 from-scratch implementation notebooks |
 | **Large Language Models** | 44 concepts + 46 implementation notebooks covering transformers → production |
 | **Agentic AI** | 64 concepts + 64 notebooks on agents, tool use, memory, multi-agent systems |
+| **Modern AI Engineering** | 20 contemporary concepts (evaluation, memory, training, inference, operations) |
 | **MLOps** | 16 concepts + 17 notebooks (pipelines, monitoring, deployment) |
 | **System Design** | 31 ML/AI system design patterns + architecture reviews of 30 real systems |
 | **Coding Interview Prep** | Data structures + algorithm implementations |
@@ -36,6 +37,7 @@
 | Crack ML engineering interviews | [ML Roadmap](roadmaps/ml-roadmap.md) |
 | Learn LLMs from scratch to production | [LLM Roadmap](roadmaps/llm-roadmap.md) |
 | Build and understand AI agents | [Agentic AI Roadmap](roadmaps/agentic-roadmap.md) |
+| Master modern AI engineering techniques | [Modern AI Engineering](modern-ai/) — evaluation, memory, optimization, operations |
 | Ace ML system design interviews | [System Design Roadmap](roadmaps/system-design-roadmap.md) |
 | DSA + ML coding practice | [Coding](coding/README.md) |
 
@@ -50,6 +52,7 @@ interviewprep-ml/
 ├── llm/               # Large Language Models — 44 concepts + 46 notebooks
 ├── agentic-ai/        # Agentic AI — 64 concepts + 64 notebooks
 ├── ml/                # Classical ML — 37 concepts + 8 implementation notebooks
+├── modern-ai/         # Modern AI Engineering — 20 concepts + 20 notebooks
 ├── mlops/             # MLOps — 16 concepts + 17 notebooks + case studies
 ├── system-design/     # System Design Patterns (31) + interview prep
 ├── arch-review/       # Real System Architecture Reviews (30 systems)
@@ -59,7 +62,7 @@ interviewprep-ml/
 └── data/              # Concept mappings and schemas
 ```
 
-Each learning folder (ai/, llm/, ml/, agentic-ai/) contains:
+Each learning folder (ai/, llm/, ml/, agentic-ai/, modern-ai/) contains:
 - `concepts/` — Comprehensive concept files with explanations and Q&A
 - `notebooks/` — Jupyter notebooks with working implementations and examples
 
