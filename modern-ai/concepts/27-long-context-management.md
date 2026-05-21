@@ -1,98 +1,100 @@
 # Long Context Management
 
 ## Detailed Explanation
-Modern LLMs handle context windows of 100K–1M tokens, requiring specialized techniques to maintain performance. Sliding Window Attention reduces O(n²) to O(n·w) complexity. Rotary Position Embeddings (RoPE) encode relative distance naturally. Position interpolation extends trained length 4-8x via scaling position indices. ALiBi applies linear distance penalties instead of learned embeddings. Together, these enable models to process entire books, code repositories, and long documents efficiently.
+
+Mixture of Experts (MoE) and long context are critical techniques for modern LLMs:
+
+**MoE** enables scaling to trillion-parameter models with sparse activation. Instead of using all parameters, a gating network routes each token to only k expert subnetworks. This achieves 3-4x speedup while maintaining or improving quality. Mixtral 8x7B (2x parameters of 7B single model, <50% extra compute) demonstrates the efficiency gains. DeepSeek-V2 uses 64 experts with auxiliary-loss-free load balancing.
+
+**Long Context** extends models from 4K tokens (BERT era) to 128K-1M tokens (2026). Techniques like RoPE, position interpolation, and sparse attention enable efficient long-range reasoning. Critical for RAG systems, code analysis, and document understanding where context is key.
 
 ## Core Intuition
-Think of reading a long book: you can't remember every detail of page 1 when on page 500. Instead, your brain focuses on nearby pages (sliding window) and remembers relative distances (RoPE). To read a longer book than you trained on, you 'compress' position numbers into your learned range (position interpolation). Some people just penalize distant memories linearly (ALiBi).
+Reading a 500-page book: you can't memorize page 1 word-for-word when on page 500. Your brain focuses on nearby pages (sliding window) and remembers relative distances (RoPE). To read longer books than trained, you compress position numbers into your learned range (position interpolation).
 
 ## How It Works
 
-1. Sliding Window Attention: each token attends to w preceding tokens
-2. RoPE: rotate query/key by m·θ_i where θ_i=base^(-2i/d)
-3. Position Interpolation: m' = m·(L_train/L_target)
-4. ALiBi: apply linear penalty score(i,j) -= m_h·|i-j|
-5. Chunked processing: split long sequences with overlap
+1. **Sliding Window Attention**: Each token attends to w preceding tokens. Complexity O(n·w) instead of O(n²)
+2. **RoPE Encoding**: Rotate query/key by angle m·θ_i where θ_i = base^(-2i/d). Encodes relative distance naturally
+3. **Position Interpolation**: For length extension, scale m' = m·(L_train/L_target) to compress into training range
+4. **ALiBi Penalty**: Apply linear distance penalty: attention_score -= m_h·|i-j|. No learned parameters, strong extrapolation
+5. **Chunked Processing**: Split long sequences with overlap to avoid truncation. Merge results.
 
 ```mermaid
-graph LR
-    A[Input] --> B[Process] --> C[Output]
-    style B fill:#e1f5ff
+graph TD
+    A[Input Tokens] --> B[Gate Network]
+    B --> C{TopK Selection}
+    C --> D[Expert 1]
+    C --> E[Expert 2]
+    D --> F[Weighted Sum]
+    E --> F
+    F --> G[Output]
 ```
 
 ## Architecture / Trade-offs
 
-| Aspect | Value | Notes |
-|--------|-------|-------|
-| Complexity | Advanced | Production-ready |
-| Category | LLM Architecture | LLM Architecture domain |
-| Use Case | Multiple | See real-world examples in notebook |
+| Aspect | MoE | Single Dense |
+|--------|-----|-------------|
+| Active Parameters | k/n% | 100% |
+| Compute | Low | High |
+| Quality | Higher | Baseline |
+| Implementation | Complex | Simple |
+| Load Balancing | Required | N/A |
+
+**Key Trade-offs**:
+- More experts (n): better quality, harder to balance
+- Higher k: more compute, better quality
+- Larger capacity_factor: more memory, fewer drops
 
 ## Design Challenges
 
-1. **Challenge 1**: See notebook examples for mitigation strategies.
-2. **Challenge 2**: Production deployment requires careful tuning.
-3. **Challenge 3**: Monitor key metrics during rollout.
+1. **Load Imbalance**: Some experts overloaded, others empty. Fix: auxiliary loss L_aux = α·Σ f_i·P_i with α=0.01-0.001
+2. **Token Dropping**: Capacity exceeded, tokens dropped. Fix: increase capacity_factor to 1.25-2.0
+3. **Communication Overhead**: In distributed setting, all-gather of expert outputs. Fix: expert parallelism via careful sharding
 
 ## Interview Q&A
 
-**Q1: When would you use this technique vs alternatives?**
-A: See notebook Comparison section for detailed trade-off analysis with empirical benchmarks.
-
-**Q2: What are the main implementation pitfalls?**
-A: See notebook examples which cover common mistakes and their fixes.
-
-**Q3: How do you monitor this in production?**
-A: Notebook includes instrumentation with timing and accuracy tracking.
-
-**Q4: What's the computational cost?**
-A: See envelope calculations in accompanying notebook Level 2 section.
-
-**Q5: How does this scale with model size?**
-A: Real-world examples in notebook demonstrate scaling across different model dimensions.
+**Q1: Should I use RoPE or ALiBi for long context?**
+A: RoPE: better quality, needs fine-tuning for extension. ALiBi: no tuning, slightly lower quality. Use RoPE with position interpolation + fine-tuning for best quality.
+**Q2: How do I extend from 4K to 32K context?**
+A: RoPE: m' = m·(4096/32768). Fine-tune ≥200 steps on target length. YaRN improves this with blended scaling.
+**Q3: What's the lost-in-middle problem?**
+A: Models over-attend to start/end tokens, ignore middle. Fix: reorder context to put important info at edges, or use ALiBi for uniform decay.
+**Q4: Can you process 1M tokens efficiently?**
+A: Yes, with sliding window (4K-8K) + chunking. Stack overlapping chunks with KV cache sharing. Memory complexity drops to O(L·w).
 
 ## Best Practices
 
-- Follow the production patterns in the notebook implementation section
-- Always profile before and after deployment
-- Monitor key metrics (latency, throughput, quality)
-- Start with the basic implementation, optimize later
-- Use the provided utilities from the implementation .py file
+- **Auxiliary Loss**: Always use L_aux in training. Monitor f_i (expert routing fraction). If any expert < 5%, increase α or improve initialization
+- **Capacity Factor**: Use 1.0 during training (tight), 2.0 during inference (loose). Prevents drops under batch variation
+- **Expert Initialization**: Initialize gate W_g small (~0.1 std) so experts start equally likely. Large init causes early collapse
+- **Load Balancing**: Monitor expert utilization per batch. Ideal: uniform distribution. Use load_balance_loss_weight based on deviation
+- **Top-K Selection**: Start with Top-2 (safe), move to Top-1 if compute budget tight. Never use Top-1 without strong loss monitoring
+- **Inference Optimization**: Batch requests to fill expert capacity. Use dynamic batching to group by predicted expert
+- **Distributed Training**: Use expert parallelism (experts on different GPUs) for large models. Minimize all-gather communication
 
 ## Common Pitfalls
 
-- **Pitfall 1**: Skipping the profiling phase. Fix: Use the timing utilities in the notebook.
-- **Pitfall 2**: Assuming defaults work for your use case. Fix: Tune hyperparameters per notebook examples.
-- **Pitfall 3**: Not monitoring production behavior. Fix: Instrument your code as shown in Real-World Examples.
+- **Position interpolation without fine-tuning**:  quality drops >4x. Always fine-tune minimum 200 steps.
+- **Sliding window only for nearby tokens**:  misses long-range dependencies. Always include global tokens.
+- **Lost-in-middle**:  content in middle gets ignored. Reorder prompts or use ALiBi-style decay.
 
-## Code Examples
+## Key Formula
 
-See the corresponding Jupyter notebook and Python implementation file for comprehensive, runnable examples with:
-- From-scratch numpy implementations
-- Production torch code with error handling
-- Three different real-world scenarios
-- Comparison benchmarks
+RoPE: q_rot[2i] = q[2i]·cos(m·θ_i) - q[2i+1]·sin(m·θ_i), θ_i = base^(-2i/d), base ∈ {10K, 500K}
 
-## Related Concepts
+## Production Considerations
 
-- [Concept 01](./01-llm-evaluation-harness.md) – Evaluation frameworks
-- [Concept 05](./05-advanced-rag-patterns.md) – Related retrieval techniques
-- [Concept 11](./11-flash-attention.md) – Attention optimization fundamentals
+- **Monitoring**: Track expert utilization, token drop rate, auxiliary loss weight, gate entropy
+- **Scaling**: MoE scales to 1T+ parameters. Distribution across devices critical
+- **Cost Tradeoff**: More experts = more memory (expert weights). 8 experts is sweet spot for 7B-70B range
+- **Inference Batching**: Important to batch to amortize expert activations. Single-sample inference underutilizes experts
 
 ---
 
-## References
+**Related Concepts**: 
+- Token Pruning (36): Remove unimportant tokens before MoE
+- Router Learning (39): Learn routing policies adaptively
+- Conditional Computation (53): Gate subnetworks dynamically
 
-Press et al. (2022). Train Short, Test Long: ALiBi. ICLR.
-
-Su et al. (2023). RoFormer: Rotary Position Embedding. Neurocomputing.
-
-Peng et al. (2023). YaRN: Efficient Context Extension. arXiv:2309.00071.
-
-Liu et al. (2024). Lost in the Middle. TACL. arXiv:2307.03172.
-
-Shi et al. (2025). SWAT: Sliding Window Attention Training. arXiv:2502.18845.
-
-**Notebook**: `modern-ai/notebooks/long-context-management.ipynb` (16 cells, 600-950 code lines)
-
-**Implementation**: `modern-ai/implementations/long-context-management.py` (standalone production code)
+**Notebook**: `modern-ai/notebooks/long-context-management.ipynb`
+**Implementation**: `modern-ai/implementations/long-context-management.py`

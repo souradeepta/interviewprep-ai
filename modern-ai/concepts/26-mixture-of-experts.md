@@ -1,98 +1,100 @@
 # Mixture of Experts Routing
 
 ## Detailed Explanation
-Mixture of Experts (MoE) is a neural network architecture where multiple expert subnetworks specialize in different aspects of the problem domain. A gating network learns to route each token to the top-k experts, enabling sparse activation where only k out of n experts are used per token. This achieves significant efficiency gains (2-4x throughput) while maintaining or improving quality. MoE is now standard in production LLMs: Mixtral 8x7B, DeepSeek-V2 (64 experts), and commercial models.
+
+Mixture of Experts (MoE) and long context are critical techniques for modern LLMs:
+
+**MoE** enables scaling to trillion-parameter models with sparse activation. Instead of using all parameters, a gating network routes each token to only k expert subnetworks. This achieves 3-4x speedup while maintaining or improving quality. Mixtral 8x7B (2x parameters of 7B single model, <50% extra compute) demonstrates the efficiency gains. DeepSeek-V2 uses 64 experts with auxiliary-loss-free load balancing.
+
+**Long Context** extends models from 4K tokens (BERT era) to 128K-1M tokens (2026). Techniques like RoPE, position interpolation, and sparse attention enable efficient long-range reasoning. Critical for RAG systems, code analysis, and document understanding where context is key.
 
 ## Core Intuition
-Imagine a company with 100 employees where each request only needs 2 specialized workers. Instead of activating everyone (100% compute), you route each request to the right 2 people. The router learns who handles what. By year-end, you've done the same work with 2% of total activation cost.
+Imagine a company with 100 expert employees where each task only needs 2 specialists. Instead of activating everyone (100% compute), you route each task to the right 2 people. The router learns who handles what. By year-end, you've done the same work with only 2% of total activation cost.
 
 ## How It Works
 
-1. Compute gating logits: h(x) = x·W_g ∈ [num_experts]
-2. Apply TopK softmax: select k highest-scoring experts
-3. Capacity check: capacity = ceil(capacity_factor × tokens / num_experts)
-4. Dispatch tokens to experts, drop overflow via residual
-5. Weighted aggregation: output = Σ g_i·E_i(x)
+1. **Compute gating logits**: Pass input through linear gate: h(x) = x·W_g ∈ ℝ^{num_experts}
+2. **Select top-k experts**: Apply TopK(softmax(h(x)), k=2) to get sparse selection
+3. **Normalize scores**: Re-normalize selected expert weights to sum to 1
+4. **Capacity check**: Each expert has capacity = ceil(capacity_factor × tokens / num_experts). Tokens exceeding capacity are dropped (passed through residual)
+5. **Weighted aggregation**: Output = Σ(g_i × E_i(x)) for selected experts only
 
 ```mermaid
-graph LR
-    A[Input] --> B[Process] --> C[Output]
-    style B fill:#e1f5ff
+graph TD
+    A[Input Tokens] --> B[Gate Network]
+    B --> C{TopK Selection}
+    C --> D[Expert 1]
+    C --> E[Expert 2]
+    D --> F[Weighted Sum]
+    E --> F
+    F --> G[Output]
 ```
 
 ## Architecture / Trade-offs
 
-| Aspect | Value | Notes |
-|--------|-------|-------|
-| Complexity | Advanced | Production-ready |
-| Category | LLM Architecture | LLM Architecture domain |
-| Use Case | Multiple | See real-world examples in notebook |
+| Aspect | MoE | Single Dense |
+|--------|-----|-------------|
+| Active Parameters | k/n% | 100% |
+| Compute | Low | High |
+| Quality | Higher | Baseline |
+| Implementation | Complex | Simple |
+| Load Balancing | Required | N/A |
+
+**Key Trade-offs**:
+- More experts (n): better quality, harder to balance
+- Higher k: more compute, better quality
+- Larger capacity_factor: more memory, fewer drops
 
 ## Design Challenges
 
-1. **Challenge 1**: See notebook examples for mitigation strategies.
-2. **Challenge 2**: Production deployment requires careful tuning.
-3. **Challenge 3**: Monitor key metrics during rollout.
+1. **Load Imbalance**: Some experts overloaded, others empty. Fix: auxiliary loss L_aux = α·Σ f_i·P_i with α=0.01-0.001
+2. **Token Dropping**: Capacity exceeded, tokens dropped. Fix: increase capacity_factor to 1.25-2.0
+3. **Communication Overhead**: In distributed setting, all-gather of expert outputs. Fix: expert parallelism via careful sharding
 
 ## Interview Q&A
 
-**Q1: When would you use this technique vs alternatives?**
-A: See notebook Comparison section for detailed trade-off analysis with empirical benchmarks.
-
-**Q2: What are the main implementation pitfalls?**
-A: See notebook examples which cover common mistakes and their fixes.
-
-**Q3: How do you monitor this in production?**
-A: Notebook includes instrumentation with timing and accuracy tracking.
-
-**Q4: What's the computational cost?**
-A: See envelope calculations in accompanying notebook Level 2 section.
-
-**Q5: How does this scale with model size?**
-A: Real-world examples in notebook demonstrate scaling across different model dimensions.
+**Q1: How do you prevent load imbalance where some experts get overloaded?**
+A: Use auxiliary loss L_aux that penalizes imbalanced routing. Set α=0.01 and monitor f_i distribution. Also increase capacity_factor to 1.25 to provide buffer.
+**Q2: What's the trade-off between Top-1 and Top-2 routing?**
+A: Top-1: 1x compute per token, max efficiency, higher drop rate. Top-2: 2x compute, 2% quality gain, lower drops. Mixtral uses Top-2 as sweet spot.
+**Q3: How do you handle token dropout during inference?**
+A: Increase capacity_factor from 1.0 (training) to 2.0 (inference). Reserve extra buffer so no tokens are dropped. Monitor expert utilization.
+**Q4: Can you use learned routing instead of softmax TopK?**
+A: Yes, use learned gates with sigmoid or gumbel-softmax. More flexible but harder to train. DeepSeek uses biased gating for auxiliary-loss-free routing.
 
 ## Best Practices
 
-- Follow the production patterns in the notebook implementation section
-- Always profile before and after deployment
-- Monitor key metrics (latency, throughput, quality)
-- Start with the basic implementation, optimize later
-- Use the provided utilities from the implementation .py file
+- **Auxiliary Loss**: Always use L_aux in training. Monitor f_i (expert routing fraction). If any expert < 5%, increase α or improve initialization
+- **Capacity Factor**: Use 1.0 during training (tight), 2.0 during inference (loose). Prevents drops under batch variation
+- **Expert Initialization**: Initialize gate W_g small (~0.1 std) so experts start equally likely. Large init causes early collapse
+- **Load Balancing**: Monitor expert utilization per batch. Ideal: uniform distribution. Use load_balance_loss_weight based on deviation
+- **Top-K Selection**: Start with Top-2 (safe), move to Top-1 if compute budget tight. Never use Top-1 without strong loss monitoring
+- **Inference Optimization**: Batch requests to fill expert capacity. Use dynamic batching to group by predicted expert
+- **Distributed Training**: Use expert parallelism (experts on different GPUs) for large models. Minimize all-gather communication
 
 ## Common Pitfalls
 
-- **Pitfall 1**: Skipping the profiling phase. Fix: Use the timing utilities in the notebook.
-- **Pitfall 2**: Assuming defaults work for your use case. Fix: Tune hyperparameters per notebook examples.
-- **Pitfall 3**: Not monitoring production behavior. Fix: Instrument your code as shown in Real-World Examples.
+- **Token dropping silently degrades quality if capacity_factor too low. Always monitor drop rate.**: Token dropping silently degrades quality if capacity_factor too low. Always monitor drop rate.
+- **Load imbalance between experts causes GPU underutilization. Increase α or improve load balancing.**: Load imbalance between experts causes GPU underutilization. Increase α or improve load balancing.
+- **Training instability from sparse gradients. Use gradient clipping and careful learning rate scheduling.**: Training instability from sparse gradients. Use gradient clipping and careful learning rate scheduling.
 
-## Code Examples
+## Key Formula
 
-See the corresponding Jupyter notebook and Python implementation file for comprehensive, runnable examples with:
-- From-scratch numpy implementations
-- Production torch code with error handling
-- Three different real-world scenarios
-- Comparison benchmarks
+L_aux = α·N_E·Σ(f_i·P_i), where f_i = fraction routed to expert i, P_i = mean probability allocated, α = 0.01
 
-## Related Concepts
+## Production Considerations
 
-- [Concept 01](./01-llm-evaluation-harness.md) – Evaluation frameworks
-- [Concept 05](./05-advanced-rag-patterns.md) – Related retrieval techniques
-- [Concept 11](./11-flash-attention.md) – Attention optimization fundamentals
+- **Monitoring**: Track expert utilization, token drop rate, auxiliary loss weight, gate entropy
+- **Scaling**: MoE scales to 1T+ parameters. Distribution across devices critical
+- **Cost Tradeoff**: More experts = more memory (expert weights). 8 experts is sweet spot for 7B-70B range
+- **Inference Batching**: Important to batch to amortize expert activations. Single-sample inference underutilizes experts
 
 ---
 
-## References
+**Related Concepts**: 
+- Token Pruning (36): Remove unimportant tokens before MoE
+- Router Learning (39): Learn routing policies adaptively
+- Conditional Computation (53): Gate subnetworks dynamically
 
-Shazeer et al. (2017). Outrageously Large Neural Networks: Sparsely-Gated MoE. ICLR.
-
-Fedus et al. (2021). Switch Transformers. JMLR. https://www.jmlr.org/papers/volume23/21-0998/21-0998.pdf
-
-Jiang et al. (2024). Mixtral of Experts. arXiv:2401.04088.
-
-Liu et al. (2024). DeepSeek-V2. arXiv:2405.04434.
-
-Wang et al. (2024). Auxiliary-Loss-Free Load Balancing. arXiv:2512.03915.
-
-**Notebook**: `modern-ai/notebooks/mixture-of-experts.ipynb` (16 cells, 600-950 code lines)
-
-**Implementation**: `modern-ai/implementations/mixture-of-experts.py` (standalone production code)
+**Notebook**: `modern-ai/notebooks/mixture-of-experts.ipynb`
+**Implementation**: `modern-ai/implementations/mixture-of-experts.py`
