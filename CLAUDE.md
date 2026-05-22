@@ -704,15 +704,22 @@ Full learning materials for agents are in:
 /home/sbisw/.claude/projects/-home-sbisw-github-interviewprep-ml/memory/
 ```
 
-Memories include:
-- `llm_project_context.md` - Project overview and goals
-- `llm_concepts_index.md` - All 32 concepts with categories
-- `implementation_patterns.md` - Proven HuggingFace patterns
-- `notebook_architecture.md` - Standard notebook structure
-- `content_best_practices.md` - What makes content effective
-- `educational_design.md` - Pedagogical principles
-- `testing_patterns.md` - Testing and validation approach
-- `generator_scripts.md` - How to use generation tools
+**Current Project Status:**
+- `subproject_a_complete.md` - Sub-Project A completion (modern-ai 36-55): 20 concepts + 20 notebooks, 398/398 tests passing
+- `curriculum_expansion_complete.md` - 148 concepts (40 AI + 44 LLM + 64 agentic-ai) framework
+- `ai_fundamentals_enhancement.md` - All 40 AI fundamentals enhanced (150-250 word explanations + 2-3 sentence intuitions)
+
+**Implementation Reference:**
+- `implementation_patterns.md` - Proven patterns for transformers, PEFT, torch, sklearn
+- `claude_guidelines_session10.md` - Detailed templates for 8-section markdown + 16+ cell notebooks
+- `content_best_practices.md` - What makes content stick (code > theory, real examples)
+- `educational_design.md` - Interview Q&A design, pedagogical principles
+- `testing_patterns.md` - Validation approach (398 tests covering structure + correctness)
+
+**Project Infrastructure:**
+- `notebook_architecture.md` - Standard 12-16 cell structure (basic → advanced → examples → comparison)
+- `generator_scripts.md` - Python scripts for batch notebook generation
+- `llm_project_context.md` - Original project scope and goals
 
 ---
 
@@ -763,7 +770,7 @@ Memories include:
 - Real-world examples show actual usage patterns
 - **Result:** Materials prepare candidates for both interviews and real implementation
 
-### Iteration 4: Curriculum Expansion & Enhancement (Session 8-9, Current)
+### Iteration 4: Curriculum Expansion & Enhancement (Session 8-9)
 - Expanded from 32 LLM concepts to 148 total concepts (40 AI + 44 LLM + 64 Agentic-AI)
 - **Session 8:** Created all 148 concept files and 148 notebooks following agentic-ai pattern
 - **Session 9:** Enhanced all 40 AI fundamentals with comprehensive:
@@ -771,6 +778,18 @@ Memories include:
   - Core Intuition (2-3 sentences): memorable analogies for quick understanding
 - **Completion:** All 148 concepts now follow consistent 8-section markdown + 12-cell notebook pattern
 - **Result:** Comprehensive, interview-ready curriculum covering full AI/ML/LLM spectrum
+
+### Iteration 5: Comprehensive Repo Enhancement (Session 11, Current)
+- Implementing comprehensive enhancement plan targeting 5 sub-projects across 260+ files
+- **Sub-Project A (Modern-AI concepts 36-55):** ✅ **NOW COMPLETE**
+  - All 20 concept markdown files: Complete with 8-section structure (1600-2300 words each)
+  - All 20 Jupyter notebooks: Complete with 16+ cells each
+  - Enhanced notebooks 46-50: Expanded from 200-400 lines to 600-900 lines
+  - Completed notebooks 51, 53, 54: Added missing Real-World Example 3 + Comparison sections
+  - **Quality:** All code uses real libraries, 398/398 tests passing ✓
+  - **Pattern:** Every concept has basic → advanced → 3 real-world examples + comparison
+- **Remaining sub-projects:** B (SDE3 patterns), C (diagrams), D (coding), E (navigation) — partially started
+- **Result:** Production-ready learning materials with comprehensive coverage of optimization, inference, and deployment techniques
 
 ---
 
@@ -804,9 +823,10 @@ Memories include:
 
 ### Knowledge Base
 Read these memory files if you need deep context:
-- `ai_fundamentals_enhancement.md` - Session 9 completion (all 40 AI concepts enhanced)
-- `curriculum_expansion_complete.md` - Session 8 completion (148 concepts total)
-- `implementation_patterns.md` - Real library patterns that work
+- `subproject_a_complete.md` - **Session 11:** Sub-Project A (modern-ai 36-55) completion with 40 files
+- `ai_fundamentals_enhancement.md` - **Session 9:** All 40 AI concepts with 150-250 word explanations
+- `curriculum_expansion_complete.md` - **Session 8:** 148 concepts framework (40 AI + 44 LLM + 64 agentic-ai)
+- `implementation_patterns.md` - Real library patterns that work (transformers, PEFT, torch, sklearn)
 
 ---
 
