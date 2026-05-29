@@ -1,63 +1,83 @@
 # Differential Privacy
 
 ## TL;DR
-Add noise to data or gradients during training. Model cannot memorize individuals (membership inference attack fails). Formally proven privacy: ε-differential privacy (smaller ε = more private).
+Add noise to data or gradients during training. Model cannot memorize individuals (membership inference attack fails). Formally proven privacy: epsilon-differential privacy (smaller epsilon = more private).
 
 ## Core Intuition
-Data = {Alice, Bob, Charlie}. Train model on data. Model memorizes Alice. Attack: "is Alice in training data?" → Yes (privacy leak). Solution: add noise so model can't memorize Alice.
+Data = {Alice, Bob, Charlie}. Train model on data. Model memorizes Alice. Attack: "is Alice in training data?" -> Yes (privacy leak). Solution: add noise so model can't memorize Alice.
 
 ## How It Works
 
 **Differential privacy:**
 - Add Gaussian noise to gradients during training
-- Smaller ε = more noise = more privacy (but less accuracy)
-- ε=1: good privacy. ε=10: less privacy.
+- Smaller epsilon = more noise = more privacy (but less accuracy)
+- epsilon=1: good privacy. epsilon=10: less privacy.
 
-| ε | Privacy | Accuracy |
-|---|---------|----------|
+| epsilon | Privacy | Accuracy |
+|---------|---------|----------|
 | 0.5 | Very high | 90% |
 | 1.0 | High | 92% |
 | 5.0 | Medium | 94% |
 | 10.0 | Low | 95% |
 
 ## Key Properties / Trade-offs
-- Privacy vs accuracy: more privacy → more accuracy drop
+- Privacy vs accuracy: more privacy -> more accuracy drop
 - Complexity: requires clipping and noise addition
 - Proof: differential privacy = formal proof (unlike heuristics)
 
 ## Detailed Trade-off Analysis
 
-| Privacy Guarantee (ε) | Accuracy | Noise Level | Use Case | Regulatory OK |
-|----------------------|----------|------------|----------|--------------|
+| Privacy Guarantee (epsilon) | Accuracy | Noise Level | Use Case | Regulatory OK |
+|-----------------------------|----------|------------|----------|--------------|
 | 0.1 | 88% | Very high | Academic research | Yes |
 | 1.0 | 92% | High | Industry standard | Yes |
 | 5.0 | 94% | Medium | Borderline | Maybe |
 | 10.0 | 95% | Low | Weak guarantee | No |
-| ∞ (no DP) | 96% | None | No privacy | No |
+| infinity (no DP) | 96% | None | No privacy | No |
 
-**Decision:** Regulated (healthcare, finance) → ε≤1.0. Compliant (GDPR) → ε≤5.0. Startup MVP → ε>5.0 (trade privacy for accuracy).
+**Decision:** Regulated (healthcare, finance) -> epsilon <= 1.0. Compliant (GDPR) -> epsilon <= 5.0. Startup MVP -> epsilon > 5.0 (trade privacy for accuracy).
 
 ---
 
 ## Production Failure Scenarios
 
-**Scenario 1: DP noise too low, membership inference attack succeeds**
-- Train with noise_multiplier=0.1 (claimed ε=1.0 but actual ε=8.0). Attacker extracts training data.
-- Privacy claim false.
-- Prevention: Test with membership inference attack (open-source tools available). Verify ε empirically.
+**1. Epsilon Budget Exhausted**
+- **Symptom:** Analytics team blocked from running queries after the weekly epsilon = 10.0 budget is consumed on day 2; downstream reports fail.
+- **Root Cause:** No budget planning; each ad-hoc query consumed epsilon = 0.5 without tracking cumulative spend; no alerting at budget thresholds.
+- **Detection:** Track cumulative epsilon via privacy accountant (Google DP library); alert at 80% consumption; log each query's epsilon cost to a budget ledger.
+- **Fix:** Plan epsilon allocation upfront by use case (e.g., reporting: epsilon = 3.0, model training: epsilon = 5.0, analytics: epsilon = 2.0); use advanced composition theorem for sequential queries to tighten the bound; reset budget weekly or monthly on a fixed schedule.
 
-**Scenario 2: DP applied incorrectly, privacy guarantee invalid**
-- Add noise to gradients but batch size changes mid-training. Privacy math breaks.
-- Prevention: Use library correctly (TensorFlow Privacy, Opacus). Don't DIY. Verify implementation.
+**2. Noise Destroys Minority Subgroup Signal**
+- **Symptom:** DP-protected aggregate statistics for groups with n < 50 are effectively useless -- confidence intervals span the entire plausible range.
+- **Root Cause:** Noise calibrated to global sensitivity of the full population; for small groups the noise-to-signal ratio is overwhelming.
+- **Detection:** Compute confidence intervals on DP stats per subgroup; if CI width > 50% of the point estimate, suppress and flag the statistic.
+- **Fix:** Enforce minimum group size threshold (n >= 100) before reporting any subgroup statistic; suppress smaller groups with an explanatory note in the output; if small-group reporting is required, explore local DP with per-record guarantees rather than global DP.
 
-**Scenario 3: DP breaks fairness**
-- Add noise for privacy. Fairness metrics degrade (noise disproportionately hurts minority groups).
-- Privacy achieved, fairness broken.
-- Prevention: Monitor fairness with DP. May need group-specific noise levels.
+**3. Epsilon Chosen Without Calibration**
+- **Symptom:** A model is trained with epsilon = 100 and described as "DP-compliant" in the model card -- the actual privacy protection is negligible.
+- **Root Cause:** Team set epsilon based on trial-and-error accuracy optimization without understanding the epsilon scale (epsilon < 1 = strong; epsilon > 10 = weak; epsilon = 100 = essentially no protection).
+- **Detection:** Audit epsilon values in all model cards; flag any epsilon > 10 for privacy team review; require documented justification for epsilon > 5.
+- **Fix:** Maintain a company-wide epsilon policy: regulated domains (HIPAA, GDPR) require epsilon <= 1.0; internal analytics epsilon <= 5.0; document epsilon interpretation in every model card alongside a threat model statement.
 
-**Scenario 4: DP accuracy unacceptable, model unusable**
-- DP reduces accuracy from 95% to 80%. Too low for production.
-- Prevention: Test DP impact before implementation. Know accuracy trade-off upfront.
+**4. Sensitivity Underestimated**
+- **Symptom:** The DP mechanism adds insufficient noise; a privacy audit reveals the actual protection is weaker than the claimed epsilon because outlier records were not clipped.
+- **Root Cause:** Global sensitivity computed on a bounded training sample; unbounded outliers exist in production (e.g., a user with 10,000 transactions while the dataset assumed max 500).
+- **Detection:** Compare sensitivity estimate vs realized maximum gradient norm across a production data sample; alert if realized max exceeds the assumed sensitivity by more than 10%.
+- **Fix:** Clip all inputs to a bounded range before sensitivity computation; validate the clipping bound using the 99th percentile of the production distribution; re-derive the sensitivity guarantee on the clipped distribution and update the model card.
+
+---
+
+## Cost Model
+
+| Resource | Unit Cost | Volume | Monthly Cost |
+|----------|-----------|--------|-------------|
+| DP-SGD training overhead | $2/hr x 40% overhead | 100 hr/mo | $80 |
+| Privacy accountant compute | Negligible | -- | $1 |
+| Analyst query system (DP noise) | $0.001/query | 10K queries/mo | $10 |
+| Privacy officer review | $300/hr | 4 hr/mo | $1,200 |
+| **Total** | | | **~$1,291/month** |
+
+Differential privacy is the most cost-efficient of the privacy-preserving techniques. The infrastructure overhead (DP-SGD adds approximately 40% more training compute due to per-sample gradient computation) is modest, and the tooling is open source. The dominant cost is specialized human time: a privacy officer who can interpret epsilon guarantees, set policy, and respond to audit inquiries costs $1,200/month at 4 hours. For organizations making public claims about DP compliance (in product documentation or regulatory filings), budget an additional $10-50K annually for external privacy audit certification, which is a one-time cost that amortizes across all DP-trained models.
 
 ---
 
@@ -67,56 +87,56 @@ Data = {Alice, Bob, Charlie}. Train model on data. Model memorizes Alice. Attack
 **Right:** Use library (TensorFlow Privacy or Opacus). Peer-reviewed, proven correct. Easier to get right.
 
 **Wrong:** Set noise_multiplier arbitrarily (e.g., 0.5). Hope privacy is good.
-**Right:** Calculate ε budget from privacy requirements. Iterate: test accuracy, adjust noise, verify privacy.
+**Right:** Calculate epsilon budget from privacy requirements. Iterate: test accuracy, adjust noise, verify privacy.
 
 ---
 
-## Sophisticated Interview Q&A
+## Interview Q&A
 
-**Q1: ε=1.0. What does this privacy guarantee mean practically?**
-A: (1) Formal: attacker with access to gradients, auxiliary data, can't determine if single person in training with confidence >68%. (2) Practical: model doesn't memorize individuals. Membership inference attack has <68% success. (3) Not perfect privacy, but provable. (4) Stronger than anonymization (no re-identification).
+**Q: A colleague says epsilon = 1.0 means only 1% of privacy is lost. Correct them.**
+A: This is a common misinterpretation. Epsilon = 1.0 is a mathematical bound, not a percentage. The formal guarantee is: the probability ratio of any output on a dataset including person X vs a dataset excluding person X is bounded by e^epsilon. At epsilon = 1.0, e^1 = 2.72 -- meaning an attacker's advantage from seeing the output is bounded by 2.72x. Practically: a membership inference attack (is person X in the training set?) has success probability at most (e^1)/(1 + e^1) = 73% vs 50% random guessing. Lower epsilon = tighter bound = less attacker advantage.
 
-**Q2: Accuracy drops 5% with DP. How justify to business?**
-A: (1) Quantify: 95% → 90% on what metric? (2) Business impact: 5% drop = revenue loss. (3) Cost of privacy breach: regulatory fine + reputation = $100K+. (4) Trade-off: is 5% accuracy loss < cost of breach? (5) Explore: can different models achieve 92-93% with DP? (can sometimes).
+**Q: Accuracy drops 5% with DP. How do you justify this to the business?**
+A: Quantify the trade-off in business terms: (1) what is the revenue impact of 5% accuracy degradation? (e.g., if the model drives $10M/year revenue, 5% degradation = ~$500K impact); (2) what is the expected cost of a privacy breach in this domain? (GDPR fine up to 4% of global revenue + litigation + reputation damage -- easily $1M-100M for a major breach); (3) are there architectural options to close the gap? (larger model, more training epochs, better data cleaning can often recover 2-3% of the DP accuracy penalty). Present these three numbers together; in regulated domains, the trade-off almost always favors DP.
 
-**Q3: Multiple DP implementations (TensorFlow, Opacus, CrypTen). Which to use?**
-A: (1) TensorFlow Privacy: Keras API, easy integration, good for Keras/TF. (2) Opacus: PyTorch native, more flexible, better for research. (3) CrypTen: multi-party computation, for federated settings. (4) Pick based on framework (TF vs PyTorch) and use case. All are solid, peer-reviewed.
+**Q: You need to implement DP for a production PyTorch model. What library do you use and why?**
+A: Opacus (Meta AI) for PyTorch. Three reasons: (1) it handles the per-sample gradient computation automatically (the most error-prone part of DP-SGD); (2) it provides a built-in privacy accountant that tracks cumulative epsilon and delta as you train; (3) it works with standard PyTorch DataLoaders with minimal code changes. For TensorFlow, use TF Privacy. Both are peer-reviewed and widely deployed in production. Never implement DP-SGD from scratch: the subtle correctness requirements (sampling without replacement, correct noise scaling with batch size) are easy to get wrong in ways that invalidate the privacy guarantee.
 
-**Q4: DP noise per batch. How determine noise_multiplier?**
-A: (1) Start with default (0.5). (2) Measure ε budget consumed. (3) If ε too high (weak privacy), increase noise. (4) If ε too low (high accuracy loss), decrease noise. (5) Trade privacy-accuracy. (6) Use: δ (privacy failure probability, typically 1e-5) + desired ε → compute noise_multiplier.
+**Q: What is the difference between local differential privacy and global differential privacy? When would you use each?**
+A: In global DP, a trusted aggregator adds noise to the aggregate result after collecting raw data; in local DP, each user adds noise to their own data before sending it. Use global DP when you have a trusted data collector (first-party analytics): stronger utility because noise is added once to the aggregate, not to each individual record. Use local DP when you cannot trust the data collector (e.g., Apple/Google collecting data from user devices): stronger privacy guarantees even against a compromised server, but at the cost of much higher noise levels (local DP typically requires 10-100x more data for the same accuracy as global DP). The practical rule: if you control the pipeline end-to-end, use global DP; if the data must leave the user's device before aggregation, use local DP.
 
----
+**Q: How do you handle the epsilon budget for a model that is retrained monthly?**
+A: Composition: each retraining consumes epsilon from the budget. Two approaches: (1) treat each model version independently with its own epsilon budget (simpler but allows unbounded total exposure over time); (2) use the moments accountant or zero-concentrated DP (zCDP) framework to track cumulative epsilon across all training runs on the same individuals (more conservative). For monthly retraining with the same user cohort, zCDP is the correct tool: it provides tighter composition bounds than naive epsilon addition. In practice, if individuals rotate out of the training set (e.g., only the last 12 months of data) the budget resets naturally as their records leave the training window.
 
-## Cost & Resource Analysis
+**Q: A security team finds that your DP model's predictions can be used to infer whether a specific record was in the training set with 65% accuracy. You claimed epsilon = 1.0. What went wrong?**
+A: 65% membership inference accuracy is higher than the theoretical bound for epsilon = 1.0 (~73% maximum, but typical DP-trained models at epsilon = 1.0 are much closer to 50%). Possible root causes to investigate: (1) sensitivity underestimation -- outlier records not clipped, violating the assumed sensitivity bound; (2) incorrect batch sampling -- the privacy accounting assumes Poisson subsampling, but if the DataLoader uses sequential (non-random) sampling, the accounting is invalid; (3) library misconfiguration -- e.g., Opacus max_grad_norm set too high, allowing individual gradients to dominate; (4) data leak outside the model -- the attacker may be exploiting a non-DP side channel (e.g., prediction confidence scores rather than class labels). Audit each in order.
 
-**Differential privacy infrastructure:** TensorFlow Privacy or Opacus library. Minimal cost (open-source, integrate into training).
-**Accuracy loss:** Typically 1-5%. Can mean retraining, larger models, more data. Cost: extra GPU hours, development time.
-**Privacy auditing:** Membership inference tests, ε verification. 1-2 weeks engineer time = $5-10K.
-**Compliance certification:** External audit for regulated domains = $10-50K.
+**Q: How would you set up a DP-protected analytics system for a company that needs to publish monthly statistics about user behavior?**
+A: Three-layer design: (1) define the epsilon budget per reporting period (e.g., epsilon = 2.0/month per user cohort); (2) implement a query gateway that intercepts all aggregate queries, adds Laplace noise calibrated to global sensitivity before returning results, and deducts from the epsilon ledger; (3) enforce minimum group size (n >= 50) before any subgroup statistic is computed, suppressing smaller groups. For the reporting layer: publish only pre-defined, pre-budgeted statistics rather than allowing ad-hoc queries (prevents budget exhaustion via exploratory analysis). Audit the epsilon ledger monthly and reject queries once the budget is 80% consumed.
 
-**Cost of privacy breach (no DP):** Regulatory fine $4% revenue (GDPR). Litigation $100K+. Reputation. Easily $100K-10M+.
-**ROI:** DP investment $10-100K. Prevents incident worth $100K+. Break-even year 1.
+**Q: When is differential privacy NOT the right tool, and what should you use instead?**
+A: DP is not the right tool in four situations: (1) the data is already public or aggregated to the point where individual inference is impossible -- DP adds cost without benefit; (2) the accuracy requirement is absolute and the DP accuracy penalty is unacceptable (e.g., rare disease diagnosis requiring >99% sensitivity) -- explore federated learning with secure aggregation instead; (3) you need to publish exact statistics that must be auditable -- DP noise makes exact auditability impossible; (4) the dataset is tiny (n < 1000) -- DP noise completely drowns the signal. In cases 2 and 3, federated learning + secure aggregation provides strong practical privacy without accuracy loss. In case 4, consider whether the model should be built at all on such a small dataset.
 
 ---
 
 ## Monitoring & Observability
 
-**Key metrics:** Privacy budget ε consumed per epoch, accuracy loss percentage, noise multiplier in use, membership inference attack success rate, privacy coverage (% of training data under DP protection)
+**Key metrics:** Privacy budget epsilon consumed per epoch, accuracy loss percentage, noise multiplier in use, membership inference attack success rate, privacy coverage (% of training data under DP protection)
 
-**Alerts:** ε budget exceeded (privacy guarantee violated), accuracy drops below threshold, noise_multiplier configuration incorrect, membership inference attack succeeds (privacy broken)
+**Alerts:** Epsilon budget exceeded (privacy guarantee violated), accuracy drops below threshold, noise_multiplier configuration incorrect, membership inference attack succeeds (privacy broken)
 
 ## Common Mistakes / Gotchas
 - DIY differential privacy (easy to get wrong)
 - Insufficient noise (privacy bound too loose)
 - No privacy audit (claims not validated)
-- Confusing ε values (different libraries use different scales)
+- Confusing epsilon values (different libraries use different scales)
 
 ## Best Practices
 - **Use library:** TensorFlow Privacy, Opacus (PyTorch)
 - **Test privacy:** membership inference attack to validate
-- **Report ε value:** always report privacy budget
+- **Report epsilon value:** always report privacy budget
 - **Noise scheduling:** start high noise, reduce over training
-- **Batch size:** smaller batch → more privacy needed
+- **Batch size:** smaller batch -> more privacy needed
 
 ## Code Example
 ```python
@@ -145,16 +165,9 @@ for epoch in range(10):
         optimizer.step()
 ```
 
-## Interview Q&A
-**Q: Model trained with DP (ε=1.0). Privacy guarantee?**
-A: Formal guarantee: attacker with ~N/2 data samples can't determine if single person is in training set (at ε=1.0). More precisely: probability attacker guesses wrong is at least 50% + (1-e^(-1))/2 = 68%.
-
-**Q: DP reduces accuracy 5%. Acceptable?**
-A: Depends on use case. Recommendation (95% → 90%): maybe. Medical diagnosis (95% → 90%): unacceptable. Measure fairness-accuracy frontier, choose based on user needs.
-
 ## Interview Quick-Reference
-| ε | Privacy Level |
-|---|---|
+| epsilon | Privacy Level |
+|---------|---------------|
 | 0.1 | Excellent (academic research) |
 | 1.0 | Good (industry standard) |
 | 10.0 | Weak (privacy claim but not strong) |
