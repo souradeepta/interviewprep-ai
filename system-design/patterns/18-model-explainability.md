@@ -156,6 +156,81 @@ A: Validate. (1) Flip age value, does prediction change? (2) Is age causally imp
 | LIME | Fast | Medium | Quick explanation |
 | Trees | Fast | High | Interpretability critical |
 
+## Failure Scenarios
+
+### Failure 1: SHAP on Full Dataset Is Too Slow to Be Actionable
+**Symptom:** SHAP computation is scheduled to run nightly and takes 48 hours, making results 48 hours stale. By the time explanations are available, the debugging context has changed and the team has moved on.
+**Root Cause:** TreeExplainer runs in O(n × features) time. On 10M samples with 200 features, wall-clock time is prohibitive even on a multi-core machine.
+**Detection:** Measure wall-clock time from the moment SHAP is triggered to the moment results are available in the dashboard. If > 2 hours, results are not actionable for same-day debugging.
+**Fix:** For exploration and debugging, run SHAP on a stratified 1,000-sample subset — results are available in under 5 minutes and are representative. For compliance reports that require population-level SHAP, run full computation weekly as a batch job (not on-demand). Cache the weekly results in a queryable store so analysts do not re-trigger expensive computation.
+
+### Failure 2: Non-Reproducible Explanations (Compliance Violation)
+**Symptom:** The same loan application receives a different LIME explanation on two consecutive API calls. A regulatory audit flags this as inconsistent treatment.
+**Root Cause:** LIME generates explanations by sampling random perturbations of the input. Without a fixed random seed, each call produces a different neighborhood sample and different coefficients.
+**Detection:** Run LIME 10 times on the same input. Compute the standard deviation of feature importance rankings across runs. If any top-5 feature changes rank by more than 2 positions across runs, reproducibility is insufficient for compliance.
+**Fix:** Fix the random seed per model version: `seed = hash(model_version + input_hash) % 2^32`. Log the seed alongside every explanation so any explanation can be reproduced from the audit log. Update the seed when the model version changes (a new model legitimately produces different explanations, which is expected).
+
+### Failure 3: Spurious Feature Importance Discovered Post-Deployment
+**Symptom:** SHAP analysis run three months after deployment reveals that `browser_timezone_offset` is the second most important feature for loan approval decisions. This is legally problematic — it is a proxy for geographic location.
+**Root Cause:** The feature slipped through feature selection because it genuinely has predictive power (timezone correlates with regional economic conditions). SHAP was not run before deployment to surface this.
+**Detection:** Run SHAP feature importance on the validation set before every deployment. Compare the top-10 features against a domain knowledge checklist of approved and prohibited features.
+**Fix:** Add a mandatory SHAP audit to the deployment checklist — block promotion if any top-10 feature is flagged as a prohibited proxy. Assign a domain expert reviewer to approve the top-10 feature list before each release.
+
+### Failure 4: Explanation-Reality Mismatch (Rashomon Effect)
+**Symptom:** The team trains three models with equivalent accuracy (all within 0.5% AUC of each other). SHAP analysis shows completely different top features for each model. Business stakeholders lose confidence in all explanations.
+**Root Cause:** Multiple models fit the data equally well through different feature combinations — the Rashomon effect. SHAP correctly describes each individual model, but the explanations are model-specific and do not represent ground truth about the data-generating process.
+**Detection:** Compare SHAP feature importance rankings across an ensemble of your top-3 candidate models. If rank correlation (Spearman) between any two models is below 0.7, the Rashomon effect is present.
+**Fix:** Document explicitly that explanations are model-specific, not causal ground truth. For compliance reporting, report the range of importance rankings across the top-3 models to convey uncertainty. Consider switching to an inherently interpretable model (GAM, decision tree) if consistent explanations are a hard business requirement.
+
+### Failure 5: LIME Local Approximation Incorrect for Non-Linear Model
+**Symptom:** LIME explanation says "income was the top positive factor." However, manual inspection of similar predictions with slightly different income values shows the model actually has a threshold effect — predictions flip sharply at $75K income, a behavior LIME's linear approximation cannot capture.
+**Root Cause:** LIME fits a linear model in the neighborhood of the prediction. For models with sharp non-linearities, the linear approximation has low R² and is structurally wrong.
+**Detection:** Check LIME's local R² for every explanation. If R² < 0.7, the explanation is unreliable. For threshold-heavy features, compare LIME coefficients against SHAP values — a large disagreement indicates non-linearity that LIME cannot represent.
+**Fix:** Use SHAP instead of LIME for models with known non-linearities (gradient boosting, neural networks). If LIME is required for latency reasons, increase the local neighborhood size and add polynomial interaction terms to the local model.
+
+---
+
+## Cost Model
+
+| Resource | Unit Cost | Volume | Monthly Cost |
+|----------|-----------|--------|-------------|
+| SHAP batch compute (weekly full run, GPU) | $2/hr | 4 hr/run × 4 runs/month | $32 |
+| LIME on-demand (per-prediction API) | $0.005/request | 1,000 req/day | $150 |
+| Explanation storage (S3) | $0.023/GB | 2 GB/day | $1.40 |
+| Compliance report generation (engineer time) | $200/hr | 4 hr/month | $800 |
+| Domain expert review of top-10 features | $300/hr | 2 hr/deployment | $600 (per deployment) |
+| **Total** | | | **~$983/month + $600/deployment** |
+
+Explainability infrastructure is inexpensive compared to the compliance risk it mitigates. A single regulatory fine for unexplained credit decisions can exceed $1M — the $12K/year infrastructure cost has a break-even of less than two weeks of avoided regulatory exposure. The dominant non-compliance cost is engineer and domain expert review time, not compute.
+
+---
+
+## Interview Q&A
+
+**Q1: SHAP explanation takes 5 minutes per prediction. Production needs < 100ms. Solution?**
+A: Use a three-tier strategy: (1) real-time API: use LIME (< 10ms) or a pre-trained surrogate decision tree (< 1ms) for immediate explanations; (2) async audit: compute SHAP in the background for a sampled 10% of predictions and store in a queryable log; (3) compliance reporting: run full-population SHAP weekly as a batch job. Never block the request path with SHAP.
+
+**Q2: Feature A shows +0.3 impact in SHAP. Does it cause the prediction or correlate?**
+A: SHAP measures predictive contribution, not causation. To test causality: (1) ablate feature A (set it to baseline), retrain, and check if accuracy drops; (2) test with domain expert (does A have a plausible causal mechanism?); (3) run a natural experiment if available (find users where A changed exogenously and check if predictions changed as expected). SHAP alone cannot answer the causal question.
+
+**Q3: Regulator requires explanations for every loan decision. SHAP too slow. What do you do?**
+A: Train a Generalized Additive Model (GAM) as a surrogate that mimics the complex model. GAMs are inherently interpretable (output = sum of smooth functions of individual features), produce explanations in < 1ms, and can be validated against the complex model for agreement rate (target > 95% on held-out test set). Use the GAM for real-time explanations; periodically recompute SHAP for the complex model to validate that the GAM surrogate remains accurate.
+
+**Q4: LIME local model R² = 0.6. Is the explanation trustworthy?**
+A: No. R² = 0.6 means the linear approximation explains only 60% of the model's local behavior — the other 40% is non-linear structure that LIME cannot capture. Options: (1) switch to SHAP, which handles non-linearities via Shapley values; (2) use a local decision tree (depth 3-4) instead of a linear model for LIME's surrogate; (3) increase the local neighborhood size; (4) document the R² value alongside every explanation so users understand the confidence level.
+
+**Q5: When would you NOT use SHAP?**
+A: (1) When explanations must be produced in real time at high QPS (SHAP is too slow for > 10 req/sec without pre-computation); (2) when the model is a neural network without tree structure (KernelSHAP is very slow; DeepSHAP has approximation errors); (3) when the compliance requirement is counterfactual explanations ("what would you need to change to get approved?"), which SHAP does not provide — use DiCE or a counterfactual generation library instead.
+
+**Q6: What breaks first when explainability scales to 10× more predictions?**
+A: LIME on-demand cost scales linearly with requests — at 10× volume, LIME costs increase from $150 to $1,500/month, which is still manageable. The real bottleneck is explanation storage: at 10× volume, 20 GB/day of explanation storage costs $14/day ($420/month), and querying historical explanations requires a proper columnar store (Parquet + Athena) rather than raw JSON in S3.
+
+**Q7: Explanation says "age important." Trust it?**
+A: Validate first: (1) flip the age value for the same input and check if the prediction changes in the expected direction; (2) check whether age is a causal driver or a proxy for another variable (e.g., years_of_credit_history); (3) review with a domain expert. SHAP values reflect the model's learned associations, not causal ground truth.
+
+**Q8: Regulatory requirement: explain each prediction. Approach?**
+A: Use SHAP for batch audit reporting (run weekly). Use LIME or a surrogate interpretable model for real-time per-decision explanations. Format: "Approved because income = $120K (impact: +0.4), credit score = 750 (impact: +0.3), debt-to-income ratio = 0.25 (impact: +0.2)." Store both the explanation and the model version that produced it for auditability.
+
 ## Related Topics
 - [Model Debugging](17-model-debugging.md)
 - [Fairness Metrics](25-fairness-metrics.md)

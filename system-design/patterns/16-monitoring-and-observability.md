@@ -149,6 +149,81 @@ A: Too noisy. Better: alert on distribution shift (0.95 used to be 0.01% of pred
 | Error rate | >1% (from 0.1%) |
 | Drift | KS-test p<0.05 |
 
+## Failure Scenarios
+
+### Failure 1: Cardinality Explosion in Metrics
+**Symptom:** Prometheus runs out of memory (OOM). The time-series database shows 10M+ active series. Dashboards stop loading. Alerts stop firing.
+**Root Cause:** A developer added a high-cardinality label — such as `user_id` or `request_id` — to a per-request counter or histogram. With 1M unique users, a single metric creates 1M time series.
+**Detection:** Monitor `prometheus_tsdb_head_series` metric. Alert when it exceeds 5M. Review new metrics added in recent deployments by diffing the metric registry.
+**Fix:** Remove high-cardinality labels from counters and histograms immediately. Use exemplars (Prometheus native histograms) to link individual requests to traces without storing per-request labels. Enforce a cardinality budget review as part of the metrics PR review checklist.
+
+### Failure 2: Alert Fatigue Leading to Missed Outage
+**Symptom:** Oncall receives 200 alerts per day. Engineers habituate to ignoring them. A real outage (model serving 100% errors) fires the same alert channel and goes unaddressed for 40 minutes.
+**Root Cause:** Alerts are configured on symptoms (CPU > 80%, memory > 2 GB) rather than on SLO burn rate. Too many low-signal alerts drown out high-signal ones.
+**Detection:** Measure the alert-to-incident correlation rate. If fewer than 10% of alerts correspond to a real incident requiring human action, alert fatigue is present.
+**Fix:** Redesign alerting around SLO burn rate exclusively. Example: "error budget consuming at > 5× the sustainable rate for the last 1 hour" fires a page. Symptom-based alerts (CPU, memory) become INFO-level tickets, never pages. This typically reduces page volume by 80-90%.
+
+### Failure 3: P50 Looks Fine, P99 Broken
+**Symptom:** Latency dashboard shows 50ms (healthy, within SLO). Users are reporting 10-second timeouts and the support queue is growing.
+**Root Cause:** The dashboard shows p50 (median). The p99 tail latency is 12 seconds due to a GC pause affecting 1% of requests — invisible at the median but devastating for real users.
+**Detection:** Always display p50, p95, and p99 in the same panel. Set SLO alerts on p99, not p50. The difference between p50 and p99 should be less than 3×; if it exceeds 10×, investigate tail latency causes immediately.
+**Fix:** Audit all latency dashboards: replace any mean or p50 panels with multi-percentile panels. Page on p99 SLO breach. For the GC issue specifically, tune JVM heap sizing or switch to a non-JVM inference server.
+
+### Failure 4: Metric vs. Log Mismatch
+**Symptom:** The error rate counter shows 0.1% (healthy). Log analysis reveals 5% of requests are returning malformed predictions that clients silently discard.
+**Root Cause:** The error counter only increments on uncaught exceptions. Malformed predictions are returned with HTTP 200 but contain semantically wrong data. The client SDK silently falls back to a default — these are never counted as errors in the metrics.
+**Detection:** Reconcile the metric error rate against log-level error patterns weekly. Set up a log-based metric for semantically invalid responses (e.g., prediction confidence = -1 or output schema validation failures).
+**Fix:** Instrument all error paths — including semantic errors that do not raise exceptions — to increment the error counter. Add a response schema validator at the serving layer that increments `schema_validation_error_total` for malformed outputs.
+
+### Failure 5: Batch Job Produces Zero Output Silently
+**Symptom:** Batch prediction job completes with exit code 0. Downstream system uses stale predictions from 48 hours ago. No alert fires.
+**Root Cause:** The job ran, wrote 0 rows to the output table, and exited cleanly. The monitoring only checks job completion status, not output shape or row count.
+**Detection:** Monitor three signals for every batch job: (1) job exit code, (2) output row count (must be > 0 and within ±20% of historical average), (3) output freshness timestamp (must be < 1.5× the expected interval).
+**Fix:** Add a post-job validation step that asserts `row_count > 0`. Wire this to the same alerting channel as job failures. Treat "zero output" as equivalent to job failure for alerting purposes.
+
+---
+
+## Cost Model
+
+| Resource | Unit Cost | Volume | Monthly Cost |
+|----------|-----------|--------|-------------|
+| Datadog metrics ingestion | $0.10/1,000 custom metrics | 1M metrics/day | $3,000 |
+| Log ingestion and storage (ELK/OpenSearch) | $1.50/GB | 50 GB/day | $2,250 |
+| Distributed trace storage (Jaeger/Tempo) | $0.023/GB | 10 GB/day | $7 |
+| On-call tooling (PagerDuty) | $19/user/month | 5 engineers | $95 |
+| Dashboard and alert engineering time | $200/hr | 10 hr/month | $2,000 |
+| **Total** | | | **~$7,352/month** |
+
+Log ingestion is the largest variable cost driver. Teams commonly reduce it by 60-80% by sampling high-volume, low-signal logs (successful predictions at high QPS) to 10% retention while keeping 100% of errors, anomalies, and low-confidence predictions. This brings log costs to approximately $450/month without sacrificing debuggability for the cases that matter.
+
+---
+
+## Interview Q&A
+
+**Q1: Latency p99 usually 100ms, now 200ms. Problem?**
+A: Not necessarily. If p50 is unchanged, the p99 spike could be a single slow request or a transient GC pause. Check: (1) is p50 affected? (2) is it persistent over 20+ minutes? (3) what changed recently (code deploy, traffic pattern, data size)? If p50 is stable and the spike is transient, treat as noise. Page only if the p99 SLO is breached sustainably.
+
+**Q2: Monitoring 1M predictions per day. Cannot log all. What to do?**
+A: Stratified sampling: (1) log 100% of errors and low-confidence predictions; (2) log 10% of correct predictions from minority classes; (3) log 1% of high-confidence majority-class predictions. This reduces volume to 50-100K events/day while preserving full coverage of the failure modes that matter.
+
+**Q3: Alert tuning — how many false alarms are acceptable?**
+A: Depends on response cost. If an alert wakes an oncall engineer (expensive), target fewer than 1 false positive per week per alert. If an alert triggers automated rollback (cheap), tolerate 5-10% false positive rate. False negatives (missed real outages) are almost always more costly than false positives in production ML.
+
+**Q4: How do you distinguish data drift from model degradation?**
+A: Three-way check: (1) if input distribution changed but predictions did not — data drift, model may be robust; (2) if inputs unchanged but prediction distribution changed — model drift or serving code bug; (3) if predictions unchanged but accuracy dropped — ground-truth label drift or a labeling pipeline bug. Monitor all three separately with independent alerts.
+
+**Q5: When would you NOT monitor at the prediction level?**
+A: For very high-frequency low-value predictions (e.g., content ranking at 100K QPS), per-prediction logging is cost-prohibitive ($2,250/month at 50 GB/day). Use aggregate-level monitoring only — distribution histograms, p50/p99 latency, error rate — and rely on anomaly detection rather than per-event analysis.
+
+**Q6: What breaks first when your observability stack scales to 10× traffic?**
+A: Cardinality explosion in metrics (Prometheus OOM) is typically the first failure. Log ingestion costs balloon from $2K to $22K/month if sampling rates are not adjusted. The fix is pre-planned: have a sampling rate adjustment playbook ready before 10× traffic arrives, triggered automatically when ingestion cost crosses a budget threshold.
+
+**Q7: Latency spikes to 500ms. How do you diagnose it?**
+A: Work through the three pillars in order: (1) Metrics — is CPU/GPU utilization high? Is queue depth elevated? (2) Logs — is feature extraction the slow step? Is inference taking longer? (3) Traces — find the specific span with high duration. Most latency issues resolve at the metrics or logs layer before requiring trace-level analysis.
+
+**Q8: Alert on prediction > 0.95 (suspicious). What's wrong with this approach?**
+A: Too noisy. Individual prediction values have no baseline context. Better: alert on distribution shift — "0.95+ confidence used to be 0.01% of predictions; now it is 10% of predictions" (KS-test p < 0.05). Track the distribution, not individual values.
+
 ## Related Topics
 - [Drift Detection](15-drift-detection.md)
 - [Model Registry](04-model-registry.md)
