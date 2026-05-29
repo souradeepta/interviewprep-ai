@@ -37,23 +37,29 @@ Checklist before shipping model: monitoring in place, fallback model exists, lat
 
 ## Production Failure Scenarios
 
-**Scenario 1: Skipped load testing, model crashes at peak traffic**
-- Load testing skipped to save 1 day. Model handles 100 req/sec offline, crashes at 500 req/sec in production.
-- Cascading failure: depends on model, entire system down.
-- Fix: Load testing mandatory. Test at 2x peak traffic. If fails, optimize before shipping.
+**Failure 1: Load Test Skipped to Meet a Deadline**
+- **Symptom:** Model crashes at launch under real traffic (3× the load seen in development). The entire product is down for 90 minutes during the highest-traffic window of the week.
+- **Root cause:** Load testing was deprioritized to save a single day. The model was tested at 50 QPS in development but received 150 QPS at launch.
+- **Detection:** After the fact, the p99 latency graph shows a vertical cliff at the exact moment traffic exceeded 2× dev load. Pre-launch: mandatory load test at 2× expected peak before each deployment.
+- **Fix:** Add load testing as a hard gate in the deployment checklist. The deployment is blocked until the model sustains p99 latency below SLA at 2× expected peak traffic for 10 minutes continuously.
 
-**Scenario 2: Monitoring not in place until day 3**
-- Model ships. Works fine day 1-2. Day 3, accuracy drops silently (no monitoring). Discovered when customer complains.
-- Fix: Monitoring must be in place BEFORE production rollout. Canary phase validates monitoring.
+**Failure 2: Rollback Procedure Untested**
+- **Symptom:** A critical model bug requires rollback during a live incident. The documented rollback procedure takes 4 hours to execute instead of the expected 15 minutes. Incident duration triples.
+- **Root cause:** The rollback runbook was written at initial deployment 18 months ago and never tested. Several steps reference infrastructure that was reorganized, and the model registry API changed.
+- **Detection:** Quarterly rollback drill: simulate a production incident, execute the rollback, measure wall-clock time. Gate production access on drill completion.
+- **Fix:** Test the rollback procedure quarterly. Measure actual time. If actual time exceeds target (15 minutes) by more than 2×, update the runbook and re-test. The rollback SLA must be part of the deployment contract.
 
-**Scenario 3: No fallback model**
-- Model fails (OOM, bug). No fallback. System completely broken. Recovery 1+ hour.
-- Fix: Fallback required (previous model, rule-based, baseline). Can switch in <5 minutes.
+**Failure 3: No Fallback Logic for Model Endpoint Failures**
+- **Symptom:** Model endpoint becomes unavailable (OOM error spikes, pod crashes). The entire product is broken because all code paths flow through the model with no alternative.
+- **Root cause:** The engineering team assumed the model would be highly available and did not implement a fallback path. There is no rule-based system, no cached-prediction layer, and no graceful degradation mode.
+- **Detection:** Chaos engineering: terminate the model endpoint container and observe product behavior. If the product is immediately broken, the fallback is absent.
+- **Fix:** Before any launch, implement and test at least one fallback path: cached predictions for the most common inputs, a lightweight rule-based heuristic, or a "degraded mode" that returns a reasonable default. The fallback must be exercised in production at least quarterly to verify it still works.
 
-**Scenario 4: Runbook incomplete**
-- Model fails in production. On-call doesn't know how to debug (where are logs? what metrics matter?).
-- Incident takes 3 hours to resolve (should be 15 min with good runbook).
-- Fix: Runbook written before deployment. Tested during on-call training. Updated post-incident.
+**Failure 4: Output Schema Mismatch at Deployment**
+- **Symptom:** New model version deployed. Client error rate spikes to 40% within two minutes of deployment. Rollback takes 15 minutes; ~300K requests fail.
+- **Root cause:** The new model version changed its output schema (added a field, changed a field name) without updating the API contract. Client code expected the old schema.
+- **Detection:** Contract tests that compare output schema between model versions automatically block deployment if the schema changes are backward-incompatible.
+- **Fix:** Implement schema versioning for model outputs. Any breaking schema change requires a new API version and client migration, not a silent model swap. Automated contract tests run in the deployment pipeline and fail the deployment if schema compatibility is broken.
 
 ---
 
@@ -67,19 +73,31 @@ Checklist before shipping model: monitoring in place, fallback model exists, lat
 
 ---
 
-## Sophisticated Interview Q&A
+## Interview Q&A
 
-**Q1: Model ready for production in 2 weeks. Can readiness check finish in 1 week?**
-A: Depends on parallelization. (1) Testing (latency, load) in parallel: 5 days. (2) Monitoring setup: 2 days. (3) Documentation: 2 days. (4) Reviews: 2 days. Total: 1 week achievable if planned early. But if sequential, takes 1-2 weeks. Plan ahead.
+**Q1: The product team wants to ship in one week, but your readiness checklist takes two. What do you cut?**
+A: Prioritize by failure probability × failure cost. Never cut: load testing (high-probability failure, high cost), fallback model existence (makes complete outages possible), and monitoring setup (makes all other failures invisible). Cuttable: full SRE review can become a peer review by a senior engineer. Runbook documentation can be deferred to the stabilization week (write it while monitoring the canary, not before). Load testing threshold can be reduced from 2× peak to 1.5× peak with explicit sign-off. The result is a week-one release with a 10% incident risk instead of a week-two release with a 1% risk — document that trade-off and get explicit product approval.
 
-**Q2: Load test shows model handles 100 req/sec, peak is 80. Ready?**
-A: Not quite. (1) 100 req/sec = 1.25x peak. Acceptable for temporary spikes, not sustained. (2) Better: handle 2x peak = 160 req/sec. (3) Also check: tail latency (p99) at 100 req/sec. If p99 OK, maybe acceptable. (4) Plan auto-scaling for seasonal peaks.
+**Q2: Load test shows the model handles 100 req/sec and your peak is 80. Is it ready?**
+A: Borderline. 100/80 = 1.25× peak headroom is adequate for brief traffic spikes but not for sustained bursts or slow traffic growth. The more important question is p99 latency at 100 req/sec, not just throughput. If p99 at 80 req/sec is 90ms and your SLA is 100ms, you have 10ms of headroom — any spike to 100 req/sec will breach SLA. The right standard is: sustain 2× peak (160 req/sec) with p99 < SLA for 10 continuous minutes. If that fails, the model is not ready.
 
-**Q3: Fallback model is 6 months old, accuracy 5% worse. Use it?**
-A: Yes. Better to serve 5% worse accuracy than no model at all (complete outage). Fallback is safety net, not ideal. Once on fallback, start recovery (debug new model, deploy when ready).
+**Q3: The fallback model is six months old and 5% less accurate than the current model. Is it a valid fallback?**
+A: Yes. A 5% worse model serving 100% of requests is always better than no model serving 0% of requests during an outage. The fallback's job is to prevent complete degradation, not to be competitive. Once the fallback is active, begin recovery procedures immediately (debug the new model, deploy when root cause is understood). The fallback should not be active for more than 24 hours before you escalate. And after every fallback activation, update the runbook with what triggered it.
 
-**Q4: Readiness check takes 2 weeks, product wants to ship in 1 week. What do you cut?**
-A: Prioritize by risk: (1) Don't cut monitoring, load testing, fallback (highest risk if missing). (2) Can defer runbook documentation (write during stabilization week). (3) Can cut SRE review (do peer review instead). (4) Can do simpler load test (test to 1.5x peak instead of 2x). Trade-off: ship in 1 week with 10% incident risk vs 2 weeks with 1% risk.
+**Q4: When would you NOT do a full production readiness check?**
+A: For an internal tool with no SLA, used by fewer than 10 engineers, where an outage has near-zero business cost. For a model update that only changes a non-functional parameter (description text, logging label) with no code or weight changes. For a model in a development environment that is explicitly labeled "not for production use." In regulated industries (payments, healthcare), a full readiness check is mandatory regardless of these conditions — there is no exception.
+
+**Q5: How do you automate production readiness checks in a CI/CD pipeline?**
+A: Four automated gates: (1) Accuracy gate — run the test suite on the held-out dataset and fail the deployment if accuracy is below the threshold. (2) Latency gate — run a synthetic load test (using k6 or Locust) at 2× expected peak and fail if p99 exceeds SLA. (3) Schema contract gate — compare the new model's output schema against the registered consumer contracts and fail on breaking changes. (4) Monitoring gate — verify that the monitoring dashboards and alert rules for the new model version are present in the monitoring system before the deployment is allowed to proceed. Items like runbook documentation and security review are automated as checklist validation (requires sign-off from designated reviewers).
+
+**Q6: A model is deployed with canary rollout (10% of traffic). After one hour, accuracy looks good. Safe to ramp to 100%?**
+A: Not yet. One hour is sufficient to detect crash-level failures but not subtle accuracy degradation, seasonal effects, or rare cohort issues. The minimum canary duration for a meaningful signal depends on traffic volume: at 10% of traffic with 1K requests/minute, you have 6K requests in one hour — enough for statistical significance on aggregate metrics but not on rare cohorts. A more robust standard is to run the canary until each important cohort (by geography, user type, device type) has at least 500 requests — this often takes 6-24 hours. Only after per-cohort metrics are stable do you ramp to 100%.
+
+**Q7: What monitoring must be in place before production rollout, not after?**
+A: Three categories that are non-negotiable pre-rollout: (1) Availability monitoring — is the model endpoint responding? (health check on `/predict` every 30 seconds). (2) Error rate monitoring — is the error rate above baseline? (alert if error rate > 1% for 5 consecutive minutes). (3) Prediction distribution monitoring — is the model producing outputs in the expected range? (alert if the fraction of predictions in the expected range drops below 95%). These three cover the most common and fastest-moving failure modes. Drift monitoring, business metric correlation, and fairness monitoring can be set up in the first week after launch but should not block rollout.
+
+**Q8: What does a good runbook include, and how often should it be tested?**
+A: A good runbook includes: (1) The list of symptoms that trigger the runbook (not "if something is wrong" but specific alert names and metric thresholds). (2) The decision tree for diagnosis: follow these steps in order to identify whether the problem is model accuracy, infrastructure, or data quality. (3) Rollback instructions with exact commands and expected completion time. (4) Escalation contacts if the runbook doesn't resolve the incident. (5) Links to dashboards, logs, and model registry entries. The runbook should be tested quarterly via tabletop exercise (team walks through a simulated incident) or live drill (on-call executes rollback in staging). If the tested resolution time is more than 2× the target, update the runbook before the next deployment.
 
 ---
 
@@ -99,6 +117,18 @@ A: Prioritize by risk: (1) Don't cut monitoring, load testing, fallback (highest
 - **Total: $100K+ per incident**
 
 **ROI:** Readiness investment $9K prevents incidents worth $100K+. Break-even: 1 prevented incident per year.
+
+## Cost Model
+
+| Resource | Unit Cost | Volume | Monthly Cost |
+|----------|-----------|--------|-------------|
+| Load testing infrastructure | $0.10/hr | 40 hr/release | $4 per release |
+| Staging environment (always-on) | $2/hr | 720 hr | $1,440 |
+| Chaos engineering tooling | $500/mo | 1 subscription | $500 |
+| Release engineer time | $200/hr | 4 hr/release | $800 per release |
+| **Total (2 releases/month)** | | | **~$3,548/month** |
+
+At $3,548/month, the staging environment dominates (41%) followed by release engineer time (45% for 2 releases). The load-testing compute itself is almost free ($8/month for two releases). The key insight: the cost of production readiness is mostly people, not infrastructure. Reducing engineer time per release (via automation, standardized checklists, CI/CD gates) is the main lever. A well-automated pipeline can cut release engineer time from 4 hours to 1 hour, reducing the total to ~$1,948/month. One prevented production incident (average cost $100K) pays for 2.5 years of this readiness investment.
 
 ---
 
@@ -141,20 +171,16 @@ def production_readiness_check():
     return all_pass
 ```
 
-## Interview Q&A
-**Q: All tests pass, accuracy 95%. Ready to ship?**
-A: No. Checklist: latency SLA? Monitoring? Fallback? Alerting? Runbook? Load tested? If not, complete checklist first.
-
-**Q: Timeline: 2 weeks to ship model. Spend 1 week on readiness check?**
-A: Yes. 1 week prevents 1-month incident. Readiness check investment pays off instantly if issue caught early.
-
 ## Interview Quick-Reference
-| Item | Status | Action |
-|------|--------|--------|
-| Accuracy | 95% | ✓ Pass |
-| Latency | 150ms SLA | ✓ Pass |
-| Monitoring | Configured | ✓ Pass |
-| Fallback | Exists | ✓ Pass |
+| Checklist Item | Min Requirement | Block Deployment? |
+|----------------|-----------------|-------------------|
+| Accuracy on holdout | >= defined threshold | Yes |
+| p99 latency at 2x peak | < SLA | Yes |
+| Fallback model exists | Any fallback path | Yes |
+| Monitoring active | Availability + error rate | Yes |
+| Rollback tested | Completed within 15 min | Yes |
+| Runbook written | Covers top 3 failure modes | Recommended |
+| Schema contract tests | No breaking changes | Yes |
 
 ## Related Topics
 - [Monitoring](16-monitoring-and-observability.md)
