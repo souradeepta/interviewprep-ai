@@ -9,14 +9,15 @@
 
 | Domain | Coverage |
 |--------|----------|
-| **AI Fundamentals** | 40 core concepts (optimization, classical ML, neural networks, evaluation) |
-| **Machine Learning** | 37 concepts + 8 from-scratch implementation notebooks |
-| **Large Language Models** | 44 concepts + 46 implementation notebooks covering transformers → production |
-| **Agentic AI** | 64 concepts + 64 notebooks on agents, tool use, memory, multi-agent systems |
-| **Modern AI Engineering** | 25 contemporary concepts (evaluation, memory, training, inference, operations, MCP, Agentic SDK) |
-| **MLOps** | 16 concepts + 17 notebooks (pipelines, monitoring, deployment) |
-| **System Design** | 31 ML/AI system design patterns + architecture reviews of 30 real systems |
-| **Coding Interview Prep** | Data structures + algorithm implementations |
+| **AI Fundamentals** | 40 concepts + 40 notebooks (optimization, classical ML, neural networks, evaluation) |
+| **Machine Learning** | 37 concepts + 40 implementation notebooks (activation functions → weight initialization) |
+| **Large Language Models** | 44 concepts + 46 notebooks (transformers → RAG → production) |
+| **Agentic AI** | 64 concepts + 64 notebooks (tool use, memory, planning, multi-agent) |
+| **Modern AI Engineering** | 55 concepts + 20 notebooks (inference optimization, quantization, distillation) |
+| **MLOps** | 16 concepts + 17 notebooks (pipelines, monitoring, deployment, feature stores) |
+| **System Design** | 31 patterns (1800-2400 words, failure scenarios, cost models) + 30 real AI systems with 90 Mermaid diagrams + 8 production post-mortems |
+| **Coding Interview Prep** | 10 data structure guides + 12 algorithm pattern guides |
+| **Cheat Sheets** | 10 quick-reference sheets (formulas, optimizers, metrics, deployment, snippets) |
 
 ---
 
@@ -51,12 +52,13 @@ interviewprep-ml/
 ├── ai/                # AI Fundamentals — 40 concepts + 40 notebooks
 ├── llm/               # Large Language Models — 44 concepts + 46 notebooks
 ├── agentic-ai/        # Agentic AI — 64 concepts + 64 notebooks
-├── ml/                # Classical ML — 37 concepts + 8 implementation notebooks
-├── modern-ai/         # Modern AI Engineering — 20 concepts + 20 notebooks
+├── ml/                # Classical ML — 37 concepts + 40 notebooks + interview prep
+├── modern-ai/         # Modern AI Engineering — 55 concepts + 20 notebooks
 ├── mlops/             # MLOps — 16 concepts + 17 notebooks + case studies
 ├── system-design/     # System Design Patterns (31) + interview prep
-├── arch-review/       # Real System Architecture Reviews (30 systems)
-├── coding/            # Data structures + algorithm implementations
+├── arch-review/       # 30 AI system reviews (90 diagrams) + 8 post-mortems
+├── coding/            # Data structures (10) + algorithm patterns (12)
+├── cheatsheets/       # Quick-reference: formulas, metrics, optimizers, snippets
 ├── scripts/           # Generation and utility scripts
 ├── tests/             # Test suite
 └── data/              # Concept mappings and schemas

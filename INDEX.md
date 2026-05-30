@@ -4,11 +4,11 @@
 
 **New here?** Start with [README.md](README.md) → Pick your [roadmap](roadmaps/README.md) → Dive into concepts and implementations.
 
-**Total coverage:** 148 concepts + 148 notebooks across AI Fundamentals, ML, LLM, and Agentic AI.
+**Total coverage:** 260+ concepts + 230+ notebooks across AI, ML, LLM, Agentic AI, Modern AI, and MLOps.
 
 ---
 
-## All 148 Concept Files & 148 Notebooks
+## All Concept Files & Notebooks
 
 ### AI Fundamentals (40 concepts)
 
@@ -262,26 +262,74 @@
 - [Reproducibility](system-design/patterns/reproducibility.md)
 - [ML Governance](system-design/patterns/ml-governance.md)
 
-### Coding (1 concept)
+### Coding (22 files)
 
+**Data Structures (10 files)**
 - [Arrays & Strings](coding/data-structures/arrays-strings.md)
+- [Linked Lists](coding/data-structures/linked-lists.md)
+- [Stacks & Queues](coding/data-structures/stacks-queues.md)
+- [Trees](coding/data-structures/trees.md)
+- [Graphs](coding/data-structures/graphs.md)
+- [Heaps](coding/data-structures/heaps.md)
+- [Hash Tables](coding/data-structures/hash-tables.md)
+- [Tries](coding/data-structures/tries.md)
+- [Union-Find](coding/data-structures/union-find.md)
+- [Segment Trees](coding/data-structures/segment-trees.md)
+
+**Algorithm Patterns (12 files)**
+- [Sorting](coding/algorithms/sorting.md) — QuickSort, MergeSort, TimSort
+- [Binary Search](coding/algorithms/binary-search.md) — Templates + search on answer
+- [Sliding Window](coding/algorithms/sliding-window.md)
+- [Two Pointers](coding/algorithms/two-pointers.md)
+- [Dynamic Programming](coding/algorithms/dynamic-programming.md)
+- [Backtracking](coding/algorithms/backtracking.md)
+- [Greedy](coding/algorithms/greedy.md)
+- [Recursion](coding/algorithms/recursion.md)
+- [Graph Traversal](coding/algorithms/graph-traversal.md) — BFS, DFS, Dijkstra
+- [Divide & Conquer](coding/algorithms/divide-conquer.md)
+- [Bit Manipulation](coding/algorithms/bit-manipulation.md)
+- [String Patterns](coding/algorithms/string-patterns.md) — KMP, rolling hash
+
+### Architecture Reviews (30 systems + 8 post-mortems)
+
+- [Customer Service Bot](arch-review/systems/01-customer-service.md)
+- [RAG System](arch-review/systems/02-rag-system.md)
+- ... and 28 more AI systems with 3 Mermaid diagrams each
+
+**Post-Mortems (8 real failure case studies)**
+- [01 — Recommendation Model Silent Drift](arch-review/post-mortems/01-recommendation-model-silent-drift.md)
+- [02 — Training-Serving Skew at Launch](arch-review/post-mortems/02-training-serving-skew-at-launch.md)
+- [03 — RLHF Reward Hacking](arch-review/post-mortems/03-rlhf-reward-hacking.md)
+- [04 — Fraud Model Bias Post-Launch](arch-review/post-mortems/04-fraud-model-bias-post-launch.md)
+- [05 — Vector DB Cold Start After Migration](arch-review/post-mortems/05-vector-db-cold-start-after-migration.md)
+- [06 — Cascade Failure from Model Confidence](arch-review/post-mortems/06-cascade-failure-model-confidence.md)
+- [07 — Data Pipeline Poisoning](arch-review/post-mortems/07-data-pipeline-poisoning.md)
+- [08 — LLM Prompt Injection in Production](arch-review/post-mortems/08-llm-prompt-injection-in-production.md)
+
+### Cheat Sheets (10 files)
+
+- [ML Algorithms](cheatsheets/ml-algorithms.md) — complexity, when to use, hyperparams
+- [Interview Formulas](cheatsheets/interview-formulas.md) — all whiteboard formulas
+- [Neural Network Architectures](cheatsheets/neural-network-architectures.md)
+- [Optimizers](cheatsheets/optimizers.md) — SGD through LAMB + LR schedules
+- [Evaluation Metrics](cheatsheets/evaluation-metrics.md) — by task type
+- [LLM Models](cheatsheets/llm-models.md) — comparison table
+- [Regularization](cheatsheets/regularization.md)
+- [Deployment Strategies](cheatsheets/deployment-strategies.md)
+- [System Design Quick Ref](cheatsheets/system-design-quick-ref.md) — capacity estimates, latency budgets
+- [Python ML Snippets](cheatsheets/python-ml-snippets.md) — copy-paste code
 
 ---
 
-## All 8 Implementation Notebooks
+## ML Notebooks (40 files)
 
-1. [Linear Regression](ml/implementations/linear-regression.ipynb) — Normal equation + GD
-2. [Logistic Regression](ml/implementations/logistic-regression.ipynb) — Sigmoid + cross-entropy
-3. [Decision Tree](ml/implementations/decision-tree.ipynb) — Gini-based splitting
-4. [Random Forest](ml/implementations/random-forest.ipynb) — Bagging + bootstrap
-5. [K-Means](ml/implementations/kmeans-from-scratch.ipynb) — Clustering from scratch
-6. [Neural Net](ml/implementations/neural-net-from-scratch.ipynb) — 2-layer MLP + backprop
-7. [Backpropagation](ml/implementations/backpropagation.ipynb) — Numerical gradient verification
-8. [CNN Classifier](ml/implementations/cnn-image-classifier.ipynb) — MNIST on PyTorch
+Covers all 40 ml/concepts topics with 12-cell format (basic → advanced → 3 real-world examples):
+[Activation Functions](ml/notebooks/01-activation-functions.ipynb) →
+[Weight Initialization](ml/notebooks/40-weight-initialization.ipynb)
 
 ---
 
-## All 5 Roadmaps
+## Roadmaps
 
 1. [ML Roadmap](roadmaps/ml-roadmap.md) — 8-12 weeks, 3 phases
 2. [LLM Roadmap](roadmaps/llm-roadmap.md) — 6-10 weeks, 3 phases
@@ -293,15 +341,14 @@
 
 ## Interview Prep Files
 
-**ML (4 files)**
-- [ML Theory Questions](ml/interview-prep/ml-theory-questions.md) — 10 detailed Q&As
-- [ML Coding Questions](ml/interview-prep/ml-coding-questions.md) — 4+ implementations
-- [ML Case Studies](ml/interview-prep/case-studies.md) — 2 full end-to-end designs
+**ML**
+- [ML Theory Questions](ml/interview-prep/ml-theory-questions.md)
+- [ML Coding Questions](ml/interview-prep/ml-coding-questions.md)
+- [ML Case Studies](ml/interview-prep/case-studies.md)
 - [ML Interview Prep README](ml/interview-prep/README.md)
 
-**System Design (2 files)**
+**System Design**
 - [System Design Framework](system-design/interview-prep/system-design-framework.md) — The 7-step framework
-- System Design Questions (coming soon)
 
 ---
 
