@@ -317,3 +317,7 @@ Retrieves from FAQs and product documentation to answer customer questions accur
 - **Poor document indexing**: Poor document indexing: missing relevant documents makes retrieval impossible
 - **Outdated embeddings**: Outdated embeddings: if documents change, embeddings become stale
 
+## See Also
+
+- [Papers: Retrieval-Augmented Generation](../../papers/retrieval/concepts/01-rag.md) — Original paper with comprehensive experiments and implementation details
+
