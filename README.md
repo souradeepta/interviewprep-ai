@@ -14,6 +14,7 @@
 | **Large Language Models** | 44 concepts + 46 notebooks (transformers → RAG → production) |
 | **Agentic AI** | 64 concepts + 64 notebooks (tool use, memory, planning, multi-agent) |
 | **Modern AI Engineering** | 55 concepts + 20 notebooks (inference optimization, quantization, distillation) |
+| **Papers** | 12 foundational & recent papers (2015-2023) + 12 implementation notebooks (vision, NLP, retrieval, agents) |
 | **MLOps** | 16 concepts + 17 notebooks (pipelines, monitoring, deployment, feature stores) |
 | **System Design** | 31 patterns (1800-2400 words, failure scenarios, cost models) + 30 real AI systems with 90 Mermaid diagrams + 8 production post-mortems |
 | **Coding Interview Prep** | 10 data structure guides + 12 algorithm pattern guides |
@@ -39,6 +40,7 @@
 | Learn LLMs from scratch to production | [LLM Roadmap](roadmaps/llm-roadmap.md) |
 | Build and understand AI agents | [Agentic AI Roadmap](roadmaps/agentic-roadmap.md) |
 | Master modern AI engineering techniques | [Modern AI Engineering](modern-ai/) — evaluation, memory, optimization, operations |
+| Learn from papers that shaped AI | [Papers](papers/) + [Papers Roadmap](roadmaps/papers-roadmap.md) |
 | Ace ML system design interviews | [System Design Roadmap](roadmaps/system-design-roadmap.md) |
 | DSA + ML coding practice | [Coding](coding/README.md) |
 
@@ -48,12 +50,13 @@
 
 ```
 interviewprep-ml/
-├── roadmaps/          # Learning paths: ML, LLM, Agentic AI, System Design
+├── roadmaps/          # Learning paths: ML, LLM, Agentic AI, System Design, Papers
 ├── ai/                # AI Fundamentals — 40 concepts + 40 notebooks
 ├── llm/               # Large Language Models — 44 concepts + 46 notebooks
 ├── agentic-ai/        # Agentic AI — 64 concepts + 64 notebooks
 ├── ml/                # Classical ML — 37 concepts + 40 notebooks + interview prep
 ├── modern-ai/         # Modern AI Engineering — 55 concepts + 20 notebooks
+├── papers/            # 12 foundational & recent papers (vision, NLP, retrieval, agents)
 ├── mlops/             # MLOps — 16 concepts + 17 notebooks + case studies
 ├── system-design/     # System Design Patterns (31) + interview prep
 ├── arch-review/       # 30 AI system reviews (90 diagrams) + 8 post-mortems
