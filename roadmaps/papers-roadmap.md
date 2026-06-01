@@ -1,6 +1,6 @@
 # Papers Roadmap: Learn from Seminal AI Research
 
-> A guided path through 15 foundational & recent papers that shaped modern AI. Each paper is explained at interview depth: understand the idea AND code it up.
+> A guided path through 27 foundational & recent papers that shaped modern AI. Each paper is explained at interview depth: understand the idea AND code it up.
 
 ## Quick Navigation
 
@@ -43,7 +43,11 @@
    - **Why:** Understanding emergent abilities
    - **Interview Q:** "Why does in-context learning only appear at scale? How does it work?"
 
-**Total time:** ~4.5 hours reading + 3-4 hours notebooks
+7. [Flash-Attention](../papers/efficiency-scaling/concepts/02-flash-attention.md) — 40 min
+   - **Why:** Understanding inference optimization
+   - **Interview Q:** "How does Flash-Attention reduce memory? What are the trade-offs?"
+
+**Total time:** ~5 hours reading + 3-4 hours notebooks
 
 **Interview prep:** You can explain modern ML architecture, understand why scale matters, and code up the key techniques. You also understand efficiency strategies and emergent behaviors in large models.
 
@@ -75,7 +79,11 @@
 7. [In-Context Learning](../papers/foundation-models/concepts/01-in-context-learning.md) — 50 min
    - **Why:** Understanding how large models learn without fine-tuning
 
-**Total time:** ~6.5 hours reading + 4-5 hours notebooks
+8. [DPO: Direct Preference Optimization](../papers/safety-alignment/concepts/02-dpo.md) — 55 min
+   - **Why:** Modern efficient alignment without RL
+   - **Interview Q:** "How is DPO better than RLHF? When would you use each?"
+
+**Total time:** ~7.5 hours reading + 4-5 hours notebooks
 
 **Interview prep:** You understand language models end-to-end: pre-training, scaling, fine-tuning, retrieval augmentation, and emergent in-context learning abilities.
 
@@ -110,7 +118,15 @@
 8. [GPT-3: Few-Shot Learners](../papers/nlp/concepts/03-gpt3.md) — 60 min
    - **Why:** Understand in-context learning and generalization
 
-**Total time:** ~7 hours reading + 4-5 hours notebooks
+9. [PAL: Program-Aided Language Models](../papers/reasoning-search/concepts/01-pal.md) — 55 min
+   - **Why:** Combining symbolic reasoning with LLMs for exact computation
+   - **Interview Q:** "When would you use PAL vs Chain-of-Thought?"
+
+10. [Codex: Code Generation](../papers/code-systems/concepts/02-codex.md) — 50 min
+    - **Why:** Understanding code generation capabilities and evaluation
+    - **Interview Q:** "How do you evaluate code generation models?"
+
+**Total time:** ~8.5 hours reading + 4-5 hours notebooks
 
 **Interview prep:** You can explain how agents think (reasoning), act (tools), plan (tree search), and perceive (multimodal). You also understand in-context learning and advanced vision-language architectures.
 
@@ -120,11 +136,16 @@
 
 Understand how papers built on each other:
 
-### 2015: Deep Networks With Residuals
+### 2015: Deep Networks & Compression
 - [ResNet](../papers/vision/concepts/01-resnet.md)
   - **Problem:** Deep networks don't train well (vanishing gradients)
   - **Solution:** Residual connections skip layers
   - **Impact:** Enables very deep networks (152+ layers)
+
+- [Knowledge Distillation](../papers/efficiency-scaling/concepts/04-knowledge-distillation.md)
+  - **Problem:** Large models are expensive to deploy
+  - **Solution:** Train small models to match large model outputs
+  - **Impact:** Model compression becomes practical
 
 ### 2017: Transformers Replace RNNs
 - [Attention Is All You Need](../papers/nlp/concepts/01-attention-is-all-you-need.md)
@@ -165,19 +186,80 @@ Understand how papers built on each other:
   - **Solution:** Update only low-rank components
   - **Impact:** Makes fine-tuning practical for 7B+ models
 
-### 2022: Reasoning Emerges
+### 2021: Code & Efficient Fine-tuning
+- [CodeT5](../papers/code-systems/concepts/01-codet5.md)
+  - **Problem:** No unified model for multiple code tasks
+  - **Solution:** Multi-task pre-training on diverse code tasks
+  - **Impact:** Single model excels at summarization, search, generation
+
+- [Codex](../papers/code-systems/concepts/02-codex.md)
+  - **Finding:** LLMs can generate working code from docstrings
+  - **Solution:** Large-scale code training + HumanEval benchmark
+  - **Impact:** Code generation becomes production-viable
+
+- [Code Evaluation](../papers/code-systems/concepts/03-code-evaluation.md)
+  - **Problem:** No standardized way to evaluate code generation
+  - **Solution:** HumanEval (164 problems), MBPP (1000 problems), pass@k metric
+  - **Impact:** Enables fair comparison of code models
+
+- [LoRA](../papers/nlp/concepts/05-lora.md)
+  - **Problem:** Fine-tuning huge models is expensive
+  - **Solution:** Update only low-rank components
+  - **Impact:** Makes fine-tuning practical for 7B+ models
+
+### 2022: Alignment & Optimization Emerges
 - [Chain-of-Thought Prompting](../papers/agents/concepts/01-chain-of-thought.md)
   - **Finding:** Asking models to think step-by-step improves accuracy
   - **Impact:** Unlocks reasoning in large models
-  
+
 - [ReAct](../papers/agents/concepts/02-react.md)
   - **Finding:** Reasoning + acting together > either alone
   - **Impact:** Enables agents that think AND use tools
 
-### 2023: Structured Exploration
+- [RLHF / InstructGPT](../papers/safety-alignment/concepts/03-rlhf-instructgpt.md)
+  - **Problem:** Pre-trained models don't follow instructions well
+  - **Solution:** Three-stage training: SFT → reward modeling → PPO
+  - **Impact:** Models now align with human preferences
+
+- [Constitutional AI](../papers/safety-alignment/concepts/01-constitutional-ai.md)
+  - **Problem:** RLHF requires expensive human feedback
+  - **Solution:** Use AI-generated feedback guided by constitution
+  - **Impact:** Scales alignment without human involvement
+
+- [Flash-Attention](../papers/efficiency-scaling/concepts/02-flash-attention.md)
+  - **Problem:** Attention is memory-intensive (O(N²))
+  - **Solution:** IO-aware block-wise computation
+  - **Impact:** Enables longer sequences in production
+
+- [LLM.int8()](../papers/efficiency-scaling/concepts/03-llm-int8.md)
+  - **Problem:** Large models need expensive GPU hardware
+  - **Solution:** 8-bit quantization + outlier handling
+  - **Impact:** Run 13B+ models on consumer GPUs
+
+### 2023: Structured Exploration & Efficient Alignment
 - [Tree of Thoughts](../papers/agents/concepts/03-tree-of-thoughts.md)
   - **Finding:** Exploring multiple paths improves problem-solving
   - **Impact:** Agents can backtrack and explore alternatives
+
+- [Direct Preference Optimization (DPO)](../papers/safety-alignment/concepts/02-dpo.md)
+  - **Problem:** RLHF requires expensive reward model training
+  - **Solution:** Direct optimization on preference pairs
+  - **Impact:** 6x faster alignment than RLHF
+
+- [PAL: Program-Aided Language Models](../papers/reasoning-search/concepts/01-pal.md)
+  - **Finding:** LLMs can generate executable programs for reasoning
+  - **Solution:** Generate program, execute for exact computation
+  - **Impact:** Combines symbolic reasoning with neural models
+
+- [Least-to-Most Prompting](../papers/reasoning-search/concepts/02-least-to-most.md)
+  - **Finding:** Decomposing hard problems into easy ones improves generalization
+  - **Solution:** Multi-step prompting with progressive difficulty
+  - **Impact:** Better compositional generalization
+
+- [Neural Search](../papers/reasoning-search/concepts/03-neural-search.md)
+  - **Problem:** Dense retrieval doesn't scale to millions of passages
+  - **Solution:** Bi-encoder architecture with FAISS indexing
+  - **Impact:** Semantic search at scale for RAG systems
 
 ---
 
@@ -220,8 +302,8 @@ Best for: Preparing for interviews
 
 ## FAQ
 
-**Q: How long does it take to learn all 12 papers?**
-A: ~12-16 hours total if you read thoroughly and do notebooks. ~6-8 hours if you skim for interviews.
+**Q: How long does it take to learn all 27 papers?**
+A: ~25-35 hours total if you read thoroughly and do notebooks. ~12-16 hours if you skim for interviews.
 
 **Q: Should I read papers in chronological order?**
 A: No — follow your role path above. But understanding the timeline helps see how ideas built on each other.
@@ -242,4 +324,4 @@ A: Great! That's the sign you understand it. Some papers have been superseded (e
 - [💻 Run the first notebook](../papers/nlp/notebooks/01-attention-is-all-you-need.ipynb)
 - [🎯 Pick your interview prep path](#interview-prep-paths-by-role)
 
-**Last Updated:** 2026-05-31
+**Last Updated:** 2026-06-01
