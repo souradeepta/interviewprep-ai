@@ -1,6 +1,6 @@
 # Papers: Foundational & Recent AI Research
 
-> **15 seminal papers that shaped modern AI.** Each paper includes a comprehensive explanation, code examples, and interview Q&A to help you understand AND implement the core ideas.
+> **27 seminal papers that shaped modern AI.** Each paper includes a comprehensive explanation, code examples, and interview Q&A to help you understand AND implement the core ideas.
 
 ## What Are These Papers?
 
@@ -27,9 +27,12 @@ Each paper is explained at three levels:
 - [NLP/LLM Papers](#nlpllm-core) — Transformers, language models, fine-tuning
 - [Retrieval & Multimodal](#retrieval--multimodal) — RAG, CLIP, combining modalities
 - [Reasoning & Agents](#reasoning--agents) — Chain of Thought, planning, tool use
-- [Efficiency & Scaling](#efficiency--scaling) — Sparse models, MoE, scaling strategies
+- [Efficiency & Scaling](#efficiency--scaling) — Sparse models, MoE, attention optimization, quantization
 - [Foundation Models](#foundation-models) — Emergent abilities, in-context learning
 - [Multimodal](#multimodal) — Vision-language models, cross-modal fusion
+- [Safety & Alignment](#safety--alignment) — Alignment techniques, preference optimization, safety mechanisms
+- [Code & Systems](#code--systems) — Code generation, code understanding, evaluation
+- [Reasoning & Search](#reasoning--search) — Advanced reasoning, program-aided methods, dense retrieval
 
 **If you want historical context:**
 - See the [Chronological Timeline](#chronological-timeline) to understand how papers built on each other
@@ -73,6 +76,9 @@ Each paper is explained at three levels:
 | # | Paper | Year | Key Contribution | Read Time |
 |---|-------|------|-----------------|-----------|
 | 1 | [Mixture of Experts: Scaling Models with Conditional Computation](efficiency-scaling/concepts/01-mixture-of-experts.md) | 2016-2023 | Sparse routing enables scaling to trillions of parameters without compute overhead | 22 min |
+| 2 | [Flash-Attention: Fast and Memory-Efficient Exact Attention with IO-Awareness](efficiency-scaling/concepts/02-flash-attention.md) | 2022 | IO-efficient attention computation reduces memory from O(N²) to O(N) during training | 20 min |
+| 3 | [LLM.int8(): 8-bit Matrix Multiplication for Transformers at Scale](efficiency-scaling/concepts/03-llm-int8.md) | 2022 | Run large models on consumer GPUs via 8-bit quantization with outlier detection | 19 min |
+| 4 | [Knowledge Distillation: Learning from Large Models](efficiency-scaling/concepts/04-knowledge-distillation.md) | 2015-2023 | Compress large models by training smaller ones to match large model outputs | 18 min |
 
 ### Foundation Models
 
@@ -85,6 +91,30 @@ Each paper is explained at three levels:
 | # | Paper | Year | Key Contribution | Read Time |
 |---|-------|------|-----------------|-----------|
 | 1 | [Flamingo: A Visual Language Model for Few-Shot Learning](multimodal/concepts/01-flamingo.md) | 2022 | Unified vision-language model with few-shot adaptation and interleaved visual-text inputs | 21 min |
+
+### Safety & Alignment
+
+| # | Paper | Year | Key Contribution | Read Time |
+|---|-------|------|-----------------|-----------|
+| 1 | [Constitutional AI: Harmlessness from AI Feedback](safety-alignment/concepts/01-constitutional-ai.md) | 2022 | Use AI-generated feedback to guide model alignment without human feedback for every iteration | 20 min |
+| 2 | [Direct Preference Optimization (DPO)](safety-alignment/concepts/02-dpo.md) | 2023 | Fine-tune models using preference pairs directly without RL; 6x faster than RLHF | 21 min |
+| 3 | [RLHF / InstructGPT: Training Language Models to Follow Instructions](safety-alignment/concepts/03-rlhf-instructgpt.md) | 2022 | Three-stage alignment: SFT → reward modeling → PPO training for human preference alignment | 22 min |
+
+### Code & Systems
+
+| # | Paper | Year | Key Contribution | Read Time |
+|---|-------|------|-----------------|-----------|
+| 1 | [CodeT5: Identifier-aware Unified Encoder-Decoder for Code](code-systems/concepts/01-codet5.md) | 2021 | Unified model for multiple code tasks: summarization, search, generation, refactoring | 19 min |
+| 2 | [Codex: Evaluating Large Language Models Trained on Code](code-systems/concepts/02-codex.md) | 2021 | Large language models generate working code; introduces HumanEval benchmark for evaluation | 20 min |
+| 3 | [Code Evaluation: Benchmarking Language Models on Code](code-systems/concepts/03-code-evaluation.md) | 2021-2023 | Standardized evaluation metrics (pass@k, MBPP) for assessing code generation model quality | 18 min |
+
+### Reasoning & Search
+
+| # | Paper | Year | Key Contribution | Read Time |
+|---|-------|------|-----------------|-----------|
+| 1 | [PAL: Program-Aided Language Models](reasoning-search/concepts/01-pal.md) | 2023 | Use LLMs to generate programs, execute them symbolically for exact reasoning | 20 min |
+| 2 | [Least-to-Most Prompting: Compositional Generalization](reasoning-search/concepts/02-least-to-most.md) | 2023 | Decompose hard problems into easy subproblems, solve easy ones first, chain solutions | 19 min |
+| 3 | [Neural Search: Dense Passage Retrieval for Knowledge](reasoning-search/concepts/03-neural-search.md) | 2020-2023 | Learn dense embeddings for retrieval; enables semantic search across millions of passages | 21 min |
 
 ## Interview Prep Roadmap
 
@@ -146,25 +176,27 @@ Best for: Agent roles, tool use, multi-step reasoning
 Understanding how papers built on each other:
 
 ```
-2015: ResNet (deep networks work)
+2015: ResNet (deep networks work), Knowledge Distillation (compression)
         ↓
 2017: Attention Is All You Need (transformer architecture)
         ↓
-2018: BERT (bidirectional pre-training), Vision Transformer (2020)
+2018: BERT (bidirectional pre-training)
         ↓
-2020: GPT-3, Scaling Laws, RAG, CLIP (multimodal learning)
+2020: Vision Transformer, GPT-3, Scaling Laws, RAG, CLIP (multimodal)
         ↓
-2021: LoRA (efficient fine-tuning)
+2021: LoRA (efficient fine-tuning), CodeT5, Codex, Code Evaluation
         ↓
-2022: Chain of Thought, ReAct (reasoning + acting)
+2022: Chain of Thought, ReAct (reasoning + acting), RLHF/InstructGPT,
+      Constitutional AI, Flash-Attention, LLM.int8()
         ↓
-2023: Tree of Thoughts (structured reasoning)
+2023: Tree of Thoughts, DPO (direct preference optimization),
+      PAL (program-aided), Least-to-Most Prompting, Neural Search
 ```
 
-## Quick Reference: All 12 Papers
+## Quick Reference: All 27 Papers
 
-| # | Paper | Year | Domain | Interview Frequency | Implementation Complexity |
-|---|-------|------|--------|-------------------|---------------------------|
+| # | Paper | Year | Domain | Interview Frequency | Complexity |
+|---|-------|------|--------|-------------------|-----------|
 | 1 | ResNet | 2015 | Vision | Medium | Intermediate |
 | 2 | Vision Transformer | 2020 | Vision | Medium | Intermediate |
 | 3 | Attention Is All You Need | 2017 | NLP | Very High | Intermediate |
@@ -177,6 +209,21 @@ Understanding how papers built on each other:
 | 10 | Chain of Thought | 2022 | Agents | Very High | Basic |
 | 11 | ReAct | 2022 | Agents | High | Intermediate |
 | 12 | Tree of Thoughts | 2023 | Agents | High | Intermediate |
+| 13 | Mixture of Experts | 2016-2023 | Efficiency | High | Intermediate |
+| 14 | In-Context Learning | 2020-2023 | Foundation | High | Basic |
+| 15 | Flamingo | 2022 | Multimodal | Medium | Intermediate |
+| 16 | Constitutional AI | 2022 | Safety | High | Intermediate |
+| 17 | DPO | 2023 | Safety | High | Intermediate |
+| 18 | RLHF/InstructGPT | 2022 | Safety | Very High | Intermediate |
+| 19 | CodeT5 | 2021 | Code | Medium | Intermediate |
+| 20 | Codex | 2021 | Code | High | Basic |
+| 21 | Code Evaluation | 2021-2023 | Code | Medium | Basic |
+| 22 | PAL | 2023 | Reasoning | High | Intermediate |
+| 23 | Least-to-Most Prompting | 2023 | Reasoning | Medium | Basic |
+| 24 | Neural Search | 2020-2023 | Retrieval | High | Intermediate |
+| 25 | Flash-Attention | 2022 | Efficiency | High | Intermediate |
+| 26 | LLM.int8() | 2022 | Efficiency | High | Intermediate |
+| 27 | Knowledge Distillation | 2015-2023 | Efficiency | Medium | Intermediate |
 
 ## Contributing
 
@@ -190,4 +237,4 @@ See the [main CONTRIBUTING.md](../CONTRIBUTING.md) for detailed guidelines.
 
 ---
 
-**Last Updated:** 2026-05-31
+**Last Updated:** 2026-06-01
