@@ -1,6 +1,6 @@
 # Papers: Foundational & Recent AI Research
 
-> **12 seminal papers that shaped modern AI.** Each paper includes a comprehensive explanation, code examples, and interview Q&A to help you understand AND implement the core ideas.
+> **15 seminal papers that shaped modern AI.** Each paper includes a comprehensive explanation, code examples, and interview Q&A to help you understand AND implement the core ideas.
 
 ## What Are These Papers?
 
@@ -27,6 +27,9 @@ Each paper is explained at three levels:
 - [NLP/LLM Papers](#nlpllm-core) — Transformers, language models, fine-tuning
 - [Retrieval & Multimodal](#retrieval--multimodal) — RAG, CLIP, combining modalities
 - [Reasoning & Agents](#reasoning--agents) — Chain of Thought, planning, tool use
+- [Efficiency & Scaling](#efficiency--scaling) — Sparse models, MoE, scaling strategies
+- [Foundation Models](#foundation-models) — Emergent abilities, in-context learning
+- [Multimodal](#multimodal) — Vision-language models, cross-modal fusion
 
 **If you want historical context:**
 - See the [Chronological Timeline](#chronological-timeline) to understand how papers built on each other
@@ -64,6 +67,24 @@ Each paper is explained at three levels:
 | 1 | [Chain-of-Thought Prompting Elicits Reasoning in LLMs](agents/concepts/01-chain-of-thought.md) | 2022 | Breaking problems into steps helps models solve them correctly | 16 min |
 | 2 | [ReAct: Synergizing Reasoning and Acting in Language Models](agents/concepts/02-react.md) | 2022 | Combine reasoning (thinking) with actions (tool use) | 17 min |
 | 3 | [Tree of Thoughts: Deliberate Problem Solving with LLMs](agents/concepts/03-tree-of-thoughts.md) | 2023 | Explore multiple reasoning paths, not just one linear path | 17 min |
+
+### Efficiency & Scaling
+
+| # | Paper | Year | Key Contribution | Read Time |
+|---|-------|------|-----------------|-----------|
+| 1 | [Mixture of Experts: Scaling Models with Conditional Computation](efficiency-scaling/concepts/01-mixture-of-experts.md) | 2016-2023 | Sparse routing enables scaling to trillions of parameters without compute overhead | 22 min |
+
+### Foundation Models
+
+| # | Paper | Year | Key Contribution | Read Time |
+|---|-------|------|-----------------|-----------|
+| 1 | [In-Context Learning: How Large Language Models Learn from Examples](foundation-models/concepts/01-in-context-learning.md) | 2020-2023 | Emergent ability to learn from examples in context without updating weights | 20 min |
+
+### Multimodal
+
+| # | Paper | Year | Key Contribution | Read Time |
+|---|-------|------|-----------------|-----------|
+| 1 | [Flamingo: A Visual Language Model for Few-Shot Learning](multimodal/concepts/01-flamingo.md) | 2022 | Unified vision-language model with few-shot adaptation and interleaved visual-text inputs | 21 min |
 
 ## Interview Prep Roadmap
 
