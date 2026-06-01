@@ -1,6 +1,6 @@
 # Papers Roadmap: Learn from Seminal AI Research
 
-> A guided path through 12 foundational & recent papers that shaped modern AI. Each paper is explained at interview depth: understand the idea AND code it up.
+> A guided path through 15 foundational & recent papers that shaped modern AI. Each paper is explained at interview depth: understand the idea AND code it up.
 
 ## Quick Navigation
 
@@ -35,9 +35,17 @@
    - **Why:** Practical fine-tuning for resource constraints
    - **Interview Q:** "Why is LoRA better than full fine-tuning? Trade-offs?"
 
-**Total time:** ~3.5 hours reading + 2-3 hours notebooks
+5. [Mixture of Experts](../papers/efficiency-scaling/concepts/01-mixture-of-experts.md) — 50 min
+   - **Why:** Scaling strategy for large models
+   - **Interview Q:** "How does sparse routing enable scaling? What are the challenges?"
 
-**Interview prep:** You can explain modern ML architecture, understand why scale matters, and code up the key techniques.
+6. [In-Context Learning](../papers/foundation-models/concepts/01-in-context-learning.md) — 45 min
+   - **Why:** Understanding emergent abilities
+   - **Interview Q:** "Why does in-context learning only appear at scale? How does it work?"
+
+**Total time:** ~4.5 hours reading + 3-4 hours notebooks
+
+**Interview prep:** You can explain modern ML architecture, understand why scale matters, and code up the key techniques. You also understand efficiency strategies and emergent behaviors in large models.
 
 ---
 
@@ -64,9 +72,12 @@
 6. [Retrieval-Augmented Generation](../papers/retrieval/concepts/01-rag.md) — 55 min
    - **Why:** Connecting language models to external knowledge
 
-**Total time:** ~5.5 hours reading + 3-4 hours notebooks
+7. [In-Context Learning](../papers/foundation-models/concepts/01-in-context-learning.md) — 50 min
+   - **Why:** Understanding how large models learn without fine-tuning
 
-**Interview prep:** You understand language models end-to-end: pre-training, scaling, fine-tuning, and retrieval augmentation.
+**Total time:** ~6.5 hours reading + 4-5 hours notebooks
+
+**Interview prep:** You understand language models end-to-end: pre-training, scaling, fine-tuning, retrieval augmentation, and emergent in-context learning abilities.
 
 ---
 
@@ -90,12 +101,18 @@
 5. [Learning Transferable Visual Models (CLIP)](../papers/retrieval/concepts/02-clip.md) — 60 min
    - **Why:** Multimodal understanding for agents that see and act
 
-6. [GPT-3: Few-Shot Learners](../papers/nlp/concepts/03-gpt3.md) — 60 min
+6. [Flamingo: Visual Language Model](../papers/multimodal/concepts/01-flamingo.md) — 60 min
+   - **Why:** Advanced vision-language architecture with few-shot adaptation
+
+7. [In-Context Learning](../papers/foundation-models/concepts/01-in-context-learning.md) — 50 min
+   - **Why:** Understand emergent learning without fine-tuning
+
+8. [GPT-3: Few-Shot Learners](../papers/nlp/concepts/03-gpt3.md) — 60 min
    - **Why:** Understand in-context learning and generalization
 
-**Total time:** ~5.5 hours reading + 3-4 hours notebooks
+**Total time:** ~7 hours reading + 4-5 hours notebooks
 
-**Interview prep:** You can explain how agents think (reasoning), act (tools), plan (tree search), and perceive (multimodal).
+**Interview prep:** You can explain how agents think (reasoning), act (tools), plan (tree search), and perceive (multimodal). You also understand in-context learning and advanced vision-language architectures.
 
 ---
 
