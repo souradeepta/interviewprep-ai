@@ -262,7 +262,7 @@
 - [Reproducibility](./system-design/patterns/21-reproducibility.md)
 - [ML Governance](./system-design/patterns/27-ml-governance.md)
 
-### Coding (22 files)
+### Coding (26 files)
 
 **Data Structures (10 files)**
 - [Arrays & Strings](coding/data-structures/arrays-strings.md)
@@ -276,7 +276,7 @@
 - [Union-Find](coding/data-structures/union-find.md)
 - [Segment Trees](coding/data-structures/segment-trees.md)
 
-**Algorithm Patterns (12 files)**
+**Algorithm Patterns (16 files)**
 - [Sorting](coding/algorithms/sorting.md) — QuickSort, MergeSort, TimSort
 - [Binary Search](coding/algorithms/binary-search.md) — Templates + search on answer
 - [Sliding Window](coding/algorithms/sliding-window.md)
@@ -289,6 +289,10 @@
 - [Divide & Conquer](coding/algorithms/divide-conquer.md)
 - [Bit Manipulation](coding/algorithms/bit-manipulation.md)
 - [String Patterns](coding/algorithms/string-patterns.md) — KMP, rolling hash
+- [Prefix Sums](coding/algorithms/prefix-sums.md) — Range queries and difference arrays
+- [Intervals & Sweep Line](coding/algorithms/intervals-sweep-line.md) — Scheduling and event ordering
+- [Matrix & Grid](coding/algorithms/matrix-grid.md) — Traversal and shortest paths
+- [Simulation & State Machines](coding/algorithms/simulation-state-machines.md) — Practical event processing
 
 ### Architecture Reviews (30 systems + 8 post-mortems)
 

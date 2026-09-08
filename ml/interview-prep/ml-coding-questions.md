@@ -252,7 +252,109 @@ For n >> d: use covariance. For d >> n: use Gram matrix $XX^T$ (O(n²d)).
 
 ---
 
-*Questions 5–20 follow the same format. Remaining topics:*
-*K-Means from scratch, mini-batch SGD on a neural net, gradient descent with momentum,*
-*beam search (LLM decoding), implement ROC curve, trie from scratch for NLP,*
-*weighted random sampling, batch matrix multiply.*
+## Q: Implement rejection sampling for a target distribution.
+
+**Difficulty:** Medium | **Domain:** Probability / ML Coding | **Companies:** LinkedIn, Google
+
+Given a proposal sampler `q(x)` and a target density `p(x)` with a known bound
+`p(x) <= M q(x)`, sample from `p` without directly sampling it. Draw `x ~ q`
+and accept it with probability `p(x) / (M q(x))`.
+
+```python
+import numpy as np
+
+
+def rejection_sample(target_pdf, proposal_sample, proposal_pdf, bound,
+                     n_samples, rng=None):
+    rng = np.random.default_rng(rng)
+    samples = []
+    while len(samples) < n_samples:
+        x = proposal_sample(rng)
+        acceptance = target_pdf(x) / (bound * proposal_pdf(x))
+        if acceptance > 1:
+            raise ValueError("bound M is too small")
+        if rng.random() < acceptance:
+            samples.append(x)
+    return np.asarray(samples)
+```
+
+Ask how to estimate efficiency: the expected acceptance rate is `1/M` when
+the proposal is normalized and the target is normalized. Follow-ups include
+importance sampling, adaptive proposals, and numerical stability in log-space.
+Test a symmetric target, a poor proposal, a fixed random seed, and a proposal
+with zero density outside its support.
+
+## Q: Build a lightweight topic model with TF-IDF and truncated SVD.
+
+**Difficulty:** Medium | **Domain:** NLP / ML Coding | **Companies:** LinkedIn, Meta
+
+Construct a document-term matrix, apply TF-IDF, and use a low-rank
+decomposition to discover latent topics. The interview focus is usually the
+pipeline and leakage controls, not reproducing a full production LDA solver.
+
+```python
+import numpy as np
+from collections import Counter
+
+
+def tfidf(documents, min_df=1):
+    tokenized = [doc.lower().split() for doc in documents]
+    vocab = sorted({word for doc in tokenized for word in set(doc)
+                    if sum(word in other for other in tokenized) >= min_df})
+    index = {word: i for i, word in enumerate(vocab)}
+    matrix = np.zeros((len(documents), len(vocab)), dtype=float)
+    for row, words in enumerate(tokenized):
+        counts = Counter(words)
+        for word, count in counts.items():
+            if word in index:
+                matrix[row, index[word]] = count / len(words)
+    idf = np.log((1 + len(documents)) /
+                 (1 + (matrix > 0).sum(axis=0))) + 1
+    return matrix * idf, vocab
+
+
+def topic_vectors(documents, n_topics=2):
+    matrix, vocabulary = tfidf(documents)
+    _, _, vt = np.linalg.svd(matrix, full_matrices=False)
+    return vt[:n_topics], vocabulary
+```
+
+Clarify tokenization, stop words, vocabulary fitting only on training data,
+and how to choose the number of topics. Explain that SVD gives LSA topics,
+while probabilistic LDA models a distribution over topics and words.
+
+## Q: Implement ranking metrics for a recommendation model.
+
+**Difficulty:** Medium | **Domain:** Recommenders / ML Coding | **Companies:** LinkedIn, Meta, Amazon
+
+Offline ranking evaluation must respect user boundaries and should report more
+than one metric. Implement precision@k, recall@k, and NDCG@k, then discuss
+candidate generation, popularity bias, cold start, and online guardrails.
+
+```python
+import math
+
+
+def ndcg_at_k(recommended, relevant, k):
+    relevant = set(relevant)
+    gains = [1 if item in relevant else 0 for item in recommended[:k]]
+    dcg = sum(gain / math.log2(rank + 2) for rank, gain in enumerate(gains))
+    ideal = sum(1 / math.log2(rank + 2)
+                for rank in range(min(k, len(relevant))))
+    return dcg / ideal if ideal else 0.0
+
+
+def recall_at_k(recommended, relevant, k):
+    relevant = set(relevant)
+    return len(set(recommended[:k]) & relevant) / len(relevant) if relevant else 0.0
+```
+
+Avoid leaking future interactions into training. Split by time for production
+recommendation, report metrics by user cohort, and distinguish ranking quality
+from business outcomes such as retention, diversity, and complaint rate.
+
+### Remaining high-value ML coding topics
+
+K-means, mini-batch SGD, momentum, beam search, ROC/AUC, an NLP trie, weighted
+sampling, batch matrix multiplication, and a data/SQL feature-aggregation
+exercise remain useful follow-ups.

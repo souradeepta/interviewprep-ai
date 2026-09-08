@@ -46,3 +46,7 @@ Coding interviews typically combine LeetCode-style DSA questions with ML impleme
 | [divide-conquer.md](algorithms/divide-conquer.md) | Master theorem, MergeSort, QuickSelect, max subarray D&C version |
 | [bit-manipulation.md](algorithms/bit-manipulation.md) | XOR tricks, set/clear/toggle bits, subset enumeration via bitmask |
 | [string-patterns.md](algorithms/string-patterns.md) | KMP, Rabin-Karp rolling hash, palindrome expansion, anagram sliding window |
+| [prefix-sums.md](algorithms/prefix-sums.md) | Range sums, subarray counts, difference arrays |
+| [intervals-sweep-line.md](algorithms/intervals-sweep-line.md) | Merging, scheduling, sweep-line event ordering |
+| [matrix-grid.md](algorithms/matrix-grid.md) | Grid BFS/DFS, shortest paths, in-place state updates |
+| [simulation-state-machines.md](algorithms/simulation-state-machines.md) | Log parsing, event streams, queues, and state invariants |

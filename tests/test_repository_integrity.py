@@ -15,6 +15,12 @@ SMOKE_NOTEBOOKS = (
     ROOT / "llm/notebooks/18-rag.ipynb",
 )
 
+ML_INTERVIEW_TOPICS = (
+    "rejection sampling",
+    "topic model",
+    "ranking metrics",
+)
+
 
 def load_link_auditor():
     path = ROOT / "scripts/audit_markdown_links.py"
@@ -29,6 +35,18 @@ def load_link_auditor():
 def test_active_markdown_links_are_valid():
     auditor = load_link_auditor()
     assert auditor.audit(ROOT) == []
+
+
+def test_ml_interview_material_covers_recently_recurring_topics():
+    content = (ROOT / "ml/interview-prep/ml-coding-questions.md").read_text().lower()
+    assert all(topic in content for topic in ML_INTERVIEW_TOPICS)
+    for guide in (
+        "prefix-sums.md",
+        "intervals-sweep-line.md",
+        "matrix-grid.md",
+        "simulation-state-machines.md",
+    ):
+        assert (ROOT / "coding/algorithms" / guide).exists()
 
 
 @pytest.mark.parametrize("notebook_path", SMOKE_NOTEBOOKS)

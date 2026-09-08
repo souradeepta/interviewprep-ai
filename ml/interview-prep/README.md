@@ -7,5 +7,5 @@ How to use:
 
 Files:
 - [ML Theory Questions](ml-theory-questions.md) — 50 Q&A on all ML fundamentals
-- [ML Coding Questions](ml-coding-questions.md) — implement algorithms from scratch
+- [ML Coding Questions](ml-coding-questions.md) — implement ML algorithms, probability, NLP, and ranking metrics from scratch
 - [ML Case Studies](case-studies.md) — end-to-end 45-minute system design scenarios
