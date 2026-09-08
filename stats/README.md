@@ -16,20 +16,20 @@ No prior deep knowledge of statistics is assumed, but comfort with notation like
 
 | # | Name | Category | Notebook |
 |---|------|----------|---------|
-| 01 | Probability Fundamentals | Foundation | [01-probability-fundamentals.ipynb](notebooks/01-probability-fundamentals.ipynb) |
-| 02 | Distributions | Foundation | [02-distributions.ipynb](notebooks/02-distributions.ipynb) |
-| 03 | Probability Distributions | Foundation | [03-probability-distributions.ipynb](notebooks/03-probability-distributions.ipynb) |
-| 04 | Estimation Theory | Foundation | [04-estimation-theory.ipynb](notebooks/04-estimation-theory.ipynb) |
-| 05 | Statistical Inference | Inference | [05-statistical-inference.ipynb](notebooks/05-statistical-inference.ipynb) |
-| 06 | Hypothesis Testing | Inference | [06-hypothesis-testing.ipynb](notebooks/06-hypothesis-testing.ipynb) |
-| 07 | Regression Analysis | Modeling | [07-regression-analysis.ipynb](notebooks/07-regression-analysis.ipynb) |
-| 08 | Bayesian Inference | Bayesian | [08-bayesian-inference.ipynb](notebooks/08-bayesian-inference.ipynb) |
-| 09 | Experimental Design | Inference | [09-experimental-design.ipynb](notebooks/09-experimental-design.ipynb) |
-| 10 | Resampling Methods | Computation | [10-resampling-methods.ipynb](notebooks/10-resampling-methods.ipynb) |
+| 01 | Probability Fundamentals | Foundations | [01-probability-fundamentals.ipynb](notebooks/01-probability-fundamentals.ipynb) |
+| 02 | Distributions Reference | Foundations | [02-distributions-reference.ipynb](notebooks/02-distributions-reference.ipynb) |
+| 03 | Bayesian Inference | Bayesian | [03-bayesian-inference.ipynb](notebooks/03-bayesian-inference.ipynb) |
+| 04 | Maximum Likelihood Estimation | Estimation | [04-maximum-likelihood-estimation.ipynb](notebooks/04-maximum-likelihood-estimation.ipynb) |
+| 05 | Hypothesis Testing | Inference | [05-hypothesis-testing.ipynb](notebooks/05-hypothesis-testing.ipynb) |
+| 06 | Confidence Intervals | Inference | [06-confidence-intervals.ipynb](notebooks/06-confidence-intervals.ipynb) |
+| 07 | Statistical Power and Sample Size | Experimental Design | [07-statistical-power-sample-size.ipynb](notebooks/07-statistical-power-sample-size.ipynb) |
+| 08 | A/B Testing Statistics | Experimental Design | [08-ab-testing-statistics.ipynb](notebooks/08-ab-testing-statistics.ipynb) |
+| 09 | Causal Inference | Causal | [09-causal-inference.ipynb](notebooks/09-causal-inference.ipynb) |
+| 10 | Information Theory | Information | [10-information-theory.ipynb](notebooks/10-information-theory.ipynb) |
 | 11 | Monte Carlo Sampling | Computation | [11-monte-carlo-sampling.ipynb](notebooks/11-monte-carlo-sampling.ipynb) |
-| 12 | Markov Chains and MCMC | Bayesian | [12-markov-chains-mcmc.ipynb](notebooks/12-markov-chains-mcmc.ipynb) |
-| 13 | Multivariate Statistics | Multivariate | [13-multivariate-statistics.ipynb](notebooks/13-multivariate-statistics.ipynb) |
-| 14 | Time Series Statistics | Temporal | [14-time-series-statistics.ipynb](notebooks/14-time-series-statistics.ipynb) |
+| 12 | Markov Chains and MCMC | Computational | [12-markov-chains-mcmc.ipynb](notebooks/12-markov-chains-mcmc.ipynb) |
+| 13 | Multivariate Statistics | Advanced | [13-multivariate-statistics.ipynb](notebooks/13-multivariate-statistics.ipynb) |
+| 14 | Time Series Statistics | Time Series | [14-time-series-statistics.ipynb](notebooks/14-time-series-statistics.ipynb) |
 | 15 | Statistical-ML Connections | Synthesis | [15-statistical-ml-connections.ipynb](notebooks/15-statistical-ml-connections.ipynb) |
 
 ---
@@ -54,7 +54,7 @@ This track covers the absolute fundamentals that appear in virtually every ML in
 
 ### Bayesian Track
 **Best for**: Research scientists, probabilistic ML roles, NLP/CV researchers.
-**Concepts**: 01 → 03 → 08 → 12
+**Concepts**: 01 → 03 → 10 → 12
 
 This track goes deep on the Bayesian perspective: prior-posterior updating, MCMC for posterior sampling, and the connections between Bayesian inference and regularization.
 
@@ -68,7 +68,7 @@ This track goes deep on the Bayesian perspective: prior-posterior updating, MCMC
 
 ### Production ML Statistics
 **Best for**: MLE at companies running A/B tests, deploying models at scale, or working on data infrastructure.
-**Concepts**: 05 → 06 → 07 → 08 → 09 → 10
+**Concepts**: 05 → 06 → 07 → 08 → 09 → 13 → 14
 
 This track focuses on the statistical skills needed for production ML: A/B testing, experiment design, regression diagnostics, uncertainty quantification, and resampling for robust estimates.
 
