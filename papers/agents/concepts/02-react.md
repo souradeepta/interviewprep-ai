@@ -497,8 +497,8 @@ class RobustReAct:
 
 - [Chain-of-Thought Prompting](./01-chain-of-thought.md) — Reasoning component of ReAct
 - [Tree of Thoughts](./03-tree-of-thoughts.md) — Explore multiple action sequences, not just greedy
-- [agentic-ai/concepts/XX-tool-use](../../agentic-ai/concepts/XX-tool-use.md) — Action/tool design in agents
-- [agentic-ai/concepts/XX-agent-loops](../../agentic-ai/concepts/XX-agent-loops.md) — General agent architecture
+- [agentic-ai/concepts/XX-tool-use](../../../agentic-ai/concepts/03-tool-use.md) — Action/tool design in agents
+- [agentic-ai/concepts/XX-agent-loops](../../../agentic-ai/concepts/02-agent-loops.md) — General agent architecture
 
 ---
 

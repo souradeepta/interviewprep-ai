@@ -12,10 +12,10 @@ and expect you to design a complete ML-powered product feature.
 **Estimated time:** 1–2 weeks at 10 hrs/week
 
 - [ ] [System Design Framework](../system-design/interview-prep/system-design-framework.md)
-- [ ] [Online vs. Batch Inference](../system-design/patterns/online-vs-batch-inference.md)
-- [ ] [Feature Store](../system-design/patterns/feature-store.md)
-- [ ] [Data Pipelines](../system-design/patterns/data-pipelines.md)
-- [ ] Practice: [System Design Questions](../system-design/interview-prep/system-design-questions.md) — Q1–Q5 (use framework, don't worry about depth yet)
+- [ ] [Online vs. Batch Inference](../system-design/patterns/07-online-vs-batch-inference.md)
+- [ ] [Feature Store](../system-design/patterns/03-feature-store.md)
+- [ ] [Data Pipelines](../system-design/patterns/02-data-pipelines.md)
+- [ ] Practice: [System Design Framework](../system-design/interview-prep/system-design-framework.md) — Q1–Q5 (use framework, don't worry about depth yet)
 
 **Phase 1 exit check:**
 - Can you describe the ML system design framework in under 2 minutes?
@@ -27,13 +27,11 @@ and expect you to design a complete ML-powered product feature.
 **Goal:** Practice designing complete ML systems end-to-end.
 **Estimated time:** 2–3 weeks at 10 hrs/week
 
-- [ ] [Model Registry](../system-design/patterns/model-registry.md)
-- [ ] [A/B Testing](../system-design/patterns/ab-testing.md)
-- [ ] [MLOps Overview](../system-design/patterns/mlops-overview.md)
-- [ ] [Case Study — Recommendation System](../system-design/case-studies/recommendation-system.md)
-- [ ] [Case Study — Search Ranking](../system-design/case-studies/search-ranking.md)
-- [ ] [Case Study — Fraud Detection](../system-design/case-studies/fraud-detection.md)
-- [ ] Practice: [System Design Questions](../system-design/interview-prep/system-design-questions.md) — Q6–Q15
+- [ ] [Model Registry](../system-design/patterns/04-model-registry.md)
+- [ ] [A/B Testing](../system-design/patterns/14-ab-testing.md)
+- [ ] [MLOps Overview](../system-design/patterns/01-mlops-overview.md)
+- [ ] [ML Case Studies — Recommendation, Search, and Fraud](../ml/interview-prep/case-studies.md)
+- [ ] Practice: [System Design Framework](../system-design/interview-prep/system-design-framework.md) — Q6–Q15
 
 **Phase 2 exit check:**
 - Can you design a recommendation system end-to-end in 45 minutes?
@@ -45,12 +43,11 @@ and expect you to design a complete ML-powered product feature.
 **Goal:** Design LLM-powered systems and agentic platforms under interview conditions.
 **Estimated time:** 1–2 weeks at 10 hrs/week
 
-- [ ] [Case Study — Content Moderation](../system-design/case-studies/content-moderation.md)
-- [ ] [Case Study — Ads Click Prediction](../system-design/case-studies/ads-click-prediction.md)
-- [ ] [LLM System Design — RAG System](../llm/system-design/rag-system-design.md)
-- [ ] [LLM System Design — LLM Serving](../llm/system-design/llm-serving-design.md)
-- [ ] [Agentic System Design](../agentic-ai/system-design/agentic-system-design.md)
-- [ ] Practice: [System Design Questions](../system-design/interview-prep/system-design-questions.md) — Q16–Q25
+- [ ] [ML Case Studies — Moderation and Ads](../ml/interview-prep/case-studies.md)
+- [ ] [LLM System Design Patterns](../system-design/README.md)
+- [ ] [LLM Serving Pattern](../system-design/patterns/07-online-vs-batch-inference.md)
+- [ ] [Agentic Deployment Patterns](../agentic-ai/concepts/56-agent-deployment-patterns.md)
+- [ ] Practice: [System Design Framework](../system-design/interview-prep/system-design-framework.md) — Q16–Q25
 
 **Phase 3 exit check:**
 - Can you design a production RAG system with latency SLAs, observability, and fallbacks?

@@ -10,12 +10,12 @@ to complex multi-agent systems. Assumes basic LLM familiarity (complete LLM Road
 **Goal:** Understand what agents are, build a basic agent loop, use tools and memory.
 **Estimated time:** 1–2 weeks at 10 hrs/week
 
-- [ ] [What Is an Agent](../agentic-ai/concepts/what-is-an-agent.md)
-- [ ] [Tool Use](../agentic-ai/concepts/tool-use.md)
-- [ ] [Memory Types](../agentic-ai/concepts/memory-types.md)
-- [ ] Implement: [Basic Agent Loop](../agentic-ai/implementations/basic-agent-loop.ipynb)
-- [ ] Implement: [Tool Calling Agent](../agentic-ai/implementations/tool-calling-agent.ipynb)
-- [ ] Practice: [Agentic Theory Questions](../agentic-ai/interview-prep/agentic-theory-questions.md) — Q1–Q10
+- [ ] [What Is an Agent](../agentic-ai/concepts/01-what-is-an-agent.md)
+- [ ] [Tool Use](../agentic-ai/concepts/03-tool-use.md)
+- [ ] [Memory Types](../agentic-ai/concepts/11-memory-types.md)
+- [ ] Implement: [Basic Agent Loop](../agentic-ai/implementations/01-what-is-an-agent.py)
+- [ ] Implement: [Tool Calling Agent](../agentic-ai/implementations/04-tool-calling.py)
+- [ ] Practice: [Shared ML Interview Prep](../ml/interview-prep/README.md) — Q1–Q10
 
 **Phase 1 exit check:**
 - Can you build a ReAct agent from scratch using only raw API calls (no framework)?
@@ -27,13 +27,13 @@ to complex multi-agent systems. Assumes basic LLM familiarity (complete LLM Road
 **Goal:** Planning/reasoning strategies, multi-agent patterns, RAG agents.
 **Estimated time:** 2–3 weeks at 10 hrs/week
 
-- [ ] [Planning & Reasoning](../agentic-ai/concepts/planning-reasoning.md)
-- [ ] [Multi-Agent Systems](../agentic-ai/concepts/multi-agent-systems.md)
-- [ ] Implement: [RAG Agent](../agentic-ai/implementations/rag-agent.ipynb)
-- [ ] Implement: [Multi-Agent Workflow](../agentic-ai/implementations/multi-agent-workflow.ipynb)
-- [ ] Implement: [LangGraph Agent](../agentic-ai/implementations/langgraph-agent.ipynb)
-- [ ] Implement: [Memory Agent](../agentic-ai/implementations/memory-agent.ipynb)
-- [ ] Practice: [Agentic Theory Questions](../agentic-ai/interview-prep/agentic-theory-questions.md) — Q11–Q25
+- [ ] [Planning & Reasoning](../agentic-ai/concepts/07-planning-reasoning.md)
+- [ ] [Multi-Agent Systems](../agentic-ai/concepts/14-multi-agent-systems.md)
+- [ ] Implement: [RAG Agent](../agentic-ai/implementations/25-retrieval-augmented-generation.py)
+- [ ] Implement: [Multi-Agent Workflow](../agentic-ai/implementations/14-multi-agent-systems.py)
+- [ ] Implement: [LangGraph Agent](../agentic-ai/implementations/53-langchain-frameworks.py)
+- [ ] Implement: [Memory Agent](../agentic-ai/implementations/12-agent-memory-management.py)
+- [ ] Practice: [Shared ML Interview Prep](../ml/interview-prep/README.md) — Q11–Q25
 
 **Phase 2 exit check:**
 - Can you implement a multi-agent workflow where one agent routes tasks to specialist agents?
@@ -45,12 +45,12 @@ to complex multi-agent systems. Assumes basic LLM familiarity (complete LLM Road
 **Goal:** Agent evals, safety, production deployment, system design.
 **Estimated time:** 1–2 weeks at 10 hrs/week
 
-- [ ] [Agent Evals](../agentic-ai/concepts/agent-evals.md)
-- [ ] [Safety & Alignment](../agentic-ai/concepts/safety-alignment.md)
-- [ ] [System Design — Agentic System Design](../agentic-ai/system-design/agentic-system-design.md)
-- [ ] [System Design — Multi-Agent Orchestration](../agentic-ai/system-design/multi-agent-orchestration.md)
-- [ ] [System Design — Production Agents](../agentic-ai/system-design/production-agents.md)
-- [ ] Practice: [Agentic System Design Questions](../agentic-ai/interview-prep/agentic-system-design-questions.md)
+- [ ] [Agent Evals](../agentic-ai/concepts/29-agent-evals.md)
+- [ ] [Safety & Alignment](../agentic-ai/concepts/36-safety-alignment.md)
+- [ ] [Agent Deployment Patterns](../agentic-ai/concepts/56-agent-deployment-patterns.md)
+- [ ] [Multi-Agent Systems](../agentic-ai/concepts/14-multi-agent-systems.md)
+- [ ] [Production Agents](../agentic-ai/concepts/56-agent-deployment-patterns.md)
+- [ ] Practice: [System Design Framework](../system-design/interview-prep/system-design-framework.md)
 
 **Phase 3 exit check:**
 - Can you design an eval harness for a customer support agent?

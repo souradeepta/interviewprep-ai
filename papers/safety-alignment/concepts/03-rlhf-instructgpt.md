@@ -668,5 +668,5 @@ class RLHFTrainer:
 
 - [Direct Preference Optimization (DPO)](./02-dpo.md) – Modern alternative that eliminates reward model training
 - [Constitutional AI](./01-constitutional-ai.md) – Principle-based alignment without human feedback
-- [Reward Modeling](../../../llm/concepts/32-reward-modeling.md) – Training models to predict preferences
-- [Policy Optimization](../../../agentic-ai/concepts/XX-policy-optimization.md) – RL algorithms (PPO, TRPO)
+- [Reward Modeling](../../../llm/concepts/06-rlhf.md) – Training models to predict preferences
+- [Policy Optimization](../../../agentic-ai/concepts/07-planning-reasoning.md) – RL algorithms (PPO, TRPO)

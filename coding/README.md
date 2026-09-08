@@ -7,7 +7,7 @@ Data structures, algorithms, and ML-specific coding for technical interview prep
 |--------|--------------|
 | [data-structures/](data-structures/) | Arrays, strings, linked lists, trees, graphs, heaps, tries |
 | [algorithms/](algorithms/) | Sorting, searching, DP, backtracking, graph algorithms |
-| [ml-coding/](ml-coding/) | Implementing ML algorithms from scratch |
+| [ML coding questions](../ml/interview-prep/ml-coding-questions.md) | Implementing ML algorithms from scratch |
 
 Coding interviews typically combine LeetCode-style DSA questions with ML implementation questions.
 

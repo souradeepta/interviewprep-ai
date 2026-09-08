@@ -529,7 +529,7 @@ for i, (p, s) in enumerate(zip(retrieved, scores), 1):
 
 ## 9. Related Concepts
 
-- [Retrieval-Augmented Generation (RAG)](../retrieval/concepts/rag.md) – Combines dense retrieval with generation; DPR is the "R" in RAG
-- [Sentence Embeddings and Semantic Similarity](../foundation-models/concepts/embeddings.md) – Dense embeddings are the foundation of neural search; understand representation learning
-- [Cross-Encoders and Re-ranking](../foundation-models/concepts/ranking.md) – Two-stage retrieval: dense retrieval (recall) + re-ranking (precision)
-- [Least-to-Most Prompting](../reasoning-search/02-least-to-most.md) – Compositional retrieval: decompose hard retrieval tasks into simpler sub-retrievals
+- [Retrieval-Augmented Generation (RAG)](../../retrieval/concepts/01-rag.md) – Combines dense retrieval with generation; DPR is the "R" in RAG
+- [Sentence Embeddings and Semantic Similarity](../../../llm/concepts/02-embeddings.md) – Dense embeddings are the foundation of neural search; understand representation learning
+- [Cross-Encoders and Re-ranking](../../../llm/concepts/21-semantic-search.md) – Two-stage retrieval: dense retrieval (recall) + re-ranking (precision)
+- [Least-to-Most Prompting](./02-least-to-most.md) – Compositional retrieval: decompose hard retrieval tasks into simpler sub-retrievals

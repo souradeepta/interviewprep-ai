@@ -438,7 +438,7 @@ print(f"Constraint satisfaction result: {result}")
 
 ## 9. Related Concepts
 
-- [Least-to-Most Prompting](../reasoning-search/02-least-to-most.md) – Decompose hard problems into easy subproblems; works well with PAL for step-by-step code generation
-- [Chain-of-Thought Prompting](../foundation-models/concepts/cot.md) – Similar problem decomposition but in natural language; less reliable for computation
-- [Self-Verification and Program Synthesis](../agents/concepts/tool-use.md) – Using code generation for tool use; extends PAL to agent frameworks
-- [Retrieval-Augmented Generation (RAG)](../retrieval/concepts/rag.md) – Retrieve external knowledge before generation; can complement PAL for data-heavy problems
+- [Least-to-Most Prompting](./02-least-to-most.md) – Decompose hard problems into easy subproblems; works well with PAL for step-by-step code generation
+- [Chain-of-Thought Prompting](../../../llm/concepts/16-chain-of-thought.md) – Similar problem decomposition but in natural language; less reliable for computation
+- [Self-Verification and Program Synthesis](../../../agentic-ai/concepts/03-tool-use.md) – Using code generation for tool use; extends PAL to agent frameworks
+- [Retrieval-Augmented Generation (RAG)](../../retrieval/concepts/01-rag.md) – Retrieve external knowledge before generation; can complement PAL for data-heavy problems

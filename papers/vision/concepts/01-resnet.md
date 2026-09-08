@@ -342,5 +342,5 @@ class BottleneckBlock(nn.Module):
 ## Related Concepts
 
 - [Vision Transformer](./02-vision-transformer.md) — Modern alternative to ResNets for vision
-- [Scaling Laws for Neural Language Models](../nlp/concepts/04-scaling-laws.md) — Why deeper/wider models work
-- [LoRA: Low-Rank Adaptation](../nlp/concepts/05-lora.md) — Efficient fine-tuning, applies to ResNets too
+- [Scaling Laws for Neural Language Models](../../nlp/concepts/04-scaling-laws.md) — Why deeper/wider models work
+- [LoRA: Low-Rank Adaptation](../../nlp/concepts/05-lora.md) — Efficient fine-tuning, applies to ResNets too

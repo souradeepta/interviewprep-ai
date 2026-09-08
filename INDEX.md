@@ -13,52 +13,52 @@
 ### AI Fundamentals (40 concepts)
 
 **Core Optimization & Classical Methods**
-- [Linear Regression](ai/concepts/linear-regression.md)
-- [Logistic Regression](ai/concepts/logistic-regression.md)
-- [Gradient Descent](ai/concepts/gradient-descent.md)
-- [Stochastic Gradient Descent](ai/concepts/stochastic-gradient-descent.md)
-- [Momentum & Accelerated Methods](ai/concepts/momentum-and-accelerated-methods.md)
-- [Regularization](ai/concepts/regularization.md)
-- [Cross-Validation](ai/concepts/cross-validation.md)
-- [Hyperparameter Tuning](ai/concepts/hyperparameter-tuning.md)
+- [Linear Regression](./ai/concepts/06-linear-regression.md)
+- [Logistic Regression](./ai/concepts/07-logistic-regression.md)
+- [Gradient Descent](./ai/concepts/01-gradient-descent.md)
+- [Stochastic Gradient Descent](./ai/concepts/04-optimization-algorithms.md)
+- [Momentum & Accelerated Methods](./ml/concepts/momentum-and-acceleration.md)
+- [Regularization](./ai/concepts/16-regularization.md)
+- [Cross-Validation](./ai/concepts/22-cross-validation.md)
+- [Hyperparameter Tuning](./ml/concepts/hyperparameter-tuning.md)
 
 **Classical ML Algorithms**
-- [Decision Trees](ai/concepts/decision-trees.md)
-- [Random Forests](ai/concepts/random-forests.md)
-- [K-Means Clustering](ai/concepts/kmeans-clustering.md)
-- [Hierarchical Clustering](ai/concepts/hierarchical-clustering.md)
-- [DBSCAN](ai/concepts/dbscan.md)
-- [Gaussian Mixture Models](ai/concepts/gaussian-mixture-models.md)
-- [K-Nearest Neighbors](ai/concepts/knn.md)
-- [Support Vector Machines](ai/concepts/support-vector-machines.md)
-- [Naive Bayes](ai/concepts/naive-bayes.md)
+- [Decision Trees](./ai/concepts/08-decision-trees.md)
+- [Random Forests](./ai/concepts/09-random-forests.md)
+- [K-Means Clustering](./ai/concepts/18-k-means-clustering.md)
+- [Hierarchical Clustering](./ai/concepts/18-k-means-clustering.md) *(clustering overview)*
+- [DBSCAN](./ai/concepts/18-k-means-clustering.md) *(clustering overview)*
+- [Gaussian Mixture Models](./ai/concepts/20-gaussian-mixture-models.md)
+- [K-Nearest Neighbors](./ai/concepts/12-k-nearest-neighbors.md)
+- [Support Vector Machines](./ml/concepts/support-vector-machines.md)
+- [Naive Bayes](./ml/concepts/naive-bayes.md)
 
 **Neural Networks & Activation**
-- [Neural Networks Basics](ai/concepts/neural-networks-basics.md)
-- [Activation Functions](ai/concepts/activation-functions.md)
-- [Backpropagation](ai/concepts/backpropagation.md)
-- [Batch Normalization](ai/concepts/batch-normalization.md)
-- [Dropout](ai/concepts/dropout.md)
-- [Weight Initialization](ai/concepts/weight-initialization.md)
+- [Neural Networks Basics](./ai/concepts/13-neural-networks.md)
+- [Activation Functions](./ml/concepts/activation-functions.md)
+- [Backpropagation](./ai/concepts/02-backpropagation.md)
+- [Batch Normalization](./ml/concepts/batch-normalization.md)
+- [Dropout](./ml/concepts/dropout.md)
+- [Weight Initialization](./ml/concepts/weight-initialization.md)
 
 **Evaluation & Metrics**
-- [Classification Metrics](ai/concepts/classification-metrics.md)
-- [Regression Metrics](ai/concepts/regression-metrics.md)
-- [Ranking Metrics](ai/concepts/ranking-metrics.md)
-- [Statistical Tests](ai/concepts/statistical-tests.md)
-- [Confusion Matrix & Thresholds](ai/concepts/confusion-matrix-and-thresholds.md)
-- [ROC & AUC](ai/concepts/roc-and-auc.md)
-- [Precision, Recall, F1](ai/concepts/precision-recall-f1.md)
+- [Classification Metrics](./ai/concepts/23-classification-metrics.md)
+- [Regression Metrics](./ai/concepts/24-regression-metrics.md)
+- [Ranking Metrics](./ml/concepts/evaluation-metrics.md)
+- [Statistical Tests](./stats/concepts/05-hypothesis-testing.md)
+- [Confusion Matrix & Thresholds](./ai/concepts/23-classification-metrics.md)
+- [ROC & AUC](./ai/concepts/23-classification-metrics.md)
+- [Precision, Recall, F1](./ai/concepts/23-classification-metrics.md)
 
 **Advanced Topics**
-- [Feature Engineering](ai/concepts/feature-engineering.md)
-- [Dimensionality Reduction](ai/concepts/dimensionality-reduction.md)
-- [Ensemble Methods](ai/concepts/ensemble-methods.md)
-- [Transfer Learning](ai/concepts/transfer-learning.md)
-- [Data Imbalance & SMOTE](ai/concepts/data-imbalance-smote.md)
-- [Overfitting & Underfitting](ai/concepts/overfitting-underfitting.md)
+- [Feature Engineering](./ml/concepts/feature-engineering.md)
+- [Dimensionality Reduction](./ai/concepts/19-dimensionality-reduction.md)
+- [Ensemble Methods](./ml/concepts/ensemble-methods.md)
+- [Transfer Learning](./ml/concepts/transfer-learning.md)
+- [Data Imbalance & SMOTE](./ml/concepts/class-imbalance.md)
+- [Overfitting & Underfitting](./ml/concepts/overfitting-underfitting.md)
 
-### Machine Learning (37 concepts)
+### Machine Learning (40 concepts)
 
 **Core & Supervised Learning**
 - [Supervised Learning](ml/concepts/supervised-learning.md)
@@ -113,154 +113,154 @@
 - [Meta-Learning](ml/concepts/meta-learning.md)
 
 **Deep Learning Specializations**
-- [CNNs](ml/concepts/deep-learning/cnns.md)
-- [RNNs & LSTMs](ml/concepts/deep-learning/rnns-lstms.md)
-- [Attention Mechanism](ml/concepts/deep-learning/attention-mechanism.md)
-- [Transformers](ml/concepts/deep-learning/transformers.md)
+- [CNNs](./ml/concepts/cnns.md)
+- [RNNs & LSTMs](./ml/concepts/rnns-lstms.md)
+- [Attention Mechanism](./ml/concepts/attention-mechanism.md)
+- [Transformers](./ml/concepts/transformers.md)
 
-### LLM (44 concepts)
+### LLM (44 concepts + 45 notebooks)
 
 **Fundamentals**
-- [Tokenization](llm/concepts/tokenization.md)
-- [Pretraining](llm/concepts/pretraining.md)
-- [Prompting](llm/concepts/prompting.md)
-- [Embeddings](llm/concepts/embeddings.md)
+- [Tokenization](./llm/concepts/01-tokenization.md)
+- [Pretraining](./llm/concepts/03-pretraining.md)
+- [Prompting](./llm/concepts/12-prompting.md)
+- [Embeddings](./llm/concepts/02-embeddings.md)
 
 **Core Techniques**
-- [In-Context Learning](llm/concepts/in-context-learning.md)
-- [Chain-of-Thought](llm/concepts/chain-of-thought.md)
-- [Few-Shot Learning](llm/concepts/few-shot-learning.md)
-- [Zero-Shot Learning](llm/concepts/zero-shot-learning.md)
-- [Instruction Tuning](llm/concepts/instruction-tuning.md)
+- [In-Context Learning](./llm/concepts/15-in-context-learning.md)
+- [Chain-of-Thought](./llm/concepts/16-chain-of-thought.md)
+- [Few-Shot Learning](./llm/concepts/13-few-shot-learning.md)
+- [Zero-Shot Learning](./llm/concepts/14-zero-shot-learning.md)
+- [Instruction Tuning](./llm/concepts/05-instruction-tuning.md)
 
 **Fine-Tuning & Adaptation**
-- [Fine-tuning](llm/concepts/finetuning.md)
-- [LoRA](llm/concepts/lora.md)
-- [Parameter-Efficient Fine-tuning](llm/concepts/parameter-efficient-finetuning.md)
-- [Adapters](llm/concepts/adapters.md)
-- [Prefix Tuning](llm/concepts/prefix-tuning.md)
-- [RLHF](llm/concepts/rlhf.md)
-- [DPO](llm/concepts/dpo.md)
+- [Fine-tuning](./llm/concepts/04-finetuning.md)
+- [LoRA](./llm/concepts/08-lora.md)
+- [Parameter-Efficient Fine-tuning](./llm/concepts/11-parameter-efficient-finetuning.md)
+- [Adapters](./llm/concepts/09-adapters.md)
+- [Prefix Tuning](./llm/concepts/10-prefix-tuning.md)
+- [RLHF](./llm/concepts/06-rlhf.md)
+- [DPO](./llm/concepts/07-dpo.md)
 
 **Retrieval & Context**
-- [RAG](llm/concepts/rag.md)
-- [Retrieval-Augmented Generation](llm/concepts/retrieval-augmented-generation.md)
-- [Semantic Search](llm/concepts/semantic-search.md)
-- [Vector Databases](llm/concepts/vector-databases.md)
-- [Context Window](llm/concepts/context-window.md)
-- [Semantic Caching](llm/concepts/semantic-caching.md)
+- [RAG](./llm/concepts/18-rag.md)
+- [Retrieval-Augmented Generation](./llm/concepts/19-retrieval-augmented-generation.md)
+- [Semantic Search](./llm/concepts/21-semantic-search.md)
+- [Vector Databases](./llm/concepts/20-vector-databases.md)
+- [Context Window](./llm/concepts/25-context-window.md)
+- [Semantic Caching](./llm/concepts/22-semantic-caching.md)
 
 **Inference & Optimization**
-- [Quantization](llm/concepts/quantization.md)
-- [Inference Optimization](llm/concepts/inference-optimization.md)
-- [KV Cache](llm/concepts/kv-cache.md)
-- [Speculative Decoding](llm/concepts/speculative-decoding.md)
-- [Continuous Batching](llm/concepts/continuous-batching.md)
-- [Token Optimization](llm/concepts/token-optimization.md)
-- [Attention Optimization](llm/concepts/attention-optimization.md)
+- [Quantization](./ml/concepts/quantization.md)
+- [Inference Optimization](./llm/concepts/28-inference-optimization.md)
+- [KV Cache](./llm/concepts/23-kv-cache.md)
+- [Speculative Decoding](./llm/concepts/27-speculative-decoding.md)
+- [Continuous Batching](./llm/concepts/26-continuous-batching.md)
+- [Token Optimization](./llm/concepts/29-token-optimization.md)
+- [Attention Optimization](./llm/concepts/24-attention-optimization.md)
 
 **Evaluation & Multimodal**
-- [Evaluation](llm/concepts/evaluation.md)
-- [Prompt Optimization](llm/concepts/prompt-optimization.md)
-- [Multimodal](llm/concepts/multimodal.md)
+- [Evaluation](./llm/concepts/32-evaluation.md)
+- [Prompt Optimization](./llm/concepts/17-prompt-optimization.md)
+- [Multimodal](./llm/concepts/31-multimodal.md)
 
 ### Agentic AI (64 concepts)
 
 **Foundations**
-- [What Is an Agent](agentic-ai/concepts/what-is-an-agent.md)
-- [Tool Use](agentic-ai/concepts/tool-use.md)
-- [Tool Calling](agentic-ai/concepts/tool-calling.md)
-- [Function Calling](agentic-ai/concepts/function-calling.md)
+- [What Is an Agent](./agentic-ai/concepts/01-what-is-an-agent.md)
+- [Tool Use](./agentic-ai/concepts/03-tool-use.md)
+- [Tool Calling](./agentic-ai/concepts/04-tool-calling.md)
+- [Function Calling](./agentic-ai/concepts/05-function-calling.md)
 
 **Memory & State**
-- [Memory Types](agentic-ai/concepts/memory-types.md)
-- [Agent Memory Management](agentic-ai/concepts/agent-memory-management.md)
-- [Context Window Management](agentic-ai/concepts/context-window-management.md)
+- [Memory Types](./agentic-ai/concepts/11-memory-types.md)
+- [Agent Memory Management](./agentic-ai/concepts/12-agent-memory-management.md)
+- [Context Window Management](./agentic-ai/concepts/19-context-window-management.md)
 
 **Planning & Reasoning**
-- [Planning & Reasoning](agentic-ai/concepts/planning-reasoning.md)
-- [ReAct (Reasoning + Acting)](agentic-ai/concepts/react-reasoning-acting.md)
-- [Tree of Thought](agentic-ai/concepts/tree-of-thought.md)
-- [MCTS for Agents](agentic-ai/concepts/mcts-for-agents.md)
+- [Planning & Reasoning](./agentic-ai/concepts/07-planning-reasoning.md)
+- [ReAct (Reasoning + Acting)](./agentic-ai/concepts/08-react-reasoning-acting.md)
+- [Tree of Thought](./agentic-ai/concepts/09-tree-of-thought.md)
+- [MCTS for Agents](./agentic-ai/concepts/10-mcts-for-agents.md)
 
 **Agent Architecture**
-- [Agent Loops](agentic-ai/concepts/agent-loops.md)
-- [Agent Routing](agentic-ai/concepts/agent-routing.md)
-- [Skill Composition](agentic-ai/concepts/skill-composition.md)
-- [Structured Output](agentic-ai/concepts/structured-output.md)
-- [Error Recovery](agentic-ai/concepts/error-recovery.md)
+- [Agent Loops](./agentic-ai/concepts/02-agent-loops.md)
+- [Agent Routing](./agentic-ai/concepts/20-agent-routing.md)
+- [Skill Composition](./agentic-ai/concepts/22-skill-composition.md)
+- [Structured Output](./agentic-ai/concepts/06-structured-output.md)
+- [Error Recovery](./agentic-ai/concepts/26-error-recovery.md)
 
 **Multi-Agent Systems**
-- [Multi-Agent Systems](agentic-ai/concepts/multi-agent-systems.md)
-- [Hierarchical Agents](agentic-ai/concepts/hierarchical-agents.md)
-- [Cooperative Agents](agentic-ai/concepts/cooperative-agents.md)
-- [Competitive Agents](agentic-ai/concepts/competitive-agents.md)
-- [Agent Communication](agentic-ai/concepts/agent-communication.md)
+- [Multi-Agent Systems](./agentic-ai/concepts/14-multi-agent-systems.md)
+- [Hierarchical Agents](./agentic-ai/concepts/15-hierarchical-agents.md)
+- [Cooperative Agents](./agentic-ai/concepts/16-cooperative-agents.md)
+- [Competitive Agents](./agentic-ai/concepts/17-competitive-agents.md)
+- [Agent Communication](./agentic-ai/concepts/13-agent-communication.md)
 
 **Production & Operations**
-- [Agent Evals](agentic-ai/concepts/agent-evals.md)
-- [Safety & Alignment](agentic-ai/concepts/safety-alignment.md)
-- [Agent Monitoring](agentic-ai/concepts/agent-monitoring.md)
-- [Observability for Agents](agentic-ai/concepts/observability-for-agents.md)
-- [Tracing Agents](agentic-ai/concepts/tracing-agents.md)
-- [Agent Debugging](agentic-ai/concepts/agent-debugging.md)
-- [Agent Testing](agentic-ai/concepts/agent-testing.md)
+- [Agent Evals](./agentic-ai/concepts/29-agent-evals.md)
+- [Safety & Alignment](./agentic-ai/concepts/36-safety-alignment.md)
+- [Agent Monitoring](./agentic-ai/concepts/30-agent-monitoring.md)
+- [Observability for Agents](./agentic-ai/concepts/31-observability-for-agents.md)
+- [Tracing Agents](./agentic-ai/concepts/32-tracing-agents.md)
+- [Agent Debugging](./agentic-ai/concepts/27-agent-debugging.md)
+- [Agent Testing](./agentic-ai/concepts/28-agent-testing.md)
 
 **Optimization**
-- [Simulation for Agents](agentic-ai/concepts/simulation-for-agents.md)
-- [Agent Cost Optimization](agentic-ai/concepts/agent-cost-optimization.md)
-- [Latency Optimization for Agents](agentic-ai/concepts/latency-optimization-agents.md)
+- [Simulation for Agents](./agentic-ai/concepts/52-simulation-for-agents.md)
+- [Agent Cost Optimization](./agentic-ai/concepts/34-agent-cost-optimization.md)
+- [Latency Optimization for Agents](./agentic-ai/concepts/33-latency-optimization-agents.md)
 
 ### System Design Patterns (30 concepts)
 
 **Core Infrastructure**
-- [Feature Store](system-design/patterns/feature-store.md)
-- [Model Registry](system-design/patterns/model-registry.md)
-- [Online vs Batch Inference](system-design/patterns/online-vs-batch-inference.md)
-- [Data Pipelines](system-design/patterns/data-pipelines.md)
+- [Feature Store](./system-design/patterns/03-feature-store.md)
+- [Model Registry](./system-design/patterns/04-model-registry.md)
+- [Online vs Batch Inference](./system-design/patterns/07-online-vs-batch-inference.md)
+- [Data Pipelines](./system-design/patterns/02-data-pipelines.md)
 
 **Training & Ops**
-- [A/B Testing](system-design/patterns/ab-testing.md)
-- [MLOps Overview](system-design/patterns/mlops-overview.md)
-- [Monitoring & Observability](system-design/patterns/monitoring-and-observability.md)
-- [Drift Detection](system-design/patterns/drift-detection.md)
+- [A/B Testing](./system-design/patterns/14-ab-testing.md)
+- [MLOps Overview](./system-design/patterns/01-mlops-overview.md)
+- [Monitoring & Observability](./system-design/patterns/16-monitoring-and-observability.md)
+- [Drift Detection](./system-design/patterns/15-drift-detection.md)
 
 **Model Serving**
-- [Model Serving](system-design/patterns/model-serving.md)
-- [Inference Caching](system-design/patterns/inference-caching.md)
-- [Request Batching](system-design/patterns/request-batching.md)
-- [Load Balancing](system-design/patterns/load-balancing.md)
+- [Model Serving](./system-design/patterns/05-model-serving.md)
+- [Inference Caching](./system-design/patterns/08-inference-caching.md)
+- [Request Batching](./system-design/patterns/09-request-batching.md)
+- [Load Balancing](./system-design/patterns/10-load-balancing.md)
 
 **Deployment**
-- [Canary Deployment](system-design/patterns/canary-deployment.md)
-- [Blue-Green Deployment](system-design/patterns/blue-green-deployment.md)
-- [Shadow Mode](system-design/patterns/shadow-mode.md)
+- [Canary Deployment](./system-design/patterns/12-canary-deployment.md)
+- [Blue-Green Deployment](./system-design/patterns/11-blue-green-deployment.md)
+- [Shadow Mode](./system-design/patterns/13-shadow-mode.md)
 
 **Quality & Debugging**
-- [Model Debugging](system-design/patterns/model-debugging.md)
-- [Feature Importance Tracking](system-design/patterns/feature-importance-tracking.md)
-- [Model Explainability](system-design/patterns/model-explainability.md)
-- [Interpretability](system-design/patterns/interpretability.md)
+- [Model Debugging](./system-design/patterns/17-model-debugging.md)
+- [Feature Importance Tracking](./system-design/patterns/20-feature-importance-tracking.md)
+- [Model Explainability](./system-design/patterns/18-model-explainability.md)
+- [Interpretability](./system-design/patterns/19-interpretability.md)
 
 **Fairness & Bias**
-- [Bias Detection](system-design/patterns/bias-detection.md)
-- [Fairness Metrics](system-design/patterns/fairness-metrics.md)
+- [Bias Detection](./system-design/patterns/24-bias-detection.md)
+- [Fairness Metrics](./system-design/patterns/25-fairness-metrics.md)
 
 **Production Concerns**
-- [Production Readiness](system-design/patterns/production-readiness.md)
-- [Cost Optimization](system-design/patterns/cost-optimization.md)
-- [Disaster Recovery](system-design/patterns/disaster-recovery.md)
+- [Production Readiness](./system-design/patterns/23-production-readiness.md)
+- [Cost Optimization](./system-design/patterns/22-cost-optimization.md)
+- [Disaster Recovery](./system-design/patterns/31-disaster-recovery.md)
 
 **Governance & Privacy**
-- [Data Governance](system-design/patterns/data-governance.md)
-- [Privacy-Preserving ML](system-design/patterns/privacy-preserving-ml.md)
-- [Federated Learning](system-design/patterns/federated-learning.md)
-- [Differential Privacy](system-design/patterns/differential-privacy.md)
+- [Data Governance](./system-design/patterns/26-data-governance.md)
+- [Privacy-Preserving ML](./system-design/patterns/28-privacy-preserving-ml.md)
+- [Federated Learning](./system-design/patterns/30-federated-learning.md)
+- [Differential Privacy](./system-design/patterns/29-differential-privacy.md)
 
 **Advanced**
-- [Model Versioning](system-design/patterns/model-versioning.md)
-- [Reproducibility](system-design/patterns/reproducibility.md)
-- [ML Governance](system-design/patterns/ml-governance.md)
+- [Model Versioning](./system-design/patterns/06-model-versioning.md)
+- [Reproducibility](./system-design/patterns/21-reproducibility.md)
+- [ML Governance](./system-design/patterns/27-ml-governance.md)
 
 ### Coding (22 files)
 
@@ -292,8 +292,8 @@
 
 ### Architecture Reviews (30 systems + 8 post-mortems)
 
-- [Customer Service Bot](arch-review/systems/01-customer-service.md)
-- [RAG System](arch-review/systems/02-rag-system.md)
+- [Customer Service Bot](./arch-review/systems/01-llm-customer-service.md)
+- [RAG System](./arch-review/systems/02-enterprise-rag-document-qa.md)
 - ... and 28 more AI systems with 3 Mermaid diagrams each
 
 **Post-Mortems (8 real failure case studies)**
@@ -356,7 +356,7 @@ Covers all 40 ml/concepts topics with 12-cell format (basic → advanced → 3 r
 
 - [README.md](README.md) — Overview, who it's for, how to start
 - [CONTRIBUTING.md](CONTRIBUTING.md) — Three templates, guidelines, PR checklist
-- [BUILD_SUMMARY.md](BUILD_SUMMARY.md) — Complete stats and what's included
+- [BUILD_SUMMARY.md](./docs/sessions/BUILD_SUMMARY.md) — Complete stats and what's included
 - [INDEX.md](INDEX.md) — This file!
 
 ---
@@ -385,7 +385,7 @@ Covers all 40 ml/concepts topics with 12-cell format (basic → advanced → 3 r
 
 ## File Status
 
-- **✅ Complete:** AI (40 concepts + 40 notebooks) + LLM (44 concepts + 46 notebooks) + Agentic-AI (64 concepts + 64 notebooks) + ML (37 concepts + 8 notebooks) + MLOps (16 concepts + 17 notebooks)
+- **✅ Complete:** AI (40 concepts + 40 notebooks) + LLM (44 concepts + 45 notebooks) + Agentic-AI (64 concepts + 64 notebooks) + ML (40 concepts + 40 notebooks) + MLOps (16 concepts + 17 notebooks)
 - **✅ System Design:** 31 patterns + 30 architecture reviews + interview prep
 - **✅ Support:** Roadmaps (5), interview prep (ML, system-design), coding DSA
 

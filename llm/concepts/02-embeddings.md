@@ -269,7 +269,7 @@ A: Chunk size creates a precision-recall trade-off. Small chunks (128 tokens) gi
 - [Semantic Search](21-semantic-search.md) — embeddings enable fast similarity search
 - [RAG](18-rag.md) — embeddings for retrieval in augmented generation
 - [Vector Databases](20-vector-databases.md) — storing and indexing embeddings at scale
-- [Transfer Learning](../ml/concepts/transfer-learning.md) — using pre-trained embeddings
+- [Transfer Learning](../../ml/concepts/transfer-learning.md) — using pre-trained embeddings
 
 ## Resources
 - [Word2Vec: Efficient Estimation of Word Representations in Vector Space](https://arxiv.org/abs/1301.3781)

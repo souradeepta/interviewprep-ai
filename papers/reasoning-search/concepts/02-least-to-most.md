@@ -538,7 +538,7 @@ print(f"Result: {result}")
 
 ## 9. Related Concepts
 
-- [Program-Aided Language Models (PAL)](../reasoning-search/01-pal.md) – Code generation for symbolic reasoning; often combined with L2M for structured problem-solving
-- [Chain-of-Thought Prompting](../foundation-models/concepts/cot.md) – Step-by-step reasoning in natural language; complementary to L2M
-- [In-Context Learning and Few-Shot Prompting](../foundation-models/concepts/few-shot.md) – Providing examples teaches the model structure; L2M examples teach decomposition
-- [Agents and Planning](../agents/concepts/planning.md) – Multi-step planning in agent loops mirrors L2M's decomposition principle
+- [Program-Aided Language Models (PAL)](./01-pal.md) – Code generation for symbolic reasoning; often combined with L2M for structured problem-solving
+- [Chain-of-Thought Prompting](../../../llm/concepts/16-chain-of-thought.md) – Step-by-step reasoning in natural language; complementary to L2M
+- [In-Context Learning and Few-Shot Prompting](../../../llm/concepts/13-few-shot-learning.md) – Providing examples teaches the model structure; L2M examples teach decomposition
+- [Agents and Planning](../../../agentic-ai/concepts/07-planning-reasoning.md) – Multi-step planning in agent loops mirrors L2M's decomposition principle

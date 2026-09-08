@@ -130,5 +130,5 @@ A: Use Double Q-learning: maintain two Q-tables Q1 and Q2. Select the action usi
 - [05-temporal-difference-learning](./05-temporal-difference-learning.md) — TD(0) is the prediction analogue; Q-learning is TD control
 - [07-sarsa](./07-sarsa.md) — on-policy counterpart; same update structure but uses actual next action
 - [08-deep-q-networks](./08-deep-q-networks.md) — extends Q-learning with neural function approximation
-- [03-markov-decision-processes](./03-markov-decision-processes.md) — formal framework Q-learning operates within
-- [04-dynamic-programming](./04-dynamic-programming.md) — model-based counterpart; Q-learning approximates value iteration without the model
+- [03-markov-decision-processes](./01-markov-decision-processes.md) — formal framework Q-learning operates within
+- [04-dynamic-programming](../../coding/algorithms/dynamic-programming.md) — model-based counterpart; Q-learning approximates value iteration without the model

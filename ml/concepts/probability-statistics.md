@@ -57,7 +57,7 @@ print(f"t={t:.3f}, p={p:.4f}")
 | "What is CLT?" | Distribution of sample means → Normal as n→∞, regardless of underlying distribution. Justifies many statistical tests. |
 
 ## Related Topics
-- [Supervised Learning](supervised-learning.md) — [System Design: A/B Testing](../../system-design/patterns/ab-testing.md)
+- [Supervised Learning](supervised-learning.md) — [System Design: A/B Testing](../../system-design/patterns/14-ab-testing.md)
 
 ## Resources
 - [Think Stats](https://greenteapress.com/wp/think-stats-2e/) — Downey. Free. Python-based.

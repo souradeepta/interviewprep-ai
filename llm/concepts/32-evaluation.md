@@ -275,7 +275,7 @@ A: For creative writing, explanation quality, or tone—use pairwise comparison 
 - [Prompt Optimization](17-prompt-optimization.md) — evaluating changes to prompts
 - [Instruction Tuning](05-instruction-tuning.md) — training requires eval metrics
 - [RLHF](06-rlhf.md) — uses human eval for reward modeling
-- [Evaluation Metrics](../ml/concepts/evaluation-metrics.md) — broader evaluation concepts
+- [Evaluation Metrics](../../ml/concepts/evaluation-metrics.md) — broader evaluation concepts
 
 ## Resources
 - [BLEU: a Method for Automatic Evaluation of Machine Translation](https://aclanthology.org/P02-1040/)

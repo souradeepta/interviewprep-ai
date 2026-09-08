@@ -135,4 +135,4 @@ A: The CQL policy is conservative but stable — it has a good initialization th
 - [17-rlhf](./17-rlhf.md) — DPO is effectively offline RL on preference data
 - [18-inverse-rl](./18-inverse-rl.md) — IRL also uses offline demonstrations; offline RL extends with reward
 - [19-multi-agent-rl](./19-multi-agent-rl.md) — Offline MARL applies conservative Q-learning to logged multi-agent data
-- [05-q-learning](./05-q-learning.md) — CQL extends Q-learning with conservative penalty
+- [05-q-learning](./06-q-learning.md) — CQL extends Q-learning with conservative penalty

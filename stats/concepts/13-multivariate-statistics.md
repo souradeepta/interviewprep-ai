@@ -97,6 +97,6 @@ A: First, check how much variance the retained components explain — if you kep
 ## Related Concepts
 
 - [13-multivariate-statistics.md](./13-multivariate-statistics.md) — This file
-- [07-regression-analysis.md](./07-regression-analysis.md) — Multicollinearity directly affects regression stability; VIF is the diagnostic
+- [07-regression-analysis.md](./15-statistical-ml-connections.md) — Multicollinearity directly affects regression stability; VIF is the diagnostic
 - [11-monte-carlo-sampling.md](./11-monte-carlo-sampling.md) — Sampling from multivariate Gaussians uses Cholesky decomposition of the covariance matrix
 - [15-statistical-ml-connections.md](./15-statistical-ml-connections.md) — PCA connects to SVD and latent factor models used throughout ML

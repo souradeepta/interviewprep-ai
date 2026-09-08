@@ -360,5 +360,5 @@ print(f"  Clone: {is_clone_ac}, Similarity: {sim_ac:.4f}")
 
 - [Codex: Evaluating Large Language Models Trained on Code](./02-codex.md) – GPT-style decoder-only model optimized for code generation with few-shot capability
 - [Code Evaluation: Benchmarking Language Models on Code](./03-code-evaluation.md) – HumanEval and MBPP benchmarks for evaluating code generation quality
-- [Transformers: The Foundation of Modern Language Models](../foundation-models/concepts/01-transformers.md) – Underlying encoder-decoder architecture
-- [Transfer Learning in NLP](../../nlp/concepts/12-transfer-learning.md) – Multi-task pre-training strategies and fine-tuning approaches
+- [Transformers: The Foundation of Modern Language Models](../../../ml/concepts/transformers.md) – Underlying encoder-decoder architecture
+- [Transfer Learning in NLP](../../../ml/concepts/transfer-learning.md) – Multi-task pre-training strategies and fine-tuning approaches

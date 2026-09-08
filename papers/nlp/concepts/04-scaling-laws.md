@@ -315,5 +315,5 @@ print(f"Error: {abs(gpt3_predicted_loss - gpt3_actual_loss) / gpt3_actual_loss *
 - [Attention Is All You Need](./01-attention-is-all-you-need.md) — Architecture being scaled
 - [Language Models are Few-Shot Learners (GPT-3)](./03-gpt3.md) — Application of scaling laws
 - [LoRA: Low-Rank Adaptation](./05-lora.md) — Efficient scaling for fine-tuning
-- [modern-ai/concepts/06-model-selection](../../modern-ai/concepts/06-model-selection.md) — Choosing model size and data
+- [modern-ai/concepts/06-model-selection](../../../ml/concepts/model-selection.md) — Choosing model size and data
 

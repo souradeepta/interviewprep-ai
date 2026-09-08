@@ -257,8 +257,8 @@ print(f"Reasoning: {reasoning}\nAnswer: {answer}")
 
 ## Related Concepts
 
-- [Prompt Engineering](./02-prompt-engineering.md) – Design strategies for effective prompts
-- [Few-Shot Learning](./03-few-shot-learning.md) – Adaptation from limited examples
-- [Fine-Tuning](./04-fine-tuning.md) – Alternative: parameter-based adaptation
-- [Meta-Learning](./05-meta-learning.md) – Learning to learn theory
-- [Scaling Laws](./06-scaling-laws.md) – Why ICL emerges at scale
+- [Prompt Engineering](../../../llm/concepts/12-prompting.md) – Design strategies for effective prompts
+- [Few-Shot Learning](../../../llm/concepts/13-few-shot-learning.md) – Adaptation from limited examples
+- [Fine-Tuning](../../../llm/concepts/04-finetuning.md) – Alternative: parameter-based adaptation
+- [Meta-Learning](../../../ml/concepts/meta-learning.md) – Learning to learn theory
+- [Scaling Laws](../../nlp/concepts/04-scaling-laws.md) – Why ICL emerges at scale

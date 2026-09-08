@@ -277,7 +277,7 @@ A: A: Redis: 10M × (10 bytes input + 10 bytes output + overhead) = ~200MB (fits
 
 ## Related Topics
 - [Model Serving](05-model-serving.md) - serves from cache
-- [LLM API Gateway](03-llm-api-gateway.md) - caches responses
+- [LLM API Gateway](../../arch-review/systems/03-llm-api-gateway.md) - caches responses
 
 ## Resources
 - [Redis Caching Best Practices](https://redis.io/docs/management/eviction/)

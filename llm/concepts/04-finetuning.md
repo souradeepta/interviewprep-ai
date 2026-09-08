@@ -237,7 +237,7 @@ A: Full fine-tuning is worth it when: the task requires changes to the model's c
 - [Parameter-Efficient Fine-tuning](11-parameter-efficient-finetuning.md) — broader PEFT methods
 - [Instruction Tuning](05-instruction-tuning.md) — fine-tuning on instruction-following
 - [RLHF](06-rlhf.md) — fine-tuning with human feedback
-- [Transfer Learning](../ml/concepts/transfer-learning.md) — fine-tuning from scratch perspective
+- [Transfer Learning](../../ml/concepts/transfer-learning.md) — fine-tuning from scratch perspective
 
 ## Resources
 - [HuggingFace Fine-tuning Guide](https://huggingface.co/docs/transformers/training)

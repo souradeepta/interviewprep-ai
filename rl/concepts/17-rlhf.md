@@ -122,7 +122,7 @@ A: (1) Active learning: prioritize pairs where RM is most uncertain. (2) Synthet
 
 ## 8. Related Concepts
 
-- [17-policy-gradient](./17-policy-gradient.md) — PPO is the policy gradient method used in RLHF Stage 3
+- [17-policy-gradient](./09-policy-gradient.md) — PPO is the policy gradient method used in RLHF Stage 3
 - [18-inverse-rl](./18-inverse-rl.md) — IRL also learns reward from behavior; RLHF learns from preferences
 - [16-model-based-rl](./16-model-based-rl.md) — World models can augment RLHF with synthetic preference data
 - [20-offline-rl](./20-offline-rl.md) — DPO is effectively offline RL on preference data

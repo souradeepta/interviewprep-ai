@@ -88,4 +88,4 @@ The interviewer looks for:
 - ✓ Problem-specific insights (e.g., concept drift in fraud, cold-start in recs)
 
 ## Related Topics
-- [Online vs Batch Inference](../patterns/online-vs-batch-inference.md) — [Feature Store](../patterns/feature-store.md)
+- [Online vs Batch Inference](../patterns/07-online-vs-batch-inference.md) — [Feature Store](../patterns/03-feature-store.md)

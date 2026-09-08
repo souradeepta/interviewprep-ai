@@ -386,5 +386,5 @@ print(f"Gradient on original weights: {layer.linear.weight.grad is None}")  # Sh
 - [Attention Is All You Need](./01-attention-is-all-you-need.md) — Transformer architecture
 - [BERT: Pre-training of Deep Bidirectional Transformers](./02-bert.md) — Pre-training paradigm
 - [Language Models are Few-Shot Learners (GPT-3)](./03-gpt3.md) — Why fine-tuning large models matters
-- [modern-ai/concepts/13-parameter-efficient-fine-tuning](../../modern-ai/concepts/13-parameter-efficient-fine-tuning.md) — LoRA variants and alternatives
+- [modern-ai/concepts/13-parameter-efficient-fine-tuning](../../../llm/concepts/11-parameter-efficient-finetuning.md) — LoRA variants and alternatives
 

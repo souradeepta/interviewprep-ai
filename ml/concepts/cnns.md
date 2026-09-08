@@ -56,8 +56,8 @@ class ConvBlock(nn.Module):
 | "What is a skip connection?" | $F(x) + x$ adds input directly to output. Creates gradient highways for backprop; learning identity is trivial, enabling very deep networks. |
 
 ## Related Topics
-- [Neural Networks](../neural-networks.md) — [Attention Mechanism](attention-mechanism.md)
-- [Implementations: CNN Image Classifier](../../implementations/cnn-image-classifier.ipynb)
+- [Neural Networks](./neural-networks.md) — [Attention Mechanism](attention-mechanism.md)
+- [Implementations: CNN Image Classifier](../implementations/cnn-image-classifier.ipynb)
 
 ## Resources
 - [CS231n Conv Networks](https://cs231n.github.io/convolutional-networks/)

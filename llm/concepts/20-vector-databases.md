@@ -220,7 +220,7 @@ A: pgvector for: <1M vectors, team already uses PostgreSQL, need transactional c
 - [Embeddings](02-embeddings.md) — what gets stored in vector DBs
 - [Semantic Search](21-semantic-search.md) — uses vector DBs for retrieval
 - [RAG](18-rag.md) — vector DB is the retrieval component
-- [Inference Caching](../system-design/patterns/inference-caching.md) — cache vector search results
+- [Inference Caching](../../system-design/patterns/08-inference-caching.md) — cache vector search results
 
 ## Resources
 - [Pinecone: Vector Database](https://www.pinecone.io/)

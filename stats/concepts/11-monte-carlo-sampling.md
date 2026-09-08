@@ -100,6 +100,6 @@ A: Check whether f(x) has heavy tails or occasional extreme values — look at t
 ## Related Concepts
 
 - [12-markov-chains-mcmc.md](./12-markov-chains-mcmc.md) — MCMC uses Markov chains to draw correlated samples from complex distributions where i.i.d. sampling is impossible
-- [08-bayesian-inference.md](./08-bayesian-inference.md) — Bayesian posteriors are the primary use case for MC sampling in statistics
-- [03-probability-distributions.md](./03-probability-distributions.md) — Understanding the proposal distribution for importance sampling requires distributional knowledge
+- [08-bayesian-inference.md](./03-bayesian-inference.md) — Bayesian posteriors are the primary use case for MC sampling in statistics
+- [02-distributions-reference.md](./02-distributions-reference.md) — Understanding the proposal distribution for importance sampling requires distributional knowledge
 - [15-statistical-ml-connections.md](./15-statistical-ml-connections.md) — MC gradient estimators connect to policy gradient and variational inference in ML

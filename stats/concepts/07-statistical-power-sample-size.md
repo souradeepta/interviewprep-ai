@@ -129,7 +129,7 @@ A: Do not simply analyze with p < 0.05 as the threshold. The test is underpowere
 
 ## 8. Related Concepts
 
-- [03-hypothesis-testing](./03-hypothesis-testing.md) — Type I and Type II errors, the foundation of power analysis
+- [03-hypothesis-testing](./05-hypothesis-testing.md) — Type I and Type II errors, the foundation of power analysis
 - [06-confidence-intervals](./06-confidence-intervals.md) — CI width and required n are dual formulations of the same problem
 - [08-ab-testing-statistics](./08-ab-testing-statistics.md) — practical application of power analysis in A/B test design
-- [05-regression-analysis](./05-regression-analysis.md) — power analysis for regression coefficients
+- [05-regression-analysis](./15-statistical-ml-connections.md) — power analysis for regression coefficients

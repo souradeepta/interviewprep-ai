@@ -545,8 +545,8 @@ class AdaptiveTreeSearch:
 
 - [Chain-of-Thought Prompting](./01-chain-of-thought.md) — Linear reasoning (base case for ToT)
 - [ReAct: Synergizing Reasoning and Acting](./02-react.md) — Reasoning with tool use
-- [agentic-ai/concepts/XX-planning](../../agentic-ai/concepts/XX-planning.md) — Multi-step planning
-- [agentic-ai/concepts/XX-search-algorithms](../../agentic-ai/concepts/XX-search-algorithms.md) — Classical search methods
+- [agentic-ai/concepts/XX-planning](../../../agentic-ai/concepts/07-planning-reasoning.md) — Multi-step planning
+- [agentic-ai/concepts/XX-search-algorithms](../../../agentic-ai/concepts/58-advanced-reasoning-variants.md) — Classical search methods
 
 ---
 

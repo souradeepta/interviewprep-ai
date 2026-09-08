@@ -101,6 +101,6 @@ A: Detailed balance (reversibility) is a sufficient condition for π to be the s
 ## Related Concepts
 
 - [11-monte-carlo-sampling.md](./11-monte-carlo-sampling.md) — MCMC is a special case of MC sampling where i.i.d. draws are replaced by correlated chain samples
-- [08-bayesian-inference.md](./08-bayesian-inference.md) — MCMC is the workhorse for Bayesian posterior computation when conjugacy fails
-- [03-probability-distributions.md](./03-probability-distributions.md) — Understanding target distributions requires knowledge of common parametric families
+- [08-bayesian-inference.md](./03-bayesian-inference.md) — MCMC is the workhorse for Bayesian posterior computation when conjugacy fails
+- [02-distributions-reference.md](./02-distributions-reference.md) — Understanding target distributions requires knowledge of common parametric families
 - [15-statistical-ml-connections.md](./15-statistical-ml-connections.md) — VI and EM are deterministic alternatives to MCMC for approximate Bayesian inference

@@ -99,7 +99,7 @@ A: Variational inference approximates an intractable posterior p(z|x) with a sim
 
 ## Related Concepts
 
-- [07-regression-analysis.md](./07-regression-analysis.md) — OLS, Ridge, and Lasso are the three foundational models discussed here
-- [08-bayesian-inference.md](./08-bayesian-inference.md) — MAP estimation, priors, and posterior computation are core Bayesian topics
+- [07-regression-analysis.md](./15-statistical-ml-connections.md) — OLS, Ridge, and Lasso are the three foundational models discussed here
+- [08-bayesian-inference.md](./03-bayesian-inference.md) — MAP estimation, priors, and posterior computation are core Bayesian topics
 - [11-monte-carlo-sampling.md](./11-monte-carlo-sampling.md) — Bootstrap and MCMC are the two main MC methods for uncertainty quantification
 - [12-markov-chains-mcmc.md](./12-markov-chains-mcmc.md) — MCMC is used for full Bayesian inference when MAP is insufficient

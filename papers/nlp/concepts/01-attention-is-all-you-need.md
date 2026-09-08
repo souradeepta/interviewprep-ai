@@ -502,7 +502,7 @@ print(f"Classification logits: {logits.shape}")  # (2, 2)
 ## Related Concepts
 
 - [BERT: Pre-training of Deep Bidirectional Transformers](./02-bert.md) — Bidirectional transformer pre-training
-- [Vision Transformer](../vision/concepts/02-vision-transformer.md) — Applying Transformers to images
+- [Vision Transformer](../../vision/concepts/02-vision-transformer.md) — Applying Transformers to images
 - [Scaling Laws for Neural Language Models](./04-scaling-laws.md) — How Transformer scale affects performance
 - [LoRA: Low-Rank Adaptation](./05-lora.md) — Efficient fine-tuning of Transformers
 

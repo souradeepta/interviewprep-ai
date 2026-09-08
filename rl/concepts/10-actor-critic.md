@@ -134,4 +134,4 @@ A: The critic is accurate but actor is stagnant typically means: (1) the advanta
 - [08-deep-q-networks](./08-deep-q-networks.md) — pure critic approach; actor-critic combines the paradigms
 - [06-q-learning](./06-q-learning.md) — critic in actor-critic approximates V(s), rooted in Q-learning
 - [07-sarsa](./07-sarsa.md) — on-policy TD learning that actor-critic's critic is based on
-- [03-markov-decision-processes](./03-markov-decision-processes.md) — Bellman equations that underpin both actor and critic updates
+- [03-markov-decision-processes](./01-markov-decision-processes.md) — Bellman equations that underpin both actor and critic updates

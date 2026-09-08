@@ -117,7 +117,7 @@ A: A metric requires symmetry (d(P,Q)=d(Q,P)) and triangle inequality. KL diverg
 
 ## 8. Related Concepts
 
-- [02-probability-distributions](./02-probability-distributions.md) — probability distributions are inputs to all information measures
-- [03-hypothesis-testing](./03-hypothesis-testing.md) — likelihood ratio tests and KL connection
-- [04-bayesian-statistics](./04-bayesian-statistics.md) — KL divergence as the variational inference objective
+- [02-probability-distributions](./02-distributions-reference.md) — probability distributions are inputs to all information measures
+- [03-hypothesis-testing](./05-hypothesis-testing.md) — likelihood ratio tests and KL connection
+- [04-bayesian-statistics](./03-bayesian-inference.md) — KL divergence as the variational inference objective
 - [09-causal-inference](./09-causal-inference.md) — mutual information as statistical dependence, relevant to DAG structure learning

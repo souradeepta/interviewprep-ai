@@ -259,7 +259,7 @@ A: Tree-of-thought (ToT) extends CoT by exploring multiple reasoning branches at
 
 ## Related Topics
 - [Prompting](12-prompting.md) — structuring prompts for effectiveness
-- [Planning & Reasoning](../agentic-ai/concepts/planning-reasoning.md) — agents use similar decomposition
+- [Planning & Reasoning](../../agentic-ai/concepts/07-planning-reasoning.md) — agents use similar decomposition
 - [In-Context Learning](15-in-context-learning.md) — few-shot examples improve CoT
 
 ## Resources

@@ -330,7 +330,7 @@ for rank, idx in enumerate(indices[0], 1):
 
 ## Related Concepts
 
-- [Contrastive Learning Fundamentals](../../../ai/concepts/xx-contrastive-learning.md) – NT-Xent loss, positive/negative pairs, temperature
-- [Multimodal Transformers](../../../llm/concepts/xx-multimodal-transformers.md) – Architectures for vision + language fusion
-- [Vision Transformers (ViT)](../../../cv/concepts/xx-vision-transformers.md) – Alternative to CNNs for image encoding
-- [Zero-Shot Learning](../../../ml/concepts/xx-zero-shot-learning.md) – Generalizing to unseen categories without training
+- [Contrastive Learning Fundamentals](../../../cv/concepts/05-contrastive-learning-vision.md) – NT-Xent loss, positive/negative pairs, temperature
+- [Multimodal Transformers](../../../llm/concepts/31-multimodal.md) – Architectures for vision + language fusion
+- [Vision Transformers (ViT)](../../../cv/concepts/04-vision-transformers.md) – Alternative to CNNs for image encoding
+- [Zero-Shot Learning](../../../llm/concepts/14-zero-shot-learning.md) – Generalizing to unseen categories without training

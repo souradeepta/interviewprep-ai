@@ -491,4 +491,4 @@ for key, value in results.items():
 
 - [RLHF/InstructGPT](./03-rlhf-instructgpt.md) – Alternative alignment approach using human feedback and reward models
 - [Direct Preference Optimization (DPO)](./02-dpo.md) – Alignment without explicit reward models
-- [Reward Modeling](../../../llm/concepts/32-reward-modeling.md) – Training models to predict human preferences
+- [Reward Modeling](../../../llm/concepts/06-rlhf.md) – Training models to predict human preferences

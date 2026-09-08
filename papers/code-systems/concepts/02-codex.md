@@ -422,5 +422,5 @@ print(refined)
 
 - [CodeT5: Identifier-Aware Unified Encoder-Decoder for Code](./01-codet5.md) – Encoder-decoder architecture for code understanding and generation
 - [Code Evaluation: Benchmarking Language Models on Code](./03-code-evaluation.md) – HumanEval benchmark and pass@k metric evaluation methodology
-- [In-Context Learning and Prompting](../../llm/concepts/XX-in-context-learning.md) – Few-shot learning mechanism that powers Codex
-- [Large Language Models Scaling Laws](../../foundation-models/concepts/XX-scaling-laws.md) – Model scaling effects on code generation quality
+- [In-Context Learning and Prompting](../../../llm/concepts/15-in-context-learning.md) – Few-shot learning mechanism that powers Codex
+- [Large Language Models Scaling Laws](../../nlp/concepts/04-scaling-laws.md) – Model scaling effects on code generation quality

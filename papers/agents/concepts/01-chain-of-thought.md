@@ -395,8 +395,8 @@ print(f"Unique answers seen: {result['num_unique_answers']}")
 
 - [ReAct: Synergizing Reasoning and Acting](./02-react.md) — Extend CoT with tool use (reasoning + actions)
 - [Tree of Thoughts](./03-tree-of-thoughts.md) — Explore multiple reasoning paths, not just one linear chain
-- [agentic-ai/concepts/XX-prompt-engineering](../../agentic-ai/concepts/XX-prompt-engineering.md) — Broader context for prompt design
-- [agentic-ai/concepts/XX-few-shot-learning](../../agentic-ai/concepts/XX-few-shot-learning.md) — How few-shot examples work
+- [agentic-ai/concepts/XX-prompt-engineering](../../../agentic-ai/concepts/35-agent-prompt-engineering.md) — Broader context for prompt design
+- [agentic-ai/concepts/XX-few-shot-learning](../../../llm/concepts/13-few-shot-learning.md) — How few-shot examples work
 
 ---
 

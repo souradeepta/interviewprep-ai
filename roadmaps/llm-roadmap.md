@@ -11,13 +11,13 @@ Phase 1–2 of the ML Roadmap or have equivalent ML foundations.
 **Goal:** Understand how LLMs work at a conceptual and architectural level. Prompt effectively.
 **Estimated time:** 2–3 weeks at 10 hrs/week
 
-- [ ] [Tokenization](../llm/concepts/tokenization.md)
-- [ ] [Pretraining](../llm/concepts/pretraining.md)
-- [ ] [Prompting](../llm/concepts/prompting.md)
-- [ ] [Deep Learning — Attention Mechanism](../ml/concepts/deep-learning/attention-mechanism.md)
-- [ ] [Deep Learning — Transformers](../ml/concepts/deep-learning/transformers.md)
-- [ ] Implement: [Prompt Engineering](../llm/implementations/prompt-engineering.ipynb)
-- [ ] Practice: [LLM Theory Questions](../llm/interview-prep/llm-theory-questions.md) — Q1–Q15
+- [ ] [Tokenization](../llm/concepts/01-tokenization.md)
+- [ ] [Pretraining](../llm/concepts/03-pretraining.md)
+- [ ] [Prompting](../llm/concepts/12-prompting.md)
+- [ ] [Deep Learning — Attention Mechanism](../ml/concepts/attention-mechanism.md)
+- [ ] [Deep Learning — Transformers](../ml/concepts/transformers.md)
+- [ ] Implement: [Prompt Engineering](../llm/implementations/12-prompting.py)
+- [ ] Practice: [Shared ML Theory Questions](../ml/interview-prep/ml-theory-questions.md) — Q1–Q15
 
 **Phase 1 exit check:**
 - Can you explain how BPE tokenization works?
@@ -30,17 +30,17 @@ Phase 1–2 of the ML Roadmap or have equivalent ML foundations.
 **Goal:** Build RAG pipelines, understand fine-tuning, evaluate LLMs. Interview-ready for most LLM roles.
 **Estimated time:** 2–3 weeks at 10 hrs/week
 
-- [ ] [Embeddings](../llm/concepts/embeddings.md)
-- [ ] [RAG](../llm/concepts/rag.md)
-- [ ] [Fine-tuning](../llm/concepts/finetuning.md)
-- [ ] [Evaluation](../llm/concepts/evaluation.md)
-- [ ] [Context Window](../llm/concepts/context-window.md)
-- [ ] Implement: [Build RAG Pipeline](../llm/implementations/build-rag-pipeline.ipynb)
-- [ ] Implement: [Embeddings Search](../llm/implementations/embeddings-search.ipynb)
-- [ ] Implement: [LLM Evals](../llm/implementations/llm-evals.ipynb)
-- [ ] Implement: [Fine-tune LLM](../llm/implementations/finetune-llm.ipynb)
-- [ ] Practice: [LLM Theory Questions](../llm/interview-prep/llm-theory-questions.md) — Q16–Q40
-- [ ] Practice: [Prompting Questions](../llm/interview-prep/prompting-questions.md)
+- [ ] [Embeddings](../llm/concepts/02-embeddings.md)
+- [ ] [RAG](../llm/concepts/18-rag.md)
+- [ ] [Fine-tuning](../llm/concepts/04-finetuning.md)
+- [ ] [Evaluation](../llm/concepts/32-evaluation.md)
+- [ ] [Context Window](../llm/concepts/25-context-window.md)
+- [ ] Implement: [Build RAG Pipeline](../llm/implementations/18-rag.py)
+- [ ] Implement: [Embeddings Search](../llm/implementations/02-embeddings.py)
+- [ ] Implement: [LLM Evals](../llm/implementations/32-evaluation.py)
+- [ ] Implement: [Fine-tune LLM](../llm/implementations/04-finetuning.py)
+- [ ] Practice: [Shared ML Theory Questions](../ml/interview-prep/ml-theory-questions.md) — Q16–Q40
+- [ ] Practice: [Prompting Questions](../ml/interview-prep/ml-theory-questions.md)
 
 **Phase 2 exit check:**
 - Can you build a RAG pipeline from scratch using only the OpenAI/Anthropic API and a vector DB?
@@ -53,15 +53,15 @@ Phase 1–2 of the ML Roadmap or have equivalent ML foundations.
 **Goal:** Inference optimization, LLM system design, production observability.
 **Estimated time:** 2–3 weeks at 10 hrs/week
 
-- [ ] [Quantization](../llm/concepts/quantization.md)
-- [ ] [Inference Optimization](../llm/concepts/inference-optimization.md)
-- [ ] [Multimodal](../llm/concepts/multimodal.md)
-- [ ] [System Design — RAG System](../llm/system-design/rag-system-design.md)
-- [ ] [System Design — LLM Serving](../llm/system-design/llm-serving-design.md)
-- [ ] [System Design — Fine-tuning Pipeline](../llm/system-design/fine-tuning-pipeline.md)
-- [ ] [System Design — LLM Observability](../llm/system-design/llm-observability.md)
-- [ ] Implement: [Structured Output](../llm/implementations/structured-output.ipynb)
-- [ ] Practice: [LLM System Design Questions](../llm/interview-prep/llm-system-design-questions.md)
+- [ ] [Quantization](../ml/concepts/quantization.md)
+- [ ] [Inference Optimization](../llm/concepts/28-inference-optimization.md)
+- [ ] [Multimodal](../llm/concepts/31-multimodal.md)
+- [ ] [System Design Patterns — RAG and retrieval](../system-design/README.md)
+- [ ] [System Design Patterns — LLM serving](../system-design/patterns/07-online-vs-batch-inference.md)
+- [ ] [System Design Patterns — Fine-tuning pipeline](../system-design/patterns/23-production-readiness.md)
+- [ ] [System Design Patterns — LLM observability](../system-design/patterns/16-monitoring-and-observability.md)
+- [ ] Implement: [Structured Output](../agentic-ai/notebooks/06-structured-output.ipynb)
+- [ ] Practice: [System Design Framework](../system-design/interview-prep/system-design-framework.md)
 
 **Phase 3 exit check:**
 - Can you explain KV cache, speculative decoding, and continuous batching?

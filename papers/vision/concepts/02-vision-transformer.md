@@ -382,6 +382,6 @@ print(f"Input: {x.shape}, Output: {output.shape}")
 ## Related Concepts
 
 - [ResNet](./01-resnet.md) — CNN alternative that ViT compares against
-- [Attention Is All You Need](../nlp/concepts/01-attention-is-all-you-need.md) — Original transformer architecture
-- [Scaling Laws for Neural Language Models](../nlp/concepts/04-scaling-laws.md) — Scaling principles apply to ViT too
-- [CLIP](../retrieval/concepts/02-clip.md) — Vision Transformer for multimodal tasks
+- [Attention Is All You Need](../../nlp/concepts/01-attention-is-all-you-need.md) — Original transformer architecture
+- [Scaling Laws for Neural Language Models](../../nlp/concepts/04-scaling-laws.md) — Scaling principles apply to ViT too
+- [CLIP](../../retrieval/concepts/02-clip.md) — Vision Transformer for multimodal tasks

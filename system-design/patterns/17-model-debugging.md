@@ -222,7 +222,7 @@ A: Do not proceed with error analysis until label quality is fixed. Label errors
 A: Error analysis in order: (1) find high-error cohorts by slicing (age, geography, recency, user segment); (2) validate labels in the highest-error cohort to rule out annotation errors; (3) diagnose root cause (data volume, feature quality, model capacity); (4) fix and remeasure. The most common finding: the highest-error cohort is systematically underrepresented in training data.
 
 ## Related Topics
-- [Evaluation Metrics](12-evaluation-metrics.md) in AI section
+- [Evaluation Metrics](../../mlops/concepts/12-evaluation-metrics.md) in AI section
 - [Drift Detection](15-drift-detection.md)
 
 ## Resources

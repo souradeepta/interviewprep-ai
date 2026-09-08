@@ -498,7 +498,7 @@ print(f"Key finding: Outliers are {outlier_percentage:.1f}% of weights but carry
 
 ## Related Concepts
 
-- [Attention Mechanisms](../llm/concepts/02-attention-mechanisms.md) – LLMs are dominated by attention computations
-- [Inference Optimization](../modern-ai/concepts/08-inference-optimization.md) – Other techniques to speed up LLM inference
+- [Attention Mechanisms](../../../llm/concepts/24-attention-optimization.md) – LLMs are dominated by attention computations
+- [Inference Optimization](../../../llm/concepts/28-inference-optimization.md) – Other techniques to speed up LLM inference
 - [Knowledge Distillation](./04-knowledge-distillation.md) – Alternative approach to model compression
 - [Flash Attention](./02-flash-attention.md) – Orthogonal efficiency technique for attention memory

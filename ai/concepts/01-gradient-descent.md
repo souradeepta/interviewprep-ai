@@ -213,6 +213,6 @@ theta = gradient_descent_adaptive(X, y)
 
 ## Related Concepts
 
-- [Related Concept 1](./XX-related-1.md)
-- [Related Concept 2](./XX-related-2.md)
-- [Related Concept 3](./XX-related-3.md)
+- [Related Concept 1](./04-optimization-algorithms.md)
+- [Related Concept 2](../../ml/concepts/optimization.md)
+- [Related Concept 3](../../stats/concepts/01-probability-fundamentals.md)

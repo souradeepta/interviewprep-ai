@@ -514,7 +514,7 @@ print(f"Peak GPU Memory: {torch.cuda.max_memory_allocated() / 1e9:.2f} GB")
 
 ## Related Concepts
 
-- [Attention Mechanisms](../llm/concepts/02-attention-mechanisms.md) – Foundational understanding of scaled dot-product attention
-- [Inference Optimization](../modern-ai/concepts/08-inference-optimization.md) – Other techniques to speed up LLM inference (KV cache, quantization, etc.)
+- [Attention Mechanisms](../../../llm/concepts/24-attention-optimization.md) – Foundational understanding of scaled dot-product attention
+- [Inference Optimization](../../../llm/concepts/28-inference-optimization.md) – Other techniques to speed up LLM inference (KV cache, quantization, etc.)
 - [Mixture of Experts](./01-mixture-of-experts.md) – Complementary efficiency technique using sparse routing
 - [Knowledge Distillation](./04-knowledge-distillation.md) – Model compression through knowledge transfer

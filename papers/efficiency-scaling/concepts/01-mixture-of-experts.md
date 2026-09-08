@@ -545,8 +545,8 @@ for step in range(100):
 
 ## Related Concepts
 
-- [Scaling Laws for Neural Language Models](../../llm/concepts/04-scaling-laws.md) — Understanding compute-optimal scaling boundaries
-- [Inference Optimization Techniques](../../modern-ai/concepts/08-inference-optimization.md) — Beyond MoE: quantization, KV-cache, flash attention
+- [Scaling Laws for Neural Language Models](../../nlp/concepts/04-scaling-laws.md) — Understanding compute-optimal scaling boundaries
+- [Inference Optimization Techniques](../../../llm/concepts/28-inference-optimization.md) — Beyond MoE: quantization, KV-cache, flash attention
 - [Switch Transformers](https://arxiv.org/abs/2101.03961) — Industrial-scale MoE with 1.6 trillion parameters
 
 ---

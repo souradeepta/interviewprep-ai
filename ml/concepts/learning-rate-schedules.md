@@ -29,7 +29,7 @@ Essential concept for ML engineering. Master this for interviews and production 
 | "Explain [topic]?" | [Key insight] |
 
 ## Related Topics
-- [Related concept](other.md)
+- [Related concept](../README.md)
 
 ## Resources
-- [Reference material](url)
+- [Reference material](../README.md)

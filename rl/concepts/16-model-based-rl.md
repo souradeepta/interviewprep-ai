@@ -123,8 +123,8 @@ A: Compare policy performance with K=0 (no planning) to K=5 and K=20. If K=5 out
 
 ## 8. Related Concepts
 
-- [01-markov-decision-process](./01-markov-decision-process.md) — MDP framework that defines the dynamics model
-- [05-q-learning](./05-q-learning.md) — Model-free baseline that Dyna-Q extends
-- [15-temporal-difference](./15-temporal-difference.md) — TD learning underlying Q-updates in planning
+- [01-markov-decision-process](./01-markov-decision-processes.md) — MDP framework that defines the dynamics model
+- [05-q-learning](./06-q-learning.md) — Model-free baseline that Dyna-Q extends
+- [15-temporal-difference](./05-temporal-difference-learning.md) — TD learning underlying Q-updates in planning
 - [19-multi-agent-rl](./19-multi-agent-rl.md) — Multi-agent planning requires multi-agent world models
 - [20-offline-rl](./20-offline-rl.md) — Offline RL also uses learned models to avoid OOD transitions

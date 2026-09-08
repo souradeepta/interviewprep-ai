@@ -516,5 +516,5 @@ for mode, examples in analysis['examples'].items():
 
 - [Codex: Evaluating Large Language Models Trained on Code](./02-codex.md) – Code generation model achieving 28.8% pass@1 on HumanEval
 - [CodeT5: Identifier-Aware Unified Encoder-Decoder for Code](./01-codet5.md) – Encoder-decoder for code understanding and generation
-- [Metrics for Generation Tasks](../../nlp/concepts/XX-generation-metrics.md) – Beyond string similarity to semantic correctness
-- [Benchmarking Language Models](../../foundation-models/concepts/XX-benchmarking.md) – Statistical evaluation and confidence intervals
+- [Metrics for Generation Tasks](../../nlp/concepts/02-bert.md) – Beyond string similarity to semantic correctness
+- [Benchmarking Language Models](../../nlp/concepts/02-bert.md) – Statistical evaluation and confidence intervals

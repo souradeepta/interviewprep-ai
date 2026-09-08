@@ -128,4 +128,4 @@ A: Cooperative agents develop specialization (one agent scouts, another attacks)
 - [17-rlhf](./17-rlhf.md) — Constitutional AI uses multi-agent self-critique variants
 - [18-inverse-rl](./18-inverse-rl.md) — Multi-agent IRL infers reward for interacting agents
 - [20-offline-rl](./20-offline-rl.md) — Offline MARL trains on fixed multi-agent interaction logs
-- [08-actor-critic](./08-actor-critic.md) — MADDPG extends Actor-Critic to multi-agent CTDE
+- [08-actor-critic](./10-actor-critic.md) — MADDPG extends Actor-Critic to multi-agent CTDE

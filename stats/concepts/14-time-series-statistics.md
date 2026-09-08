@@ -101,7 +101,7 @@ A: The ARIMA(p,d,q) model has not captured the seasonal pattern. You need to add
 
 ## Related Concepts
 
-- [06-hypothesis-testing.md](./06-hypothesis-testing.md) — ADF test is a hypothesis test for stationarity; understanding test statistics and p-values is essential
-- [07-regression-analysis.md](./07-regression-analysis.md) — ARIMA models are generalizations of regression with structured error correlation
+- [06-hypothesis-testing.md](./05-hypothesis-testing.md) — ADF test is a hypothesis test for stationarity; understanding test statistics and p-values is essential
+- [07-regression-analysis.md](./15-statistical-ml-connections.md) — ARIMA models are generalizations of regression with structured error correlation
 - [13-multivariate-statistics.md](./13-multivariate-statistics.md) — Multivariate time series (VAR models) extend AR to multiple correlated series
 - [15-statistical-ml-connections.md](./15-statistical-ml-connections.md) — Time series forecasting connects to recurrent neural networks and sequence models in ML

@@ -118,7 +118,7 @@ A: Model conversions as Binomial. The Beta distribution is the conjugate prior f
 
 ## 8. Related Concepts
 
-- [03-hypothesis-testing](./03-hypothesis-testing.md) — z-test and t-test foundations
+- [03-hypothesis-testing](./05-hypothesis-testing.md) — z-test and t-test foundations
 - [06-confidence-intervals](./06-confidence-intervals.md) — CI for difference in means
 - [07-statistical-power-sample-size](./07-statistical-power-sample-size.md) — pre-experiment sample size calculation
 - [09-causal-inference](./09-causal-inference.md) — RCT as the gold standard; when A/B tests cannot be run

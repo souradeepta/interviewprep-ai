@@ -735,7 +735,7 @@ train_with_multiple_teachers(student, teachers, train_loader, epochs=5)
 
 ## Related Concepts
 
-- [Attention Mechanisms](../llm/concepts/02-attention-mechanisms.md) – Foundational architecture for LLM models
+- [Attention Mechanisms](../../../llm/concepts/24-attention-optimization.md) – Foundational architecture for LLM models
 - [LLM.int8() Quantization](./03-llm-int8.md) – Complementary compression technique
 - [Flash Attention](./02-flash-attention.md) – Efficiency through algorithmic improvements
 - [Mixture of Experts](./01-mixture-of-experts.md) – Sparse scaling approach

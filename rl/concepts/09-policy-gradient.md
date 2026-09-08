@@ -128,4 +128,4 @@ A: Add β·H(π) = -β·Σ_a π(a|s)log π(a|s) to the policy loss (negative for
 - [08-deep-q-networks](./08-deep-q-networks.md) — value-based alternative; complements policy gradient for discrete actions
 - [06-q-learning](./06-q-learning.md) — tabular value-based method; policy gradient is the direct competitor
 - [07-sarsa](./07-sarsa.md) — on-policy value method; policy gradient shares the on-policy characteristic
-- [03-markov-decision-processes](./03-markov-decision-processes.md) — formal MDP framework underpinning the Policy Gradient Theorem
+- [03-markov-decision-processes](./01-markov-decision-processes.md) — formal MDP framework underpinning the Policy Gradient Theorem

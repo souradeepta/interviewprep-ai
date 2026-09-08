@@ -60,8 +60,8 @@ print(out.shape)  # (5, 8)
 | "What is multi-head attention?" | Run h heads in parallel with different learned Q/K/V projections. Concatenate and project. Each head captures different relationship types. |
 
 ## Related Topics
-- [Transformers](transformers.md) — [Coding: Implement Attention](../../../coding/ml-coding/implement-attention.md)
-- [LLM: Context Window](../../../llm/concepts/context-window.md)
+- [Transformers](transformers.md) — [Coding: Implement Attention](../interview-prep/ml-coding-questions.md)
+- [LLM: Context Window](../../llm/concepts/25-context-window.md)
 
 ## Resources
 - [Attention Is All You Need](https://arxiv.org/abs/1706.03762) — Vaswani et al.

@@ -68,8 +68,8 @@ class TransformerBlock(nn.Module):
 | "Why do transformers scale better than RNNs?" | Full parallelism → efficient GPU use. Short gradient paths (no sequential bottleneck). Predictable scaling with data + compute. |
 
 ## Related Topics
-- [Attention Mechanism](attention-mechanism.md) — [LLM: Pretraining](../../../llm/concepts/pretraining.md)
-- [Coding: Implement Transformer](../../../coding/ml-coding/implement-transformer.md)
+- [Attention Mechanism](attention-mechanism.md) — [LLM: Pretraining](../../llm/concepts/03-pretraining.md)
+- [Coding: Implement Transformer](../interview-prep/ml-coding-questions.md)
 
 ## Resources
 - [Attention Is All You Need](https://arxiv.org/abs/1706.03762)

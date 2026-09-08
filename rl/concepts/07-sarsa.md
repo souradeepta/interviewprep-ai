@@ -131,4 +131,4 @@ A: The training reward plateaus early and the Q-table shows many unvisited state
 - [08-deep-q-networks](./08-deep-q-networks.md) — extends Q-learning to neural function approximation; same off-policy principle
 - [05-temporal-difference-learning](./05-temporal-difference-learning.md) — TD(0) is the prediction root; SARSA is on-policy TD control
 - [09-policy-gradient](./09-policy-gradient.md) — alternative to value-based control; directly parameterizes the policy
-- [03-markov-decision-processes](./03-markov-decision-processes.md) — formal MDP framework both SARSA and Q-learning solve
+- [03-markov-decision-processes](./01-markov-decision-processes.md) — formal MDP framework both SARSA and Q-learning solve

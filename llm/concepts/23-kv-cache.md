@@ -268,7 +268,7 @@ A: Symptoms: sudden OOM errors, requests being rejected, latency spikes when cac
 - [Inference Optimization](28-inference-optimization.md) — KV cache is one technique among many
 - [Speculative Decoding](27-speculative-decoding.md) — uses KV cache for parallelization
 - [Continuous Batching](26-continuous-batching.md) — manages KV cache for multiple sequences
-- [Attention Mechanism](../ml/concepts/deep-learning/attention-mechanism.md) — what KV cache optimizes
+- [Attention Mechanism](../../ml/concepts/attention-mechanism.md) — what KV cache optimizes
 
 ## Resources
 - [Transformer-XL: Attentive Language Models Beyond a Fixed-Length Context](https://arxiv.org/abs/1901.02860)

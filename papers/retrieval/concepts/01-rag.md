@@ -302,6 +302,6 @@ print(answer)
 ## Related Concepts
 
 - [CLIP: Learning Transferable Visual Models from Natural Language Supervision](./02-clip.md) – Multi-modal retrieval using joint vision-language embeddings
-- [Fine-tuning with LoRA](../../../llm/concepts/15-lora.md) – Efficient retriever fine-tuning on domain data
-- [Dense Passage Retrieval (DPR)](../../nlp/concepts/xx-dpr.md) – Foundational dense retriever architecture
-- [Vector Databases and FAISS](../../../ml/concepts/xx-faiss.md) – Scalable indexing for semantic search
+- [Fine-tuning with LoRA](../../../llm/concepts/08-lora.md) – Efficient retriever fine-tuning on domain data
+- [Dense Passage Retrieval (DPR)](../../../nlp/concepts/08-information-retrieval.md) – Foundational dense retriever architecture
+- [Vector Databases and FAISS](../../../ml/concepts/feature-engineering.md) – Scalable indexing for semantic search

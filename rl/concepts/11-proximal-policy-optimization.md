@@ -201,7 +201,7 @@ credit assignment is hard — model-based methods are better there.
 
 ## 8. Related Concepts
 
-- [10-policy-gradient](./10-policy-gradient.md) — PPO extends vanilla PG with ratio clipping
+- [10-policy-gradient](./09-policy-gradient.md) — PPO extends vanilla PG with ratio clipping
 - [12-soft-actor-critic](./12-soft-actor-critic.md) — entropy-regularised off-policy alternative
 - [14-exploration-exploitation](./14-exploration-exploitation.md) — entropy bonus relates to exploration
 - [15-reward-shaping](./15-reward-shaping.md) — RLHF KL penalty is a form of reward shaping

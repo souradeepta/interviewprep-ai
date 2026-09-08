@@ -65,7 +65,7 @@ class TwoLayerNet:
 | "What is the vanishing gradient problem?" | In deep nets with sigmoid/tanh, gradients shrink exponentially through layers. Fixed by: ReLU, skip connections, batch norm. |
 
 ## Related Topics
-- [Optimization](optimization.md) — [Regularization](regularization.md) — [CNNs](deep-learning/cnns.md)
+- [Optimization](optimization.md) — [Regularization](regularization.md) — [CNNs](./cnns.md)
 - [Implementations: Neural Net From Scratch](../implementations/neural-net-from-scratch.ipynb)
 
 ## Resources

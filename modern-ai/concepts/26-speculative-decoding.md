@@ -281,6 +281,6 @@ class DraftModelDistiller:
 ## Related Concepts
 
 - [LLM Serving Frameworks](./13-llm-serving-frameworks.md) — vLLM and TGI implementations
-- [KV Cache Optimization](./27-kv-cache-optimization.md) — Memory efficiency paired with speculation
+- [KV Cache Optimization](./29-kv-cache-optimization.md) — Memory efficiency paired with speculation
 - [Test-Time Compute Scaling](./12-test-time-compute-scaling.md) — Using compute at inference time
 - [Flash Attention](./11-flash-attention.md) — Kernel optimization complementary to batching

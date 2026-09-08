@@ -116,7 +116,7 @@ A: Multiple validation checks: (1) pre-treatment placebo test -- apply DiD to a 
 
 ## 8. Related Concepts
 
-- [03-hypothesis-testing](./03-hypothesis-testing.md) — significance testing framework used in causal analysis
+- [03-hypothesis-testing](./05-hypothesis-testing.md) — significance testing framework used in causal analysis
 - [08-ab-testing-statistics](./08-ab-testing-statistics.md) — RCT as the gold standard for causal identification
-- [05-regression-analysis](./05-regression-analysis.md) — regression adjustment for observed confounders
+- [05-regression-analysis](./15-statistical-ml-connections.md) — regression adjustment for observed confounders
 - [10-information-theory](./10-information-theory.md) — mutual information as a measure of statistical dependence

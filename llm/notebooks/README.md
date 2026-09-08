@@ -9,47 +9,47 @@
 ## Notebook Categories
 
 ### Foundation (3)
-- [01-adapters.ipynb](01-adapters.ipynb) — Lightweight fine-tuning modules
-- [19-pretraining.ipynb](19-pretraining.ipynb) — How LLMs are initially trained
-- [30-tokenization.ipynb](30-tokenization.ipynb) — Converting text to tokens
+- [01-adapters.ipynb](./09-adapters.ipynb) — Lightweight fine-tuning modules
+- [19-pretraining.ipynb](./03-pretraining.ipynb) — How LLMs are initially trained
+- [30-tokenization.ipynb](./01-tokenization.ipynb) — Converting text to tokens
 
 ### Fine-tuning Ecosystem (8)
-- [10-finetuning.ipynb](10-finetuning.ipynb) — Full parameter updates
-- [15-lora.ipynb](15-lora.ipynb) — Low-rank adaptation (efficient fine-tuning)
-- [17-parameter-efficient-finetuning.ipynb](17-parameter-efficient-finetuning.ipynb) — Reduce trainable params
-- [18-prefix-tuning.ipynb](18-prefix-tuning.ipynb) — Prefix-based fine-tuning
-- [13-instruction-tuning.ipynb](13-instruction-tuning.ipynb) — Optimize for instructions
-- [25-rlhf.ipynb](25-rlhf.ipynb) — Reinforcement learning from human feedback
-- [6-dpo.ipynb](06-dpo.ipynb) — Direct preference optimization
+- [10-finetuning.ipynb](./04-finetuning.ipynb) — Full parameter updates
+- [15-lora.ipynb](./08-lora.ipynb) — Low-rank adaptation (efficient fine-tuning)
+- [17-parameter-efficient-finetuning.ipynb](./11-parameter-efficient-finetuning.ipynb) — Reduce trainable params
+- [18-prefix-tuning.ipynb](./10-prefix-tuning.ipynb) — Prefix-based fine-tuning
+- [13-instruction-tuning.ipynb](./05-instruction-tuning.ipynb) — Optimize for instructions
+- [25-rlhf.ipynb](./06-rlhf.ipynb) — Reinforcement learning from human feedback
+- [6-dpo.ipynb](./07-dpo.ipynb) — Direct preference optimization
 
 ### Prompting & In-Context Learning (6)
-- [21-prompting.ipynb](21-prompting.ipynb) — Basic LLM interaction
-- [11-in-context-learning.ipynb](11-in-context-learning.ipynb) — Learn from examples
-- [9-few-shot-learning.ipynb](09-few-shot-learning.ipynb) — Multiple examples
-- [32-zero-shot-learning.ipynb](32-zero-shot-learning.ipynb) — No examples needed
-- [3-chain-of-thought.ipynb](03-chain-of-thought.ipynb) — Reasoning step-by-step
-- [20-prompt-optimization.ipynb](20-prompt-optimization.ipynb) — Craft effective prompts
+- [21-prompting.ipynb](./12-prompting.ipynb) — Basic LLM interaction
+- [11-in-context-learning.ipynb](./15-in-context-learning.ipynb) — Learn from examples
+- [9-few-shot-learning.ipynb](./13-few-shot-learning.ipynb) — Multiple examples
+- [32-zero-shot-learning.ipynb](./14-zero-shot-learning.ipynb) — No examples needed
+- [3-chain-of-thought.ipynb](./16-chain-of-thought.ipynb) — Reasoning step-by-step
+- [20-prompt-optimization.ipynb](./17-prompt-optimization.ipynb) — Craft effective prompts
 
 ### Knowledge & Retrieval (5)
-- [7-embeddings.ipynb](07-embeddings.ipynb) — Dense text vectors
-- [27-semantic-search.ipynb](27-semantic-search.ipynb) — Find similar content
-- [31-vector-databases.ipynb](31-vector-databases.ipynb) — Store/query embeddings
-- [23-rag.ipynb](23-rag.ipynb) — Retrieval-augmented generation
-- [26-semantic-caching.ipynb](26-semantic-caching.ipynb) — Cache by semantic meaning
+- [7-embeddings.ipynb](./02-embeddings.ipynb) — Dense text vectors
+- [27-semantic-search.ipynb](./21-semantic-search.ipynb) — Find similar content
+- [31-vector-databases.ipynb](./20-vector-databases.ipynb) — Store/query embeddings
+- [23-rag.ipynb](./18-rag.ipynb) — Retrieval-augmented generation
+- [26-semantic-caching.ipynb](./22-semantic-caching.ipynb) — Cache by semantic meaning
 
 ### Optimization & Efficiency (8)
-- [22-quantization.ipynb](22-quantization.ipynb) — Reduce model size
-- [12-inference-optimization.ipynb](12-inference-optimization.ipynb) — Faster generation
-- [14-kv-cache.ipynb](14-kv-cache.ipynb) — Memory-efficient caching
-- [2-attention-optimization.ipynb](02-attention-optimization.ipynb) — Efficient attention
-- [5-continuous-batching.ipynb](05-continuous-batching.ipynb) — Better throughput
-- [28-speculative-decoding.ipynb](28-speculative-decoding.ipynb) — Parallel decoding
-- [29-token-optimization.ipynb](29-token-optimization.ipynb) — Minimize tokens
-- [4-context-window.ipynb](04-context-window.ipynb) — Maximum input length
+- [22-quantization.ipynb](./30-quantization.ipynb) — Reduce model size
+- [12-inference-optimization.ipynb](./28-inference-optimization.ipynb) — Faster generation
+- [14-kv-cache.ipynb](./23-kv-cache.ipynb) — Memory-efficient caching
+- [2-attention-optimization.ipynb](./24-attention-optimization.ipynb) — Efficient attention
+- [5-continuous-batching.ipynb](./26-continuous-batching.ipynb) — Better throughput
+- [28-speculative-decoding.ipynb](../../modern-ai/notebooks/28-speculative-decoding.ipynb) — Parallel decoding
+- [29-token-optimization.ipynb](./29-token-optimization.ipynb) — Minimize tokens
+- [4-context-window.ipynb](./25-context-window.ipynb) — Maximum input length
 
 ### Specialized Topics (2)
-- [16-multimodal.ipynb](16-multimodal.ipynb) — Text + vision + audio
-- [8-evaluation.ipynb](08-evaluation.ipynb) — Assessment & metrics
+- [16-multimodal.ipynb](./31-multimodal.ipynb) — Text + vision + audio
+- [8-evaluation.ipynb](./32-evaluation.ipynb) — Assessment & metrics
 
 ## Notebook Structure
 
@@ -76,22 +76,22 @@ Each notebook contains:
 **Recommended:** RAG, LoRA, Quantization, Attention Optimization, Chain-of-Thought
 
 ### For Building RAG Applications
-1. [7-embeddings.ipynb](07-embeddings.ipynb) — Understand embeddings
-2. [31-vector-databases.ipynb](31-vector-databases.ipynb) — Learn storage
-3. [27-semantic-search.ipynb](27-semantic-search.ipynb) — Implement search
-4. [23-rag.ipynb](23-rag.ipynb) — Integrate into generation
+1. [7-embeddings.ipynb](./02-embeddings.ipynb) — Understand embeddings
+2. [31-vector-databases.ipynb](./20-vector-databases.ipynb) — Learn storage
+3. [27-semantic-search.ipynb](./21-semantic-search.ipynb) — Implement search
+4. [23-rag.ipynb](./18-rag.ipynb) — Integrate into generation
 
 ### For Fine-tuning a Model
-1. [10-finetuning.ipynb](10-finetuning.ipynb) — Basics
-2. [15-lora.ipynb](15-lora.ipynb) — Efficient approach (recommended)
-3. [13-instruction-tuning.ipynb](13-instruction-tuning.ipynb) — Optimize for tasks
-4. [25-rlhf.ipynb](25-rlhf.ipynb) or [6-dpo.ipynb](06-dpo.ipynb) — Align with preferences
+1. [10-finetuning.ipynb](./04-finetuning.ipynb) — Basics
+2. [15-lora.ipynb](./08-lora.ipynb) — Efficient approach (recommended)
+3. [13-instruction-tuning.ipynb](./05-instruction-tuning.ipynb) — Optimize for tasks
+4. [25-rlhf.ipynb](./06-rlhf.ipynb) or [6-dpo.ipynb](./07-dpo.ipynb) — Align with preferences
 
 ### For Model Optimization
-1. [22-quantization.ipynb](22-quantization.ipynb) — Reduce size
-2. [2-attention-optimization.ipynb](02-attention-optimization.ipynb) — Faster attention
-3. [14-kv-cache.ipynb](14-kv-cache.ipynb) — Memory efficiency
-4. [12-inference-optimization.ipynb](12-inference-optimization.ipynb) — Overall optimization
+1. [22-quantization.ipynb](./30-quantization.ipynb) — Reduce size
+2. [2-attention-optimization.ipynb](./24-attention-optimization.ipynb) — Faster attention
+3. [14-kv-cache.ipynb](./23-kv-cache.ipynb) — Memory efficiency
+4. [12-inference-optimization.ipynb](./28-inference-optimization.ipynb) — Overall optimization
 
 ## How to Use
 

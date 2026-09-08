@@ -686,8 +686,8 @@ print("✓ Visualization saved")
 
 ## Related Concepts
 
-- [Transformers](../../llm/concepts/05-transformers.md) – Core architecture for both vision and language processing
-- [Attention Mechanisms](../../llm/concepts/12-attention-mechanisms.md) – Foundation for vision-language fusion and few-shot pattern matching
-- [Few-Shot Learning](../../modern-ai/concepts/39-few-shot-learning.md) – In-context learning capability enabled by Flamingo
-- [Vision Transformers (ViT)](../../vision/concepts/02-vit.md) – Vision encoder architecture used in Flamingo
-- [CLIP: Contrastive Vision-Language Learning](../../llm/concepts/32-clip.md) – Prior work on vision-language alignment; Flamingo improves upon CLIP's design
+- [Transformers](../../../ml/concepts/transformers.md) – Core architecture for both vision and language processing
+- [Attention Mechanisms](../../../llm/concepts/24-attention-optimization.md) – Foundation for vision-language fusion and few-shot pattern matching
+- [Few-Shot Learning](../../../llm/concepts/13-few-shot-learning.md) – In-context learning capability enabled by Flamingo
+- [Vision Transformers (ViT)](../../vision/concepts/02-vision-transformer.md) – Vision encoder architecture used in Flamingo
+- [CLIP: Contrastive Vision-Language Learning](../../retrieval/concepts/02-clip.md) – Prior work on vision-language alignment; Flamingo improves upon CLIP's design

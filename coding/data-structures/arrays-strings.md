@@ -46,4 +46,4 @@ Fundamental data structures for storing sequences. Arrays enable O(1) random acc
 - GeeksforGeeks: Arrays and Strings tutorials
 
 ## Related Topics
-- [Trees & Graphs](trees-graphs.md) — [Sorting](../algorithms/sorting.md)
+- [Trees & Graphs](trees.md) — [Sorting](../algorithms/sorting.md)

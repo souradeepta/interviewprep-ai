@@ -129,4 +129,4 @@ A: Three metrics: (1) policy transfer — train a new RL agent with recovered R;
 - [16-model-based-rl](./16-model-based-rl.md) — Model-based planning can accelerate the IRL inner loop
 - [19-multi-agent-rl](./19-multi-agent-rl.md) — Multi-agent IRL infers reward for multiple interacting agents
 - [20-offline-rl](./20-offline-rl.md) — Offline RL uses fixed dataset; IRL also uses offline demonstrations
-- [05-q-learning](./05-q-learning.md) — IRL inner loop often uses Q-learning / value iteration
+- [05-q-learning](./06-q-learning.md) — IRL inner loop often uses Q-learning / value iteration

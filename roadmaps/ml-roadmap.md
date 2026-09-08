@@ -35,8 +35,8 @@ with Python and have basic linear algebra / calculus knowledge.
 - [ ] [Feature Engineering](../ml/concepts/feature-engineering.md)
 - [ ] [Ensemble Methods](../ml/concepts/ensemble-methods.md)
 - [ ] [Neural Networks](../ml/concepts/neural-networks.md)
-- [ ] [Deep Learning — CNNs](../ml/concepts/deep-learning/cnns.md)
-- [ ] [Deep Learning — RNNs & LSTMs](../ml/concepts/deep-learning/rnns-lstms.md)
+- [ ] [Deep Learning — CNNs](../ml/concepts/cnns.md)
+- [ ] [Deep Learning — RNNs & LSTMs](../ml/concepts/rnns-lstms.md)
 - [ ] Implement: [Decision Tree](../ml/implementations/decision-tree.ipynb)
 - [ ] Implement: [Random Forest](../ml/implementations/random-forest.ipynb)
 - [ ] Implement: [K-Means From Scratch](../ml/implementations/kmeans-from-scratch.ipynb)
@@ -56,13 +56,13 @@ with Python and have basic linear algebra / calculus knowledge.
 **Goal:** Cover transformers, distributed training, MLOps. Ready for senior ML engineer interviews.
 **Estimated time:** 2–4 weeks at 10 hrs/week
 
-- [ ] [Deep Learning — Attention Mechanism](../ml/concepts/deep-learning/attention-mechanism.md)
-- [ ] [Deep Learning — Transformers](../ml/concepts/deep-learning/transformers.md)
+- [ ] [Deep Learning — Attention Mechanism](../ml/concepts/attention-mechanism.md)
+- [ ] [Deep Learning — Transformers](../ml/concepts/transformers.md)
 - [ ] Implement: [CNN Image Classifier](../ml/implementations/cnn-image-classifier.ipynb)
 - [ ] Implement: [Backpropagation](../ml/implementations/backpropagation.ipynb) — verify gradient correctness
 - [ ] Practice: [ML Coding Questions](../ml/interview-prep/ml-coding-questions.md) — Q11–Q20
 - [ ] Practice: [ML Case Studies](../ml/interview-prep/case-studies.md)
-- [ ] [System Design — MLOps Overview](../system-design/patterns/mlops-overview.md)
+- [ ] [System Design — MLOps Overview](../system-design/patterns/01-mlops-overview.md)
 
 **Phase 3 exit check:**
 - Can you explain the attention mechanism and why it replaced RNNs?

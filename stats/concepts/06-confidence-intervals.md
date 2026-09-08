@@ -118,8 +118,8 @@ A: A CI gives a range for the true population parameter (e.g., the mean). A pred
 
 ## 8. Related Concepts
 
-- [01-descriptive-statistics](./01-descriptive-statistics.md) — point estimates that CIs are built around
-- [02-probability-distributions](./02-probability-distributions.md) — t and z distributions underlying CI computation
-- [03-hypothesis-testing](./03-hypothesis-testing.md) — duality between CIs and two-sided hypothesis tests
+- [01-descriptive-statistics](./01-probability-fundamentals.md) — point estimates that CIs are built around
+- [02-probability-distributions](./02-distributions-reference.md) — t and z distributions underlying CI computation
+- [03-hypothesis-testing](./05-hypothesis-testing.md) — duality between CIs and two-sided hypothesis tests
 - [07-statistical-power-sample-size](./07-statistical-power-sample-size.md) — sample size for desired CI width
 - [08-ab-testing-statistics](./08-ab-testing-statistics.md) — CI for difference in means in experiments

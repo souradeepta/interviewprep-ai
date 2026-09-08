@@ -322,7 +322,7 @@ A: By default, LoRA is applied to query and value projection matrices in attenti
 - [Fine-tuning](04-finetuning.md) — LoRA is an efficient alternative to full fine-tuning
 - [Parameter-Efficient Fine-tuning](11-parameter-efficient-finetuning.md) — broader PEFT category
 - [Adapters](09-adapters.md) — alternative parameter-efficient method
-- [QLoRA](../llm/concepts/quantization.md) — quantization + LoRA for ultra-low memory
+- [QLoRA](../../ml/concepts/quantization.md) — quantization + LoRA for ultra-low memory
 
 ## Resources
 - [LoRA Paper: Low-Rank Adaptation of Large Language Models](https://arxiv.org/abs/2106.09685)

@@ -311,7 +311,7 @@ A: Use frameworks that support quantized inference natively: vLLM (supports GPTQ
 - [Inference Optimization](28-inference-optimization.md) — quantization is one technique among many
 - [KV Cache](23-kv-cache.md) — another memory optimization for inference
 - [Speculative Decoding](27-speculative-decoding.md) — speed optimization compatible with quantization
-- [Model Compression](../ml/concepts/model-compression.md) — broader compression techniques
+- [Model Compression](../../ml/concepts/model-compression.md) — broader compression techniques
 
 ## Resources
 - [Quantization Fundamentals with Hugging Face](https://huggingface.co/docs/transformers/quantization)
