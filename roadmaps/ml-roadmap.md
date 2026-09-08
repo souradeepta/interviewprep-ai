@@ -62,6 +62,8 @@ with Python and have basic linear algebra / calculus knowledge.
 - [ ] Implement: [Backpropagation](../ml/implementations/backpropagation.ipynb) — verify gradient correctness
 - [ ] Practice: [ML Coding Questions](../ml/interview-prep/ml-coding-questions.md) — Q11–Q20
 - [ ] Practice: [ML Case Studies](../ml/interview-prep/case-studies.md)
+- [ ] Practice: [Data/SQL Drills](../ml/interview-prep/data-sql-questions.md)
+- [ ] Practice: [Evaluation Drills](../ml/interview-prep/evaluation-experiment-questions.md)
 - [ ] [System Design — MLOps Overview](../system-design/patterns/01-mlops-overview.md)
 
 **Phase 3 exit check:**
@@ -76,6 +78,7 @@ with Python and have basic linear algebra / calculus knowledge.
 - [ ] Can explain gradient descent, backprop, attention without notes
 - [ ] Completed at least 20 ML theory questions in simulation format
 - [ ] Completed at least 5 ML coding questions from scratch
+- [ ] Completed one data/SQL and one evaluation drill without future-data leakage
 - [ ] Done one full case study mock (recommendation or ranking system)
 
 ---

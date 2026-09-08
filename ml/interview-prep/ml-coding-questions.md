@@ -358,3 +358,81 @@ from business outcomes such as retention, diversity, and complaint rate.
 K-means, mini-batch SGD, momentum, beam search, ROC/AUC, an NLP trie, weighted
 sampling, batch matrix multiplication, and a data/SQL feature-aggregation
 exercise remain useful follow-ups.
+
+---
+
+## Q8–Q20: applied ML implementation drills
+
+Use these as 20–30 minute MLE rounds. Each prompt requires clarifying
+questions, explicit inputs and edge cases, a complexity statement, and one
+follow-up. Tested reference code lives in `solutions/`.
+
+### Q8. Linear regression with regularization
+Implement full-batch gradient descent with an intercept, L2 regularization,
+loss history, and a finite-difference gradient check. Reject empty and
+non-finite inputs. See `solutions/linear_models.py`; follow up with the closed
+form solution, SGD, and early stopping.
+
+### Q9. Binary logistic regression
+Implement stable sigmoid/log-loss gradients, L2 regularization, and probability
+predictions. Test logits near ±1,000 and invalid labels. Use `logaddexp` rather
+than naive logarithms. See `solutions/linear_models.py`; follow up with
+calibration and cost-sensitive thresholds.
+
+### Q10. Seeded K-means
+Implement assignment/update steps, reproducible initialization, convergence,
+inertia, and empty-cluster repair. Test duplicated points and `k=1`. See
+`solutions/clustering_and_trees.py`; follow up with K-means++ and model
+selection.
+
+### Q11. Decision-stump split selection
+Enumerate numeric mid-point thresholds and minimize weighted Gini impurity,
+with deterministic tie handling and pure-node behavior. See
+`solutions/clustering_and_trees.py`; follow up with sample weights and depth
+stopping.
+
+### Q12. Leakage-safe temporal split and point-in-time features
+Split by event time and select only feature rows strictly available before the
+event. Test future rows, same-time updates, and late arrivals. See
+`solutions/training_and_evaluation.py`; follow up with an indexed as-of join.
+
+### Q13. Calibration and threshold choice
+Choose a probability threshold minimizing false-positive/false-negative cost.
+Explain why AUC does not imply calibration and why the threshold belongs on
+validation data. See `choose_threshold`; follow up with Platt versus isotonic
+calibration.
+
+### Q14. Mini-batch training loop
+Generate seeded shuffled batches, support a final partial batch, and explain
+gradient accumulation, clipping, and early stopping. See
+`mini_batch_indices`; follow up with distributed all-reduce and mixed precision.
+
+### Q15. Filtered retrieval evaluation
+Keep candidate generation and reranking contracts separate; report recall@K,
+filter effects, and latency-budget status. See `recall_at_k`; follow up with
+ANN refresh and candidate-recall monitoring.
+
+### Q16. Bootstrap metric confidence interval
+Return a seeded percentile interval for a metric and state its interpretation.
+Test singleton, invalid, and repeatability cases. See `bootstrap_mean_ci`;
+follow up with a paired per-user bootstrap.
+
+### Q17. Candidate generation plus reranking
+Design the boundary where unique candidate IDs and retrieval scores are passed
+to a point-in-time-aware ranker. Measure recall before reranking and NDCG after
+it. See `solutions/evaluation_exercises.py`; follow up with position bias.
+
+### Q18. Online feature freshness
+Return `fresh`, `stale`, or `invalid` for feature time, request time, and a
+maximum age; reject future features. See `feature_freshness_status`; follow up
+with training-serving parity and freshness dashboards.
+
+### Q19. Debug a faulty metric
+Construct the smallest counterexample for ascending score sorting, wrong
+relevant-set denominators, or accidental true-negative inclusion. Add a
+regression test and compare with `binary_metrics` and `ndcg_at_k`.
+
+### Q20. End-to-end mini take-home
+Produce a baseline, time-safe split, model, slice metrics, uncertainty interval,
+error analysis, and ship/no-ship memo from a small event table. No invented
+performance target is acceptable; state assumptions and follow-up label work.

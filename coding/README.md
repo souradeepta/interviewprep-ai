@@ -9,6 +9,10 @@ Data structures, algorithms, and ML-specific coding for technical interview prep
 | [algorithms/](algorithms/) | Sorting, searching, DP, backtracking, graph algorithms |
 | [ML coding questions](../ml/interview-prep/ml-coding-questions.md) | Implementing ML algorithms from scratch |
 
+ML/AI candidates should also use the focused [ML coding](../ml/interview-prep/ml-coding-questions.md),
+[data/SQL](../ml/interview-prep/data-sql-questions.md), and
+[evaluation](../ml/interview-prep/evaluation-experiment-questions.md) tracks.
+
 Coding interviews typically combine LeetCode-style DSA questions with ML implementation questions.
 
 ---

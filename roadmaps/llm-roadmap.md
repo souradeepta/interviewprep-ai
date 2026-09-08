@@ -62,6 +62,8 @@ Phase 1–2 of the ML Roadmap or have equivalent ML foundations.
 - [ ] [System Design Patterns — LLM observability](../system-design/patterns/16-monitoring-and-observability.md)
 - [ ] Implement: [Structured Output](../agentic-ai/notebooks/06-structured-output.ipynb)
 - [ ] Practice: [System Design Framework](../system-design/interview-prep/system-design-framework.md)
+- [ ] Practice: [LLM Interview Questions](../llm/interview-prep/llm-interview-questions.md) — Q1–Q30
+- [ ] Practice: [LLM Coding Exercises](../llm/interview-prep/llm-coding-exercises.md)
 
 **Phase 3 exit check:**
 - Can you explain KV cache, speculative decoding, and continuous batching?
@@ -74,7 +76,7 @@ Phase 1–2 of the ML Roadmap or have equivalent ML foundations.
 - [ ] Can explain transformer architecture (attention, FFN, positional encoding) without notes
 - [ ] Built a working RAG pipeline end-to-end
 - [ ] Fine-tuned a model using LoRA (even a tiny one)
-- [ ] Completed 30+ LLM theory questions in simulation format
+- [ ] Completed 30 LLM interview questions in simulation format
 - [ ] Completed at least one full LLM system design mock
 
 ---

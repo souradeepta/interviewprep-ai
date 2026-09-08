@@ -51,6 +51,8 @@ to complex multi-agent systems. Assumes basic LLM familiarity (complete LLM Road
 - [ ] [Multi-Agent Systems](../agentic-ai/concepts/14-multi-agent-systems.md)
 - [ ] [Production Agents](../agentic-ai/concepts/56-agent-deployment-patterns.md)
 - [ ] Practice: [System Design Framework](../system-design/interview-prep/system-design-framework.md)
+- [ ] Practice: [Agent Interview Questions](../agentic-ai/interview-prep/agent-interview-questions.md) — Q1–Q20
+- [ ] Practice: [Agent Coding Exercises](../agentic-ai/interview-prep/agent-coding-exercises.md)
 
 **Phase 3 exit check:**
 - Can you design an eval harness for a customer support agent?
@@ -62,7 +64,7 @@ to complex multi-agent systems. Assumes basic LLM familiarity (complete LLM Road
 - [ ] Built a ReAct agent from raw API (no framework)
 - [ ] Built a multi-agent workflow with at least 2 agents
 - [ ] Can explain 3 planning/reasoning strategies with trade-offs
-- [ ] Completed 20+ agentic theory questions in simulation format
+- [ ] Completed 20 agent interview questions in simulation format
 - [ ] Completed one full agentic system design mock
 
 ---

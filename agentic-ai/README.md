@@ -9,3 +9,5 @@ Building, deploying, and evaluating AI agents — from basic tool-calling to com
 | [notebooks/](notebooks/) | 64 Jupyter notebooks with implementation examples and hands-on code |
 
 Start with the [Agentic AI Roadmap](../roadmaps/agentic-roadmap.md) for a guided path.
+
+For interview simulation, use the [agent interview-prep track](interview-prep/README.md).

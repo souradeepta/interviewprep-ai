@@ -2132,3 +2132,43 @@ N/A
 - Jumping to model retraining before diagnosing whether the issue is data, infrastructure, or model
 - Not scoping to a segment first — treating a 20% drop in a small segment as a 20% drop overall
 - Mitigating without documenting root cause — same incident recurs next month
+
+---
+
+## Applied Evaluation Practice (Q51–Q56)
+
+These additions preserve Q1–Q50 and require a decision procedure. Use the
+linked statistics, MLOps, and system-design pages for deeper remediation.
+
+### Q51. Calibration, discrimination, and asymmetric cost
+Compare equal-AUC classifiers with different calibration. Choose a calibration
+set, report reliability and uncertainty, then select a threshold from explicit
+false-positive and false-negative costs. See [evaluation metrics](../../ml/concepts/evaluation-metrics.md)
+and [model testing](../../mlops/concepts/09-model-testing.md).
+
+### Q52. Delayed and censored labels
+Define an eligible cohort when outcomes mature 30 days after scoring; do not
+label not-yet-observed outcomes negative. Explain mature-cohort backtests and
+censoring assumptions. See [data pipelines](../../mlops/concepts/01-data-pipelines.md).
+
+### Q53. Point-in-time joins and freshness
+Specify entity key, strict as-of timestamp rule, late-event handling, freshness
+SLA, and a future-data unit test before inspecting model quality. See
+[feature stores](../../mlops/concepts/02-feature-stores.md) and the
+[feature-store pattern](../../system-design/patterns/03-feature-store.md).
+
+### Q54. Selection bias and counterfactual ranking evaluation
+Explain exposure and position bias in logged clicks. Compare randomized buckets,
+interleaving, and inverse-propensity weighting; separate candidate recall from
+ranking quality and define online guardrails. See [A/B testing](../../mlops/concepts/11-ab-testing.md).
+
+### Q55. Error slices and label investment
+Design uncertainty-aware slices when aggregate accuracy is flat but one language
+regresses. Prioritize additional labels by expected product impact and
+information gain, then check subgroup calibration. See [model debugging](../../system-design/patterns/17-model-debugging.md).
+
+### Q56. Reproducible experiments
+List the immutable data snapshot, code revision, environment, seeds, features,
+split, baseline, metric implementation, and artifacts needed to reproduce a
+result. Explain what a seed cannot guarantee. See [reproducibility](../../mlops/concepts/07-reproducibility.md)
+and [experiment tracking](../../mlops/concepts/05-experiment-tracking.md).

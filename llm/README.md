@@ -9,3 +9,5 @@ Transformers, pretraining, fine-tuning, RAG, and production deployment of LLMs.
 | [notebooks/](notebooks/) | 46 Jupyter notebooks with implementation examples and production patterns |
 
 Start with the [LLM Roadmap](../roadmaps/llm-roadmap.md) for a guided path.
+
+For interview simulation, use the [LLM interview-prep track](interview-prep/README.md).

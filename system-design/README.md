@@ -9,3 +9,6 @@ Patterns, case studies, and interview prep for designing ML-powered systems at s
 | [interview-prep/](interview-prep/) | Framework, practice questions, and system design strategies |
 
 Start with the [System Design Roadmap](../roadmaps/system-design-roadmap.md) for a guided path.
+
+Practice timed rounds with the [25-question bank](interview-prep/question-bank.md)
+and [scorecard](interview-prep/scorecard.md).
