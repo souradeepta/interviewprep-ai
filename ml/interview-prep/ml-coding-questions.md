@@ -4,7 +4,7 @@ Implement from scratch — NumPy only for the core implementation.
 
 ---
 
-## Q: Implement K-Nearest Neighbors (KNN) from scratch.
+## Q1. Implement K-Nearest Neighbors (KNN) from scratch.
 
 **Difficulty:** Medium | **Domain:** ML Coding | **Companies:** Google, Meta, Amazon
 
@@ -64,7 +64,7 @@ print(f"Accuracy: {np.mean(knn.predict(X_te)==y_te):.4f}")
 
 ---
 
-## Q: Implement scaled dot-product attention from scratch.
+## Q2. Implement scaled dot-product attention from scratch.
 
 **Difficulty:** Hard | **Domain:** ML Coding | **Companies:** OpenAI, Google, Anthropic, Meta AI
 
@@ -129,7 +129,7 @@ print(out.shape, out_causal.shape)
 
 ---
 
-## Q: Implement softmax and cross-entropy loss from scratch.
+## Q3. Implement softmax and cross-entropy loss from scratch.
 
 **Difficulty:** Easy | **Domain:** ML Coding | **Companies:** Any ML company
 
@@ -187,7 +187,7 @@ print(f"Cross-entropy: {cross_entropy(logits, labels):.4f}")
 
 ---
 
-## Q: Implement PCA from scratch using eigendecomposition.
+## Q4. Implement PCA from scratch using eigendecomposition.
 
 **Difficulty:** Medium | **Domain:** ML Coding | **Companies:** Google, Meta, Amazon
 
@@ -252,7 +252,7 @@ For n >> d: use covariance. For d >> n: use Gram matrix $XX^T$ (O(n²d)).
 
 ---
 
-## Q: Implement rejection sampling for a target distribution.
+## Q5. Implement rejection sampling for a target distribution.
 
 **Difficulty:** Medium | **Domain:** Probability / ML Coding | **Companies:** LinkedIn, Google
 
@@ -284,7 +284,7 @@ importance sampling, adaptive proposals, and numerical stability in log-space.
 Test a symmetric target, a poor proposal, a fixed random seed, and a proposal
 with zero density outside its support.
 
-## Q: Build a lightweight topic model with TF-IDF and truncated SVD.
+## Q6. Build a lightweight topic model with TF-IDF and truncated SVD.
 
 **Difficulty:** Medium | **Domain:** NLP / ML Coding | **Companies:** LinkedIn, Meta
 
@@ -323,7 +323,7 @@ Clarify tokenization, stop words, vocabulary fitting only on training data,
 and how to choose the number of topics. Explain that SVD gives LSA topics,
 while probabilistic LDA models a distribution over topics and words.
 
-## Q: Implement ranking metrics for a recommendation model.
+## Q7. Implement ranking metrics for a recommendation model.
 
 **Difficulty:** Medium | **Domain:** Recommenders / ML Coding | **Companies:** LinkedIn, Meta, Amazon
 
@@ -353,11 +353,11 @@ Avoid leaking future interactions into training. Split by time for production
 recommendation, report metrics by user cohort, and distinguish ranking quality
 from business outcomes such as retention, diversity, and complaint rate.
 
-### Remaining high-value ML coding topics
+### Optional follow-ups after Q20
 
-K-means, mini-batch SGD, momentum, beam search, ROC/AUC, an NLP trie, weighted
-sampling, batch matrix multiplication, and a data/SQL feature-aggregation
-exercise remain useful follow-ups.
+Momentum, beam search, ROC/AUC, an NLP trie, weighted sampling, batch matrix
+multiplication, and a data/SQL feature-aggregation exercise remain useful
+extensions after the core twenty prompts.
 
 ---
 
@@ -394,23 +394,25 @@ stopping.
 ### Q12. Leakage-safe temporal split and point-in-time features
 Split by event time and select only feature rows strictly available before the
 event. Test future rows, same-time updates, and late arrivals. See
+`point_in_time_features(events, feature_rows)` in
 `solutions/training_and_evaluation.py`; follow up with an indexed as-of join.
 
 ### Q13. Calibration and threshold choice
-Choose a probability threshold minimizing false-positive/false-negative cost.
-Explain why AUC does not imply calibration and why the threshold belongs on
-validation data. See `choose_threshold`; follow up with Platt versus isotonic
-calibration.
+Choose a probability threshold minimizing false-positive/false-negative cost
+for binary labels only; ties choose the lowest threshold. Explain why AUC does
+not imply calibration and why the threshold belongs on validation data. See
+`choose_threshold`; follow up with Platt versus isotonic calibration.
 
 ### Q14. Mini-batch training loop
-Generate seeded shuffled batches, support a final partial batch, and explain
-gradient accumulation, clipping, and early stopping. See
-`mini_batch_indices`; follow up with distributed all-reduce and mixed precision.
+Generate seeded shuffled batches, support a final partial batch, and implement
+gradient accumulation, global-norm clipping, and loss-based early stopping.
+See `train_with_minibatches` and `mini_batch_indices`; follow up with
+distributed all-reduce and mixed precision.
 
 ### Q15. Filtered retrieval evaluation
 Keep candidate generation and reranking contracts separate; report recall@K,
-filter effects, and latency-budget status. See `recall_at_k`; follow up with
-ANN refresh and candidate-recall monitoring.
+deduplicate candidate IDs, and state filter effects and latency-budget status.
+See `recall_at_k`; follow up with ANN refresh and candidate-recall monitoring.
 
 ### Q16. Bootstrap metric confidence interval
 Return a seeded percentile interval for a metric and state its interpretation.
@@ -420,7 +422,8 @@ follow up with a paired per-user bootstrap.
 ### Q17. Candidate generation plus reranking
 Design the boundary where unique candidate IDs and retrieval scores are passed
 to a point-in-time-aware ranker. Measure recall before reranking and NDCG after
-it. See `solutions/evaluation_exercises.py`; follow up with position bias.
+it; test a high-relevance result outside top-k. See `ndcg_at_k` in
+`solutions/evaluation_exercises.py`; follow up with position bias.
 
 ### Q18. Online feature freshness
 Return `fresh`, `stale`, or `invalid` for feature time, request time, and a
@@ -428,9 +431,10 @@ maximum age; reject future features. See `feature_freshness_status`; follow up
 with training-serving parity and freshness dashboards.
 
 ### Q19. Debug a faulty metric
-Construct the smallest counterexample for ascending score sorting, wrong
-relevant-set denominators, or accidental true-negative inclusion. Add a
-regression test and compare with `binary_metrics` and `ndcg_at_k`.
+Construct the smallest counterexample for ascending score sorting, a
+high-relevance result outside top-k, wrong relevant-set denominators, or
+accidental true-negative inclusion. Add a regression test and compare with
+`binary_metrics` and `ndcg_at_k`.
 
 ### Q20. End-to-end mini take-home
 Produce a baseline, time-safe split, model, slice metrics, uncertainty interval,

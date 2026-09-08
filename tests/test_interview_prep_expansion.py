@@ -27,9 +27,9 @@ def load_module(relative_path):
 def test_interview_question_banks_have_expected_depth():
     llm = (ROOT / "llm/interview-prep/llm-interview-questions.md").read_text()
     agents = (ROOT / "agentic-ai/interview-prep/agent-interview-questions.md").read_text()
-    assert len(re.findall(r"^\d+\. ", llm, re.MULTILINE)) >= 30
-    assert len(re.findall(r"^\d+\. ", agents, re.MULTILINE)) >= 20
-    assert len(re.findall(r"^\d+\. ", (ROOT / "system-design/interview-prep/question-bank.md").read_text(), re.MULTILINE)) >= 25
+    assert len(re.findall(r"^### Q\d+ — ", llm, re.MULTILINE)) == 30
+    assert len(re.findall(r"^### Q\d+ — ", agents, re.MULTILINE)) == 20
+    assert len(re.findall(r"^### Q\d+ — ", (ROOT / "system-design/interview-prep/question-bank.md").read_text(), re.MULTILINE)) == 25
 
 
 def test_ml_solution_modules_are_deterministic_and_numerically_stable():
@@ -48,6 +48,7 @@ def test_ml_solution_modules_are_deterministic_and_numerically_stable():
     }
     assert evaluation.pass_at_k(10, 2, 1) == pytest.approx(0.2)
     assert evaluation.bootstrap_difference_ci([1, 2, 3], [1, 1, 1], seed=3, samples=20)[0] == 1.0
+    assert evaluation.ndcg_at_k([1, 0, 3], 2) == pytest.approx(1 / (7 + 1 / np.log2(3)))
 
 
 def test_agent_exercises_cover_retry_checkpoint_and_budget():
@@ -63,6 +64,14 @@ def test_agent_exercises_cover_retry_checkpoint_and_budget():
     result = retry.retry(operation, max_attempts=3, base_delay=0.5)
     assert (result.value, result.attempts, result.delays) == ("ok", 3, [0.5, 1.0])
 
+    with pytest.raises(ValueError):
+        retry.retry(operation, max_attempts=0)
+    executor = retry.IdempotentExecutor()
+    with pytest.raises(retry.ReconciliationRequired):
+        executor.execute("payment-1", lambda: (_ for _ in ()).throw(RuntimeError("unknown")))
+    assert executor.state("payment-1") == "unknown"
+    assert executor.reconcile("payment-1", lambda key: {"payment-1": "settled"}[key]) == "settled"
+
     conversation = load_module("agentic-ai/implementations/61-multi-turn-conversation.py")
     state = conversation.ConversationState(max_messages=2)
     state.add("user", "one")
@@ -70,8 +79,12 @@ def test_agent_exercises_cover_retry_checkpoint_and_budget():
     state.add("user", "three")
     assert [message["content"] for message in state.messages] == ["two", "three"]
     assert conversation.ConversationState.restore(state.checkpoint(), max_messages=2).messages == state.messages
+    with pytest.raises(ValueError):
+        conversation.ConversationState.restore(state.checkpoint(), max_messages=0)
 
     budget_module = load_module("agentic-ai/implementations/64-real-time-agent-systems.py")
+    with pytest.raises(ValueError):
+        budget_module.Budget(deadline_ms=10, token_limit=-1, cost_limit=1.0)
     budget = budget_module.Budget(deadline_ms=10, token_limit=10, cost_limit=1.0)
     assert budget_module.run_steps([
         {"name": "retrieve", "elapsed_ms": 4, "tokens": 3, "cost": 0.2},
@@ -87,3 +100,11 @@ def test_sql_exercises_execute_against_fresh_fixture():
         connection.executescript(path.read_text())
     assert connection.execute("SELECT COUNT(*) FROM events").fetchone()[0] > 0
     assert connection.execute("SELECT COUNT(*) FROM predictions").fetchone()[0] > 0
+    statuses = dict(connection.execute(
+        "SELECT prediction_id, label_status FROM label_window_results"
+    ).fetchall())
+    assert statuses == {"p1": "mature_positive", "p2": "mature_negative", "p3": "unknown_not_mature"}
+    assignments = connection.execute(
+        "SELECT user_id, COUNT(DISTINCT variant) FROM experiment_assignments GROUP BY user_id"
+    ).fetchall()
+    assert all(variants == 1 for _, variants in assignments)

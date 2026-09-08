@@ -24,13 +24,22 @@ def expected_cost(labels, scores, threshold, *, false_positive=1.0, false_negati
 
 
 def ndcg_at_k(relevances, k):
-    values = np.asarray(relevances, dtype=float)[:k]
-    if k <= 0 or len(values) == 0:
+    if isinstance(k, (bool, np.bool_)) or not isinstance(k, (int, np.integer)) or k <= 0:
+        raise ValueError("k must be a positive integer")
+    values = np.asarray(relevances, dtype=float)
+    if values.ndim != 1 or not np.isfinite(values).all() or (values < 0).any():
+        raise ValueError("relevances must be finite, non-negative, and one-dimensional")
+    if len(values) == 0:
         return 0.0
-    gains = (2 ** values - 1) / np.log2(np.arange(2, len(values) + 2))
-    ideal = np.sort(values)[::-1]
-    ideal_gain = (2 ** ideal - 1) / np.log2(np.arange(2, len(ideal) + 2))
-    return float(gains.sum() / ideal_gain.sum()) if ideal_gain.sum() else 0.0
+    displayed = values[:k]
+
+    def dcg(ranked):
+        gains = np.exp2(ranked) - 1.0
+        discounts = np.log2(np.arange(2, len(ranked) + 2))
+        return float(np.sum(gains / discounts))
+
+    denominator = dcg(np.sort(values)[::-1][:k])
+    return float(dcg(displayed) / denominator) if denominator else 0.0
 
 
 def calibration_error(labels, probabilities, bins=10):

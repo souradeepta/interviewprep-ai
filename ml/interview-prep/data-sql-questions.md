@@ -18,6 +18,9 @@ reference answers.
 11. Detect sample-ratio mismatch and state its operational response.
 12. Debug a metric that improves after NULL rows are accidentally counted as negatives.
 
-All SQL is SQLite-compatible and uses only synthetic data. The important
-interview skill is proving that features and labels were available at the
-prediction cutoff; a fast query that uses future information is incorrect.
+All SQL is SQLite-compatible and uses only synthetic data. The four marked
+query files are executable reference answers with tested result contracts; the
+other eight are intentionally prompt-only drills until dedicated reference
+queries and expected outputs are added. The important interview skill is
+proving that features and labels were available at the prediction cutoff; a
+fast query that uses future information is incorrect.
