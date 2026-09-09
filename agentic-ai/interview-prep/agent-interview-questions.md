@@ -23,7 +23,7 @@ metric, failure modes, budget, observability, safety boundary, and one follow-up
 **Failure modes/edge cases:** leakage or contamination, distribution/slice regressions, stale or missing data, malformed inputs, budget overruns, and unsafe actions.
 **Interviewer follow-up:** ask for the highest-risk trade-off, one adversarial example, and how the answer changes when quality, latency, or cost is constrained.
 **Rubric (0–3):** 0 = missing or unsafe; 1 = names components without evidence; 2 = coherent plan with metrics and boundaries; 3 = quantified trade-offs, failure handling, and validation.
-**Remediation:** [agent concepts](../concepts/) and [evaluation drills](../../ml/interview-prep/evaluation-experiment-questions.md).
+**Remediation:** [retry and idempotency remediation](retry-idempotency-remediation.md), [agent concepts](../concepts/), and [evaluation drills](../../ml/interview-prep/evaluation-experiment-questions.md).
 
 ### Q3 — Choose memory boundaries between conversation, task, user, and durable state.
 **Round/time:** 5–10 minutes.

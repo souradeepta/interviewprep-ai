@@ -117,7 +117,7 @@ follow-up before reading the linked remediation page.
 **Failure modes/edge cases:** leakage or contamination, distribution/slice regressions, stale or missing data, malformed inputs, budget overruns, and unsafe actions.
 **Interviewer follow-up:** ask for the highest-risk trade-off, one adversarial example, and how the answer changes when quality, latency, or cost is constrained.
 **Rubric (0–3):** 0 = missing or unsafe; 1 = names components without evidence; 2 = coherent plan with metrics and boundaries; 3 = quantified trade-offs, failure handling, and validation.
-**Remediation:** [LLM concepts](../concepts/) and [evaluation drills](../../ml/interview-prep/evaluation-experiment-questions.md).
+**Remediation:** [retrieval failure remediation](retrieval-failure-remediation.md), [LLM concepts](../concepts/), and [evaluation drills](../../ml/interview-prep/evaluation-experiment-questions.md).
 
 ### Q12 — Choose chunk size, overlap, metadata filters, and parent-document reconstruction.
 **Round/time:** 5–10 minutes.

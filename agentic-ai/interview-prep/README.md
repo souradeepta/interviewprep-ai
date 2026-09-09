@@ -9,3 +9,6 @@ Each answer should cover tool contracts, state and invariants, retries and
 idempotency, quality/task success, cost/latency, observability, human
 oversight, and security. Read the linked concept only after attempting the
 prompt.
+
+Focused remediation: [retry and idempotency](retry-idempotency-remediation.md)
+for Q2, including the `unknown` state after an ambiguous side effect.
