@@ -15,6 +15,7 @@ SMOKE_NOTEBOOKS = (
     ROOT / "llm/notebooks/18-rag.ipynb",
     ROOT / "nlp/notebooks/01-text-preprocessing.ipynb",
     ROOT / "rl/notebooks/01-markov-decision-processes.ipynb",
+    ROOT / "ai/notebooks/01-gradient-descent.ipynb",
 )
 
 ML_INTERVIEW_TOPICS = (
