@@ -7,6 +7,7 @@ on:
       - "stats/notebooks/**"
       - "cv/notebooks/**"
       - "nlp/notebooks/**"
+      - "rl/notebooks/**"
       - "tests/test_new_sections.py"
       - "tests/test_repository_integrity.py"
       - ".github/workflows/notebook-smoke.yml"
@@ -45,3 +46,4 @@ jobs:
           'tests/test_repository_integrity.py::test_representative_notebook_executes_without_mutating_source[notebook_path0]'
           'tests/test_repository_integrity.py::test_representative_notebook_executes_without_mutating_source[notebook_path1]'
           'tests/test_repository_integrity.py::test_representative_notebook_executes_without_mutating_source[notebook_path3]'
+          'tests/test_repository_integrity.py::test_representative_notebook_executes_without_mutating_source[notebook_path4]'
