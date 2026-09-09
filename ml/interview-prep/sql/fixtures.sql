@@ -4,6 +4,7 @@
 PRAGMA foreign_keys = ON;
 DROP TABLE IF EXISTS labels;
 DROP TABLE IF EXISTS predictions;
+DROP TABLE IF EXISTS event_ingestion;
 DROP TABLE IF EXISTS exposures;
 DROP TABLE IF EXISTS experiment_assignments;
 DROP TABLE IF EXISTS feature_history;
@@ -16,6 +17,9 @@ CREATE TABLE items (item_id TEXT PRIMARY KEY, category TEXT NOT NULL);
 CREATE TABLE events (
   event_id TEXT NOT NULL, user_id TEXT, item_id TEXT NOT NULL,
   event_time TEXT NOT NULL, event_type TEXT NOT NULL, value REAL
+);
+CREATE TABLE event_ingestion (
+  event_id TEXT PRIMARY KEY, ingested_at TEXT NOT NULL
 );
 CREATE TABLE feature_history (
   user_id TEXT NOT NULL, feature_time TEXT NOT NULL, spend_7d REAL NOT NULL
@@ -50,6 +54,12 @@ INSERT INTO events VALUES
  ('e3','u2','i2','2026-01-02 12:00','view',2.0),
  ('e4',NULL,'i3','2026-01-03 12:00','view',1.0), -- missing entity
  ('e5','u1','i2','2025-12-31 23:59','view',3.0); -- late arrival
+INSERT INTO event_ingestion VALUES
+ ('e1','2026-01-01 10:01'),
+ ('e2','2026-01-01 10:06'),
+ ('e3','2026-01-02 12:01'),
+ ('e4','2026-01-03 12:01'),
+ ('e5','2026-01-03 00:05'); -- event_time precedes the as-of cutoff, ingestion does not
 INSERT INTO feature_history VALUES
  ('u1','2025-12-31 00:00',2.0),('u1','2026-01-01 10:00',5.0),
  ('u1','2026-01-01 12:00',7.0),('u1','2026-01-02 00:00',9.0),

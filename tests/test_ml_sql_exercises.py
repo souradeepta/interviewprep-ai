@@ -86,6 +86,98 @@ def test_rolling_count_uses_only_prior_deduplicated_events_in_window():
     ).fetchone()[0] == 0
 
 
+def test_sessionization_uses_strict_gap_and_keeps_sessions_per_user():
+    db = connection()
+    db.executescript((SQL / "06-sessionization.sql").read_text())
+    rows = db.execute(
+        "SELECT event_id, user_id, session_number "
+        "FROM sessionized_events ORDER BY user_id, event_time, event_id"
+    ).fetchall()
+    assert rows == [
+        ("e5", "u1", 1),
+        ("e1", "u1", 2),
+        ("e2", "u1", 2),
+        ("e3", "u2", 1),
+    ]
+    assert db.execute(
+        "SELECT COUNT(*) FROM sessionized_events WHERE user_id IS NULL"
+    ).fetchone()[0] == 0
+
+
+def test_missing_entities_are_quarantined_without_shared_sentinel():
+    db = connection()
+    db.executescript((SQL / "07-missing-entity-ids.sql").read_text())
+    rows = db.execute(
+        "SELECT event_id, user_id, entity_status "
+        "FROM entity_id_quality_results ORDER BY event_id"
+    ).fetchall()
+    assert rows == [
+        ("e1", "u1", "valid_entity"),
+        ("e2", "u1", "valid_entity"),
+        ("e3", "u2", "valid_entity"),
+        ("e4", None, "quarantined_missing_entity"),
+        ("e5", "u1", "valid_entity"),
+    ]
+    assert db.execute(
+        "SELECT COUNT(DISTINCT user_id) FROM entity_id_quality_results "
+        "WHERE entity_status = 'quarantined_missing_entity'"
+    ).fetchone()[0] == 0
+
+
+def test_asof_boundary_identifies_same_timestamp_leak():
+    db = connection()
+    db.executescript((SQL / "08-asof-boundary-check.sql").read_text())
+    rows = db.execute(
+        "SELECT prediction_id, strict_prior_value, same_time_update, "
+        "equality_join_would_leak FROM asof_boundary_results"
+    ).fetchall()
+    assert rows == [
+        ("p1", 5.0, 7.0, 1),
+        ("p2", 1.0, None, 0),
+        ("p3", 9.0, None, 0),
+    ]
+
+
+def test_null_label_audit_keeps_unknowns_out_of_mature_negative_rate():
+    db = connection()
+    db.executescript((SQL / "09-null-label-metric-audit.sql").read_text())
+    row = db.execute("SELECT * FROM null_label_metric_audit").fetchone()
+    assert row == (3, 1, 1, 1, 2, 0.5, 2 / 3)
+
+
+def test_temporal_entity_split_keeps_each_user_in_one_split():
+    db = connection()
+    db.executescript((SQL / "10-temporal-entity-split.sql").read_text())
+    rows = db.execute(
+        "SELECT prediction_id, user_id, split FROM temporal_entity_splits"
+    ).fetchall()
+    assert rows == [
+        ("p1", "u1", "train"),
+        ("p2", "u2", "validation"),
+        ("p3", "u1", "train"),
+    ]
+    assert db.execute(
+        "SELECT user_id FROM temporal_entity_splits "
+        "GROUP BY user_id HAVING COUNT(DISTINCT split) > 1"
+    ).fetchall() == []
+
+
+def test_late_arrivals_preserve_event_time_and_use_ingestion_as_of_cutoff():
+    db = connection()
+    db.executescript((SQL / "11-late-arrival-audit.sql").read_text())
+    rows = db.execute(
+        "SELECT event_id, event_time, ingested_at, availability, is_late "
+        "FROM late_arrival_audit"
+    ).fetchall()
+    assert rows == [
+        ("e1", "2026-01-01 10:00", "2026-01-01 10:01", "available_at_cutoff", 0),
+        ("e2", "2026-01-01 10:05", "2026-01-01 10:06", "available_at_cutoff", 0),
+        ("e3", "2026-01-02 12:00", "2026-01-02 12:01", "available_at_cutoff", 0),
+        ("e4", "2026-01-03 12:00", "2026-01-03 12:01", "late_arrival", 1),
+        ("e5", "2025-12-31 23:59", "2026-01-03 00:05", "late_arrival", 1),
+    ]
+
+
 def test_label_window_respects_attribution_and_availability_cutoff():
     db = connection()
     db.executescript((SQL / "03-label-windows.sql").read_text())
