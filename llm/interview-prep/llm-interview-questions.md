@@ -210,7 +210,7 @@ follow-up before reading the linked remediation page.
 **Failure modes/edge cases:** leakage or contamination, distribution/slice regressions, stale or missing data, malformed inputs, budget overruns, and unsafe actions.
 **Interviewer follow-up:** ask for the highest-risk trade-off, one adversarial example, and how the answer changes when quality, latency, or cost is constrained.
 **Rubric (0–3):** 0 = missing or unsafe; 1 = names components without evidence; 2 = coherent plan with metrics and boundaries; 3 = quantified trade-offs, failure handling, and validation.
-**Remediation:** [LLM concepts](../concepts/) and [evaluation drills](../../ml/interview-prep/evaluation-experiment-questions.md).
+**Remediation:** [structured output remediation](structured-output-remediation.md), [LLM concepts](../concepts/), and [evaluation drills](../../ml/interview-prep/evaluation-experiment-questions.md).
 
 ### Q21 — Defend against prompt injection in retrieved documents and tool results.
 **Round/time:** 5–10 minutes.

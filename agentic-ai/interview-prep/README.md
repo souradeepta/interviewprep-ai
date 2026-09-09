@@ -11,4 +11,5 @@ oversight, and security. Read the linked concept only after attempting the
 prompt.
 
 Focused remediation: [retry and idempotency](retry-idempotency-remediation.md)
-for Q2, including the `unknown` state after an ambiguous side effect.
+for Q2 and [state recovery](state-recovery-remediation.md) for Q4, including
+the `unknown` state after an ambiguous side effect.
