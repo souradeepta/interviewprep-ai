@@ -456,3 +456,11 @@ Acceptance criteria:
 - Targeted tests, full pytest, and the active Markdown link audit are clean.
 - No unrelated source, historical document, worktree, or prior-run artifact is
   deleted or silently rewritten.
+
+## Implementation status — 2026-09-07
+
+The expansion was implemented and then reviewed for correctness. The follow-up
+repair is specified in
+[2026-09-07-interview-practice-correctness-repair.md](2026-09-07-interview-practice-correctness-repair.md).
+That repair preserves the original questions while adding behavioral tests,
+safe NDCG/agent/SQL contracts, and independently runnable simulation cards.

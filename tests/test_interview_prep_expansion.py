@@ -96,7 +96,7 @@ def test_sql_exercises_execute_against_fresh_fixture():
     sql_dir = ROOT / "ml/interview-prep/sql"
     connection = sqlite3.connect(":memory:")
     connection.executescript((sql_dir / "fixtures.sql").read_text())
-    for path in sorted(sql_dir.glob("0[1-4]-*.sql")):
+    for path in sorted(sql_dir.glob("[0-9][0-9]-*.sql")):
         connection.executescript(path.read_text())
     assert connection.execute("SELECT COUNT(*) FROM events").fetchone()[0] > 0
     assert connection.execute("SELECT COUNT(*) FROM predictions").fetchone()[0] > 0
