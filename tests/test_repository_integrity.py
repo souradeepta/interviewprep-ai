@@ -13,6 +13,7 @@ SMOKE_NOTEBOOKS = (
     ROOT / "stats/notebooks/08-ab-testing-statistics.ipynb",
     ROOT / "cv/notebooks/05-contrastive-learning-vision.ipynb",
     ROOT / "llm/notebooks/18-rag.ipynb",
+    ROOT / "nlp/notebooks/01-text-preprocessing.ipynb",
 )
 
 ML_INTERVIEW_TOPICS = (
