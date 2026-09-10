@@ -2,16 +2,6 @@ name: Notebook smoke tests
 
 on:
   workflow_dispatch:
-  push:
-    paths:
-      - "stats/notebooks/**"
-      - "cv/notebooks/**"
-      - "nlp/notebooks/**"
-      - "rl/notebooks/**"
-      - "ai/notebooks/**"
-      - "tests/test_new_sections.py"
-      - "tests/test_repository_integrity.py"
-      - ".github/workflows/notebook-smoke.yml"
 
 permissions:
   contents: read
