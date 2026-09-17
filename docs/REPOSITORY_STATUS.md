@@ -15,7 +15,7 @@ historical records unless they explicitly identify themselves as active.
 | LLM | 44 | 45 | 45 |
 | Agentic AI | 64 | 64 | 64 |
 | Modern AI | 55 | 55 | 55 |
-| MLOps | 16 | 17 (including map) | 15 |
+| MLOps | 16 | 17 (including map) | 16 |
 | Reinforcement learning | 20 | 20 | 20 |
 | Statistics | 15 | 15 | — |
 | Computer vision | 8 | 8 | — |

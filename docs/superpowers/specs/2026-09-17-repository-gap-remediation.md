@@ -25,6 +25,7 @@ active documentation and CI describe the artifacts that actually exist.
    historical plans.
 9. Fill the three deterministic Agentic AI implementation gaps for MCTS,
    bounded autonomy, and knowledge-graph traversal.
+10. Add the missing MLOps data-validation implementation and regression test.
 
 ## Decisions
 
@@ -51,4 +52,6 @@ active documentation and CI describe the artifacts that actually exist.
 - `docs/REPOSITORY_STATUS.md` is the single current inventory/status reference.
 - Agentic AI has deterministic implementations for concepts 10, 18, and 23,
   bringing its implementation inventory to 64.
+- MLOps has a dependency-free data-validation implementation for concept 03,
+  bringing its supplemental implementation inventory to 16.
 - Full tests and diff checks pass.

@@ -124,6 +124,19 @@ def test_agentic_supplemental_implementations_are_deterministic():
     assert kg.reachable("alice", "works_at", max_hops=1) == {"acme"}
 
 
+def test_mlops_data_validation_implementation_is_layered():
+    validation = load_module("mlops/implementations/03-data-validation.py")
+    validator = validation.DataValidator([
+        {"user_id": 1, "amount": 25.0},
+        {"user_id": 2, "amount": -1.0},
+        {"user_id": None, "amount": 10.0},
+    ])
+    assert validator.validate_schema({"user_id": int, "amount": float}).failed_rows == ()
+    assert validator.validate_completeness(("user_id", "amount")).failed_rows == (2,)
+    assert validator.validate_range("amount", 0, 100).failed_rows == (1,)
+    assert validator.validate_business_rule("positive_id", lambda row: (row.get("user_id") or 0) > 0).failed_rows == (2,)
+
+
 def test_sql_exercises_execute_against_fresh_fixture():
     sql_dir = ROOT / "ml/interview-prep/sql"
     connection = sqlite3.connect(":memory:")
