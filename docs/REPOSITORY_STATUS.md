@@ -23,7 +23,7 @@ historical records unless they explicitly identify themselves as active.
 
 ## Validation
 
-- Full suite: `437 passed, 6 skipped`
+- Full suite: `445 passed, 6 skipped`
 - Active Markdown links: `0 problem(s)`
 - Six deterministic notebook representatives are defined; CI executes all six.
 - The LLM representative is the local concept map because generated LLM
