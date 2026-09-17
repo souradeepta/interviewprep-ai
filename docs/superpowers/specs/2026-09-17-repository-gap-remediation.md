@@ -13,8 +13,8 @@ active documentation and CI describe the artifacts that actually exist.
 
 1. Reconcile Modern AI concept, notebook, and implementation numbering.
 2. Correct stale section and root coverage claims.
-3. Execute the complete repository test suite and representative notebook
-   matrix in CI, including LLM.
+3. Execute the complete repository test suite and expanded representative
+   notebook matrix in CI, including LLM and previously uncovered tracks.
 4. Run notebook smoke validation on pushes and pull requests as well as
    manually.
 5. Publish a minimal pinned dependency set for the default test suite.
@@ -32,7 +32,7 @@ active documentation and CI describe the artifacts that actually exist.
 - Heavy model-serving dependencies remain excluded from the default test
   requirements and notebook smoke workflow.
 - Historical documents are labeled, not rewritten or deleted.
-- The six representative notebooks remain bounded smoke coverage; full
+- The ten representative notebooks remain bounded smoke coverage; full
   execution of every notebook is explicitly out of scope for default CI.
 - The LLM smoke representative is the dependency-free concept map; model-based
   LLM notebooks remain opt-in because they require packages and weights.
@@ -42,7 +42,7 @@ active documentation and CI describe the artifacts that actually exist.
 - Modern AI has identical numeric IDs for concepts, notebooks, and
   implementations, with no duplicate concept IDs.
 - Root, Modern AI, and MLOps README counts match the filesystem.
-- CI executes the full repository suite, including all six representative
+- CI executes the full repository suite, including all ten representative
   notebooks, and runs on push, pull request, and manual dispatch.
 - `requirements-dev.txt` is sufficient for the default test suite.
 - Stale MLOps and notebook validation reports are visibly historical.

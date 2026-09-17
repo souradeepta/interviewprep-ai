@@ -25,10 +25,10 @@ historical records unless they explicitly identify themselves as active.
 
 - Full suite: `445 passed, 6 skipped`
 - Active Markdown links: `0 problem(s)`
-- Six deterministic notebook representatives are defined; CI executes all six.
+- Ten deterministic notebook representatives are defined; CI executes all ten.
 - The LLM representative is the local concept map because generated LLM
   implementation notebooks may require remote model packages or weights.
-- The six notebook runtime checks skip locally when no `python3` Jupyter
+- The ten notebook runtime checks skip locally when no `python3` Jupyter
   kernel is installed. The opt-in/CI notebook requirements register one.
 
 ## Known intentional limitations

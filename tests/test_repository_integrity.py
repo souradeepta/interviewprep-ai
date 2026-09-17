@@ -18,6 +18,11 @@ SMOKE_NOTEBOOKS = (
     ROOT / "nlp/notebooks/01-text-preprocessing.ipynb",
     ROOT / "rl/notebooks/01-markov-decision-processes.ipynb",
     ROOT / "ai/notebooks/01-gradient-descent.ipynb",
+    # Dependency-light representatives from previously uncovered tracks.
+    ROOT / "agentic-ai/notebooks/11-memory-types.ipynb",
+    ROOT / "modern-ai/notebooks/26-mixture-of-experts.ipynb",
+    ROOT / "mlops/notebooks/16-deployment-strategies.ipynb",
+    ROOT / "papers/agents/notebooks/01-chain-of-thought.ipynb",
 )
 
 ML_INTERVIEW_TOPICS = (
