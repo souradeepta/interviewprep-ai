@@ -1,10 +1,10 @@
 # Modern AI Engineering
 
-Contemporary techniques and patterns that define how AI systems are built, optimized, and operated in 2024. This section covers 25 practical innovations (mostly 2023-2024) that bridge research models to production systems, including Anthropic's Model Context Protocol (MCP) ecosystem.
+Contemporary techniques and patterns that define how AI systems are built, optimized, and operated through 2026. This section covers 55 practical innovations spanning evaluation, agent systems, inference optimization, and the MCP ecosystem.
 
 ## Why This Section
 
-The gap between "I trained a model" and "I deployed a production system" is huge. These 25 concepts represent the tools, techniques, and patterns that modern AI engineers use every day:
+The gap between "I trained a model" and "I deployed a production system" is huge. These 55 concepts represent the tools, techniques, and patterns that modern AI engineers use every day:
 - How to test and evaluate LLMs systematically
 - How to build persistent memory for agents
 - How to optimize inference for cost and latency
@@ -18,10 +18,10 @@ Every concept here is practical: each has sample implementations, real code, and
 
 | Folder | What's Inside |
 |--------|--------------|
-| [concepts/](concepts/) | 25 concept files with detailed explanations, architecture trade-offs, interview Q&A, best practices |
-| [notebooks/](notebooks/) | 25 Jupyter notebooks with working implementations (basic → advanced → real-world examples) |
+| [concepts/](concepts/) | 55 concept files with detailed explanations, architecture trade-offs, interview Q&A, best practices |
+| [notebooks/](notebooks/) | 55 Jupyter notebooks with working implementations (basic → advanced → real-world examples) |
 
-## 25 Concepts by Category
+## Concepts by Category
 
 ### Evaluation & Testing (01-03)
 How do you know if your LLM is actually good? These concepts cover systematic evaluation and adversarial testing.
@@ -67,7 +67,7 @@ Running LLMs in production means managing versions, costs, and models.
 - **19 — [AI Gateway & Routing](concepts/19-ai-gateway-routing.md)** — Multi-LLM orchestration: route by cost/latency/capability, fallbacks, failover
 - **20 — [Multimodal Fine-tuning](concepts/20-multimodal-finetuning.md)** — CLIP-style, LLaVA-style: aligning vision and language, PEFT for multimodal
 
-### MCP & Agentic SDK (21-25) — Latest 2024 Innovations
+### MCP & Agentic SDK (21-25)
 Anthropic's Model Context Protocol and modern agent frameworks are reshaping how AI systems interact with external resources.
 
 - **21 — [MCP (Model Context Protocol)](concepts/21-mcp-model-context-protocol.md)** — Anthropic's standard protocol for connecting LLMs to resources, tools, and services in a unified way
@@ -75,6 +75,21 @@ Anthropic's Model Context Protocol and modern agent frameworks are reshaping how
 - **23 — [RAG Memory Store](concepts/23-rag-memory-store.md)** — Vector databases and retrieval systems for agent knowledge and memory integration
 - **24 — [MCP Tunnel](concepts/24-mcp-tunnel.md)** — Networking and tunneling for secure MCP connections across boundaries and deployments
 - **25 — [Agentic SDK](concepts/25-agentic-sdk.md)** — Modern frameworks and SDKs for building production-grade AI agents with reliability and observability
+
+### Extended Inference & Systems Track (26-55)
+
+The extended track covers sparse and efficient inference, model compression,
+serving, routing, and production scheduling. Each item has a matching concept,
+notebook, and Python implementation.
+
+See the complete numbered list in [`concepts/`](concepts/), or begin with:
+
+- [Mixture of Experts](concepts/26-mixture-of-experts.md)
+- [Long Context Management](concepts/27-long-context-management.md)
+- [Speculative Decoding](concepts/28-speculative-decoding.md)
+- [KV Cache Optimization](concepts/29-kv-cache-optimization.md)
+- [Distributed Inference](concepts/51-distributed-inference.md)
+- [Online Knowledge Distillation](concepts/55-online-knowledge-distillation.md)
 
 ---
 

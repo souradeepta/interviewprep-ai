@@ -1,5 +1,10 @@
 # ML Ops Phase 1 Handoff - Ready for Phase 2
 
+> **Historical snapshot (2026-05-16).** This document records the initial
+> Phase 1 state and is not the current repository status. See the dated
+> repository handoff under `docs/superpowers/plans/` for current work and
+> validation results.
+
 **Date:** 2026-05-16  
 **Status:** Phase 1 Foundation Complete (Markdown & Documentation)  
 **Next:** Phase 2 & Phase 1 Completion (Notebooks & Interview Materials)

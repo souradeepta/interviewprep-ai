@@ -4,10 +4,10 @@ Comprehensive ML Ops learning materials for FAANG interview preparation and prac
 
 ## What's Inside
 
-- **32 Core ML Ops Concepts** — Data pipelines, feature stores, monitoring, deployment, scaling, governance
-- **33 Jupyter Notebooks** — Production code examples with multi-tool approaches
-- **150+ FAANG Interview Questions** — Real questions from Google, Meta, Netflix, Uber, Amazon
-- **8+ Case Studies** — Full interview walkthroughs with strong/weak answer patterns
+- **16 Core ML Ops Concepts** — Data pipelines, feature stores, testing, evaluation, and deployment
+- **17 Jupyter Notebooks** — Production code examples with multi-tool approaches (including the concept map)
+- **62 Interview Questions** — Three banks covering concepts 1-16 and production decisions
+- **2 Case Studies** — Full interview walkthroughs with strong/weak answer patterns
 - **Interview Prep Learning Paths** — 1-3 week focused learning for different roles
 
 ## Organization
@@ -39,8 +39,8 @@ Concepts are organized by ML lifecycle stage:
 
 ```
 mlops/
-├── concepts/              # 32 markdown files with theory and interview prep
-├── notebooks/             # 33 Jupyter notebooks with production code examples
+├── concepts/              # 16 markdown files with theory and interview prep
+├── notebooks/             # 17 Jupyter notebooks with production code examples
 ├── interview-questions/   # FAANG interview questions organized by concept
 ├── case-studies/          # Full interview case studies with solutions
 ├── README.md              # This file

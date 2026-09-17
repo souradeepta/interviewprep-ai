@@ -13,14 +13,14 @@
 | **Machine Learning** | 40 concepts + 40 implementation notebooks (activation functions → weight initialization) |
 | **Large Language Models** | 44 concepts + 45 notebooks (transformers → RAG → production) |
 | **Agentic AI** | 64 concepts + 64 notebooks (tool use, memory, planning, multi-agent) |
-| **Modern AI Engineering** | 56 concepts + 55 notebooks (inference optimization, quantization, distillation) |
+| **Modern AI Engineering** | 55 concepts + 55 notebooks + 55 implementations (inference optimization, quantization, distillation) |
 | **Papers** | 27 foundational & recent papers (2015-2023) + 27 implementation notebooks across 10 domains (vision, NLP, retrieval, agents, efficiency, foundation models, multimodal, safety-alignment, code-systems, reasoning-search) |
 | **MLOps** | 16 concepts + 17 notebooks (pipelines, monitoring, deployment, feature stores) |
 | **Reinforcement Learning** | 20 concepts + 20 notebooks + 20 implementations (MDPs → offline RL) |
 | **Statistics** | 15 concepts + 15 notebooks (probability, inference, experimentation, causal methods) |
 | **Computer Vision** | 8 concepts + 8 notebooks (classification → diffusion → multimodal vision) |
 | **NLP Foundations** | 8 concepts + 8 notebooks (preprocessing → embeddings → information retrieval) |
-| **System Design** | 31 patterns (1800-2400 words, failure scenarios, cost models) + 30 real AI systems with 90 Mermaid diagrams + 8 production post-mortems |
+| **System Design** | 31 patterns (1800-2400 words, failure scenarios, cost models) + 30 real AI systems with 90 Mermaid diagrams + 9 production post-mortems |
 | **Coding Interview Prep** | 10 data structure guides + 12 algorithm pattern guides |
 | **ML Interview Prep** | 50 theory questions, 15 case studies, 5 company guides, and behavioral templates |
 | **Cheat Sheets** | 10 quick-reference sheets (formulas, optimizers, metrics, deployment, snippets) |
@@ -68,7 +68,7 @@ interviewprep-ml/
 ├── cv/                # Computer vision — 8 concepts + 8 notebooks
 ├── nlp/               # NLP foundations — 8 concepts + 8 notebooks
 ├── rl/                # Reinforcement learning — 20 concepts + notebooks + implementations
-├── modern-ai/         # Modern AI Engineering — 56 concepts + 55 notebooks
+├── modern-ai/         # Modern AI Engineering — 55 concepts + 55 notebooks
 ├── papers/            # 27 foundational & recent papers across 10 domains
 ├── mlops/             # MLOps — 16 concepts + 17 notebooks + case studies
 ├── system-design/     # System Design Patterns (31) + interview prep
@@ -89,3 +89,16 @@ Each learning folder (ai/, llm/, ml/, agentic-ai/, modern-ai/) contains:
 ## Contributing
 
 See [CONTRIBUTING.md](CONTRIBUTING.md) for how to add content, file templates, naming conventions, and the PR checklist.
+
+See [REPOSITORY_STATUS.md](docs/REPOSITORY_STATUS.md) for current inventory,
+validation status, and the distinction between active work and historical
+plans.
+
+## Local validation
+
+Install the reproducible development dependencies with:
+
+```bash
+python -m pip install -r requirements-dev.txt
+python -m pytest -q
+```

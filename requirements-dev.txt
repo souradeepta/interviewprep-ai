@@ -1,0 +1,6 @@
+# Minimal, reproducible dependencies for the default repository test suite.
+pytest==8.3.3
+nbformat==5.10.4
+nbclient==0.10.2
+jupyter-client==8.6.3
+numpy==1.26.4

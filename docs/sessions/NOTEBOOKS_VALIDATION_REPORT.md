@@ -1,5 +1,9 @@
 # LLM Concept Notebooks - Validation Report
 
+> **Historical snapshot.** The command substitutions and counts below were
+> captured from an earlier generation pass. Use the current test suite and
+> repository handoff for authoritative validation results.
+
 **Date Generated:** $(date)
 **Total Notebooks:** $(ls llm/notebooks/*.ipynb | wc -l)
 
@@ -55,4 +59,3 @@ $(pytest tests/test_llm_notebooks.py -q --tb=no 2>&1)
 - ✅ Comprehensive validation test suite (290 tests)
 - ✅ Concept mapping with relationship graph
 - ✅ Complete documentation
-

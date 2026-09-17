@@ -1,6 +1,8 @@
 name: Notebook smoke tests
 
 on:
+  push:
+  pull_request:
   workflow_dispatch:
 
 permissions:
@@ -19,7 +21,9 @@ jobs:
         with:
           python-version: "3.12"
           cache: pip
-          cache-dependency-path: requirements-notebook-smoke.txt
+          cache-dependency-path: |
+            requirements-dev.txt
+            requirements-notebook-smoke.txt
 
       - name: Install notebook runtime
         run: |
@@ -32,11 +36,5 @@ jobs:
       - name: Validate notebook structure
         run: python -m pytest -q tests/test_new_sections.py
 
-      - name: Execute deterministic representative notebooks
-        run: >-
-          python -m pytest -q
-          'tests/test_repository_integrity.py::test_representative_notebook_executes_without_mutating_source[notebook_path0]'
-          'tests/test_repository_integrity.py::test_representative_notebook_executes_without_mutating_source[notebook_path1]'
-          'tests/test_repository_integrity.py::test_representative_notebook_executes_without_mutating_source[notebook_path3]'
-          'tests/test_repository_integrity.py::test_representative_notebook_executes_without_mutating_source[notebook_path4]'
-          'tests/test_repository_integrity.py::test_representative_notebook_executes_without_mutating_source[notebook_path5]'
+      - name: Run full repository suite and notebook matrix
+        run: python -m pytest -q
