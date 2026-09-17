@@ -23,6 +23,8 @@ active documentation and CI describe the artifacts that actually exist.
    parity in sections that promise those pairings.
 8. Publish one current status page that distinguishes active state from
    historical plans.
+9. Fill the three deterministic Agentic AI implementation gaps for MCTS,
+   bounded autonomy, and knowledge-graph traversal.
 
 ## Decisions
 
@@ -47,4 +49,6 @@ active documentation and CI describe the artifacts that actually exist.
 - `requirements-dev.txt` is sufficient for the default test suite.
 - Stale MLOps and notebook validation reports are visibly historical.
 - `docs/REPOSITORY_STATUS.md` is the single current inventory/status reference.
+- Agentic AI has deterministic implementations for concepts 10, 18, and 23,
+  bringing its implementation inventory to 64.
 - Full tests and diff checks pass.

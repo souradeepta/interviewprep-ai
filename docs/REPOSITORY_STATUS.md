@@ -13,7 +13,7 @@ historical records unless they explicitly identify themselves as active.
 | AI fundamentals | 40 | 40 | 40 |
 | Machine learning | 40 | 40 | 8 |
 | LLM | 44 | 45 | 45 |
-| Agentic AI | 64 | 64 | 61 |
+| Agentic AI | 64 | 64 | 64 |
 | Modern AI | 55 | 55 | 55 |
 | MLOps | 16 | 17 (including map) | 15 |
 | Reinforcement learning | 20 | 20 | 20 |
@@ -23,7 +23,7 @@ historical records unless they explicitly identify themselves as active.
 
 ## Validation
 
-- Full suite: `445 passed, 6 skipped`
+- Full suite: `446 passed, 10 skipped`
 - Active Markdown links: `0 problem(s)`
 - Ten deterministic notebook representatives are defined; CI executes all ten.
 - The LLM representative is the local concept map because generated LLM

@@ -92,6 +92,38 @@ def test_agent_exercises_cover_retry_checkpoint_and_budget():
     ], budget)["completed"] == ["retrieve"]
 
 
+def test_agentic_supplemental_implementations_are_deterministic():
+    mcts = load_module("agentic-ai/implementations/10-mcts-for-agents.py")
+    graph = {"root": {"safe": "safe", "risky": "risky"}, "safe": {}, "risky": {}}
+    values = {"root": 0.0, "safe": 1.0, "risky": 0.0}
+    search = mcts.MonteCarloTreeSearch(
+        actions=lambda state: graph[state],
+        transition=lambda state, action: graph[state][action],
+        evaluate=lambda state: values[state],
+        terminal=lambda state: not graph[state],
+        seed=7,
+    )
+    assert search.search("root", simulations=20, max_depth=2) == "safe"
+
+    autonomous = load_module("agentic-ai/implementations/18-autonomous-agents.py")
+    agent = autonomous.BoundedAutonomousAgent(max_amount=100, confidence_threshold=0.8, daily_limit=75)
+    assert agent.decide({"request_id": "a", "amount": 50, "confidence": 0.9}) == autonomous.Decision.APPROVE
+    agent.rollback_last_approval()
+    assert agent.spent == 0.0
+    assert agent.decide({"request_id": "b", "amount": 101, "confidence": 0.9}) == autonomous.Decision.ESCALATE
+    assert agent.decide({"request_id": "c", "amount": 50, "confidence": 0.9}) == autonomous.Decision.APPROVE
+    assert agent.decide({"request_id": "d", "amount": 50, "confidence": 0.9}) == autonomous.Decision.ESCALATE
+
+    knowledge = load_module("agentic-ai/implementations/23-knowledge-graphs.py")
+    kg = knowledge.KnowledgeGraph()
+    for entity in ("alice", "acme", "boston"):
+        kg.add_entity(entity)
+    kg.add_fact("alice", "works_at", "acme")
+    kg.add_fact("acme", "located_in", "boston")
+    assert kg.neighbors("alice", "works_at") == ["acme"]
+    assert kg.reachable("alice", "works_at", max_hops=1) == {"acme"}
+
+
 def test_sql_exercises_execute_against_fresh_fixture():
     sql_dir = ROOT / "ml/interview-prep/sql"
     connection = sqlite3.connect(":memory:")
