@@ -34,6 +34,8 @@ active documentation and CI describe the artifacts that actually exist.
 - Historical documents are labeled, not rewritten or deleted.
 - The six representative notebooks remain bounded smoke coverage; full
   execution of every notebook is explicitly out of scope for default CI.
+- The LLM smoke representative is the dependency-free concept map; model-based
+  LLM notebooks remain opt-in because they require packages and weights.
 
 ## Acceptance criteria
 
