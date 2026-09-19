@@ -4,13 +4,16 @@ Comprehensive coverage of machine learning and deep learning fundamentals, from 
 
 ## Overview
 
-**28 concepts** across 6 major areas:
+**40 concepts** across 8 major areas:
 - **5 Core Optimization:** Gradient descent, backpropagation, loss functions, optimization algorithms, learning rate scheduling
 - **7 Classical ML:** Linear regression, logistic regression, decision trees, random forests, gradient boosting, SVMs, KNN
 - **5 Neural Networks:** Architecture, activation functions, weight initialization, regularization, batch normalization
 - **3 Unsupervised Learning:** K-means, dimensionality reduction, GMMs
 - **4 Model Evaluation:** Bias-variance, cross-validation, classification metrics, regression metrics
-- **4 Advanced Topics:** Feature engineering, hyperparameter tuning, ensemble methods, Bayesian inference
+- **4 Advanced Foundations:** Feature engineering, hyperparameter tuning, ensemble methods, Bayesian inference
+- **4 Reinforcement Learning:** RL basics, Markov decision processes, Q-learning, policy gradients
+- **4 Advanced Learning:** Actor-critic methods, graph neural networks, causal inference, probabilistic graphical models
+- **4 Generative & Temporal:** Variational autoencoders, generative adversarial networks, time-series forecasting, anomaly detection
 
 ## Learning Path
 
@@ -93,6 +96,33 @@ Comprehensive coverage of machine learning and deep learning fundamentals, from 
 | 27 | [Ensemble Methods](./concepts/27-ensemble-methods.md) | Stacking, blending, voting |
 | 28 | [Bayesian Inference](./concepts/28-bayesian-inference.md) | Priors, posteriors, MAP estimation |
 
+### Group 7: Reinforcement Learning (4)
+
+| # | Concept | Key Topics |
+|---|---------|-----------|
+| 29 | [Reinforcement Learning Basics](./concepts/29-reinforcement-learning-basics.md) | States, actions, rewards, policies |
+| 30 | [Markov Decision Processes](./concepts/30-markov-decision-processes.md) | Transitions, returns, value functions |
+| 31 | [Q-Learning](./concepts/31-q-learning.md) | Temporal-difference learning, exploration |
+| 32 | [Policy Gradients](./concepts/32-policy-gradients.md) | Policy optimization, REINFORCE |
+
+### Group 8: Advanced Learning (4)
+
+| # | Concept | Key Topics |
+|---|---------|-----------|
+| 33 | [Actor-Critic Methods](./concepts/33-actor-critic-methods.md) | Actor and critic updates, advantage estimates |
+| 34 | [Graph Neural Networks](./concepts/34-graph-neural-networks.md) | Message passing, node and graph prediction |
+| 35 | [Causal Inference](./concepts/35-causal-inference.md) | Treatments, confounding, causal effects |
+| 36 | [Probabilistic Graphical Models](./concepts/36-probabilistic-graphical-models.md) | Bayesian networks, factor graphs |
+
+### Group 9: Generative & Temporal (4)
+
+| # | Concept | Key Topics |
+|---|---------|-----------|
+| 37 | [Variational Autoencoders](./concepts/37-variational-autoencoders.md) | Latent variables, ELBO, reparameterization |
+| 38 | [Generative Adversarial Networks](./concepts/38-generative-adversarial-networks.md) | Generator/discriminator training, mode collapse |
+| 39 | [Time-Series Forecasting](./concepts/39-time-series-forecasting.md) | Trends, seasonality, forecasting evaluation |
+| 40 | [Anomaly Detection](./concepts/40-anomaly-detection.md) | Outliers, thresholds, detection trade-offs |
+
 ## Using This Section
 
 ### For Learning
@@ -124,14 +154,14 @@ Each concept includes:
 
 ```
 ai/
-├── concepts/               # 28 markdown files
+├── concepts/               # 40 markdown files
 │   ├── 01-gradient-descent.md
 │   ├── 02-backpropagation.md
-│   └── ... (all 28 concepts)
-├── notebooks/              # 28 Jupyter notebooks
+│   └── ... (all 40 concepts)
+├── notebooks/              # 40 Jupyter notebooks
 │   ├── 01-gradient-descent.ipynb
 │   ├── 02-backpropagation.ipynb
-│   └── ... (all 28 concepts)
+│   └── ... (all 40 concepts)
 └── README.md              # This file
 ```
 
@@ -184,12 +214,12 @@ After working through this section:
 
 ## Related Sections
 
-- **[Agentic AI](../agentic-ai/)** — 52 concepts on building intelligent agents
-- **[LLM](../llm/)** — 32 concepts on transformer-based language models
+- **[Agentic AI](../agentic-ai/)** — 64 concepts on building intelligent agents
+- **[LLM](../llm/)** — 44 concepts on transformer-based language models
 - **[ML Ops](../mlops/)** — Production ML systems and deployment
 
 ---
 
-**Status:** ✅ All 28 concepts complete with markdown + notebooks
+**Status:** ✅ All 40 concepts complete with markdown + notebooks
 **Total Code Examples:** 400+ production patterns
 **Ready for:** Interviews, education, reference, implementation

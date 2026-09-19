@@ -12,15 +12,15 @@ Comprehensive ML Ops learning materials for FAANG interview preparation and prac
 
 ## Organization
 
-Concepts are organized by ML lifecycle stage:
+The numbered concept track contains 16 topics organized by ML lifecycle stage:
 1. **Data & Feature Engineering** (1-4) — Pipelines, feature stores, validation, versioning
 2. **Model Development** (5-8) — Experiment tracking, versioning, reproducibility, optimization
 3. **Model Evaluation & Testing** (9-12) — Model testing, data testing, A/B testing, metrics
 4. **Deployment & Serving** (13-16) — Containerization, serving, registry, deployment strategies
-5. **Monitoring & Observability** (17-20) — Monitoring, drift detection, logging, alerting
-6. **Infrastructure & Scaling** (21-24) — Kubernetes, orchestration, distributed training, resource management
-7. **Governance & Operations** (25-28) — Governance, compliance, security, incident management
-8. **Advanced Topics** (29-32) — Real-time systems, federated learning, system design, best practices
+
+The interview banks and case studies extend beyond the numbered concept track
+with broader production decisions such as monitoring, governance, scaling, and
+incident response.
 
 ## Quick Start
 

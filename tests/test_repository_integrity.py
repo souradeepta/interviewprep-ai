@@ -105,6 +105,19 @@ def test_ml_concept_and_notebook_counts_are_complete():
     assert len(list((ROOT / "ml/notebooks").glob("*.ipynb"))) == 40
 
 
+def test_active_section_readmes_match_current_inventory():
+    ai_readme = (ROOT / "ai/README.md").read_text()
+    mlops_readme = (ROOT / "mlops/README.md").read_text()
+    assert "**40 concepts**" in ai_readme
+    assert "# 40 markdown files" in ai_readme
+    assert "# 40 Jupyter notebooks" in ai_readme
+    assert "**28 concepts**" not in ai_readme
+    assert "(17-20)" not in mlops_readme
+    assert "(21-24)" not in mlops_readme
+    assert "(25-28)" not in mlops_readme
+    assert "(29-32)" not in mlops_readme
+
+
 @pytest.mark.parametrize("notebook_path", SMOKE_NOTEBOOKS)
 def test_representative_notebook_executes_without_mutating_source(notebook_path):
     nbclient = pytest.importorskip("nbclient")
