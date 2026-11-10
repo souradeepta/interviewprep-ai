@@ -174,3 +174,78 @@ def test_cli_exit_codes_and_json_format(tmp_path, capsys):
     )
     assert bad.returncode == 1
     assert "missing concept artifact" in bad.stderr
+
+
+def test_inventory_reports_scope_and_missing_without_claiming_unindexed_coverage(tmp_path):
+    manifest = _fixture_manifest(tmp_path, required=False)
+    data = json.loads(manifest.read_text(encoding="utf-8"))
+    other = dict(data["lessons"][0], id="other/fixture", track="other", quality_status="required")
+    data["entry_lessons"].append(other["id"])
+    data["lessons"].append(other)
+    manifest.write_text(json.dumps(data), encoding="utf-8")
+    (tmp_path / "concepts/fixture.md").unlink()
+    result = AUDIT.audit(tmp_path, manifest, "test")
+    assert result["inventory_by_track"]["test"] == {"required": 0, "baseline": 1, "excluded": 0, "missing": 1}
+    assert result["inventory_by_track"]["other"] == {"required": 0, "baseline": 0, "excluded": 1, "missing": 0}
+    assert "Unindexed lessons are not counted" in result["inventory_definition"]
+
+
+def test_generic_repetition_is_reported_as_warning_not_proof_of_quality(tmp_path):
+    manifest = _fixture_manifest(tmp_path)
+    result = AUDIT.audit(tmp_path, manifest)
+    assert result["ok"], result["errors"]
+    assert any("generic filler" in warning and "concepts/fixture.md" in warning for warning in result["warnings"])
+    assert "human review" in result["human_review"]
+
+
+def test_relative_and_same_page_links_and_duplicate_anchors(tmp_path):
+    source = tmp_path / "page.md"
+    content = "# Start\n## Repeated\n## Repeated\n[ok](#repeated-1) [bad](#absent) [missing](gone.md)\n"
+    source.write_text(content, encoding="utf-8")
+    errors = AUDIT._check_links("test/fixture", source, content, tmp_path)
+    assert any("broken local anchor" in error and "#absent" in error for error in errors)
+    assert any("broken local link" in error and "gone.md" in error for error in errors)
+    assert not any("#repeated-1" in error for error in errors)
+
+
+@pytest.mark.parametrize("mutation, expected", [
+    (lambda nb: nb.update(nbformat=3), "valid v4 JSON"),
+    (lambda nb: nb["cells"].append({"cell_type": "code", "source": [1], "metadata": {}, "outputs": [], "execution_count": None}), "invalid source"),
+    (lambda nb: nb.update(cells=[]), "minimum is 9"),
+])
+def test_malformed_notebooks_have_actionable_errors(tmp_path, mutation, expected):
+    manifest = _fixture_manifest(tmp_path)
+    notebook = _valid_notebook()
+    mutation(notebook)
+    (tmp_path / "notebooks/fixture.ipynb").write_text(json.dumps(notebook), encoding="utf-8")
+    result = AUDIT.audit(tmp_path, manifest)
+    assert any(expected in error and "notebooks/fixture.ipynb" in error for error in result["errors"])
+
+
+def test_assertion_keyword_in_comment_or_string_does_not_satisfy_notebook():
+    notebook = _valid_notebook()
+    notebook["cells"][3]["source"] = '# assert a result\nmessage = "assert"'
+    assert not AUDIT._has_assertion_token(notebook)
+
+
+def test_misleading_assertion_proxy_is_reported_without_breaking_compatibility(tmp_path):
+    manifest = _fixture_manifest(tmp_path)
+    notebook = _valid_notebook()
+    notebook["cells"][3]["source"] = '# assert a result\nmessage = "assert"'
+    (tmp_path / "notebooks/fixture.ipynb").write_text(json.dumps(notebook), encoding="utf-8")
+    result = AUDIT.audit(tmp_path, manifest)
+    assert result["ok"], result["errors"]
+    assert any("no detectable Python assertion token" in warning for warning in result["warnings"])
+
+
+def test_multi_lesson_cycle_and_invalid_prerequisite_type_are_reported(tmp_path):
+    manifest = _fixture_manifest(tmp_path, required=False)
+    data = json.loads(manifest.read_text(encoding="utf-8"))
+    first = data["lessons"][0]
+    second = dict(first, id="test/second", prerequisites=["test/fixture"])
+    first["prerequisites"] = ["test/second", {"invalid": True}]
+    data["lessons"].append(second)
+    manifest.write_text(json.dumps(data), encoding="utf-8")
+    result = AUDIT.audit(tmp_path, manifest)
+    assert any("prerequisite cycle" in error and "test/second" in error for error in result["errors"])
+    assert any("unresolved prerequisite" in error for error in result["errors"])

@@ -4,9 +4,12 @@
 from __future__ import annotations
 
 import argparse
+import io
 import json
+import keyword
 import re
 import sys
+import tokenize
 from pathlib import Path
 from typing import Any
 from urllib.parse import unquote, urlsplit
@@ -115,7 +118,7 @@ def _validate_manifest(data: dict[str, Any], root: Path, track: str | None) -> t
         prerequisites = lesson.get("prerequisites", [])
         if isinstance(prerequisites, list):
             for prerequisite in prerequisites:
-                if prerequisite not in ids:
+                if not isinstance(prerequisite, str) or prerequisite not in ids:
                     errors.append(f"{lesson_id}: unresolved prerequisite {prerequisite!r}")
 
     state: dict[str, int] = {}
@@ -127,8 +130,9 @@ def _validate_manifest(data: dict[str, Any], root: Path, track: str | None) -> t
         if state.get(node) == 2:
             return
         state[node] = 1
-        for parent in ids[node].get("prerequisites", []):
-            if parent in ids:
+        parents = ids[node].get("prerequisites", [])
+        for parent in parents if isinstance(parents, list) else []:
+            if isinstance(parent, str) and parent in ids:
                 visit(parent, stack + [node])
         state[node] = 2
     for lesson_id in ids:
@@ -252,11 +256,11 @@ def _section(markdown: str, name: str) -> str:
 def _check_notebook(lesson_id: str, notebook: dict[str, Any], path: str) -> list[str]:
     errors: list[str] = []
     cells = notebook["cells"]
-    nonempty = [cell for cell in cells if isinstance(cell, dict) and str(cell.get("source", "")).strip()]
+    nonempty = [cell for cell in cells if isinstance(cell, dict) and _cell_source(cell).strip()]
     if len(nonempty) < 9:
         errors.append(f"{lesson_id}: notebook {path} has {len(nonempty)} non-empty cells; minimum is 9")
-    code = "\n".join(str(cell.get("source", "")) for cell in nonempty if cell.get("cell_type") == "code")
-    all_source = "\n".join(str(cell.get("source", "")) for cell in nonempty)
+    code = "\n".join(_cell_source(cell) for cell in nonempty if cell.get("cell_type") == "code")
+    all_source = "\n".join(_cell_source(cell) for cell in nonempty)
     if not code.strip():
         errors.append(f"{lesson_id}: notebook {path} has no executable code cell")
     if not re.search(r"\bassert\b", code):
@@ -276,6 +280,28 @@ def _check_notebook(lesson_id: str, notebook: dict[str, Any], path: str) -> list
         if phrase.lower() in all_source.lower():
             errors.append(f"{lesson_id}: notebook {path} contains scaffold phrase {phrase!r}")
     return errors
+
+
+def _cell_source(cell: dict[str, Any]) -> str:
+    source = cell.get("source", "")
+    if isinstance(source, str):
+        return source
+    if isinstance(source, list):
+        return "".join(part for part in source if isinstance(part, str))
+    return ""
+
+
+def _has_assertion_token(notebook: dict[str, Any]) -> bool:
+    for cell in notebook.get("cells", []):
+        if not isinstance(cell, dict) or cell.get("cell_type") != "code":
+            continue
+        try:
+            if any(token.type == tokenize.NAME and token.string == "assert" and keyword.iskeyword(token.string)
+                   for token in tokenize.generate_tokens(io.StringIO(_cell_source(cell)).readline)):
+                return True
+        except (tokenize.TokenError, IndentationError):
+            continue
+    return False
 
 
 def _check_notebook_json_shape(lesson_id: str, notebook: dict[str, Any], path: str) -> list[str]:
@@ -312,9 +338,9 @@ def _check_links(lesson_id: str, source_path: Path, content: str, root: Path) ->
     for match in re.finditer(r"(?<!!)\[[^\]]*\]\(([^)]+)\)", content):
         raw = match.group(1).strip().split()[0].strip("<>")
         parsed = urlsplit(raw)
-        if parsed.scheme or parsed.netloc or not parsed.path:
+        if parsed.scheme or parsed.netloc or (not parsed.path and not parsed.fragment):
             continue
-        target_path = (source_path.parent / unquote(parsed.path)).resolve()
+        target_path = (source_path.parent / unquote(parsed.path)).resolve() if parsed.path else source_path.resolve()
         try:
             target_path.relative_to(root.resolve())
         except ValueError:
@@ -325,7 +351,13 @@ def _check_links(lesson_id: str, source_path: Path, content: str, root: Path) ->
             continue
         if parsed.fragment and target_path.is_file() and target_path.suffix.lower() in {".md", ".markdown"}:
             target_text = target_path.read_text(encoding="utf-8")
-            anchors = {_slug(match.group(1)) for match in re.finditer(r"^#{1,6}\s+(.+)$", target_text, re.M)}
+            anchors: set[str] = set()
+            counts: dict[str, int] = {}
+            for heading in re.finditer(r"^#{1,6}\s+(.+?)\s*#*\s*$", target_text, re.M):
+                slug = _slug(heading.group(1))
+                count = counts.get(slug, 0)
+                anchors.add(f"{slug}-{count}" if count else slug)
+                counts[slug] = count + 1
             if unquote(parsed.fragment).lower() not in anchors:
                 errors.append(f"{lesson_id}: broken local anchor in {source_path.relative_to(root)}: {raw}")
     return errors
@@ -342,15 +374,55 @@ def audit(root: Path = ROOT, manifest_path: Path = DEFAULT_MANIFEST, track: str 
     if data is not None:
         manifest_errors, selected = _validate_manifest(data, root, track)
         errors.extend(manifest_errors)
+        inventory: dict[str, dict[str, int]] = {}
+        warnings: list[str] = []
+        for lesson in data["lessons"]:
+            if not isinstance(lesson, dict):
+                continue
+            name = lesson.get("track") if isinstance(lesson.get("track"), str) else "<unknown>"
+            counts = inventory.setdefault(name, {"required": 0, "baseline": 0, "excluded": 0, "missing": 0})
+            if track is not None and name != track:
+                counts["excluded"] += 1
+                continue
+            status = lesson.get("quality_status")
+            if status in ("required", "baseline"):
+                counts[status] += 1
+            # Missing counts lessons with at least one declared artifact absent.
+            if any(not (root / path).is_file() for _, path in _lesson_artifact_paths(lesson)):
+                counts["missing"] += 1
+            concept = lesson.get("concept")
+            if status == "required" and isinstance(concept, str):
+                path = root / concept.split("#", 1)[0]
+                if path.is_file():
+                    sentences = re.split(r"(?<=[.!?])\s+", path.read_text(encoding="utf-8"))
+                    frequencies: dict[str, int] = {}
+                    for sentence in sentences:
+                        normalized = " ".join(sentence.lower().split())
+                        if len(normalized.split()) >= 8:
+                            frequencies[normalized] = frequencies.get(normalized, 0) + 1
+                    if max(frequencies.values(), default=0) >= 5:
+                        warnings.append(f"{lesson.get('id', '<unknown>')}: concept {concept} repeats a sentence at least five times; review for generic filler")
+            notebook_path = lesson.get("notebook")
+            if status == "required" and isinstance(notebook_path, str):
+                try:
+                    nb = json.loads((root / notebook_path).read_text(encoding="utf-8"))
+                    if isinstance(nb, dict) and isinstance(nb.get("cells"), list) and not _has_assertion_token(nb):
+                        warnings.append(f"{lesson.get('id', '<unknown>')}: notebook {notebook_path} has no detectable Python assertion token; review its tests and syntax")
+                except (OSError, json.JSONDecodeError):
+                    pass  # The manifest validator reports malformed or missing notebooks.
         return {
             "ok": not errors,
             "track": track,
             "lesson_count": len(selected),
             "required_count": sum(1 for lesson in selected if lesson.get("quality_status") == "required"),
             "baseline_count": sum(1 for lesson in selected if lesson.get("quality_status") == "baseline"),
+            "inventory_by_track": inventory,
+            "inventory_definition": "Counts cover manifest lessons only; excluded means outside the selected track, and missing counts selected lessons with absent declared artifacts (overlaps status counts). Unindexed lessons are not counted.",
+            "human_review": "Structural checks and warnings do not verify technical accuracy, topic-specific teaching, references, or executable behavior; independent human review is required.",
+            "warnings": warnings,
             "errors": errors,
         }
-    return {"ok": False, "track": track, "lesson_count": 0, "required_count": 0, "baseline_count": 0, "errors": errors}
+    return {"ok": False, "track": track, "lesson_count": 0, "required_count": 0, "baseline_count": 0, "inventory_by_track": {}, "warnings": [], "errors": errors}
 
 
 def main(argv: list[str] | None = None) -> int:
@@ -362,10 +434,15 @@ def main(argv: list[str] | None = None) -> int:
     result = audit(ROOT, args.manifest, args.track)
     if args.format == "json":
         print(json.dumps(result, indent=2))
-    elif result["ok"]:
-        print(f"Curriculum audit passed: {result['lesson_count']} lessons ({result['required_count']} required, {result['baseline_count']} baseline)")
     else:
-        print("Curriculum audit failed:", file=sys.stderr)
+        print(f"Curriculum audit {'passed' if result['ok'] else 'failed'}: {result['lesson_count']} selected manifest lessons")
+        for track, counts in sorted(result["inventory_by_track"].items()):
+            print(f"  {track}: " + ", ".join(f"{key}={value}" for key, value in counts.items()))
+        if "inventory_definition" in result:
+            print(result["inventory_definition"])
+            print(result["human_review"])
+        for warning in result["warnings"]:
+            print(f"Warning: {warning}", file=sys.stderr)
         for error in result["errors"]:
             print(f"- {error}", file=sys.stderr)
     return 0 if result["ok"] else 1
