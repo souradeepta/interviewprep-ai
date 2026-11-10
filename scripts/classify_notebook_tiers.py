@@ -150,9 +150,9 @@ def main() -> None:
     rows = [classify(path) for path in paths]
     tier3_representatives = [
         {"path": "agentic-ai/notebooks/01-what-is-an-agent.ipynb", "category": "provider API or credentials", "evidence_import": "anthropic", "check": "Test provider configuration parsing with a stub; never make a live call in default CI."},
-        {"path": "papers/retrieval/notebooks/01-rag.ipynb", "category": "extra dependency and model download", "evidence_import": "sentence_transformers", "check": "Run the deterministic retrieval helper using a local toy corpus; validate ranking and empty-result behavior without fetching an embedding model."},
-        {"path": "papers/code-systems/notebooks/01-codet5.ipynb", "category": "model download", "evidence_call": "model download or loading", "check": "Validate config and tensor-shape logic with an in-memory tiny model fixture; do not fetch weights."},
-        {"path": "agentic-ai/notebooks/51-web-agents.ipynb", "category": "external HTTP", "evidence_call": "external HTTP request", "check": "Mock the request transport and verify payload, timeout, and failure handling."},
+        {"path": "papers/retrieval/notebooks/01-rag.ipynb", "category": "extra dependency and model download", "evidence_import": "sentence_transformers", "check": "Use a local toy corpus to verify ranking and stable first-document tie behavior for a zero-overlap query, without fetching an embedding model."},
+        {"path": "papers/code-systems/notebooks/01-codet5.ipynb", "category": "model download", "evidence_call": "model download or loading", "check": "Use fake tokenizer/model tensors to verify the CLS slice, CPU conversion, output rank, and vector width without fetching weights."},
+        {"path": "agentic-ai/notebooks/51-web-agents.ipynb", "category": "external HTTP", "evidence_call": "external HTTP request", "check": "Mock HTTP and verify requested URL, timeout propagation, retry count, backoff, and successful response handling."},
     ]
     output = {
         "schema_version": 1,

@@ -24,9 +24,11 @@
   and 84 Tier 3 notebooks. The Tier 2 matrix is wired into CI; local execution
   skips if the Python kernel is unavailable. The Tier 3 list is still a
   candidate inventory: resource patterns in IPython cells need further
-  review, and four documented representative alternative checks are not yet
-  implemented as executable tests. Do not claim the execution-tier phase is
-  complete.
+  review. Four representative Tier 3 paths now have executable offline
+  stub/fixture checks in `tests/test_tier3_representatives.py`; these cover
+  provider setup, toy-corpus retrieval, model-wrapper tensor handling, and
+  mocked HTTP retry behavior. The other Tier 3 alternatives remain proposed,
+  so do not claim the execution-tier phase is complete.
 - The current `pytest` result before this continuation's latest changes was
   `484 passed, 61 skipped`; after expanding Tier 2, the focused repository
   integrity suite reported `14 passed, 275 skipped` locally because no Python
@@ -35,8 +37,9 @@
 
 ## Immediate next steps
 
-1. Finish executable Tier 3 representative checks and improve classification
-   of IPython cells; have Terra review the final ledger.
+1. Extend representative coverage to the remaining Tier 3 resource classes,
+   improve classification of IPython cells, and have Terra review the updated
+   ledger.
 2. Complete Phase 1 manifest/map agreement, including true prerequisites and
    explicit recommended sequences rather than implying all study order is a
    hard prerequisite.

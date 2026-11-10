@@ -52,6 +52,10 @@ match the contents.
 - All 361 tracked notebooks now pass nbformat v4.5 structural validation.
 - The 275 Tier 2 notebooks skip locally when no `python3` Jupyter kernel is
   installed; CI installs the pinned kernel and executes them.
+- Four maintained Tier 3 representative paths have offline stub/fixture tests
+  in `tests/test_tier3_representatives.py`; these test provider setup, local
+  retrieval, model wrapper shape handling, and mocked HTTP retries. Other Tier
+  3 paths still rely on structural checks and proposed per-notebook alternatives.
 - Manifest audit coverage is ten instructional tracks with 248 lessons: 172
   required lessons across ML, Statistics, Modern AI, MLOps, LLM, and Agentic
   AI; plus 76 baseline lessons across AI fundamentals, RL, CV, and NLP.
