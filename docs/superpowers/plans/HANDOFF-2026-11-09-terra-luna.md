@@ -2,7 +2,7 @@
 
 > Continuation update — 2026-11-10: This update supersedes the point-in-time
 > clean-tree and next-step statements below. Current work is an active
-> continuation at `ecfbb1c` on `origin/master`. Do not assume
+> continuation at `10b2a56` on `origin/master`. Do not assume
 > the original `8dfaf25` worktree snapshot still describes repository state.
 
 ## Current continuation state
@@ -11,9 +11,10 @@
 - Inventory and notebook-tier baseline work is committed and pushed as
   `b98571b`.
 - Manifest coverage now includes 324 lessons across ten tracks: 172 required
-  and 152 baseline. All 73 curriculum-map concept links are indexed and
-  associated with manifest roadmap fields. The map states that the manifest
-  owns hard prerequisites while role paths are recommendations. Empty
+  and 152 baseline. Five roadmap files now have 108 map-to-concept
+  associations indexed in the manifest: 73 curriculum-map, 13 ML, 13 LLM,
+  eight Agentic AI, and one system-design association. The map states that the
+  manifest owns hard prerequisites while role paths are recommendations. Empty
   prerequisites on baseline records are
   explicitly provisional until reviewed; other README-advertised artifact
   families are counted separately.
@@ -44,6 +45,12 @@
   fields. Tests cover dot-segment aliases and verify that shared practice
   references remain valid. Minor remaining edge case: an embedded NUL in a
   manifest path can raise `ValueError` rather than an audit diagnostic.
+- Terra reviewed the extension to four specialized roadmaps and approved the
+  cross-track links. Tests confirm the five supported maps have no unindexed
+  concept links or manifest-only roadmap associations. The current extraction
+  handles the Markdown link forms used in those files; it is not a general
+  Markdown parser. Papers roadmap concepts remain in the separate papers
+  inventory family rather than the lesson manifest.
 - The fresh full suite reports `495 passed, 275 skipped`; all 275 skips are
   Tier 2 notebook executions because no Python kernel is registered locally.
   CI installs the pinned kernel and remains the required execution evidence

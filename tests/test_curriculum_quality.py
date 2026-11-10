@@ -48,26 +48,33 @@ def test_curriculum_map_links_and_manifest_roadmap_fields_agree():
     concept_paths = [lesson["concept"] for lesson in data["lessons"]]
     assert len(concept_paths) == len(set(concept_paths)), "manifest concept paths must have unique owners"
     concepts = {lesson["concept"]: lesson for lesson in data["lessons"]}
-    roadmap = ROOT / "roadmaps/curriculum-map.md"
-    content = roadmap.read_text(encoding="utf-8")
-    destinations = re.findall(r"(?<!!)\[[^\]]*\]\(([^)]+)\)", content)
-    definitions = dict(re.findall(r"(?m)^\[([^\]]+)\]:\s*<?([^\s>]+)>?", content))
-    for label in re.findall(r"(?<!!)\[([^\]]+)\]\[([^\]]*)\]", content):
-        destinations.append(definitions.get(label[1] or label[0], ""))
-    linked_paths = []
-    for raw in destinations:
-        raw = raw.strip().strip("<>")
-        target = posixpath.normpath(posixpath.join("roadmaps", raw.split("#", 1)[0].split()[0])) if raw else ""
-        if "/concepts/" in target:
-            linked_paths.append(target)
-    linked = set(linked_paths)
-    assert linked <= set(concepts)
-    assert len(linked) == 73
-    for target in linked:
-        assert "roadmaps/curriculum-map.md" in concepts[target].get("roadmap", [])
-    for target, lesson in concepts.items():
-        if "roadmaps/curriculum-map.md" in lesson.get("roadmap", []):
-            assert target in linked
+    roadmap_counts = {
+        "roadmaps/curriculum-map.md": 73,
+        "roadmaps/ml-roadmap.md": 13,
+        "roadmaps/llm-roadmap.md": 13,
+        "roadmaps/agentic-roadmap.md": 8,
+        "roadmaps/system-design-roadmap.md": 1,
+    }
+    for roadmap_rel, expected_count in roadmap_counts.items():
+        roadmap = ROOT / roadmap_rel
+        content = roadmap.read_text(encoding="utf-8")
+        destinations = re.findall(r"(?<!!)\[[^\]]*\]\(([^)]+)\)", content)
+        definitions = dict(re.findall(r"(?m)^\[([^\]]+)\]:\s*<?([^\s>]+)>?", content))
+        for label in re.findall(r"(?<!!)\[([^\]]+)\]\[([^\]]*)\]", content):
+            destinations.append(definitions.get(label[1] or label[0], ""))
+        linked = set()
+        for raw in destinations:
+            raw = raw.strip().strip("<>")
+            target = posixpath.normpath(posixpath.join("roadmaps", raw.split("#", 1)[0].split()[0])) if raw else ""
+            if "/concepts/" in target:
+                linked.add(target)
+        assert linked <= set(concepts), f"{roadmap_rel} has unindexed concept links: {linked - set(concepts)}"
+        assert len(linked) == expected_count
+        for target in linked:
+            assert roadmap_rel in concepts[target].get("roadmap", [])
+        for target, lesson in concepts.items():
+            if roadmap_rel in lesson.get("roadmap", []):
+                assert target in linked
 
 
 def _valid_concept() -> str:

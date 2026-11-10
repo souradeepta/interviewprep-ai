@@ -68,6 +68,9 @@ match the contents.
   Tier 2 notebook executions without a locally registered Python kernel.
 - Latest full suite after canonical manifest path checks: `495 passed, 275
   skipped`; skips remain Tier 2 notebook executions without a local kernel.
+- Five roadmap files (curriculum map, ML, LLM, Agentic AI, and system design)
+  have 108 roadmap-to-concept associations checked against the manifest.
+  Papers roadmaps point to the separately inventoried papers family.
 
 ## Current program work
 

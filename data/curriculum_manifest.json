@@ -199,7 +199,11 @@
         "ml/interview-prep/ml-theory-questions.md"
       ],
       "estimated_minutes": 60,
-      "quality_status": "required"
+      "quality_status": "required",
+      "roadmap": [
+        "roadmaps/llm-roadmap.md",
+        "roadmaps/ml-roadmap.md"
+      ]
     },
     {
       "id": "ml/batch-normalization",
@@ -259,7 +263,10 @@
         "ml/interview-prep/ml-theory-questions.md"
       ],
       "estimated_minutes": 60,
-      "quality_status": "required"
+      "quality_status": "required",
+      "roadmap": [
+        "roadmaps/ml-roadmap.md"
+      ]
     },
     {
       "id": "ml/cross-validation-strategies",
@@ -405,7 +412,10 @@
         "ml/interview-prep/ml-theory-questions.md"
       ],
       "estimated_minutes": 60,
-      "quality_status": "required"
+      "quality_status": "required",
+      "roadmap": [
+        "roadmaps/ml-roadmap.md"
+      ]
     },
     {
       "id": "ml/evaluation-metrics",
@@ -427,7 +437,8 @@
       "estimated_minutes": 60,
       "quality_status": "required",
       "roadmap": [
-        "roadmaps/curriculum-map.md"
+        "roadmaps/curriculum-map.md",
+        "roadmaps/ml-roadmap.md"
       ]
     },
     {
@@ -450,7 +461,8 @@
       "estimated_minutes": 60,
       "quality_status": "required",
       "roadmap": [
-        "roadmaps/curriculum-map.md"
+        "roadmaps/curriculum-map.md",
+        "roadmaps/ml-roadmap.md"
       ]
     },
     {
@@ -713,7 +725,8 @@
       "estimated_minutes": 75,
       "quality_status": "required",
       "roadmap": [
-        "roadmaps/curriculum-map.md"
+        "roadmaps/curriculum-map.md",
+        "roadmaps/ml-roadmap.md"
       ]
     },
     {
@@ -736,7 +749,8 @@
       "estimated_minutes": 75,
       "quality_status": "required",
       "roadmap": [
-        "roadmaps/curriculum-map.md"
+        "roadmaps/curriculum-map.md",
+        "roadmaps/ml-roadmap.md"
       ]
     },
     {
@@ -778,7 +792,10 @@
         "ml/interview-prep/ml-theory-questions.md"
       ],
       "estimated_minutes": 75,
-      "quality_status": "required"
+      "quality_status": "required",
+      "roadmap": [
+        "roadmaps/ml-roadmap.md"
+      ]
     },
     {
       "id": "ml/pruning",
@@ -818,7 +835,10 @@
         "ml/interview-prep/ml-theory-questions.md"
       ],
       "estimated_minutes": 60,
-      "quality_status": "required"
+      "quality_status": "required",
+      "roadmap": [
+        "roadmaps/llm-roadmap.md"
+      ]
     },
     {
       "id": "ml/regularization",
@@ -840,7 +860,8 @@
       "estimated_minutes": 60,
       "quality_status": "required",
       "roadmap": [
-        "roadmaps/curriculum-map.md"
+        "roadmaps/curriculum-map.md",
+        "roadmaps/ml-roadmap.md"
       ]
     },
     {
@@ -861,7 +882,10 @@
         "ml/interview-prep/ml-theory-questions.md"
       ],
       "estimated_minutes": 60,
-      "quality_status": "required"
+      "quality_status": "required",
+      "roadmap": [
+        "roadmaps/ml-roadmap.md"
+      ]
     },
     {
       "id": "ml/supervised-learning",
@@ -881,7 +905,8 @@
       "estimated_minutes": 60,
       "quality_status": "required",
       "roadmap": [
-        "roadmaps/curriculum-map.md"
+        "roadmaps/curriculum-map.md",
+        "roadmaps/ml-roadmap.md"
       ]
     },
     {
@@ -942,7 +967,11 @@
         "ml/interview-prep/ml-theory-questions.md"
       ],
       "estimated_minutes": 75,
-      "quality_status": "required"
+      "quality_status": "required",
+      "roadmap": [
+        "roadmaps/llm-roadmap.md",
+        "roadmaps/ml-roadmap.md"
+      ]
     },
     {
       "id": "ml/unsupervised-learning",
@@ -962,7 +991,10 @@
         "ml/interview-prep/ml-theory-questions.md"
       ],
       "estimated_minutes": 60,
-      "quality_status": "required"
+      "quality_status": "required",
+      "roadmap": [
+        "roadmaps/ml-roadmap.md"
+      ]
     },
     {
       "id": "ml/weight-initialization",
@@ -1492,7 +1524,8 @@
       "estimated_minutes": 60,
       "quality_status": "required",
       "roadmap": [
-        "roadmaps/curriculum-map.md"
+        "roadmaps/curriculum-map.md",
+        "roadmaps/llm-roadmap.md"
       ]
     },
     {
@@ -1515,7 +1548,8 @@
       "estimated_minutes": 60,
       "quality_status": "required",
       "roadmap": [
-        "roadmaps/curriculum-map.md"
+        "roadmaps/curriculum-map.md",
+        "roadmaps/llm-roadmap.md"
       ]
     },
     {
@@ -1536,7 +1570,10 @@
         "llm/interview-prep/curriculum-practice.md#pretraining"
       ],
       "estimated_minutes": 60,
-      "quality_status": "required"
+      "quality_status": "required",
+      "roadmap": [
+        "roadmaps/llm-roadmap.md"
+      ]
     },
     {
       "id": "llm/finetuning",
@@ -1556,7 +1593,10 @@
         "llm/interview-prep/curriculum-practice.md#fine-tuning"
       ],
       "estimated_minutes": 60,
-      "quality_status": "required"
+      "quality_status": "required",
+      "roadmap": [
+        "roadmaps/llm-roadmap.md"
+      ]
     },
     {
       "id": "llm/instruction-tuning",
@@ -1718,7 +1758,8 @@
       "estimated_minutes": 60,
       "quality_status": "required",
       "roadmap": [
-        "roadmaps/curriculum-map.md"
+        "roadmaps/curriculum-map.md",
+        "roadmaps/llm-roadmap.md"
       ]
     },
     {
@@ -1841,7 +1882,8 @@
       "estimated_minutes": 60,
       "quality_status": "required",
       "roadmap": [
-        "roadmaps/curriculum-map.md"
+        "roadmaps/curriculum-map.md",
+        "roadmaps/llm-roadmap.md"
       ]
     },
     {
@@ -1996,7 +2038,8 @@
       "estimated_minutes": 60,
       "quality_status": "required",
       "roadmap": [
-        "roadmaps/curriculum-map.md"
+        "roadmaps/curriculum-map.md",
+        "roadmaps/llm-roadmap.md"
       ]
     },
     {
@@ -2060,7 +2103,10 @@
         "llm/interview-prep/curriculum-practice.md#inference-optimization"
       ],
       "estimated_minutes": 60,
-      "quality_status": "required"
+      "quality_status": "required",
+      "roadmap": [
+        "roadmaps/llm-roadmap.md"
+      ]
     },
     {
       "id": "llm/token-optimization",
@@ -2120,7 +2166,10 @@
         "llm/interview-prep/curriculum-practice.md#multimodal"
       ],
       "estimated_minutes": 60,
-      "quality_status": "required"
+      "quality_status": "required",
+      "roadmap": [
+        "roadmaps/llm-roadmap.md"
+      ]
     },
     {
       "id": "llm/evaluation",
@@ -2142,7 +2191,8 @@
       "estimated_minutes": 60,
       "quality_status": "required",
       "roadmap": [
-        "roadmaps/curriculum-map.md"
+        "roadmaps/curriculum-map.md",
+        "roadmaps/llm-roadmap.md"
       ]
     },
     {
@@ -2412,7 +2462,10 @@
         "agentic-ai/interview-prep/curriculum-practice.md#what-is-an-agent"
       ],
       "estimated_minutes": 60,
-      "quality_status": "required"
+      "quality_status": "required",
+      "roadmap": [
+        "roadmaps/agentic-roadmap.md"
+      ]
     },
     {
       "id": "agentic-ai/agent-loops",
@@ -2457,7 +2510,8 @@
       "estimated_minutes": 60,
       "quality_status": "required",
       "roadmap": [
-        "roadmaps/curriculum-map.md"
+        "roadmaps/curriculum-map.md",
+        "roadmaps/agentic-roadmap.md"
       ]
     },
     {
@@ -2546,7 +2600,8 @@
       "estimated_minutes": 60,
       "quality_status": "required",
       "roadmap": [
-        "roadmaps/curriculum-map.md"
+        "roadmaps/curriculum-map.md",
+        "roadmaps/agentic-roadmap.md"
       ]
     },
     {
@@ -2630,7 +2685,10 @@
         "agentic-ai/interview-prep/curriculum-practice.md#memory-types"
       ],
       "estimated_minutes": 60,
-      "quality_status": "required"
+      "quality_status": "required",
+      "roadmap": [
+        "roadmaps/agentic-roadmap.md"
+      ]
     },
     {
       "id": "agentic-ai/agent-memory-management",
@@ -2690,7 +2748,10 @@
         "agentic-ai/interview-prep/curriculum-practice.md#multi-agent-systems"
       ],
       "estimated_minutes": 60,
-      "quality_status": "required"
+      "quality_status": "required",
+      "roadmap": [
+        "roadmaps/agentic-roadmap.md"
+      ]
     },
     {
       "id": "agentic-ai/hierarchical-agents",
@@ -3004,7 +3065,8 @@
       "estimated_minutes": 60,
       "quality_status": "required",
       "roadmap": [
-        "roadmaps/curriculum-map.md"
+        "roadmaps/curriculum-map.md",
+        "roadmaps/agentic-roadmap.md"
       ]
     },
     {
@@ -3156,7 +3218,8 @@
       "estimated_minutes": 60,
       "quality_status": "required",
       "roadmap": [
-        "roadmaps/curriculum-map.md"
+        "roadmaps/curriculum-map.md",
+        "roadmaps/agentic-roadmap.md"
       ]
     },
     {
@@ -3562,7 +3625,9 @@
       "estimated_minutes": 60,
       "quality_status": "required",
       "roadmap": [
-        "roadmaps/curriculum-map.md"
+        "roadmaps/curriculum-map.md",
+        "roadmaps/agentic-roadmap.md",
+        "roadmaps/system-design-roadmap.md"
       ]
     },
     {
