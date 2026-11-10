@@ -176,15 +176,65 @@ def test_manifest_rejects_duplicate_ids_unknown_prerequisites_and_cycles(tmp_pat
     manifest = _fixture_manifest(tmp_path, required=False)
     data = json.loads(manifest.read_text(encoding="utf-8"))
     lesson = data["lessons"][0]
-    lesson["prerequisites"] = ["test/missing"]
+    lesson["prerequisites"] = ["test/missing", "test/fixture-copy"]
     duplicate = dict(lesson)
+    duplicate["id"] = "test/fixture-copy"
     duplicate["prerequisites"] = ["test/missing", "test/fixture"]
     data["lessons"].append(duplicate)
+    duplicate_id = dict(lesson)
+    data["lessons"].append(duplicate_id)
     manifest.write_text(json.dumps(data), encoding="utf-8")
     result = AUDIT.audit(tmp_path, manifest)
     assert any("duplicate lesson id" in issue for issue in result["errors"])
     assert any("unresolved prerequisite" in issue for issue in result["errors"])
     assert any("prerequisite cycle" in issue for issue in result["errors"])
+    assert any("duplicate concept path" in issue for issue in result["errors"])
+
+
+def test_manifest_rejects_malformed_artifact_reference_fields(tmp_path):
+    manifest = _fixture_manifest(tmp_path, required=False)
+    data = json.loads(manifest.read_text(encoding="utf-8"))
+    data["lessons"][0]["roadmap"] = ["roadmaps/map.md", ""]
+    manifest.write_text(json.dumps(data), encoding="utf-8")
+    result = AUDIT.audit(tmp_path, manifest)
+    assert any("roadmap must be a non-empty path or list of paths" in issue for issue in result["errors"])
+
+
+@pytest.mark.parametrize("field", ["concept", "notebook", "implementation"])
+def test_manifest_requires_scalar_owned_artifact_paths(tmp_path, field):
+    manifest = _fixture_manifest(tmp_path, required=False)
+    data = json.loads(manifest.read_text(encoding="utf-8"))
+    original = data["lessons"][0].get(field)
+    if original is None:
+        original = f"implementations/{field}.py"
+        (tmp_path / original).parent.mkdir(parents=True, exist_ok=True)
+        (tmp_path / original).write_text("# fixture\n", encoding="utf-8")
+    data["lessons"][0][field] = [original]
+    manifest.write_text(json.dumps(data), encoding="utf-8")
+    result = AUDIT.audit(tmp_path, manifest)
+    assert any(f"{field} must be a single path" in issue for issue in result["errors"])
+
+
+def test_manifest_rejects_canonical_duplicate_paths_but_allows_shared_practice(tmp_path):
+    manifest = _fixture_manifest(tmp_path, required=False)
+    data = json.loads(manifest.read_text(encoding="utf-8"))
+    first = data["lessons"][0]
+    second = dict(first, id="other/fixture", track="other", concept="concepts/./fixture.md")
+    data["entry_lessons"].append(second["id"])
+    data["lessons"].append(second)
+    manifest.write_text(json.dumps(data), encoding="utf-8")
+    result = AUDIT.audit(tmp_path, manifest)
+    assert any("duplicate concept path" in issue for issue in result["errors"])
+
+    second["concept"] = "concepts/other.md"
+    (tmp_path / "concepts/other.md").write_text(_valid_concept(), encoding="utf-8")
+    second["notebook"] = "notebooks/other.ipynb"
+    (tmp_path / "notebooks/other.ipynb").write_text(json.dumps(_valid_notebook()), encoding="utf-8")
+    second["implementation"] = None
+    second["practice"] = first["practice"]
+    manifest.write_text(json.dumps(data), encoding="utf-8")
+    result = AUDIT.audit(tmp_path, manifest)
+    assert not any("duplicate" in issue for issue in result["errors"])
 
 
 def test_cli_exit_codes_and_json_format(tmp_path, capsys):

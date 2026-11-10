@@ -90,6 +90,7 @@ def _validate_manifest(data: dict[str, Any], root: Path, track: str | None) -> t
     errors: list[str] = []
     all_lessons = data["lessons"]
     ids: dict[str, dict[str, Any]] = {}
+    owned_paths: dict[str, dict[str, str]] = {field: {} for field in ("concept", "notebook", "implementation")}
     for index, lesson in enumerate(all_lessons):
         if not isinstance(lesson, dict):
             errors.append(f"lessons[{index}] must be an object")
@@ -113,6 +114,27 @@ def _validate_manifest(data: dict[str, Any], root: Path, track: str | None) -> t
             errors.append(f"{lesson_id}: outcomes must contain at least two items")
         if not isinstance(lesson.get("estimated_minutes"), int) or lesson["estimated_minutes"] <= 0:
             errors.append(f"{lesson_id}: estimated_minutes must be a positive integer")
+        for field in ("concept", "notebook", "implementation", "roadmap", "practice", "capstone"):
+            value = lesson.get(field)
+            if value is None:
+                continue
+            if value == [] and field not in owned_paths:
+                continue
+            if field in owned_paths and not isinstance(value, str):
+                errors.append(f"{lesson_id}: {field} must be a single path")
+                continue
+            values = value if isinstance(value, list) else [value]
+            if not values or any(not isinstance(item, str) or not item.strip() for item in values):
+                errors.append(f"{lesson_id}: {field} must be a non-empty path or list of paths")
+                continue
+            if field in owned_paths:
+                for item in values:
+                    path = item.split("#", 1)[0]
+                    resolved = str((root / path).resolve())
+                    owner = owned_paths[field].get(resolved)
+                    if owner and owner != lesson_id:
+                        errors.append(f"{lesson_id}: duplicate {field} path {path} also owned by {owner}")
+                    owned_paths[field][resolved] = lesson_id
 
     for lesson_id, lesson in ids.items():
         prerequisites = lesson.get("prerequisites", [])

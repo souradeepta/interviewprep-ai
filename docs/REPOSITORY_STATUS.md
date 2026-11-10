@@ -66,6 +66,8 @@ match the contents.
   manifest checks pass.
 - Full local suite after this batch: `490 passed, 275 skipped`; skips are
   Tier 2 notebook executions without a locally registered Python kernel.
+- Latest full suite after canonical manifest path checks: `495 passed, 275
+  skipped`; skips remain Tier 2 notebook executions without a local kernel.
 
 ## Current program work
 

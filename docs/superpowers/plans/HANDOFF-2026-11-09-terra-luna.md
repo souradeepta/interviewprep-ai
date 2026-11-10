@@ -39,7 +39,12 @@
   parsing. The corrected batch passed all 27 curriculum quality tests, the
   curriculum audit (324 lessons; no errors or warnings), and the active link
   audit (zero problems).
-- The fresh full suite reports `490 passed, 275 skipped`; all 275 skips are
+- A second Terra review approved canonical ownership checks for concept,
+  notebook, and implementation paths, plus scalar type validation for those
+  fields. Tests cover dot-segment aliases and verify that shared practice
+  references remain valid. Minor remaining edge case: an embedded NUL in a
+  manifest path can raise `ValueError` rather than an audit diagnostic.
+- The fresh full suite reports `495 passed, 275 skipped`; all 275 skips are
   Tier 2 notebook executions because no Python kernel is registered locally.
   CI installs the pinned kernel and remains the required execution evidence
   for that set.
