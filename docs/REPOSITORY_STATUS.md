@@ -71,6 +71,8 @@ match the contents.
 - Five roadmap files (curriculum map, ML, LLM, Agentic AI, and system design)
   have 108 roadmap-to-concept associations checked against the manifest.
   Papers roadmaps point to the separately inventoried papers family.
+- Latest full suite after the NUL-path diagnostic fix: `501 passed, 275
+  skipped`; skips remain Tier 2 notebook executions without a local kernel.
 
 ## Current program work
 

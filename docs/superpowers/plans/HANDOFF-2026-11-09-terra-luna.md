@@ -2,7 +2,7 @@
 
 > Continuation update — 2026-11-10: This update supersedes the point-in-time
 > clean-tree and next-step statements below. Current work is an active
-> continuation at `10b2a56` on `origin/master`. Do not assume
+> continuation at `2007db4` on `origin/master`. Do not assume
 > the original `8dfaf25` worktree snapshot still describes repository state.
 
 ## Current continuation state
@@ -51,7 +51,11 @@
   handles the Markdown link forms used in those files; it is not a general
   Markdown parser. Papers roadmap concepts remain in the separate papers
   inventory family rather than the lesson manifest.
-- The fresh full suite reports `495 passed, 275 skipped`; all 275 skips are
+- Phase 2 validator fixtures now reject NUL characters in all artifact path
+  fields without crashing, including direct notebook reads. Terra re-reviewed
+  this edge-case fix and confirmed required and baseline records return
+  diagnostics.
+- The fresh full suite reports `501 passed, 275 skipped`; all 275 skips are
   Tier 2 notebook executions because no Python kernel is registered locally.
   CI installs the pinned kernel and remains the required execution evidence
   for that set.

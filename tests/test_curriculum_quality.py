@@ -208,6 +208,18 @@ def test_manifest_rejects_malformed_artifact_reference_fields(tmp_path):
 
 
 @pytest.mark.parametrize("field", ["concept", "notebook", "implementation"])
+@pytest.mark.parametrize("required", [False, True])
+def test_manifest_reports_nul_in_artifact_path_without_raising(tmp_path, field, required):
+    manifest = _fixture_manifest(tmp_path, required=required)
+    data = json.loads(manifest.read_text(encoding="utf-8"))
+    suffix = {"concept": ".md", "notebook": ".ipynb", "implementation": ".py"}[field]
+    data["lessons"][0][field] = f"bad\x00{suffix}"
+    manifest.write_text(json.dumps(data), encoding="utf-8")
+    result = AUDIT.audit(tmp_path, manifest)
+    assert any(f"{field} path contains a NUL character" in issue for issue in result["errors"])
+
+
+@pytest.mark.parametrize("field", ["concept", "notebook", "implementation"])
 def test_manifest_requires_scalar_owned_artifact_paths(tmp_path, field):
     manifest = _fixture_manifest(tmp_path, required=False)
     data = json.loads(manifest.read_text(encoding="utf-8"))

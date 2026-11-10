@@ -81,7 +81,7 @@ def _lesson_artifact_paths(lesson: dict[str, Any]) -> list[tuple[str, str]]:
         value = lesson.get(field)
         values = value if isinstance(value, list) else [value]
         for item in values:
-            if isinstance(item, str) and item.strip():
+            if isinstance(item, str) and item.strip() and "\x00" not in item:
                 refs.append((field, item.split("#", 1)[0]))
     return refs
 
@@ -126,6 +126,9 @@ def _validate_manifest(data: dict[str, Any], root: Path, track: str | None) -> t
             values = value if isinstance(value, list) else [value]
             if not values or any(not isinstance(item, str) or not item.strip() for item in values):
                 errors.append(f"{lesson_id}: {field} must be a non-empty path or list of paths")
+                continue
+            if any("\x00" in item for item in values):
+                errors.append(f"{lesson_id}: {field} path contains a NUL character")
                 continue
             if field in owned_paths:
                 for item in values:
@@ -174,7 +177,7 @@ def _validate_manifest(data: dict[str, Any], root: Path, track: str | None) -> t
                 errors.append(f"{lesson_id}: missing {field} artifact {relpath}")
 
         notebook = lesson.get("notebook")
-        if isinstance(notebook, str) and notebook:
+        if isinstance(notebook, str) and notebook and "\x00" not in notebook:
             notebook_path = root / notebook
             try:
                 nb = json.loads(notebook_path.read_text(encoding="utf-8"))
@@ -457,7 +460,7 @@ def audit(root: Path = ROOT, manifest_path: Path = DEFAULT_MANIFEST, track: str 
                     if max(frequencies.values(), default=0) >= 5:
                         warnings.append(f"{lesson.get('id', '<unknown>')}: concept {concept} repeats a sentence at least five times; review for generic filler")
             notebook_path = lesson.get("notebook")
-            if status == "required" and isinstance(notebook_path, str):
+            if status == "required" and isinstance(notebook_path, str) and "\x00" not in notebook_path:
                 try:
                     nb = json.loads((root / notebook_path).read_text(encoding="utf-8"))
                     if isinstance(nb, dict) and isinstance(nb.get("cells"), list) and not _has_assertion_token(nb):
