@@ -2,12 +2,14 @@
 
 > Continuation update — 2026-11-10: This update supersedes the point-in-time
 > clean-tree and next-step statements below. Current work is an active,
-> uncommitted continuation of the repository improvement plan. Do not assume
+> continuation commit `b98571b` of the repository improvement plan. Do not assume
 > the original `8dfaf25` worktree snapshot still describes repository state.
 
 ## Current continuation state
 
 - The prior reviewed LLM batch is committed and pushed as `6a2f1cc`.
+- Inventory and notebook-tier baseline work is committed as `b98571b` and is
+  being pushed with this handoff update.
 - Manifest coverage now includes 248 lessons across ten tracks: 172 required
   and 76 baseline. Baseline AI, RL, CV, and NLP prerequisites are explicitly
   provisional until reviewed; other README-advertised artifact families are
