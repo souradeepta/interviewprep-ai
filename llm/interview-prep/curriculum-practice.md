@@ -511,7 +511,7 @@ Describing the technique without identifying its assumptions, evaluation method,
 ## KV Cache
 
 ### Prompt
-Design or diagnose a production workflow that depends on KV Cache. Explain its key assumptions, resource costs, and one alternative you would consider.
+For a decoder with 32 layers, 8 KV heads, head dimension 128, batch size 1, 4,096 cached tokens, and 2-byte K/V values, estimate cache memory. Explain what work is reused on the next generated token, what still grows with context, and how you would validate safe cache reuse.
 
 ### Role/Domain
 LLM engineering; explain the design to a senior interviewer.
@@ -520,21 +520,24 @@ LLM engineering; explain the design to a senior interviewer.
 Intermediate
 
 ### Expected Answer
-A strong answer names the core mechanism, states assumptions, and connects the design choice to measurable quality, latency, cost, or safety requirements.
+The estimate is `2 * B * L * T * H_kv * d * bytes = 536,870,912` bytes, or 512 MiB, excluding allocator and runtime overhead. The factor two stores keys and values. With a KV cache, prompt-token K/V projections are reused and only the new token's K/V projections are appended; the new query still attends to the available history, so attention work and cache memory still rise with context length. I would compare cached decoding against full-prefix recomputation on fixed prompts by checking token logits or outputs, and measure per-token latency across context lengths. Cache identity must bind the exact prefix, model revision, adapters, positions, and tenant boundary. At concurrency, estimate bytes from live tokens and reserve memory for weights and workspaces. Lower-precision or paged cache allocation is an alternative, but each has numerical or allocator trade-offs.
 
 ### Evaluation
-Score correctness, explicit trade-offs, a measurable validation plan, and treatment of the stated failure mode.
+Score 4 points: 1 for the correct 512 MiB estimate and assumptions; 1 for distinguishing reused projections from remaining attention work; 1 for a valid cached-versus-reference test; 1 for identifying cache identity and concurrency memory risks.
 
 ### Follow-up
-What evidence would make you choose the alternative, and what would you monitor after launch?
+If latency still rises with context despite caching, which measurements distinguish attention cost from memory pressure or kernel effects?
 
 ### Common Mistake
-Describing the technique without identifying its assumptions, evaluation method, or operational failure mode.
+Claiming that caching makes each decode step constant-time or consumes no additional memory.
+
+### Concept
+[KV Cache](../concepts/23-kv-cache.md)
 
 ## Attention Optimization
 
 ### Prompt
-Design or diagnose a production workflow that depends on Attention Optimization. Explain its key assumptions, resource costs, and one alternative you would consider.
+You serve long-context requests and can choose either an exact tiled attention kernel or local attention with a window of 256 tokens. Compare their semantic guarantees, memory/computation effects, and the evaluation evidence needed before choosing local attention.
 
 ### Role/Domain
 LLM engineering; explain the design to a senior interviewer.
@@ -543,16 +546,19 @@ LLM engineering; explain the design to a senior interviewer.
 Intermediate
 
 ### Expected Answer
-A strong answer names the core mechanism, states assumptions, and connects the design choice to measurable quality, latency, cost, or safety requirements.
+An exact tiled/fused kernel computes the same full attention result up to floating-point ordering differences while avoiding materializing the full sequence-by-sequence score matrix; it can reduce peak intermediate memory and memory traffic, though speed depends on hardware and kernel quality. Local attention limits each token to a neighborhood, reducing score work from quadratic in sequence length toward `O(nw)` for window width `w`, but it changes which context can influence the output and may lose long-range evidence. I would first compare outputs from the exact kernel to a trusted implementation within a numeric tolerance, then measure peak memory and latency on the target hardware and sequence lengths. For local attention, I would use a fixed long-context task set with distant dependencies, compare quality by length and category, and monitor tail latency. A hybrid/global-token design or exact fused attention is an alternative when distant context matters.
 
 ### Evaluation
-Score correctness, explicit trade-offs, a measurable validation plan, and treatment of the stated failure mode.
+Score 4 points: 1 for explaining exact kernel equivalence; 1 for identifying local attention's changed receptive field and `O(nw)` work; 1 for proposing target-hardware resource measurements; 1 for a long-range quality test and a suitable fallback.
 
 ### Follow-up
-What evidence would make you choose the alternative, and what would you monitor after launch?
+What test would detect a failure that appears only when relevant evidence is farther away than the local window?
 
 ### Common Mistake
-Describing the technique without identifying its assumptions, evaluation method, or operational failure mode.
+Treating sparse/local attention and an exact fused kernel as interchangeable optimizations with the same output semantics.
+
+### Concept
+[Attention Optimization](../concepts/24-attention-optimization.md)
 
 ## Context Window
 
@@ -580,7 +586,7 @@ Describing the technique without identifying its assumptions, evaluation method,
 ## Continuous Batching
 
 ### Prompt
-Design or diagnose a production workflow that depends on Continuous Batching. Explain its key assumptions, resource costs, and one alternative you would consider.
+A server has two decode slots. Requests A, B, and C arrive together with output lengths 3, 1, and 2 tokens. Show how iteration-level continuous batching admits C while A is still active, compare it with static batches, and identify production constraints the toy schedule omits.
 
 ### Role/Domain
 LLM engineering; explain the design to a senior interviewer.
@@ -589,16 +595,19 @@ LLM engineering; explain the design to a senior interviewer.
 Intermediate
 
 ### Expected Answer
-A strong answer names the core mechanism, states assumptions, and connects the design choice to measurable quality, latency, cost, or safety requirements.
+With static groups [A,B] then [C], the first group runs three ticks and the second two, so completion takes five ticks. Six request-iterations are useful and ten slot-iterations are allocated, for 60% slot utilization. With continuous scheduling, ticks 0, 1, and 2 run [A,B], [A,C], and [A,C]; C is admitted at tick 1 when B completes. The schedule takes three ticks, with six useful and six allocated slot-iterations (100% in this simplified trace). Real admission also depends on KV-cache blocks, prefill work, request compatibility, cancellation, and fairness. I would compare throughput, TTFT, inter-token latency and p95/p99 by request length and tenant, while tracking active sequences, KV occupancy, preemption, and queue age. An alternative is static batching, which is simpler and can work well for uniform short outputs; continuous scheduling adds bookkeeping and may raise queueing or memory pressure.
 
 ### Evaluation
-Score correctness, explicit trade-offs, a measurable validation plan, and treatment of the stated failure mode.
+Score 4 points: 1 for admitting C after B completes at fixed capacity; 1 for correct static and continuous slot calculations; 1 for naming KV and queue/fairness constraints; 1 for latency and throughput metrics broken down by workload slice.
 
 ### Follow-up
-What evidence would make you choose the alternative, and what would you monitor after launch?
+How would an admission policy change if C's prompt required more KV blocks than were free after B completed?
 
 ### Common Mistake
-Describing the technique without identifying its assumptions, evaluation method, or operational failure mode.
+Comparing useful slot work in one schedule with allocated slot work in another, or assuming capacity alone guarantees admission.
+
+### Concept
+[Continuous Batching](../concepts/26-continuous-batching.md)
 
 ## Speculative Decoding
 
@@ -672,7 +681,7 @@ Describing the technique without identifying its assumptions, evaluation method,
 ## Quantization (for LLMs)
 
 ### Prompt
-Design or diagnose a production workflow that depends on Quantization (for LLMs). Explain its key assumptions, resource costs, and one alternative you would consider.
+Quantize weights `[-1.0, -0.5, 0.0, 0.5, 1.0, 1.5]` using a fixed symmetric scale of 0.5 and a signed three-bit code range from -2 to 2. Show codes, clipping, mean squared reconstruction error, and what additional evidence is required before deploying a low-bit model.
 
 ### Role/Domain
 LLM engineering; explain the design to a senior interviewer.
@@ -681,16 +690,19 @@ LLM engineering; explain the design to a senior interviewer.
 Intermediate
 
 ### Expected Answer
-A strong answer names the core mechanism, states assumptions, and connects the design choice to measurable quality, latency, cost, or safety requirements.
+Using `q = clip(round(x / 0.5), -2, 2)`, the codes are `[-2,-1,0,1,2,2]` and dequantized values are `[-1,-0.5,0,0.5,1,1]`. The value 1.5 is clipped. Squared error is 0.25 for that value and zero for the others, so MSE is `0.25 / 6 = 1/24 ≈ 0.04167`. Five distinct codes require at least three bits per value. Six values need 24 bytes as fp32; the ideal three-bit bit count is 18 bits, or 2.25 byte-equivalents (10.67x smaller). A byte-aligned packed buffer needs at least 3 bytes, before scale metadata and runtime state. This toy says nothing about task quality or speed. Deployment needs a fixed calibration set, comparison to the same full-precision checkpoint on held-out tasks and sensitive slices, plus target-hardware latency and peak memory. If clipping hurts outliers, per-channel/group scales or a higher bit width are alternatives; specialized kernels may also make a nominally smaller model slower.
 
 ### Evaluation
-Score correctness, explicit trade-offs, a measurable validation plan, and treatment of the stated failure mode.
+Score 4 points: 1 for correct codes and clipped value; 1 for MSE and ideal storage calculation; 1 for distinguishing toy reconstruction from task quality; 1 for a fixed held-out and hardware validation plan.
 
 ### Follow-up
-What evidence would make you choose the alternative, and what would you monitor after launch?
+How would you determine whether to change the fixed calibration scale or use per-group scales when a rare outlier causes regressions?
 
 ### Common Mistake
-Describing the technique without identifying its assumptions, evaluation method, or operational failure mode.
+Deriving the scale from the evaluation weights and then claiming the same test demonstrates clipping, or assuming fewer bits guarantees lower latency.
+
+### Concept
+[Quantization (for LLMs)](../concepts/30-quantization.md)
 
 ## Multimodal
 
@@ -718,7 +730,7 @@ Describing the technique without identifying its assumptions, evaluation method,
 ## Evaluation (for LLMs)
 
 ### Prompt
-Design or diagnose a production workflow that depends on Evaluation (for LLMs). Explain its key assumptions, resource costs, and one alternative you would consider.
+On six moderation examples, the gold labels are `[1,1,1,1,0,0]`; System A predicts `[1,1,1,0,1,0]`, and System B predicts `[1,1,0,0,0,0]`. Calculate confusion counts, accuracy, precision, recall, and F1 for both. Explain why accuracy does not select a winner and propose a stronger LLM evaluation plan.
 
 ### Role/Domain
 LLM engineering; explain the design to a senior interviewer.
@@ -727,16 +739,19 @@ LLM engineering; explain the design to a senior interviewer.
 Intermediate
 
 ### Expected Answer
-A strong answer names the core mechanism, states assumptions, and connects the design choice to measurable quality, latency, cost, or safety requirements.
+System A has TP=3, FP=1, FN=1, TN=1; accuracy=4/6, precision=3/4, recall=3/4, and F1=0.75. System B has TP=2, FP=0, FN=2, TN=2; accuracy=4/6, precision=1, recall=1/2, and F1=2/3. Equal accuracy hides different false-positive/false-negative trade-offs, so the operating choice depends on error costs. For an LLM, freeze a representative held-out set and compare the candidate with a baseline under identical prompt, model, and decoding conditions. Report task metrics and slice results, inspect paired disagreements, and include human rubric or blinded preference ratings where outputs are open-ended. Check label quality, contamination, uncertainty, safety, latency, and cost; choose thresholds on validation data rather than the final test set.
 
 ### Evaluation
-Score correctness, explicit trade-offs, a measurable validation plan, and treatment of the stated failure mode.
+Score 4 points: 1 for System A counts/metrics; 1 for System B counts/metrics; 1 for explaining the equal-accuracy trade-off; 1 for a frozen paired evaluation with slices and human review where appropriate.
 
 ### Follow-up
-What evidence would make you choose the alternative, and what would you monitor after launch?
+If false negatives cost five times as much as false positives, what additional validation and threshold-selection evidence do you need before choosing a system?
 
 ### Common Mistake
-Describing the technique without identifying its assumptions, evaluation method, or operational failure mode.
+Reporting one aggregate score without examining error types, subgroup behavior, or uncertainty.
+
+### Concept
+[Evaluation (for LLMs)](../concepts/32-evaluation.md)
 
 ## Vision Transformers (ViT)
 

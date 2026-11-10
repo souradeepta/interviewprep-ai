@@ -1,311 +1,108 @@
 # KV Cache
 
-Autoregressive generation means predicting token 1, then token 2 (using token 1), then token 3 (using tokens 1+2), etc.
+TL;DR: A key-value cache stores the keys and values already computed for a causal transformer so decoding each new token does not repeat projection work for the entire prefix.
 
 ## Prerequisites
 
-Familiarity with semantic caching. This note focuses on the LLM-specific mechanism and its engineering selection boundary.
+This lesson builds on [semantic caching](22-semantic-caching.md) only in the broad sense of reusing prior work; a KV cache is an exact, model-state cache and is not a cache of final answers. It assumes familiarity with causal self-attention, autoregressive decoding, tensor dimensions, and the distinction between prefill (processing a prompt) and decode (generating tokens).
 
 ## Learning Outcomes
 
-- Explain the mechanism and assumptions behind kv cache.
-- Compare its main alternative using task quality and one operational cost.
-- Diagnose a failure using a metric or example tied to kv cache.
+- Derive the approximate KV-cache memory for a decoder from its layer, head, token, and element-size dimensions.
+- Explain which computation a cache avoids during autoregressive decoding and which computation remains.
+- Diagnose cache growth or incorrect reuse using token counts, memory estimates, and sequence identity.
+- Select a cache layout or precision trade-off for a stated latency and memory constraint.
 
 ## Core Intuition
 
-Autoregressive generation means predicting token 1, then token 2 (using token 1), then token 3 (using tokens 1+2), etc. Without KV cache, computing attention for token T requires recomputing attention over ALL previous tokens (T-1 times). Store the K and V matrices once, reuse them → O(1) per token instead of O(T).
+Imagine reading a growing conversation while keeping a notebook of the facts you have already extracted. When the next word arrives, you do not reread and re-encode every earlier word; you append the new state and attend to the stored history. In a transformer, the reusable state is each layer's key and value projection for each earlier token. The query for the new token is still computed, and it still compares against prior keys and combines prior values. The cache saves repeat work; it does not make attention to a long history constant-time.
+
+This cache is fundamentally different from semantic caching. Semantic caching may return a previous response to a similar request. A KV cache holds intermediate activations for the exact prefix, model weights, positional convention, and attention state that produced them. Reusing it for a different conversation can leak content or produce incorrect logits. A cache hit is safe only when the serving engine can prove that the prefix and computation configuration are compatible.
 
 ## How It Works
 
-**Without KV Cache (Naive):**
-```
-Token 1: compute Q1, K1, V1; output logits
-Token 2: recompute Q1, K1, V1 (from scratch!), then compute Q2, K2, V2
-Token 3: recompute Q1, K1, V1, Q2, K2, V2 (from scratch!), then compute Q3, K3, V3
-...
-Total: O(T^2) computation (quadratic)
-```
+For a decoder layer, let the current hidden states be projected into queries, keys, and values. In ordinary causal attention, token t can use keys and values from positions 0 through t. During prompt prefill, the model processes many prompt tokens in parallel and produces K and V tensors for every layer. During one-token decoding, only the newly generated token needs new projections. Its query attends to the concatenation of cached keys and the new key, and the resulting attention weights combine cached values and the new value.
 
-**With KV Cache:**
-```
-Token 1: compute Q1, K1, V1; save K1, V1 in cache; output logits
-Token 2: retrieve cached K1, V1; compute only Q2, K2, V2; append to cache
-Token 3: retrieve cached K1, V1, K2, V2; compute only Q3, K3, V3; append to cache
-...
-Total: O(T) computation (linear!)
-```
+For batch size B, L layers, H_kv key/value heads, head dimension d, sequence length T, and b bytes per element, the uncompressed cache size is approximately:
 
-**Memory Layout:**
-```
-Cache for a transformer layer:
-  key_cache[layer][batch_size][seq_len, d_k]      # shape: (B, T, d_k)
-  value_cache[layer][batch_size][seq_len, d_v]    # shape: (B, T, d_v)
+`M_KV = 2 * B * L * T * H_kv * d * b` bytes.
 
-For each new token:
-  new_k = compute(input_t)              # (B, 1, d_k)
-  new_v = compute(input_t)              # (B, 1, d_v)
-  key_cache[:, :, t:t+1, :] = new_k    # append new K
-  value_cache[:, :, t:t+1, :] = new_v  # append new V
-  
-  # Attention uses full cached K, V (all previous + current)
-  attn = softmax(Q @ cached_K^T) @ cached_V
-```
+The factor two accounts for keys and values. This estimate excludes allocator padding, block tables, scales for quantized caches, temporary activations, and framework metadata. With conventional multi-head attention, H_kv is often the number of query heads. Multi-query or grouped-query attention uses fewer KV heads, reducing cache memory while sharing K/V across query heads. It changes model architecture and quality/training behavior; it is not simply a cache compression switch for an arbitrary checkpoint.
 
-**Impact on Latency:**
-```
-Without cache:
-  Attention FLOPS = O(seq_len^2 × d)  per token
-  
-With cache:
-  Attention FLOPS = O(seq_len × d)  per token
-  
-Speedup: O(seq_len) improvement! For seq_len=2048, ~2000x faster
-```
+Without a cache, a naïve implementation recomputes the prefix projections at each decode step. With a cache, each generated token adds roughly one token's K/V state per layer. The attention operation for the new token still reads a prefix of length T, so its attention arithmetic is proportional to T times the attention width. Across N generated tokens after a prompt of P tokens, attention work still grows with the attended context; caching mainly avoids repeatedly projecting all P prior tokens and avoids recomputing prior-token states. Exact total complexity depends on what the baseline recomputes and on the kernel, so “O(1) per token” is incorrect.
 
-### Workflow Flowchart
-
-```mermaid
-graph LR
-    A["Token t"] -->|New Attention| B["Compute Q<br/>Reuse K,V"]
-    B -->|Store| C["KV Cache<br/>[0:t]"]
-    C -->|Next Token| D["Token t+1"]
-    D -->|Add to Cache| E["Updated Cache<br/>[0:t+1]"]
-
-    style A fill:#e3f2fd
-    style C fill:#e0f2f1
-    style E fill:#e8f5e9
-```
+Caching usually improves decode latency, but consumes memory in proportion to active tokens and concurrent sequences. At a fixed device-memory budget, KV capacity competes with model weights, temporary buffers, and fragmentation. The practical limit may therefore be the number of live tokens rather than the model's nominal context window. Cache allocation can be contiguous, paged into blocks, or dynamically grown; each strategy trades allocation simplicity against fragmentation, copying, and bookkeeping.
 
 ## Trade-offs
 
-| Aspect | No Cache | With Cache |
-|--------|----------|-----------|
-| FLOPS per token | O(T × d) | O(d) |
-| Memory overhead | Minimal | O(T × L × d) |
-| Latency per token | ~const | ~const ✓ |
-| Throughput (batch) | High | Lower (cache memory limit) |
-| Sequence length | Fast up to ~512 | Scales to 8k+ |
-| Batch size | Limited by compute | Limited by memory (cache) |
+| Choice | Benefit | Cost or assumption | Useful diagnostic |
+|---|---|---|---|
+| Full-precision KV cache | Preserves checkpoint's activation precision closely | Highest bytes per active token | Bytes per token and peak allocated memory |
+| Lower-precision KV cache | More active tokens may fit in memory | Quantization error can affect attention, especially at long contexts | Quality by context length and cache dtype |
+| Multi-query/grouped-query architecture | Fewer stored KV heads | Requires a model trained or adapted for that architecture | KV-head count and task-quality comparison |
+| Paged/block cache | Reduces external fragmentation and supports flexible scheduling | Block tables and allocator logic add complexity | Free blocks, fragmentation, allocation failures |
+| Recompute or cache eviction | Reduces resident memory | Adds latency or loses exact full-history access | Recomputed tokens, evictions, and latency tails |
 
-**Sequence length tradeoff:**
-- seq_len=100: cache ≈ 100MB
-- seq_len=1000: cache ≈ 1GB
-- seq_len=10000: cache ≈ 10GB (exceeds GPU memory for large models)
-
-**Memory cost per token:**
-```
-For LLaMA 7B (4096 hidden_dim, 32 layers):
-  per token, per layer = 4096 × 32 × 2 (for K and V) = 262KB per layer
-  all 32 layers = 8.4MB per token
-  
-For seq_len=2048: 8.4MB × 2048 ≈ 17GB
-```
+For example, with B=1, L=32, T=4096, H_kv=8, d=128, and two-byte elements, the estimate is 536,870,912 bytes, or 512 MiB in binary units. If H_kv rises to 32, the estimate becomes 2 GiB. The real allocation can differ, but the ratio is informative when other dimensions and dtype remain fixed. Doubling batch size or sequence length doubles this estimate; doubling both multiplies it by four.
 
 ## Implementation
 
+The following standard-library-only example computes the idealized cache size and checks scaling relationships. It does not simulate GPU allocation, kernel latency, or cache correctness for a particular model; those require the target runtime and workload.
+
 ```python
-import torch
-from transformers import AutoTokenizer, AutoModelForCausalLM
+def kv_cache_bytes(batch, layers, tokens, kv_heads, head_dim, bytes_per_value):
+    dimensions = (batch, layers, tokens, kv_heads, head_dim, bytes_per_value)
+    if any(not isinstance(value, int) or value <= 0 for value in dimensions):
+        raise ValueError("all cache dimensions must be positive integers")
+    return 2 * batch * layers * tokens * kv_heads * head_dim * bytes_per_value
 
-model_name = "meta-llama/Llama-2-7b-hf"
-model = AutoModelForCausalLM.from_pretrained(model_name)
-tokenizer = AutoTokenizer.from_pretrained(model_name)
 
-# Example 1: Inference WITHOUT explicit cache (HuggingFace handles it)
-prompt = "Once upon a time"
-inputs = tokenizer(prompt, return_tensors="pt")
+base = kv_cache_bytes(1, 32, 4096, 8, 128, 2)
+assert base == 536_870_912  # 512 MiB, keys and values included
+assert kv_cache_bytes(2, 32, 4096, 8, 128, 2) == 2 * base
+assert kv_cache_bytes(1, 32, 8192, 8, 128, 2) == 2 * base
+assert kv_cache_bytes(1, 32, 4096, 32, 128, 2) == 4 * base
 
-# Generate with cache enabled (default in HF)
-outputs = model.generate(
-    **inputs,
-    max_new_tokens=100,
-    use_cache=True,  # Explicitly enable KV cache (default is True)
-    return_dict_in_generate=True,
-    output_scores=True,
-)
-print(tokenizer.decode(outputs.sequences[0]))
-
-# Example 2: Manual KV cache handling (lower-level)
-input_ids = tokenizer.encode(prompt, return_tensors="pt")
-cache = None  # Initialize empty cache
-
-# Autoregressive loop
-for step in range(100):  # Generate up to 100 tokens
-    outputs = model(
-        input_ids[:, -1:],  # Only pass current token (feed from cache)
-        past_key_values=cache,  # Pass cache from previous step
-        use_cache=True,
-    )
-    
-    logits = outputs.logits[:, -1, :]
-    next_token = torch.argmax(logits, dim=-1, keepdim=True)
-    
-    cache = outputs.past_key_values  # Update cache for next step
-    input_ids = torch.cat([input_ids, next_token], dim=1)
-    
-    if next_token.item() == tokenizer.eos_token_id:
-        break
-
-print(tokenizer.decode(input_ids[0]))
-
-# Example 3: Compare with/without cache (timing)
-import time
-
-prompt_long = "Once upon a time " * 100  # Long prompt
-inputs = tokenizer(prompt_long, return_tensors="pt", max_length=512, truncation=True)
-
-# With cache
-start = time.time()
-outputs_cached = model.generate(**inputs, max_new_tokens=50, use_cache=True)
-time_cached = time.time() - start
-
-# Without cache (for comparison, set use_cache=False)
-start = time.time()
-outputs_no_cache = model.generate(**inputs, max_new_tokens=50, use_cache=False)
-time_no_cache = time.time() - start
-
-print(f"With cache: {time_cached:.2f}s")
-print(f"Without cache: {time_no_cache:.2f}s")
-print(f"Speedup: {time_no_cache / time_cached:.1f}x")
+try:
+    kv_cache_bytes(1, 32, 0, 8, 128, 2)
+except ValueError:
+    pass
+else:
+    raise AssertionError("zero-length dimensions should be rejected")
 ```
+
+In an actual serving system, inspect active cached tokens per request, cache bytes by dtype, allocation failures, evictions, and p50/p95/p99 time per output token. Compare cached and uncached generation only with identical prompts, model revision, sampling settings, and hardware. Warm up kernels, synchronize the device when timing asynchronous work, and report multiple runs; a one-off wall-clock ratio is not a reliable speedup estimate.
 
 ## Failure Modes
 
-- **Not clearing cache between sequences:** If processing multiple sequences, old cache corrupts new predictions. Always reset cache per sequence.
-- **Assuming cache is "free":** Cache memory grows with sequence length. Can OOM on long sequences (2k+ tokens).
-- **Batch size assumptions:** Batch size is limited by cache size, not just compute. Small cache limits batching for long sequences.
-- **Cache format consistency:** Different frameworks (HF, vLLM, llama.cpp) use different cache formats. Reusing cache across frameworks fails.
-- **No updates for new tokens:** Cache is immutable after generation. If you want to regenerate, must start fresh (can't splice new branch).
-- **Ignoring batch size in cache:** total_cache_mem = batch_size × seq_len × num_layers × d. Doubling batch size doubles memory.
-- **Not using Flash Attention compatible:** Some flashy optimizations (Flash Attention v2) are incompatible with certain cache formats. Check integration.
+- **Cross-request state reuse:** A cache from another user or a changed prefix can corrupt output or expose context. Bind cache entries to a verified token prefix, model revision, adapter, positional settings, and tenant boundary; test that changing any identity component invalidates reuse.
+- **Memory exhaustion at concurrency peaks:** A cache sized for one request may fail when many long prompts remain active. Estimate bytes from live tokens, reserve room for weights and workspaces, and alert on free blocks, allocation retries, and OOMs.
+- **Misreading cache as constant-time attention:** Decode still reads the attended history. Plot per-token latency against context length; rising latency can be expected even when cache reuse is correct.
+- **Incorrect position or mask handling:** Reusing K/V with an inconsistent position offset or causal mask changes attention semantics. Compare cached token-by-token logits with a full-prefix reference on a short deterministic input.
+- **Unbounded conversation growth:** Retaining every turn eventually exhausts the token budget. Track tokens per sequence and enforce a policy such as truncation, summarization, or a supported sliding window; each policy changes available context.
+- **Assuming framework cache formats are portable:** Tensor layout and metadata differ across runtimes and versions. Use documented conversion paths or rebuild the cache, and include runtime/model versions in reproducibility records.
 
 ## Interview Quick Reference
 
-| Question | What to say |
-|---|---|
-| "What is KV cache?" | Cache Key-Value matrices from previous tokens to avoid recomputation. O(T) FLOPS per token instead of O(T²). |
-| "Memory cost?" | Grows linearly with sequence length. For 7B model, ~8MB/token. Can OOM on very long sequences. |
-| "When to use?" | Always for inference. Disable only if memory is extremely constrained. |
-| "Batch size impact?" | Cache memory scales with batch size. Doubling batch size doubles total cache memory. |
-| "Incompatible with?" | Some optimizations (certain quantization, non-standard attention) may not support KV caching. Check docs. |
-| "Multi-batch vs single?" | Single long sequence vs multiple short sequences: cache hurts throughput but helps per-token latency. |
+| Question | Answer | Follow-up |
+|---|---|---|
+| What does a KV cache avoid? | It reuses prior layers' K/V projections during autoregressive decoding; new queries and attention over the prefix remain. | Debug why per-token latency still rises with context length. |
+| How do you estimate memory? | `2 * B * L * T * H_kv * d * bytes_per_value`, plus runtime overhead. | Design a capacity estimate for peak live tokens. |
+| Why does GQA help? | It reduces the number of distinct KV heads stored, given an architecture that shares KV heads. | Compare quality and memory for two checkpoints. |
+| How would you find stale cache reuse? | Compare cached and full-prefix logits and verify prefix, model, adapter, and position identity. | Design a safe cache key across tenants. |
 
-
-
-**Design follow-up:** How would you monitor this choice in production and decide when to use an alternative?
 ## Related Concepts
 
-- [Inference Optimization](28-inference-optimization.md) — KV cache is one technique among many
-- [Speculative Decoding](27-speculative-decoding.md) — uses KV cache for parallelization
-- [Continuous Batching](26-continuous-batching.md) — manages KV cache for multiple sequences
-- [Attention Mechanism](../../ml/concepts/attention-mechanism.md) — what KV cache optimizes
+- [Attention Optimization](24-attention-optimization.md) explains kernels and architectural changes that complement caching.
+- [Continuous Batching](26-continuous-batching.md) schedules requests whose KV allocations have different lifetimes.
+- [Inference Optimization](28-inference-optimization.md) places caching among broader serving techniques.
+- [Transformer-XL: Attentive Language Models Beyond a Fixed-Length Context](https://arxiv.org/abs/1901.02860) describes recurrence across segments; it is related context reuse, not the same serving cache mechanism.
 
-## Real-World Examples
+## Practice
 
-### KV Cache in Multi-Turn Chat
-Conversation: 10 turns, each turn 100 tokens input. Without cache: recompute 1000s of attention operations per turn. With cache: reuse 900 from previous turns, compute only 100 new. Latency: 5s → 0.5s per turn.
+- [KV cache interview practice](../interview-prep/curriculum-practice.md#kv-cache) includes a memory estimate, cache reuse diagnosis, and validation plan.
 
-### Batch Inference with Limited Memory
-GPU: 40GB memory. Batch=64, context=4K, FP32 without GQA: 64GB needed (exceeds memory!). With GQA: 8GB KV cache. Can now run batch=64. Throughput: 100 tok/s (vs impossible without optimization).
+## References
 
-### Long-Context RAG with Cache Optimization
-Retrieval: 100 context chunks (100K tokens). Naive: KV cache 25GB. GQA + INT8: 1.5GB. Within inference budget. Latency: 500ms (reasonable). Without optimization: impossible.
-
-## Real-World Examples
-
-### KV Cache in Multi-Turn Chat
-Conversation: 10 turns, each turn 100 tokens input. Without cache: recompute 1000s of attention operations per turn. With cache: reuse 900 from previous turns, compute only 100 new. Latency: 5s → 0.5s per turn.
-
-### Batch Inference with Limited Memory
-GPU: 40GB memory. Batch=64, context=4K, FP32 without GQA: 64GB needed (exceeds memory!). With GQA: 8GB KV cache. Can now run batch=64. Throughput: 100 tok/s (vs impossible without optimization).
-
-### Long-Context RAG with Cache Optimization
-Retrieval: 100 context chunks (100K tokens). Naive: KV cache 25GB. GQA + INT8: 1.5GB. Within inference budget. Latency: 500ms (reasonable). Without optimization: impossible.
-
-## Real-World Examples
-
-### KV Cache in Multi-Turn Chat
-Conversation: 10 turns, each turn 100 tokens input. Without cache: recompute 1000s of attention operations per turn. With cache: reuse 900 from previous turns, compute only 100 new. Latency: 5s → 0.5s per turn.
-
-### Batch Inference with Limited Memory
-GPU: 40GB memory. Batch=64, context=4K, FP32 without GQA: 64GB needed (exceeds memory!). With GQA: 8GB KV cache. Can now run batch=64. Throughput: 100 tok/s (vs impossible without optimization).
-
-### Long-Context RAG with Cache Optimization
-Retrieval: 100 context chunks (100K tokens). Naive: KV cache 25GB. GQA + INT8: 1.5GB. Within inference budget. Latency: 500ms (reasonable). Without optimization: impossible.
-
-## Real-World Examples
-
-### KV Cache in Multi-Turn Chat
-Conversation: 10 turns, each turn 100 tokens input. Without cache: recompute 1000s of attention operations per turn. With cache: reuse 900 from previous turns, compute only 100 new. Latency: 5s → 0.5s per turn.
-
-### Batch Inference with Limited Memory
-GPU: 40GB memory. Batch=64, context=4K, FP32 without GQA: 64GB needed (exceeds memory!). With GQA: 8GB KV cache. Can now run batch=64. Throughput: 100 tok/s (vs impossible without optimization).
-
-### Long-Context RAG with Cache Optimization
-Retrieval: 100 context chunks (100K tokens). Naive: KV cache 25GB. GQA + INT8: 1.5GB. Within inference budget. Latency: 500ms (reasonable). Without optimization: impossible.
-
-## Real-World Examples
-
-### KV Cache in Multi-Turn Chat
-Conversation: 10 turns, each turn 100 tokens input. Without cache: recompute 1000s of attention operations per turn. With cache: reuse 900 from previous turns, compute only 100 new. Latency: 5s → 0.5s per turn.
-
-### Batch Inference with Limited Memory
-GPU: 40GB memory. Batch=64, context=4K, FP32 without GQA: 64GB needed (exceeds memory!). With GQA: 8GB KV cache. Can now run batch=64. Throughput: 100 tok/s (vs impossible without optimization).
-
-### Long-Context RAG with Cache Optimization
-Retrieval: 100 context chunks (100K tokens). Naive: KV cache 25GB. GQA + INT8: 1.5GB. Within inference budget. Latency: 500ms (reasonable). Without optimization: impossible.
-
-## Topic-specific notes
-
-**Q: Why does KV cache dramatically speed up autoregressive generation?**
-A: Without KV cache, generating each token requires computing attention over all previous tokens from scratch—O(n²) operations per token, O(n³) total for n tokens. With KV cache, key and value matrices are computed once per token and stored; subsequent tokens only compute attention for the new token against stored KVs—O(n) per token. For a 100-token response, this is roughly 50x fewer attention computations.
-
-**Q: How does KV cache memory scale with sequence length and model size, and what are the implications?**
-A: KV cache memory = 2 × n_layers × n_heads × head_dim × sequence_length × batch_size × precision_bytes. For a 7B model (32 layers, 32 heads, 128 head_dim, float16): 2 × 32 × 32 × 128 × seq_len × batch × 2 bytes = 524K bytes × seq_len × batch. A batch of 32 requests at 2048 tokens: ~34GB just for KV cache. This is why long-context inference is memory-limited—the KV cache can exceed the model weights in size.
-
-**Q: What is multi-query attention and how does it reduce KV cache memory?**
-A: MQA (Multi-Query Attention) uses a single shared key/value head across all query heads, reducing KV cache by n_heads factor (32x for GPT-3-like models). GQA (Grouped-Query Attention) groups query heads to share K/V heads—a compromise between MHA (full KV, highest quality) and MQA (minimum KV, slight quality loss). Llama-2 70B uses GQA with 8 K/V heads shared by 64 query heads—8x KV cache reduction with minimal quality loss.
-
-**Q: What is prefix caching and when does it provide the most benefit?**
-A: Prefix caching stores KV values for a common prompt prefix (system prompt, few-shot examples, context documents). If the same prefix appears in many requests, compute the prefix KV once and reuse. Benefits are highest when: the shared prefix is long (few-shot examples, RAG context), traffic volume is high enough to amortize prefix compute, and the prefix doesn't change frequently. Anthropic's API offers prompt caching—significant cost savings for long system prompts repeated across many calls.
-
-**Q: How does continuous batching interact with KV cache management?**
-A: Continuous batching adds new requests to the batch as others complete, maintaining high GPU utilization. KV cache challenge: different requests have different sequence lengths and completion states—you can't preallocate a fixed KV buffer per request. PagedAttention (vLLM) solves this by managing KV cache like virtual memory—allocating fixed-size pages on demand and freeing pages when sequences complete. This increases throughput 2-4x over static KV allocation.
-
-**Q: What are the symptoms of KV cache exhaustion in production and how do you handle it?**
-A: Symptoms: sudden OOM errors, requests being rejected, latency spikes when cache is full. Handle with: streaming responses (start returning tokens before generation is complete, freeing memory sooner), request queuing with backpressure, dynamic batching (reduce batch size when memory is high), or aggressive KV cache quantization (INT8 KV cache reduces memory 2x at <1% quality loss). Monitor KV cache utilization as a primary LLM serving metric.
-
-## Resources
-
-- [Transformer-XL: Attentive Language Models Beyond a Fixed-Length Context](https://arxiv.org/abs/1901.02860)
-- [vLLM: Efficient Memory Management for LLM Serving](https://arxiv.org/abs/2309.06180)
-- [Flash-Decoding: Fast and Accurate Generation in Long-Context LLMs](https://arxiv.org/abs/2307.01841)
-- [HuggingFace: Using KV Cache](https://huggingface.co/docs/transformers/llm_tutorial_generate)
-
-## Concept Relationships
-
-```mermaid
-graph TD
-    A["KV Cache"]
-    A -->|used with| D["Attention Optimization"]
-    
-    style A fill:#fff3e0
-```
-
-## Interview Questions
-
-**Q: What's KV cache and why does it matter?**
-*A: During inference: generate token-by-token. For each token, compute attention over full context. Without cache: recompute keys/values every step = O(n²) for n-token output. With cache: store computed K,V, reuse = O(n). For 1000-token generation: 1000x speed difference.*
-
-**Q: How much memory does KV cache use?**
-*A: KV cache size = batch_size × context_length × 2 × hidden_dim × precision. Example: batch=1, context=4K, hidden=4096, FP32 = 1 × 4K × 2 × 4096 × 4 bytes = 128MB per layer × 32 layers = 4GB. For batch=16: 64GB. Dominates memory in inference.*
-
-**Q: What's grouped-query attention (GQA) and how does it reduce KV cache?**
-*A: Standard multi-head: each head has separate K,V (32 heads = 32 K,V heads). GQA: share K,V across multiple query heads (e.g., 8 groups = 4 K,V heads). Reduces KV cache 8x. Trade-off: 0.5-1% accuracy loss. Used in Llama 2, Mistral.*
-
-**Q: How do you optimize KV cache for long contexts?**
-*A: Options: 1) GQA (reduce K,V). 2) Sparse attention (not all positions needed). 3) Pruning (discard irrelevant history). 4) Compression (quantize K,V). Combinations: GQA + INT8 KV = 32x reduction. For 32K context: 4GB → 128MB.*
-
-**Q: When would you clear KV cache?**
-*A: Per-request: always clear (fresh context). Multi-turn conversation: keep cache (reuse context from previous turns). Problem: cache grows unbounded. Solution: sliding window (keep last 2K tokens) or explicit reset.*
+- [Efficient Memory Management for Large Language Model Serving with PagedAttention](https://arxiv.org/abs/2309.06180) presents block-based KV memory management and serving evaluation.
+- [GQA: Training Generalized Multi-Query Transformer Models from Multi-Head Checkpoints](https://arxiv.org/abs/2305.13245) studies KV-head sharing and its memory/quality trade-off.

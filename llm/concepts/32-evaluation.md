@@ -1,319 +1,112 @@
 # Evaluation (for LLMs)
 
-"Good" is task-dependent.
+TL;DR: LLM evaluation is a decision process that combines representative tasks, reliable measurements, uncertainty, and human or safety review to determine whether a model is fit for a defined use.
 
 ## Prerequisites
 
-Familiarity with multimodal. This note focuses on the LLM-specific mechanism and its engineering selection boundary.
+This lesson assumes basic classification metrics and prompt/model comparisons. It focuses on evaluation of generative language models and systems, including prompts, retrieval, and tool use; see [general evaluation metrics](../../ml/concepts/evaluation-metrics.md) for broader statistical foundations. The manifest places this note after [multimodal](31-multimodal.md), but the methods here also apply to text-only systems.
 
 ## Learning Outcomes
 
-- Explain the mechanism and assumptions behind evaluation (for llms).
-- Compare its main alternative using task quality and one operational cost.
-- Diagnose a failure using a metric or example tied to evaluation (for llms).
+- Translate a deployment goal into evaluation dimensions, datasets, baselines, and decision thresholds.
+- Distinguish reference-based metrics, task-specific checks, human judgments, and model-based judges.
+- Compute deterministic classification-style metrics for a defined generative task and identify their limits.
+- Diagnose leakage, sampling noise, judge bias, and aggregate-score regressions before release.
 
 ## Core Intuition
 
-"Good" is task-dependent. Perplexity measures language modeling quality. Accuracy measures exact correctness. BLEU measures word-level similarity to references. Human evaluation answers "does this actually help people?" Combine multiple signals for holistic understanding.
+An evaluation is like a carefully designed instrument: it can answer only the questions its sample and measurement rules support. A summarizer's ROUGE score may measure overlap with references, but not whether it preserves the one critical safety instruction. A helpfulness rating may measure preference under a rubric, but not factual correctness. A benchmark score may compare systems on its fixed examples, but does not automatically predict behavior in a different language, product, or user population.
+
+Start by stating the decision. Is the goal to select between two checkpoints, prevent a regression, certify a constrained behavior, or monitor a live product? Define the user task and unacceptable failures before choosing a metric. A system-level evaluation should often include the model plus its prompt, retrieval index, tools, guardrails, and serving configuration because those components jointly determine behavior.
 
 ## How It Works
 
-**Automatic Metrics (Cheap, Fast):**
+Build an evaluation set from a target population and stratify it by meaningful conditions: task type, language, difficulty, prompt length, user group, and known risk. Keep development data separate from a locked test set. Prevent training contamination where possible, remove duplicate or near-duplicate examples, and record provenance and allowed use. For changing products, maintain a stable regression set and a rotating set that captures new behavior. A small curated suite is useful for diagnosis; it is not a probability sample of all future users unless designed as one.
 
-1. **Perplexity** — language modeling quality
-   ```
-   PPL = exp(-(1/N) * Σ log P(token_i))
-   ```
-   Lower is better. Perplexity on test set shows generalization.
+Choose measures matched to each outcome. Exact match and accuracy suit tasks with unambiguous labels. Precision, recall, and F1 expose different error costs for imbalanced labels. BLEU and ROUGE compare token overlap and can penalize valid paraphrases. Semantic similarity metrics add learned representations but can miss factual contradictions. For generation, direct checks can measure format validity, citation support, tool-call correctness, refusal behavior, or task completion. Human assessment can judge usefulness and nuance, but requires clear rubrics, calibrated raters, and a way to resolve disagreement.
 
-2. **Accuracy** — classification/QA
-   ```
-   Accuracy = (correct predictions) / (total)
-   Also: Precision, Recall, F1 (for imbalanced tasks)
-   ```
+Model-based judges can scale comparisons, yet are measurements with their own error. Validate the judge against blinded human ratings on the target domain, inspect subgroup disagreement, and test for position, verbosity, and style preferences. Randomize candidate order and hide model identity. Use pairwise preference when the rubric supports it, and separate dimensions such as factuality and helpfulness rather than collapsing them prematurely. A deterministic judge prompt does not eliminate judge bias.
 
-3. **BLEU** — machine translation, generation similarity to reference
-   ```
-   BLEU = (1/4) * Σ(1 to 4-gram) precision
-   Range: 0-100. ~20-30 for bad, ~40+ for good MT
-   ```
+For a candidate system A and baseline B, use paired examples so both systems see the same cases. Report sample size, per-slice scores, uncertainty, and the comparison method. For a binary outcome with k successes from n independent examples, accuracy is k/n; a confidence interval helps show sampling uncertainty. For paired systems, differences on the same example carry more information than comparing two unrelated averages. Bootstrap or randomization procedures can estimate uncertainty, but the resampling unit must match the data-generating process (for example, user rather than turn when turns are correlated).
 
-4. **ROUGE** — summarization, generation quality
-   ```
-   ROUGE-L = longest common subsequence based
-   ROUGE-N = N-gram recall
-   Range: 0-1. Higher is better.
-   ```
-
-5. **BERTScore** — semantic similarity
-   ```
-   Compare embeddings of generated vs reference
-   More robust to paraphrasing than BLEU/ROUGE
-   ```
-
-6. **Task-specific metrics:**
-   - Question Answering: Exact Match (EM), F1 score
-   - Dialogue: BLEU, METEOR, human fluency
-   - Sentiment: Accuracy (if labeled), agreement with humans
-   - Code Generation: Pass@k (percentage passing k-NN samples)
-
-**Human Evaluation (Expensive, Reliable):**
-- Fluency: Is the output natural English?
-- Coherence: Does it make logical sense?
-- Relevance: Does it answer the question?
-- Factuality: Are claims accurate (fact-checking)?
-- Overall quality: Would you use this in production?
-
-Typically: 100-500 examples, 2-3 annotators per example, inter-annotator agreement (Kappa) ≥ 0.7.
-
-### Workflow Flowchart
-
-```mermaid
-graph TD
-    A["Model"] -->|Automatic<br/>BLEU, ROUGE| B["Score: 85"]
-    A -->|Human<br/>Preference| C["Score: 72"]
-    A -->|Benchmark<br/>MMLU| D["Score: 88"]
-    B -->|Real Deployment| E["User Satisfaction"]
-    C -->|Real Deployment| E
-    D -->|Real Deployment| E
-
-    style B fill:#fff3e0
-    style C fill:#e8f5e9
-    style D fill:#e0f2f1
-```
+Before release, define a gate: required minimums, allowed regressions, critical failure review, and who can override the gate. During deployment, log privacy-safe outcome signals, monitor distribution shift and failure reports, and periodically rerun offline evaluations. Online A/B tests can measure product outcomes under randomized exposure, but require adequate sample size and guardrails; they do not replace targeted safety tests. Never use a single scalar score as a complete description of model quality.
 
 ## Trade-offs
 
-| Metric | Cost | Reliability | Coverage |
-|--------|------|-------------|----------|
-| Perplexity | Free | High (for LM) | Only language modeling |
-| Accuracy | Free | High | Only closed-ended tasks |
-| BLEU/ROUGE | Free | Medium | Generation only |
-| BERTScore | Free | Medium | Semantic similarity |
-| Human Eval | High | Highest | Any task (but slow) |
-| LLM-as-Judge | Medium | Medium | Any task |
+| Method | Strength | Limitation | Best use |
+|---|---|---|---|
+| Exact match/task metric | Cheap, reproducible, easy to gate | Brittle for valid alternative wording; depends on label quality | Constrained outputs and clearly specified tasks |
+| BLEU/ROUGE overlap | Fast and reference-based | Misses semantic equivalence, factuality, and usefulness | Narrow generation comparisons with suitable references |
+| Human rubric | Can assess nuanced usefulness and harms | Cost, rater variability, and limited throughput | High-impact decisions and rubric calibration |
+| LLM judge | Scales structured comparisons | Bias, prompt sensitivity, and correlated model errors | Triage after validation against humans |
+| Online experiment | Measures real product outcomes | Exposure risk, confounding, and slow rare-event detection | Product-level changes with safe rollout controls |
 
-**Metric Selection by Task:**
-
-| Task | Primary Metric | Secondary |
-|------|----------------|-----------|
-| Machine Translation | BLEU, ChrF, human eval | TER |
-| Summarization | ROUGE, human fluency | BERTScore |
-| QA (closed-ended) | Exact Match, F1 | BLEU for reference matching |
-| QA (open-ended) | Human rating | ROUGE, BERTScore |
-| Dialogue | Human fluency, coherence | BLEU (weak) |
-| Code Gen | Pass@k, human review | Coverage of test cases |
-| Classification | Accuracy, F1, confusion matrix | Precision/Recall per class |
+No metric removes the need for sampling judgment. A higher average can hide a critical slice regression; confidence intervals can be narrow around a biased dataset; human agreement can be high when a rubric rewards the wrong behavior. Keep a metric-to-decision map so every reported number has a defined interpretation and owner.
 
 ## Implementation
 
+This deterministic example computes accuracy, precision, recall, and F1 for a binary “acceptable response” label. It demonstrates metric definitions, not a complete LLM evaluation; the labels are supplied judgments, and the result says nothing about how representative the examples are or whether the rubric is valid.
+
 ```python
-import numpy as np
-from datasets import load_dataset
-from transformers import AutoTokenizer, AutoModelForCausalLM
-from rouge_score import rouge_scorer
-import sacrebleu
+def binary_metrics(predictions, labels):
+    if len(predictions) != len(labels) or not labels:
+        raise ValueError("predictions and nonempty labels must have equal length")
+    if any(value not in (0, 1) for value in predictions + labels):
+        raise ValueError("values must be binary integers")
+    tp = sum(p == 1 and y == 1 for p, y in zip(predictions, labels))
+    fp = sum(p == 1 and y == 0 for p, y in zip(predictions, labels))
+    fn = sum(p == 0 and y == 1 for p, y in zip(predictions, labels))
+    tn = sum(p == 0 and y == 0 for p, y in zip(predictions, labels))
+    precision = tp / (tp + fp) if tp + fp else 0.0
+    recall = tp / (tp + fn) if tp + fn else 0.0
+    f1 = 2 * precision * recall / (precision + recall) if precision + recall else 0.0
+    return {"accuracy": (tp + tn) / len(labels), "precision": precision,
+            "recall": recall, "f1": f1, "tp": tp, "fp": fp, "fn": fn, "tn": tn}
 
-# Example: Evaluate summarization model
-dataset = load_dataset("cnn_dailymail", "3.0.0")
-test_set = dataset["test"][:100]  # Use first 100 for quick eval
 
-model_name = "facebook/bart-large-cnn"  # Pre-trained summarizer
-tokenizer = AutoTokenizer.from_pretrained(model_name)
-model = AutoModelForCausalLM.from_pretrained(model_name)
-
-# 1. Generate summaries
-generated_summaries = []
-for article in test_set["article"][:10]:
-    inputs = tokenizer(article, return_tensors="pt", max_length=1024, truncation=True)
-    summary_ids = model.generate(inputs["input_ids"], max_length=100)
-    summary = tokenizer.decode(summary_ids[0], skip_special_tokens=True)
-    generated_summaries.append(summary)
-
-references = test_set["highlights"][:10]
-
-# 2. Compute ROUGE scores
-scorer = rouge_scorer.RougeScorer(["rouge1", "rougeL"], use_stemmer=True)
-rouge_scores = []
-for gen, ref in zip(generated_summaries, references):
-    score = scorer.score(ref, gen)
-    rouge_scores.append({
-        "rouge1": score["rouge1"].fmeasure,
-        "rougeL": score["rougeL"].fmeasure,
-    })
-
-avg_rouge1 = np.mean([s["rouge1"] for s in rouge_scores])
-avg_rougeL = np.mean([s["rougeL"] for s in rouge_scores])
-print(f"ROUGE-1: {avg_rouge1:.3f}")
-print(f"ROUGE-L: {avg_rougeL:.3f}")
-
-# 3. Compute BLEU (if you have multiple references)
-bleu_scores = []
-for gen, ref in zip(generated_summaries, references):
-    bleu = sacrebleu.sentence_bleu(gen, [ref])
-    bleu_scores.append(bleu.score)
-avg_bleu = np.mean(bleu_scores)
-print(f"BLEU: {avg_bleu:.3f}")
-
-# 4. LLM-as-Judge (optional, requires API)
-# Use GPT-4 to score quality
-import openai
-judge_scores = []
-for gen, ref in zip(generated_summaries, references):
-    prompt = f"""Rate the quality of this summary (1-10):
-Reference: {ref}
-Generated: {gen}
-Score:"""
-    response = openai.ChatCompletion.create(
-        model="gpt-4",
-        messages=[{"role": "user", "content": prompt}],
-        temperature=0,
-    )
-    score = int(response['choices'][0]['message']['content'].strip())
-    judge_scores.append(score)
-avg_judge = np.mean(judge_scores)
-print(f"LLM-as-Judge: {avg_judge:.1f}/10")
+scores = binary_metrics([1, 1, 0, 0], [1, 0, 1, 0])
+assert scores["accuracy"] == 0.5
+assert scores["precision"] == 0.5
+assert scores["recall"] == 0.5
+assert scores["f1"] == 0.5
+assert (scores["tp"], scores["fp"], scores["fn"], scores["tn"]) == (1, 1, 1, 1)
 ```
+
+For a real generation task, define labels with an explicit rubric and adjudicate a sample before scaling annotation. Store the dataset version, prompt/model revision, decoding parameters, evaluator version, and metric implementation with every run. Re-run a fixed seed or deterministic decoding for regression checks, while separately evaluating stochastic output distributions when production uses sampling.
 
 ## Failure Modes
 
-- **Over-optimizing single metric:** BLEU can be gamed (match reference exactly). Real quality requires human eval.
-- **Ignoring human baseline:** Your 50 BLEU is only good if human baseline is ~30. Compare to reference and human performance.
-- **Automatic metrics don't measure hallucination:** BLEU/ROUGE measure similarity to reference, not factuality. Model can hallucinate perfectly. Need fact-checking.
-- **Human eval without guidelines:** Annotators need clear instructions (rubric). Without guidelines, inter-annotator agreement is low (Kappa < 0.6).
-- **Small test set:** Metrics are noisy on small sets (<100 examples). Results may not be significant. Larger set (1000+) is safer for conclusions.
-- **Distribution shift:** Metrics on training domain ≠ generalization to production. Evaluate on diverse, representative test sets.
-- **Assuming ROUGE for summaries:** ROUGE-L is standard but limited (lexical overlap only). Combine with BERTScore and human judgment.
-- **Ignoring class imbalance:** For imbalanced classification, accuracy is misleading. Use F1 or balanced accuracy instead.
-- **LLM-as-Judge without validation:** Using GPT-4 to score outputs is tempting but requires validation (does it align with human ratings?). Validate first.
+- **Metric does not match the decision:** A lexical score is treated as factuality or helpfulness. Map every metric to a stated construct and add direct factuality, task-completion, or human checks where needed.
+- **Test leakage or benchmark contamination:** Repeated public examples inflate apparent capability. Deduplicate against training/development sources where feasible, use held-out private or newly authored cases, and record provenance.
+- **Small or unrepresentative sample:** A few examples produce unstable averages or omit important groups. Report sample counts and intervals, stratify by risk, and collect data from the target population.
+- **Aggregate score masks critical regressions:** A model improves common tasks while failing a safety-critical slice. Set slice-level gates and inspect example-level errors before release.
+- **Uncalibrated LLM judge:** The judge favors longer answers, a particular position, or its own style. Blind identities, randomize order, test counterbalanced pairs, and compare agreement with human raters by slice.
+- **Rater disagreement is hidden:** Averaged scores conceal ambiguous rubric dimensions. Measure agreement, adjudicate disagreements, refine examples and instructions, then re-annotate affected cases.
+- **Non-independent observations:** Multiple turns from one user are treated as independent, overstating certainty. Resample or cluster at the user/session level and state the unit of analysis.
+- **Offline score mistaken for production outcome:** Synthetic benchmarks miss workflow and distribution effects. Use guarded online measurement for product impact and retain targeted offline tests for rare failures.
 
 ## Interview Quick Reference
 
-| Question | What to say |
-|---|---|
-| "How to evaluate LLMs?" | Task-dependent: use perplexity (LM), accuracy (classification), ROUGE (generation), human eval (open-ended). |
-| "BLEU limitations?" | Lexical overlap only, doesn't capture paraphrasing, doesn't measure hallucination or factuality. |
-| "Human eval importance?" | Automatic metrics measure similarity, not quality. Human eval answers "is this actually useful?" |
-| "Test set size?" | Aim for 1000+ examples for reliable metrics. <100 is too noisy; results may not be significant. |
-| "How many annotators?" | 2-3 per example for inter-annotator agreement. Kappa ≥ 0.7 is acceptable; <0.6 means guidelines unclear. |
-| "LLM-as-Judge?" | Tempting but untested. Validate that it correlates with human judgments before relying on it. |
+| Question | Answer | Follow-up |
+|---|---|---|
+| How would you evaluate a new assistant model? | Define target decisions, representative tasks, baselines, metrics, risk slices, and release gates; combine automatic checks with calibrated human review. | Debug an average score increase with a safety-slice regression. |
+| What does ROUGE tell you? | Reference-token overlap for generation; it does not establish factual correctness or usefulness. | Design a complementary factuality check. |
+| When is an LLM judge useful? | For scalable rubric-based comparisons after validation against blinded human ratings. | Test whether position bias changes pairwise preferences. |
+| How do you compare two systems? | Use the same cases, paired analysis, uncertainty, and per-slice results; preserve a locked test set. | Choose an uncertainty method when turns are grouped by user. |
 
-
-
-**Design follow-up:** How would you monitor this choice in production and decide when to use an alternative?
 ## Related Concepts
 
-- [Prompt Optimization](17-prompt-optimization.md) — evaluating changes to prompts
-- [Instruction Tuning](05-instruction-tuning.md) — training requires eval metrics
-- [RLHF](06-rlhf.md) — uses human eval for reward modeling
-- [Evaluation Metrics](../../ml/concepts/evaluation-metrics.md) — broader evaluation concepts
+- [Prompt Optimization](17-prompt-optimization.md) uses evaluation results to compare prompt variants.
+- [Instruction Tuning](05-instruction-tuning.md) uses held-out evaluation to assess adaptation.
+- [Multimodal](31-multimodal.md) extends evaluation to inputs and outputs beyond text.
+- [Evaluation of Text Generation: A Survey](https://arxiv.org/abs/2006.14799) reviews reference-based and learned evaluation methods.
 
-## Real-World Examples
+## Practice
 
-### Evaluation in Production LLM API
-Benchmark: MMLU 78%. Production eval: real customer queries. Problem: MMLU accuracy doesn't translate to user satisfaction. Added human eval: 100 random queries per week. Discovered: model good at benchmarks but verbose in practice.
+- [Evaluation interview practice](../interview-prep/curriculum-practice.md#evaluation-for-llms) applies metric selection, uncertainty, and slice-level release gates.
 
-### Multilingual Evaluation Challenges
-English model: 90% accuracy. Same model + light multilingual tuning: 45% on non-English (not measured!). Added language-specific evals. Now: 85% across 10 languages (vs false impression of 90%).
+## References
 
-### Domain Evaluation
-General model on medical domain. MMLU-Medicine: 60%. Real doctor evaluation: accuracy clinically acceptable 92% (very critical tasks missed, needs review). Lesson: domain experts should evaluate.
-
-## Real-World Examples
-
-### Evaluation in Production LLM API
-Benchmark: MMLU 78%. Production eval: real customer queries. Problem: MMLU accuracy doesn't translate to user satisfaction. Added human eval: 100 random queries per week. Discovered: model good at benchmarks but verbose in practice.
-
-### Multilingual Evaluation Challenges
-English model: 90% accuracy. Same model + light multilingual tuning: 45% on non-English (not measured!). Added language-specific evals. Now: 85% across 10 languages (vs false impression of 90%).
-
-### Domain Evaluation
-General model on medical domain. MMLU-Medicine: 60%. Real doctor evaluation: accuracy clinically acceptable 92% (very critical tasks missed, needs review). Lesson: domain experts should evaluate.
-
-## Real-World Examples
-
-### Evaluation in Production LLM API
-Benchmark: MMLU 78%. Production eval: real customer queries. Problem: MMLU accuracy doesn't translate to user satisfaction. Added human eval: 100 random queries per week. Discovered: model good at benchmarks but verbose in practice.
-
-### Multilingual Evaluation Challenges
-English model: 90% accuracy. Same model + light multilingual tuning: 45% on non-English (not measured!). Added language-specific evals. Now: 85% across 10 languages (vs false impression of 90%).
-
-### Domain Evaluation
-General model on medical domain. MMLU-Medicine: 60%. Real doctor evaluation: accuracy clinically acceptable 92% (very critical tasks missed, needs review). Lesson: domain experts should evaluate.
-
-## Real-World Examples
-
-### Evaluation in Production LLM API
-Benchmark: MMLU 78%. Production eval: real customer queries. Problem: MMLU accuracy doesn't translate to user satisfaction. Added human eval: 100 random queries per week. Discovered: model good at benchmarks but verbose in practice.
-
-### Multilingual Evaluation Challenges
-English model: 90% accuracy. Same model + light multilingual tuning: 45% on non-English (not measured!). Added language-specific evals. Now: 85% across 10 languages (vs false impression of 90%).
-
-### Domain Evaluation
-General model on medical domain. MMLU-Medicine: 60%. Real doctor evaluation: accuracy clinically acceptable 92% (very critical tasks missed, needs review). Lesson: domain experts should evaluate.
-
-## Real-World Examples
-
-### Evaluation in Production LLM API
-Benchmark: MMLU 78%. Production eval: real customer queries. Problem: MMLU accuracy doesn't translate to user satisfaction. Added human eval: 100 random queries per week. Discovered: model good at benchmarks but verbose in practice.
-
-### Multilingual Evaluation Challenges
-English model: 90% accuracy. Same model + light multilingual tuning: 45% on non-English (not measured!). Added language-specific evals. Now: 85% across 10 languages (vs false impression of 90%).
-
-### Domain Evaluation
-General model on medical domain. MMLU-Medicine: 60%. Real doctor evaluation: accuracy clinically acceptable 92% (very critical tasks missed, needs review). Lesson: domain experts should evaluate.
-
-## Topic-specific notes
-
-**Q: Why is perplexity a poor metric for evaluating LLM quality for downstream tasks?**
-A: Perplexity measures average per-token log-probability—it captures how well the model fits the text distribution but doesn't measure usefulness for tasks. A model with lower perplexity may perform worse on instruction following, reasoning, or safety. Models can achieve low perplexity by being verbose and hedged in ways that annoy users. Always pair perplexity with task-specific metrics (exact match, ROUGE, human preference win rate) relevant to your actual use case.
-
-**Q: How do you design an LLM evaluation suite that detects regressions before deployment?**
-A: Include: task accuracy benchmarks (MMLU, HumanEval for code), safety benchmarks (ToxiGen, TruthfulQA), capability regression tests (tasks your users care most about), and golden set comparisons (sample outputs from prod that were rated highly—check new model maintains quality). Run automated evals in CI/CD. Flag regressions >2% on any benchmark. Include adversarial examples: jailbreaks, edge cases that previously caused failures. Human eval is the gold standard but too slow for CI—use it for final pre-release validation.
-
-**Q: What are the limitations of LLM-as-judge evaluation?**
-A: LLM judges have systematic biases: position bias (prefers responses listed first), verbosity bias (prefers longer responses), self-enhancement bias (GPT-4 rates GPT-4 outputs higher). These biases can mislead optimization—models fine-tuned to score higher on LLM-judge may not actually be better for users. Mitigate: randomize response order, use multiple judges, calibrate against human preferences, use structured rubrics rather than free-form scoring, and regularly validate LLM judge scores against human agreement.
-
-**Q: How do you measure hallucination rate and what constitutes a reliable evaluation?**
-A: Hallucination types: (1) factual hallucination—claims contradicted by external knowledge; (2) faithfulness hallucination—claims not supported by provided context (RAG). Measure faithfulness with: FActScore (decompose response into atomic facts, verify each against source), NLI-based entailment classifiers, or LLM-as-judge with explicit attribution criteria. Factual hallucination is harder—requires knowledge base queries or search verification. Sample 100-500 responses from production and measure; automate with a classifier validated on human labels.
-
-**Q: What is the difference between static benchmark evaluation and online evaluation?**
-A: Static benchmarks (MMLU, HumanEval): fixed test sets, reproducible, good for regression testing, but may become saturated (models trained on benchmark-like data) or not reflect real user needs. Online evaluation: uses actual user queries and interactions, reflects real distribution, includes implicit feedback (thumbs up/down, re-asks, session abandonment). Online evaluation is more valid but harder to instrument and interpret. Best practice: use static benchmarks for development decisions; use online metrics for production quality monitoring.
-
-**Q: How do you handle evaluation for subjective tasks where there is no single correct answer?**
-A: For creative writing, explanation quality, or tone—use pairwise comparison (A vs. B) rather than absolute scoring, which is more reliable and less affected by scale calibration issues. Collect multiple human ratings per response and report inter-annotator agreement (Cohen's kappa). Use diverse annotators to capture different preferences. For production, use implicit signals (user satisfaction, follow-up rate, session length) as proxies. Separate "factually correct" from "stylistically preferred" in your rubrics.
-
-## Resources
-
-- [BLEU: a Method for Automatic Evaluation of Machine Translation](https://aclanthology.org/P02-1040/)
-- [ROUGE: A Package for Automatic Evaluation of Summaries](https://aclanthology.org/W04-1013/)
-- [Evaluation of Text Generation: A Survey](https://arxiv.org/abs/2006.14799)
-- [On Evaluating and Comparing LLMs](https://huggingface.co/spaces/HuggingFace/open_llm_leaderboard)
-
-## Concept Relationships
-
-```mermaid
-graph TD
-    A["Evaluation"]
-    A -->|used with| D["Fine-tuning"]
-    A -->|used with| D["Instruction Tuning"]
-    
-    style A fill:#fff3e0
-```
-
-## Interview Questions
-
-**Q: What are the main evaluation metrics for LLMs?**
-*A: Task-specific: accuracy, F1, BLEU (translation), ROUGE (summarization). General: perplexity, HellaSwag, MMLU benchmarks. Human: preference rating, satisfaction, specific criteria. Choose based on task. Perplexity ≠ quality (low perplexity but poor outputs possible).*
-
-**Q: Why is human evaluation necessary?**
-*A: Automatic metrics miss quality nuances. Example: 'The quick brown fox' vs 'A fast auburn fox' same BLEU (metric) but different readability. Human eval catches: coherence, factuality, tone, usefulness. Best: combine automatic + human.*
-
-**Q: What's the difference between intrinsic and extrinsic evaluation?**
-*A: Intrinsic: model performance on benchmark (MMLU 75%). Extrinsic: how well it helps in real application (customer satisfaction 80%). Best practice: measure both. A model scoring well on benchmarks might underperform in production.*
-
-**Q: How do you avoid benchmark overfitting?**
-*A: Test on out-of-distribution data. Track new vs held-out vs old benchmarks. Different evaluation protocols. Domain-specific evals alongside general benchmarks. Regular human spot-checks.*
-
-**Q: What's the right evaluation sample size?**
-*A: Rule of thumb: 1000+ examples for statistical significance. Small: 100 (high variance). Medium: 500 (reasonable). Large: 5000+ (more cost). For human eval: 50-500 (expensive per example).*
+- [BLEU: a Method for Automatic Evaluation of Machine Translation](https://aclanthology.org/P02-1040/) defines a reference-based n-gram metric and its intended setting.
+- [ROUGE: A Package for Automatic Evaluation of Summaries](https://aclanthology.org/W04-1013/) describes overlap metrics for summarization evaluation.
+- [Holistic Evaluation of Language Models (HELM)](https://arxiv.org/abs/2211.09110) presents broad scenario and metric coverage for language model evaluation.
