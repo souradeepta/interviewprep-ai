@@ -1,304 +1,96 @@
 # Chain-of-Thought (CoT)
-
-Humans solve hard problems by thinking aloud.
+TL;DR: Chain-of-thought prompting asks a language model to generate intermediate steps before an answer, which can help on some multi-step tasks but does not guarantee correct or faithful reasoning.
 
 ## Prerequisites
 
-Familiarity with in context learning. This note focuses on the LLM-specific mechanism and its engineering selection boundary.
+Understand [prompting](12-prompting.md) and [in-context learning](15-in-context-learning.md). This lesson covers elicited intermediate text at inference; it does not treat generated explanations as verified records of a model's internal computation.
 
 ## Learning Outcomes
 
-- Explain the mechanism and assumptions behind chain-of-thought (cot).
-- Compare its main alternative using task quality and one operational cost.
-- Diagnose a failure using a metric or example tied to chain-of-thought (cot).
+- Describe zero-shot and example-based chain-of-thought prompting and the types of tasks they target.
+- Explain why intermediate text can help while still containing unsupported or invalid steps.
+- Compare direct answers, CoT, and self-consistency using task quality, latency, and token cost.
+- Design a task-appropriate validation method that checks final answers independently of their explanations.
 
 ## Core Intuition
 
-Humans solve hard problems by thinking aloud. "I need to: 1) understand the problem, 2) identify steps, 3) compute, 4) verify." CoT tells LLMs to do the same. More thinking → better answers, but costs more tokens.
+For a multi-step arithmetic problem, writing intermediate quantities can expose where a calculation goes wrong: start with 12, subtract 3, then subtract 2. CoT prompting asks a model to produce a sequence of intermediate statements before its final answer. Those extra tokens give the model a structured continuation and can improve performance on selected reasoning benchmarks, especially for sufficiently capable models and tasks where decomposition is useful.
+
+The important limit is that a plausible sequence is not proof of correctness. The model may generate a wrong step, rationalize an answer after the fact, or produce text that does not faithfully represent the computation that led to the output. The chain is generated language and must be checked against the task. For an exact math problem, execute or independently verify the arithmetic. For a factual question, check authoritative evidence. For a classification task, score the final label against labeled examples. A longer explanation is not a confidence estimate.
+
+CoT is also distinct from a formal planner or proof system. It usually does not enforce valid transitions between steps. If correctness depends on invariants, arithmetic precision, or external facts, a calculator, program, database, or verifier may be more reliable than asking for more prose. The design goal is therefore not “always make the model think longer”; it is to test whether an intermediate representation improves the final task metric enough to justify its cost and risks.
 
 ## How It Works
 
-**Without CoT:**
-```
-Q: If John has 3 apples, buys 2 more, then eats 1, how many does he have?
-A: 4 apples
-(No intermediate reasoning shown)
-```
+In direct prompting, the model produces an answer from the question. A CoT prompt changes the requested output sequence, for example by asking for a concise derivation or by supplying worked demonstrations. Zero-shot CoT provides an instruction to break the problem into steps. Few-shot CoT provides examples whose intermediate steps and final answers model the expected structure. Neither method changes the model weights during inference.
 
-**With CoT:**
-```
-Q: If John has 3 apples, buys 2 more, then eats 1, how many does he have?
+Let `q` be a problem, `r` an intermediate text sequence, and `a` the final answer. The model generates from `p(r, a | q, prompt)`. The application should evaluate `a` against a task-specific criterion, and may separately evaluate whether `r` satisfies useful constraints. This notation does not imply that `r` is a causal transcript of hidden reasoning. CoT may be inappropriate where internal-looking explanations are sensitive or where users could mistake them for audited evidence; a concise answer with citations or a structured, externally verifiable trace can be a better interface.
 
-Let's think step-by-step:
-1. John starts with 3 apples
-2. He buys 2 more: 3 + 2 = 5 apples
-3. He eats 1: 5 - 1 = 4 apples
-4. Answer: John has 4 apples
-```
+Self-consistency is a related inference strategy: sample multiple reasoning paths, extract each final answer, and aggregate them, often by majority vote. It can improve some reasoning benchmarks when errors are diverse and answers can be compared. It also multiplies generation work, and voting does not help when samples share the same systematic error. It requires robust answer extraction: naive parsing of the last token can turn formatting variation into a false result. For numerical answers, normalize representations and reject malformed outputs before aggregation.
 
-**Few-shot CoT (Most effective):**
-```
-Prompt: "Solve step-by-step. Examples:
-
-Q: 5 + 3*2 = ?
-A: 1) Order of operations: multiply first
-   2) 3 * 2 = 6
-   3) 5 + 6 = 11
-   Answer: 11
-
-Now solve: 10 - 4/2 = ?"
-```
-
-**Self-Consistency (Voting):**
-```
-Run CoT multiple times (different sampled generations)
-Take majority vote on final answer
-Improves accuracy by 5-15% (handles hallucinations)
-```
-
-### Workflow Flowchart
-
-```mermaid
-graph TD
-    A["Problem"] -->|Direct| B["Answer"]
-    A -->|CoT| C["Step 1:<br/>Decompose"]
-    C --> D["Step 2:<br/>Intermediate"]
-    D --> E["Step 3:<br/>Solution"]
-    E -->|Output| F["Reasoning Trace"]
-    B --> G["Low Accuracy"]
-    F --> H["High Accuracy"]
-
-    style A fill:#e3f2fd
-    style C fill:#fff3e0
-    style D fill:#fff3e0
-    style E fill:#fff3e0
-    style G fill:#ffebee
-    style H fill:#e8f5e9
-```
+CoT should be evaluated at the level of the application outcome. Use a fixed test set and compare direct-answer and CoT variants with the same model and decoding conditions where feasible. For sampling strategies, report the number of generations and total tokens. Break results down by difficulty and problem type. Include cases that tempt a model to confidently invent intermediate facts, and verify that the final answer is not merely consistent with a flawed explanation. On safety-sensitive tasks, keep expert review and established decision procedures in the loop.
 
 ## Trade-offs
 
-| Approach | Accuracy | Token Cost | Latency |
-|----------|----------|-----------|---------|
-| No reasoning | 60% | 1x | 1x |
-| CoT prompt | 75% | 3-5x | 3-5x |
-| Few-shot CoT | 85% | 5-10x | 5-10x |
-| Self-consistency CoT | 90% | 10-30x | 10-30x |
+| Method | Potential benefit | Cost | Main limitation |
+|---|---|---|---|
+| Direct answer | Low output length and latency | Minimal | May fail to organize a problem requiring multiple steps |
+| Zero-shot CoT | Adds a decomposition cue without authoring worked examples | More output tokens and latency | Effect varies by model and task; instruction can elicit irrelevant prose |
+| Few-shot CoT | Demonstrates an expected solution format and task-specific steps | Prompt plus output tokens; example curation | Demonstrations may encode errors or bias the solution path |
+| Self-consistency | Aggregates multiple sampled answers when errors vary | Multiple generations and answer parsing | Shared errors remain; majority vote is not verification |
+| Tool or verifier | Can enforce arithmetic or task-specific constraints | Integration and tool execution cost | Requires a correct tool, schema, and failure handling |
 
-**Task suitability:**
-- Works best: math, logic, reasoning, multi-step
-- Marginal benefit: factual QA, classification
-- Minimal benefit: simple generation, creative writing
+The choice depends on whether the task has objectively checkable outputs and on the service's latency budget. For a short arithmetic expression, direct execution can be both cheaper and more exact. For a word problem, a concise structured solution may help identify interpretation errors, but the arithmetic should still be checked. For open-ended analysis, evaluate factual support and usefulness rather than rewarding length. A benchmark gain in one model or dataset does not guarantee a gain in another.
 
 ## Implementation
 
+This dependency-light example compares a direct arithmetic baseline with a hand-written step sequence and verifies the result with a separate function. It illustrates independent checking; it does not call an LLM or measure CoT effectiveness.
+
 ```python
-import openai
+def direct_answer(start, bought, used):
+    return start + bought - used
 
-# Without CoT
-prompt_no_cot = "Q: Sally has 12 apples. She gives 3 to her friend and eats 2. How many does she have?\nA:"
+def check_steps(start, bought, used, stated_answer):
+    after_purchase = start + bought
+    after_use = after_purchase - used
+    return after_purchase, after_use, after_use == stated_answer
 
-response = openai.ChatCompletion.create(
-    model="gpt-4",
-    messages=[{"role": "user", "content": prompt_no_cot}],
-    temperature=0,
-)
-print("No CoT:", response['choices'][0]['message']['content'])
-# Output: "7 apples"
-
-# With CoT
-prompt_cot = """Q: Sally has 12 apples. She gives 3 to her friend and eats 2. How many does she have?
-
-Let's think step-by-step:
-1. Sally starts with 12 apples
-2. She gives 3 away: 12 - 3 = 9
-3. She eats 2: 9 - 2 = 7
-A: 7 apples"""
-
-response = openai.ChatCompletion.create(
-    model="gpt-4",
-    messages=[{"role": "user", "content": prompt_cot}],
-    temperature=0,
-)
-print("With CoT:", response['choices'][0]['message']['content'])
-
-# Self-consistency (voting over multiple generations)
-prompt_problem = "Q: Sally has 12 apples. She gives 3 to her friend and eats 2. How many does she have?\nLet's think step-by-step:"
-
-answers = []
-for _ in range(5):  # Run 5 times
-    response = openai.ChatCompletion.create(
-        model="gpt-4",
-        messages=[{"role": "user", "content": prompt_problem}],
-        temperature=0.7,  # Allow variation
-    )
-    reasoning = response['choices'][0]['message']['content']
-    # Extract final number from reasoning
-    answer = int(reasoning.split()[-1])  # Simplified extraction
-    answers.append(answer)
-
-# Majority vote
-from collections import Counter
-most_common = Counter(answers).most_common(1)[0][0]
-print(f"Self-consistency answer (majority vote): {most_common}")
+answer = direct_answer(12, 3, 2)
+intermediate, final_value, valid = check_steps(12, 3, 2, answer)
+assert (intermediate, final_value, valid) == (15, 13, True)
+assert check_steps(12, 3, 2, 7)[2] is False
 ```
+
+In a model-backed application, keep the output contract separate from the prompt for reasoning. Parse the final answer into a typed field, reject missing or malformed values, and validate it with an independent task check where possible. If you compare self-consistency, cap the sample count and record total cost; never silently return a majority from malformed or incompatible answers. Retain only the explanation detail needed by the user and the task, and avoid claiming that generated text is a faithful internal trace.
 
 ## Failure Modes
 
-- **Not letting model think:** "Step-by-step" alone isn't enough; LLM needs examples of detailed reasoning.
-- **Reasoning contradicts answer:** CoT reasons correctly but final answer is wrong. Check consistency.
-- **Hallucinating steps:** LLM invents plausible-sounding reasoning that's false. Validate against facts.
-- **Too verbose:** Very long CoT can confuse. Optimal: 2-5 reasoning steps, concise language.
-- **Task mismatch:** Using CoT for simple tasks wastes tokens. Only use for complex reasoning.
-- **Extracting wrong answer:** Model shows correct CoT but final answer is incorrect extraction. Parse carefully.
+- **A plausible but invalid step leads to the answer.** The explanation reads smoothly but violates arithmetic or a domain rule. Recompute with code, a trusted tool, or an explicit verifier and measure final-answer correctness separately from explanation quality.
+- **The task does not benefit from decomposition.** CoT adds latency and verbosity without improving outcomes. Run an ablation against direct answers and remove the extra generation if the task metric does not justify it.
+- **The prompt elicits unsupported facts.** The model fills missing premises with invented details. Require the system to identify insufficient information, verify claims against sources, and test under-specified examples.
+- **Self-consistency shares correlated errors.** Many samples repeat the same wrong assumption. Add adversarial or counterexample tests, use an independent verifier, and compare the method with a deterministic tool.
+- **Answer extraction is brittle.** A correct value followed by punctuation or units is parsed incorrectly. Use a constrained structured output when available and validate typed results with explicit test cases.
+- **Explanation is mistaken for a faithful trace.** Reviewers infer that every generated step reveals the model's true internal process. Describe it as generated rationale, and base audits on observable task behavior and independent evidence.
 
 ## Interview Quick Reference
 
-| Question | What to say |
+| Question | Answer |
 |---|---|
-| "Chain-of-thought?" | Prompt LLM to show reasoning steps. Improves accuracy 10-50% on complex tasks. Trade: more tokens. |
-| "When use CoT?" | Reasoning tasks (math, logic, multi-step). Not needed for simple classification or generation. |
-| "Few-shot vs prompt?" | Few-shot (examples of reasoning) much better than just "think step-by-step." Show examples. |
-| "Self-consistency?" | Run CoT multiple times, vote on answer. Reduces hallucinations, +5-15% accuracy, but 10-30x tokens. |
-| "Hallucinating reasoning?" | Risk: LLM shows plausible-sounding but false reasoning. Validate facts independently. |
+| What is CoT prompting? | Asking the model to generate intermediate text before its final answer, sometimes using worked examples to show a solution format. |
+| When can it help? | On tasks where decomposition is useful and the model can use the extra context; validate the gain on the target task rather than assuming it. |
+| Is a correct-looking chain proof of a correct answer? | No. Steps can be wrong, unsupported, or unfaithful to the computation. Check the final result independently. |
+| What is self-consistency? | Generate multiple sampled solutions and aggregate normalized final answers; it may help when errors differ but increases cost and is not a verifier. |
+| Design follow-up: how do you decide whether to deploy CoT? | Compare against direct prompting on held-out cases, independently score outputs, and report quality, token usage, latency, and failure slices. |
 
-
-
-**Design follow-up:** How would you monitor this choice in production and decide when to use an alternative?
 ## Related Concepts
 
-- [Prompting](12-prompting.md) — structuring prompts for effectiveness
-- [Planning & Reasoning](../../agentic-ai/concepts/07-planning-reasoning.md) — agents use similar decomposition
-- [In-Context Learning](15-in-context-learning.md) — few-shot examples improve CoT
+- [In-Context Learning](15-in-context-learning.md) — inference-time context can include reasoning demonstrations.
+- [Prompting](12-prompting.md) — instructions and output structure.
+- [Planning and Reasoning](../../agentic-ai/concepts/07-planning-reasoning.md) — explicit decomposition in multi-step agent workflows.
+- [Chain-of-Thought practice](../interview-prep/curriculum-practice.md#chain-of-thought-cot) — matching manifest-owned assessment.
+- [Chain-of-Thought Prompting Elicits Reasoning in Large Language Models](https://proceedings.neurips.cc/paper/2022/hash/9d5609613524ecf4f15af0f7b31abca4-Abstract-Conference.html) — primary study of the prompting method.
+- [Self-Consistency Improves Chain of Thought Reasoning](https://arxiv.org/abs/2203.11171) — primary study of sampled reasoning and answer aggregation.
 
 ## Real-World Examples
 
-### CoT for Medical Diagnosis
-Input: Patient symptoms. Direct prompt: 'What's the diagnosis?' Accuracy: 61%. CoT prompt: 'Step 1) Symptom analysis. Step 2) Differential diagnosis. Step 3) Most likely condition.' Accuracy: 84%. Real hospital: gated behind doctor review, but used to highlight important differential diagnoses.
-
-### Self-Consistency for Math Homework Grading
-Problem: '2x + 5 = 13, solve for x'. Direct: 43% accuracy. CoT: 91% accuracy. Self-consistency (k=3): 96% accuracy. Used in educational platform: grade student work, identify common misconceptions. Cost: 3 inference calls per problem (acceptable for async grading).
-
-### CoT in Customer Support Routing
-Ticket: 'Order arrived damaged, want refund'. Direct: Assigns to 'Returns' (50%). CoT: 'Step 1) Assess urgency (high). Step 2) Identify need (refund + replacement). Step 3) Route to specialized team.' Assigns to 'High-Priority Returns' (90%). Reduces escalations by 35%.
-
-## Real-World Examples
-
-### CoT for Medical Diagnosis
-Input: Patient symptoms. Direct prompt: 'What's the diagnosis?' Accuracy: 61%. CoT prompt: 'Step 1) Symptom analysis. Step 2) Differential diagnosis. Step 3) Most likely condition.' Accuracy: 84%. Real hospital: gated behind doctor review, but used to highlight important differential diagnoses.
-
-### Self-Consistency for Math Homework Grading
-Problem: '2x + 5 = 13, solve for x'. Direct: 43% accuracy. CoT: 91% accuracy. Self-consistency (k=3): 96% accuracy. Used in educational platform: grade student work, identify common misconceptions. Cost: 3 inference calls per problem (acceptable for async grading).
-
-### CoT in Customer Support Routing
-Ticket: 'Order arrived damaged, want refund'. Direct: Assigns to 'Returns' (50%). CoT: 'Step 1) Assess urgency (high). Step 2) Identify need (refund + replacement). Step 3) Route to specialized team.' Assigns to 'High-Priority Returns' (90%). Reduces escalations by 35%.
-
-## Real-World Examples
-
-### CoT for Medical Diagnosis
-Input: Patient symptoms. Direct prompt: 'What's the diagnosis?' Accuracy: 61%. CoT prompt: 'Step 1) Symptom analysis. Step 2) Differential diagnosis. Step 3) Most likely condition.' Accuracy: 84%. Real hospital: gated behind doctor review, but used to highlight important differential diagnoses.
-
-### Self-Consistency for Math Homework Grading
-Problem: '2x + 5 = 13, solve for x'. Direct: 43% accuracy. CoT: 91% accuracy. Self-consistency (k=3): 96% accuracy. Used in educational platform: grade student work, identify common misconceptions. Cost: 3 inference calls per problem (acceptable for async grading).
-
-### CoT in Customer Support Routing
-Ticket: 'Order arrived damaged, want refund'. Direct: Assigns to 'Returns' (50%). CoT: 'Step 1) Assess urgency (high). Step 2) Identify need (refund + replacement). Step 3) Route to specialized team.' Assigns to 'High-Priority Returns' (90%). Reduces escalations by 35%.
-
-## Real-World Examples
-
-### CoT for Medical Diagnosis
-Input: Patient symptoms. Direct prompt: 'What's the diagnosis?' Accuracy: 61%. CoT prompt: 'Step 1) Symptom analysis. Step 2) Differential diagnosis. Step 3) Most likely condition.' Accuracy: 84%. Real hospital: gated behind doctor review, but used to highlight important differential diagnoses.
-
-### Self-Consistency for Math Homework Grading
-Problem: '2x + 5 = 13, solve for x'. Direct: 43% accuracy. CoT: 91% accuracy. Self-consistency (k=3): 96% accuracy. Used in educational platform: grade student work, identify common misconceptions. Cost: 3 inference calls per problem (acceptable for async grading).
-
-### CoT in Customer Support Routing
-Ticket: 'Order arrived damaged, want refund'. Direct: Assigns to 'Returns' (50%). CoT: 'Step 1) Assess urgency (high). Step 2) Identify need (refund + replacement). Step 3) Route to specialized team.' Assigns to 'High-Priority Returns' (90%). Reduces escalations by 35%.
-
-## Real-World Examples
-
-### CoT for Medical Diagnosis
-Input: Patient symptoms. Direct prompt: 'What's the diagnosis?' Accuracy: 61%. CoT prompt: 'Step 1) Symptom analysis. Step 2) Differential diagnosis. Step 3) Most likely condition.' Accuracy: 84%. Real hospital: gated behind doctor review, but used to highlight important differential diagnoses.
-
-### Self-Consistency for Math Homework Grading
-Problem: '2x + 5 = 13, solve for x'. Direct: 43% accuracy. CoT: 91% accuracy. Self-consistency (k=3): 96% accuracy. Used in educational platform: grade student work, identify common misconceptions. Cost: 3 inference calls per problem (acceptable for async grading).
-
-### CoT in Customer Support Routing
-Ticket: 'Order arrived damaged, want refund'. Direct: Assigns to 'Returns' (50%). CoT: 'Step 1) Assess urgency (high). Step 2) Identify need (refund + replacement). Step 3) Route to specialized team.' Assigns to 'High-Priority Returns' (90%). Reduces escalations by 35%.
-
-## Real-World Examples
-
-### CoT for Medical Diagnosis
-Input: Patient symptoms. Direct prompt: 'What's the diagnosis?' Accuracy: 61%. CoT prompt: 'Step 1) Symptom analysis. Step 2) Differential diagnosis. Step 3) Most likely condition.' Accuracy: 84%. Real hospital: gated behind doctor review, but used to highlight important differential diagnoses.
-
-### Self-Consistency for Math Homework Grading
-Problem: '2x + 5 = 13, solve for x'. Direct: 43% accuracy. CoT: 91% accuracy. Self-consistency (k=3): 96% accuracy. Used in educational platform: grade student work, identify common misconceptions. Cost: 3 inference calls per problem (acceptable for async grading).
-
-### CoT in Customer Support Routing
-Ticket: 'Order arrived damaged, want refund'. Direct: Assigns to 'Returns' (50%). CoT: 'Step 1) Assess urgency (high). Step 2) Identify need (refund + replacement). Step 3) Route to specialized team.' Assigns to 'High-Priority Returns' (90%). Reduces escalations by 35%.
-
-## Real-World Examples
-
-### CoT for Medical Diagnosis
-Input: Patient symptoms. Direct prompt: 'What's the diagnosis?' Accuracy: 61%. CoT prompt: 'Step 1) Symptom analysis. Step 2) Differential diagnosis. Step 3) Most likely condition.' Accuracy: 84%. Real hospital: gated behind doctor review, but used to highlight important differential diagnoses.
-
-### Self-Consistency for Math Homework Grading
-Problem: '2x + 5 = 13, solve for x'. Direct: 43% accuracy. CoT: 91% accuracy. Self-consistency (k=3): 96% accuracy. Used in educational platform: grade student work, identify common misconceptions. Cost: 3 inference calls per problem (acceptable for async grading).
-
-### CoT in Customer Support Routing
-Ticket: 'Order arrived damaged, want refund'. Direct: Assigns to 'Returns' (50%). CoT: 'Step 1) Assess urgency (high). Step 2) Identify need (refund + replacement). Step 3) Route to specialized team.' Assigns to 'High-Priority Returns' (90%). Reduces escalations by 35%.
-
-## Topic-specific notes
-
-**Q: When does chain-of-thought prompting fail to improve performance?**
-A: CoT fails for: tasks where the reasoning process is trivial (simple classification, information extraction where the answer is directly in the context), tasks requiring factual recall where reasoning doesn't add information, very small models (<7B) that don't have the reasoning capacity to generate correct chains, and tasks where intermediate steps are error-prone (if any step is wrong, the final answer is usually wrong). Test empirically—CoT adds tokens and sometimes hurts.
-
-**Q: What is the difference between few-shot CoT and zero-shot CoT?**
-A: Few-shot CoT: provide example (question → step-by-step reasoning → answer) triples—the model learns the reasoning format and style from examples. Zero-shot CoT: just add "Let's think step by step" to the prompt—the model generates its own reasoning chain. Few-shot CoT is more reliable and controllable (you can demonstrate the desired reasoning depth and style). Zero-shot CoT is simpler and works surprisingly well for large models—useful when you don't have reasoning examples.
-
-**Q: How does self-consistency improve over standard CoT?**
-A: Self-consistency generates multiple reasoning chains (10-40) with high temperature sampling, then takes majority vote on the final answers. It improves accuracy by 5-15% over greedy CoT because: different reasoning paths may lead to the same correct answer, majority vote cancels out chains with reasoning errors, and diverse paths explore more of the solution space. Cost: 10-40x more inference calls. Use when accuracy is critical and inference cost is secondary.
-
-**Q: What makes a good chain-of-thought example vs a bad one?**
-A: Good: shows the reasoning steps that are actually necessary (not just verbose repetition of the question), arrives at the correct answer, uses concise language (long chains introduce more error opportunities), and demonstrates how to handle the specific difficulty of your task type. Bad: shows unnecessary steps that add tokens without helping, uses idiosyncratic notation the model may not generalize, or demonstrates reasoning that's overly specific to one input type.
-
-**Q: How do you evaluate whether CoT actually improves reasoning vs. just adding verbosity?**
-A: Compare: CoT vs. direct answer on a task requiring multi-step reasoning (math, logic). Check: do models produce correct intermediate steps (not just correct final answers)? Analyze failures: when CoT gives wrong answer, is the reasoning chain plausible but incorrect, or is it clearly wrong? Run ablations with shorter, longer, and different reasoning chain lengths. If CoT improves final answer accuracy without improving intermediate step accuracy, the "reasoning" may be post-hoc rationalization.
-
-**Q: What is tree-of-thought prompting and when is it worth the extra complexity?**
-A: Tree-of-thought (ToT) extends CoT by exploring multiple reasoning branches at each step, using the model to evaluate branch quality and prune poor paths—essentially beam search over reasoning trees. Worth it for: complex planning problems with many decision points (game playing, multi-step coding), tasks where there are multiple plausible approaches to compare, or when single-chain CoT frequently fails. Not worth it for: tasks solvable with 1-3 reasoning steps, or when latency matters—ToT requires many more model calls.
-
-## Resources
-
-- [Chain-of-Thought Prompting Elicits Reasoning in LLMs](https://arxiv.org/abs/2201.11903)
-- [Self-Consistency Improves Chain of Thought Reasoning](https://arxiv.org/abs/2203.11171)
-- [OpenAI: Chain-of-Thought Prompting](https://platform.openai.com/docs/guides/prompt-engineering)
-
-## Concept Relationships
-
-```mermaid
-graph TD
-    A["Chain-of-Thought"]
-    B["Prompting"] -->|prerequisite| A
-    A -->|used with| D["Few-Shot Learning"]
-    A -->|used with| D["Instruction Tuning"]
-    
-    style A fill:#fff3e0
-```
-
-## Interview Questions
-
-**Q: What problem does chain-of-thought solve?**
-*A: LLMs struggle with multi-step reasoning. Direct answer: 'What's 8+7?' → often wrong on arithmetic. CoT: 'Think step by step: 8+7, 8+5=13, 13+2=15' → correct. CoT helps math, logic, commonsense. Mechanism: intermediate steps force model to decompose problem, preventing shortcuts.*
-
-**Q: How much does CoT improve accuracy?**
-*A: Depends on task: simple classification (minimal gain), math (+15-30%), logic puzzles (+20-40%), commonsense QA (+10-20%). Cost: 3-10x more tokens. Trade-off: accuracy vs latency. On MMLU: 52% (direct) → 82% (CoT with GPT-3.5).*
-
-**Q: What's self-consistency and when use it?**
-*A: Generate N different reasoning chains, take majority vote. k=5: 5 different paths. Improves robustness and accuracy (+5-10% on math). Cost: 5x inference. Best for: high-stakes decisions, math problems. Overkill for: simple classification.*
-
-**Q: How do you prompt for effective CoT?**
-*A: Key phrases: 'Let's think step by step', 'First...', 'Therefore...', 'The answer is'. Effective: explicit numbered steps. Weak: vague reasoning. Example: 'Step 1) Identify variables. Step 2) Set up equation. Step 3) Solve.' Works better than 'Think carefully'.*
-
-**Q: When should you avoid CoT?**
-*A: Simple tasks: 'Is this spam?' (direct answer fine). High-latency requirements: 10ms budget. Streaming: CoT requires full chain before streaming starts. Cost-sensitive: 3-10x token increase. Use direct prompting for these; CoT for reasoning tasks only.*
+A grading assistant might produce a short solution outline for a word problem and compare the final value with an independently computed answer. The outline can help a teacher locate a student's misconception, but it should not determine the grade by itself: an incorrect explanation can end at the right number, and a valid alternative method may differ from the generated steps. A sensible evaluation tests answer accuracy and explanation usefulness separately, measures the additional response time, and routes ambiguous cases for human review. This is a design example, not a claim about measured educational outcomes.

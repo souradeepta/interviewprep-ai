@@ -12,9 +12,14 @@ ROOT = Path(__file__).resolve().parents[1]
 SMOKE_NOTEBOOKS = (
     ROOT / "stats/notebooks/08-ab-testing-statistics.ipynb",
     ROOT / "cv/notebooks/05-contrastive-learning-vision.ipynb",
-    # The generated LLM concept notebooks load remote model weights; use the
-    # local concept map for deterministic smoke execution instead.
+    # Most generated LLM notebooks load remote model weights; these five are
+    # dependency-light deterministic curriculum pilots and execute locally.
     ROOT / "llm/notebooks/00-concept-map.ipynb",
+    ROOT / "llm/notebooks/09-adapters.ipynb",
+    ROOT / "llm/notebooks/13-few-shot-learning.ipynb",
+    ROOT / "llm/notebooks/15-in-context-learning.ipynb",
+    ROOT / "llm/notebooks/16-chain-of-thought.ipynb",
+    ROOT / "llm/notebooks/18-rag.ipynb",
     ROOT / "nlp/notebooks/01-text-preprocessing.ipynb",
     ROOT / "rl/notebooks/01-markov-decision-processes.ipynb",
     ROOT / "ai/notebooks/01-gradient-descent.ipynb",

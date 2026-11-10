@@ -77,7 +77,10 @@ class TestNotebookStructure:
             f"{notebook_path.name}: Has {len(code_cells)} code cells (need at least 1)"
 
         # Check that code cells have content (not just comments)
-        has_code = any('import' in cell.source or '=' in cell.source for cell in code_cells)
+        has_code = any(
+            any(token in cell.source for token in ('import', '=', 'def ', 'return ', 'assert '))
+            for cell in code_cells
+        )
         assert has_code, f"{notebook_path.name}: Code cells appear to be empty or comments-only"
 
     @pytest.mark.parametrize("notebook_path", get_all_notebooks())
@@ -97,8 +100,12 @@ class TestNotebookStructure:
         with open(notebook_path) as f:
             nb = nbformat.read(f, as_version=4)
         full_text = "\n".join(cell.source for cell in nb.cells)
-        assert "import" in full_text or "pseudocode" in full_text.lower(), \
-            f"{notebook_path.name}: Missing code section or imports"
+        code_text = "\n".join(cell.source for cell in nb.cells if cell.cell_type == "code")
+        assert code_text.strip() and (
+            "import" in full_text
+            or "pseudocode" in full_text.lower()
+            or any(token in code_text for token in ("def ", "return ", "assert ", "="))
+        ), f"{notebook_path.name}: Missing executable code section"
 
 class TestFlowchartSyntax:
     """Test code quality and syntax."""

@@ -1,232 +1,119 @@
 # Few-Shot Learning
-
-Humans learn fast from examples: show one translation, they get the pattern.
+TL;DR: Few-shot learning supplies a small set of labeled examples at inference time so a model can apply a task pattern to a new input without updating its weights.
 
 ## Prerequisites
 
-Familiarity with prompting. This note focuses on the LLM-specific mechanism and its engineering selection boundary.
+Know how a prompt pairs an input with an expected output; [prompting](12-prompting.md) and [zero-shot learning](14-zero-shot-learning.md) provide useful contrasts. Here “few-shot” refers to examples supplied in the prompt, not a small fine-tuning dataset.
 
 ## Learning Outcomes
 
-- Explain the mechanism and assumptions behind few-shot learning.
-- Compare its main alternative using task quality and one operational cost.
-- Diagnose a failure using a metric or example tied to few-shot learning.
+- Construct a few-shot prompt with a clear task, consistent input/output schema, and representative demonstrations.
+- Explain how label balance, example relevance, ordering, and context length can affect evaluation.
+- Compare prompting with zero-shot prompting and parameter-updating fine-tuning under fixed constraints.
+- Diagnose a prompt failure by stratifying errors and changing one demonstration variable at a time.
 
 ## Core Intuition
 
-Humans learn fast from examples: show one translation, they get the pattern. Few-shot leverages LLMs' ability to recognize patterns from in-context examples. No weight updates needed.
+Suppose a colleague has never seen your ticket categories. Giving them three labeled examples can clarify what “billing,” “account access,” and “product defect” mean. The examples do not rewrite the colleague's long-term memory; they provide temporary evidence for the current decision. Few-shot prompting uses a similar interface: the model receives demonstrations followed by a new query and generates an output conditioned on the entire sequence.
+
+The analogy has limits. A language model does not necessarily infer the intended rule as a person would. It may rely on lexical overlap, label wording, position, or familiar patterns from pretraining. A prompt that appears to show a rule can therefore produce a shortcut. Few-shot performance depends on the model, task, prompt format, examples, and decoding settings. There is no universal “three examples is enough” rule, and adding examples does not guarantee improvement.
+
+In this lesson, the term describes an inference-time setting. It does not mean the model's parameters were trained on a few examples. The [In-Context Learning lesson](15-in-context-learning.md) discusses the broader phenomenon and its less settled mechanisms; few-shot is one common way to provide the context. This distinction matters when estimating cost and reproducibility: each query may carry demonstrations in its input, while fine-tuning incurs a separate training step and produces updated parameters.
 
 ## How It Works
 
-**Structure:**
-```
-Task instruction (optional but helps)
-Example 1: Input → Output
-Example 2: Input → Output
-Example 3: Input → Output
-New input → [Model generates]
-```
+A prompt commonly contains an instruction, demonstrations `(x_i, y_i)`, and a test input `x*`:
 
-**Example: Sentiment Classification**
-```
-Classify sentiment (positive/negative):
-
-Text: "I loved this movie!" → Sentiment: positive
-Text: "Terrible experience." → Sentiment: negative
-Text: "It was okay." → Sentiment: neutral
-
-Text: "Amazing product, highly recommend!"
-Sentiment:
+```text
+Instruction: Assign one of {billing, access, defect}. Return only the label.
+Ticket: I was charged twice.       Label: billing
+Ticket: My password reset link expired. Label: access
+Ticket: The export file is empty.  Label: defect
+Ticket: The invoice includes a duplicate fee. Label:
 ```
 
-**Effective Strategies:**
-- **Diversity:** Mix different examples (long/short, obvious/subtle)
-- **Order:** Put harder examples later (model performs better with warm-up)
-- **Similarity:** Examples similar to test case → better few-shot performance
-- **Explanations:** Include reasoning in examples (especially for complex tasks)
+The model predicts a continuation after the final label cue. The application can constrain or validate that continuation against the permitted label set. A useful abstraction is `y* ~ p(y | instruction, (x_1,y_1), ..., (x_k,y_k), x*)`; it describes conditioning, not a guarantee that the model learned an explicit symbolic rule.
 
-### Workflow Flowchart
+Example selection is a data problem. Demonstrations should make the intended mapping identifiable and should reflect the evaluation population. For classification, cover labels and meaningful boundary cases. For extraction, include variations in wording and missing fields. For generation, examples should illustrate both the requested structure and the allowed content. Similarity-based retrieval can select examples near the current query, but it can also overrepresent a narrow region or retrieve a misleading neighbor. Measure selection quality on a held-out set instead of assuming that nearest examples are best.
 
-```mermaid
-graph TD
-    A["Zero-Shot<br/>No Examples"] -->|Low Accuracy| B["30-50%"]
-    C["Few-Shot<br/>3-5 Examples"] -->|Good Accuracy| D["70-80%"]
-    E["Fine-Tune<br/>1000s Examples"] -->|High Accuracy| F["90%+"]
-    B -.->|Cost: None| G["Cost"]
-    D -.->|Cost: Minimal| G
-    F -.->|Cost: High| G
+Format consistency reduces ambiguity: use stable field names, delimiters, and output rules. Label names themselves can act as cues, so use meaningful labels where appropriate and test alternate verbalizers if results are unexpectedly sensitive. Order can affect outcomes. Some experiments find position effects, but “put hard examples last” is not a general law; compare candidate orderings on a fixed validation set. Likewise, include varied examples only when their variation teaches a feature relevant to the task. Irrelevant diversity adds tokens without useful evidence.
 
-    style A fill:#ffebee
-    style C fill:#fff3e0
-    style E fill:#e8f5e9
-```
+The operational cost scales with prompt length and repeated input. If each demonstration averages `t` tokens, `k` examples add roughly `k*t` tokens to every query, plus instruction and query tokens. This can increase billing and prefill latency, consume context needed for the answer, or reduce throughput. Prompt caching may reduce repeated processing cost in some systems, but must be measured under the actual API and workload. Fine-tuning can amortize repeated demonstrations across requests, while few-shot prompting is easier to update and inspect.
 
 ## Trade-offs
 
-| Shots | Examples | Latency | Accuracy | Best For |
-|-------|----------|---------|----------|----------|
-| Zero | 0 | Fast | Lower | Simple tasks, general |
-| One | 1 | Fast | Medium | Basic patterns |
-| Few | 3-5 | Medium | High | Most use cases |
-| Many | 10+ | Slow | Marginal gain | Complex, nuanced |
+| Method | Update required | Per-query input | Useful when | Main limitation |
+|---|---|---|---|---|
+| Zero-shot prompt | No | Instruction and query | Task is clear from instructions and base-model capability | No task examples to disambiguate schema or edge cases |
+| Few-shot prompt | No | Instruction, examples, query | Fast iteration or a small, changing task set | Repeated token cost and sensitivity to example choice |
+| Fine-tuning | Yes | Query, often shorter task instruction | High-volume stable task with suitable training data | Training, versioning, and evaluation overhead |
+| Retrieval-selected examples | No model update; example index may be built | Retrieved examples plus query | Large example library and query-dependent demonstrations | Retrieval mistakes and additional latency |
 
-**Diminishing returns:** Typically 3-5 examples sufficient; 20+ shows little improvement.
+Choose by running a controlled comparison: hold the test split, base model, output parser, and decoding settings fixed; compare zero-shot and several few-shot prompts; report per-class or per-slice quality, invalid-output rate, tokens per query, and latency. If the use case is high volume, compare the accumulated prompt cost with fine-tuning and its maintenance cost. Keep development examples separate from final evaluation data to avoid prompt-selection leakage. If demonstrations are selected dynamically, evaluate retrieval on realistic queries and include cases where no good example exists.
 
 ## Implementation
 
+This small example validates the allowed label schema and builds a prompt. It does not prove that every class is represented, call a model, estimate accuracy, or show that these examples are representative.
+
 ```python
-from anthropic import Anthropic
+LABELS = {"billing", "access", "defect"}
+examples = [
+    ("I was charged twice.", "billing"),
+    ("My reset link expired.", "access"),
+    ("The export file is empty.", "defect"),
+]
 
-client = Anthropic()
+def build_prompt(demonstrations, query):
+    seen = {label for _, label in demonstrations}
+    if not demonstrations or not seen <= LABELS:
+        raise ValueError("provide examples with allowed labels")
+    rows = ["Assign one of billing, access, or defect. Return only the label."]
+    rows.extend(f"Ticket: {text}\nLabel: {label}" for text, label in demonstrations)
+    rows.append(f"Ticket: {query}\nLabel:")
+    return "\n\n".join(rows)
 
-# Few-shot prompt
-prompt = """Classify sentiment (positive, negative, neutral):
-
-Examples:
-"I love this product!" → positive
-"Waste of money" → negative
-"It works fine" → neutral
-
-Now classify: "This is amazing!"
-Sentiment:"""
-
-response = client.messages.create(
-    model="claude-3-5-sonnet-20241022",
-    max_tokens=50,
-    messages=[{"role": "user", "content": prompt}]
-)
-print(response.content[0].text)
+prompt = build_prompt(examples, "The invoice includes a duplicate fee.")
+assert prompt.endswith("Label:")
+assert "charged twice" in prompt and "duplicate fee" in prompt
+try:
+    build_prompt([("bad label", "other")], "query")
+except ValueError:
+    pass
+else:
+    raise AssertionError("unknown labels must be rejected")
 ```
+
+For an experiment, save the exact prompt text, model identifier, decoding parameters, demonstration IDs, and evaluation-set version. Then compare variants by changing one factor at a time: examples, ordering, label wording, or instruction. A single successful output is not evidence of reliability. Include ambiguous and out-of-scope inputs, and decide whether the system should abstain, ask for clarification, or return a constrained error when the model does not produce a valid label.
 
 ## Failure Modes
 
-- **Bad example selection:** Unrepresentative or wrong examples confuse model. Choose carefully.
-- **Too many examples:** Exceeds context window, dilutes signal. Sweet spot: 3-10.
-- **No instructions:** Only examples, no task description. Add instruction for clarity.
-- **Inconsistent formats:** If examples vary in format, model confused. Be consistent.
+- **Demonstrations do not represent the task distribution.** Aggregate accuracy may conceal a class or language with poor results. Report metrics by class, source, language, and relevant edge-case slice; replace or retrieve examples using only development data.
+- **The prompt permits multiple interpretations.** Labels correlate with topic or sentiment in a way that suggests an unintended rule. Add an explicit instruction and counterexamples that distinguish competing interpretations, then evaluate on disambiguating cases.
+- **One example is mislabeled or contradictory.** The model may copy the bad mapping, and a few examples provide little redundancy. Validate demonstration labels before prompt construction and add a test that checks the curated example set.
+- **Order or wording changes cause a large shift.** Repeated prompt edits appear to “fix” individual cases while moving other results. Run a small controlled prompt sweep and report variability across candidate orders; pin the chosen template.
+- **Prompt length consumes context or budget.** Truncation may remove late examples or the query. Measure token counts with the target tokenizer, reserve output capacity, and test the longest supported input.
+- **Model output violates the expected schema.** A label explanation or invented category breaks downstream code. Constrain generation where supported and validate the result with an explicit parser and a safe fallback.
 
 ## Interview Quick Reference
 
-| Question | What to say |
+| Question | Answer |
 |---|---|
-| "Few-shot?" | Show examples in prompt to teach task. 3-5 examples typical. Fast, no fine-tuning. |
-| "vs fine-tuning?" | Few-shot: instant, flexible. Fine-tuning: better accuracy, requires data/compute. |
-| "How many examples?" | 3-5 for most tasks. More helps complex tasks; diminishing returns >10. |
-| "Bad performance?" | Check example quality and diversity. Adjust format, add instructions. |
+| What is few-shot learning here? | Conditioning an inference on a small number of task examples in the prompt, without changing model parameters. |
+| How do you select examples? | Cover relevant labels and boundary cases, avoid leakage, and test relevance-based selection against a stable development set. |
+| Few-shot or fine-tuning? | Few-shot suits fast-changing or lower-volume tasks; fine-tuning may amortize repeated examples for stable high-volume tasks when data and evaluation support it. |
+| How do you measure prompt quality? | Compare against zero-shot on held-out examples and report slice quality, invalid outputs, tokens, and latency. |
+| Debugging follow-up: performance drops after adding examples—what do you inspect? | Check label balance, order, contradictory cues, truncation, and per-slice metrics; revert to a controlled baseline before changing multiple variables. |
 
-
-
-**Design follow-up:** How would you monitor this choice in production and decide when to use an alternative?
 ## Related Concepts
 
-- [In-Context Learning](15-in-context-learning.md) — broader ICL concept
-- [Zero-Shot Learning](14-zero-shot-learning.md) — no examples, just instructions
-- [Chain-of-Thought](16-chain-of-thought.md) — combine CoT with few-shot for better reasoning
+- [In-Context Learning](15-in-context-learning.md) — broader inference-time conditioning phenomenon.
+- [Zero-Shot Learning](14-zero-shot-learning.md) — task instruction without demonstrations.
+- [Prompting](12-prompting.md) — prompt structure and instruction design.
+- [Chain-of-Thought](16-chain-of-thought.md) — demonstrations may include intermediate solution steps for selected reasoning tasks.
+- [Few-Shot Learning practice](../interview-prep/curriculum-practice.md#few-shot-learning) — matching manifest-owned assessment.
+- [Language Models are Few-Shot Learners](https://arxiv.org/abs/2005.14165) — GPT-3 evaluation across zero-, one-, and few-shot settings.
+- [Rethinking the Role of Demonstrations](https://arxiv.org/abs/2202.12837) — analysis of which demonstration properties influence in-context performance.
 
 ## Real-World Examples
 
-### Few-Shot for Customer Intent Classification
-Chatbot: classify support tickets. Examples: 'Refund request' → returns, 'Can't login' → technical, 'Feedback' → general. Zero-shot: 45% accuracy. Few-shot (3 examples): 72% accuracy. Deployed in Zendesk integration.
-
-### Few-Shot Semantic Matching
-Task: match product descriptions to categories. Descriptions vary (informal, typos, abbreviations). Few-shot with diverse examples: 88% accuracy. Cost: <$0.01 per classification vs. $0.50 with fine-tuning.
-
-### Multi-Language Few-Shot
-Translate task instructions to 10 languages. Few-shot examples in each language. Model generalizes zero-shot to other languages through few-shot anchoring. Accuracy: 75% (vs 40% direct translation).
-
-## Real-World Examples
-
-### Few-Shot for Customer Intent Classification
-Chatbot: classify support tickets. Examples: 'Refund request' → returns, 'Can't login' → technical, 'Feedback' → general. Zero-shot: 45% accuracy. Few-shot (3 examples): 72% accuracy. Deployed in Zendesk integration.
-
-### Few-Shot Semantic Matching
-Task: match product descriptions to categories. Descriptions vary (informal, typos, abbreviations). Few-shot with diverse examples: 88% accuracy. Cost: <$0.01 per classification vs. $0.50 with fine-tuning.
-
-### Multi-Language Few-Shot
-Translate task instructions to 10 languages. Few-shot examples in each language. Model generalizes zero-shot to other languages through few-shot anchoring. Accuracy: 75% (vs 40% direct translation).
-
-## Real-World Examples
-
-### Few-Shot for Customer Intent Classification
-Chatbot: classify support tickets. Examples: 'Refund request' → returns, 'Can't login' → technical, 'Feedback' → general. Zero-shot: 45% accuracy. Few-shot (3 examples): 72% accuracy. Deployed in Zendesk integration.
-
-### Few-Shot Semantic Matching
-Task: match product descriptions to categories. Descriptions vary (informal, typos, abbreviations). Few-shot with diverse examples: 88% accuracy. Cost: <$0.01 per classification vs. $0.50 with fine-tuning.
-
-### Multi-Language Few-Shot
-Translate task instructions to 10 languages. Few-shot examples in each language. Model generalizes zero-shot to other languages through few-shot anchoring. Accuracy: 75% (vs 40% direct translation).
-
-## Real-World Examples
-
-### Few-Shot for Customer Intent Classification
-Chatbot: classify support tickets. Examples: 'Refund request' → returns, 'Can't login' → technical, 'Feedback' → general. Zero-shot: 45% accuracy. Few-shot (3 examples): 72% accuracy. Deployed in Zendesk integration.
-
-### Few-Shot Semantic Matching
-Task: match product descriptions to categories. Descriptions vary (informal, typos, abbreviations). Few-shot with diverse examples: 88% accuracy. Cost: <$0.01 per classification vs. $0.50 with fine-tuning.
-
-### Multi-Language Few-Shot
-Translate task instructions to 10 languages. Few-shot examples in each language. Model generalizes zero-shot to other languages through few-shot anchoring. Accuracy: 75% (vs 40% direct translation).
-
-## Real-World Examples
-
-### Few-Shot for Customer Intent Classification
-Chatbot: classify support tickets. Examples: 'Refund request' → returns, 'Can't login' → technical, 'Feedback' → general. Zero-shot: 45% accuracy. Few-shot (3 examples): 72% accuracy. Deployed in Zendesk integration.
-
-### Few-Shot Semantic Matching
-Task: match product descriptions to categories. Descriptions vary (informal, typos, abbreviations). Few-shot with diverse examples: 88% accuracy. Cost: <$0.01 per classification vs. $0.50 with fine-tuning.
-
-### Multi-Language Few-Shot
-Translate task instructions to 10 languages. Few-shot examples in each language. Model generalizes zero-shot to other languages through few-shot anchoring. Accuracy: 75% (vs 40% direct translation).
-
-## Topic-specific notes
-
-**Q: How many few-shot examples are optimal and how do you decide?**
-A: More examples generally improve performance up to a point (diminishing returns after 8-16 examples for most tasks). But each example consumes context window tokens and adds latency. Test with 1, 3, 5, 8 examples on your eval set. For LLMs >10B, 3-5 examples typically captures most of the benefit. For complex tasks requiring diverse coverage, 8-16 may be better. When context is limited (e.g., long user inputs), prioritize quality over quantity—2 excellent examples > 8 mediocre ones.
-
-**Q: How do you select which examples to include in few-shot prompts?**
-A: Strategies in increasing sophistication: (1) random selection from a pool of curated examples; (2) diverse selection—cover different sub-types of the task; (3) similarity-based—retrieve examples most similar to the query using embedding search (dynamic few-shot); (4) hard example selection—prefer examples similar to cases the model struggles on. Dynamic few-shot (embedding retrieval) typically improves accuracy 5-15% over static examples for tasks with diverse inputs.
-
-**Q: What is the difference between few-shot prompting and in-context learning?**
-A: Few-shot prompting is a specific technique: provide examples in the prompt. In-context learning is the broader phenomenon: LLMs can learn new patterns from information in the context window without gradient updates. ICL includes few-shot examples but also single demonstrations, analogy-based reasoning, and task descriptions. The mechanism is debated—models may do implicit gradient-based learning in the forward pass, or they may use examples to identify the task distribution.
-
-**Q: Why do example ordering and formatting matter in few-shot prompts?**
-A: Recency bias: the model pays more attention to the last few examples before the query. Distributional skew: if early examples are all one class, the model may bias toward it. Consistent formatting across examples helps the model identify the pattern. Always ensure the final few examples before the query reflect the diversity you want in outputs. Randomizing example order and testing on multiple orderings gives a more robust evaluation.
-
-**Q: When does few-shot prompting fail and what should you do instead?**
-A: Fails when: the task requires knowledge the model doesn't have (no amount of examples helps); the format is so unusual that examples confuse rather than guide; or examples cover only a narrow slice of the actual input distribution. In these cases: fine-tune on domain data, use retrieval-augmented generation to provide factual context, or decompose the task into simpler subtasks that the model can handle individually.
-
-**Q: How do you measure if your few-shot examples are actually helping?**
-A: Compare: zero-shot performance vs. your few-shot configuration on a held-out eval set. If few-shot doesn't beat zero-shot by >5%, your examples may not be well-chosen. Run ablations: remove one example at a time and see which ones contribute most. Use leave-one-out cross-validation across your example pool. Track performance vs. number of examples to find the sweet spot for your context budget.
-
-## Resources
-
-- [In-Context Learning in Large Language Models](https://arxiv.org/abs/2301.00234)
-- [What In-Context Learning "Learns"](https://arxiv.org/abs/2310.00867)
-
-## Concept Relationships
-
-```mermaid
-graph TD
-    A["Few-Shot Learning"]
-    B["In-Context Learning"] -->|prerequisite| A
-    A -->|used with| D["Chain-of-Thought"]
-    
-    style A fill:#fff3e0
-```
-
-## Interview Questions
-
-**Q: What's few-shot learning and how does it differ from zero-shot?**
-*A: Zero-shot: 'Classify sentiment: positive/negative'. Few-shot: '"Good product" → positive. "Bad product" → negative. "Good quality" → positive. Now classify: "Great service"'. Few-shot dramatically improves accuracy (sometimes 30-50% gain).*
-
-**Q: How many examples do you need for effective few-shot?**
-*A: Task-dependent: simple classification = 1-2 examples sufficient. Complex reasoning = 5-10 needed. Diminishing returns beyond 10 (20+ shows minimal improvement). Rule of thumb: start with 3, increase if accuracy low. Quality > quantity (good examples matter more than many).*
-
-**Q: What makes a good few-shot example?**
-*A: Diverse: cover range of inputs (easy + hard cases). Representative: similar to test distribution. Explained: include reasoning if helpful. Consistent: same format for all. Bad: unrepresentative or noisy examples confuse model.*
-
-**Q: How do you select few-shot examples programmatically?**
-*A: Random: simple, sometimes okay. Similarity-based: choose examples most similar to test input (use embeddings). Uncertainty sampling: examples model uncertain on. Diversity-based: examples covering feature space. Best: combination of similarity + diversity.*
-
-**Q: When is few-shot insufficient and you need fine-tuning?**
-*A: Few-shot works: general tasks, simple patterns, prompt-able behaviors. Fails: task requires significant internal model change, distribution shift, style transfer. Example: sentiment classification (few-shot fine) vs. writing style adaptation (needs fine-tuning).*
+A support team can prototype routing categories by adding a small, reviewed set of ticket-label pairs to a prompt. This makes category definitions easy to edit while policy changes are frequent. Before release, the team should compare with a zero-shot baseline, inspect errors for each category and product, test ambiguous tickets, and measure the repeated prompt cost at expected traffic. If a high-volume category remains weak despite representative examples, the next step may be better labeled data and fine-tuning, or a rule-based route for cases with clear deterministic criteria. The choice should follow evidence from the task, not a universal shot count.

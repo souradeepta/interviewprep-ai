@@ -1,344 +1,105 @@
 # Adapters
-
-Like LoRA, adapters train small modules instead of full weights.
+TL;DR: Adapters specialize a pretrained network by training small bottleneck modules inserted into its layers while keeping the shared base weights frozen.
 
 ## Prerequisites
 
-Familiarity with lora. This note focuses on the LLM-specific mechanism and its engineering selection boundary.
+Know the transformer residual stream and the basic idea of fine-tuning; [LoRA](08-lora.md) is a useful comparison. This lesson is specifically about adapter modules, rather than the broader family of parameter-efficient fine-tuning methods.
 
 ## Learning Outcomes
 
-- Explain the mechanism and assumptions behind adapters.
-- Compare its main alternative using task quality and one operational cost.
-- Diagnose a failure using a metric or example tied to adapters.
+- Derive the approximate trainable parameter count of a bottleneck adapter from hidden size and bottleneck width.
+- Distinguish adapter updates from LoRA updates and full fine-tuning.
+- Choose an adapter design using measured task quality, serving constraints, and task-sharing requirements.
+- Diagnose underfitting, unintended base-weight updates, or serving overhead with a concrete check.
 
 ## Core Intuition
 
-Like LoRA, adapters train small modules instead of full weights. But instead of low-rank matrix updates (AB^T), adapters use bottleneck feed-forward layers. Similar efficiency (1-3% params), different structure. Useful when you want architectural flexibility or specific layer patterns.
+Imagine keeping a common reference manual fixed while attaching a small, task-specific insert at selected pages. Each task gets its own insert, and all tasks reuse the manual. A transformer adapter follows this pattern: the pretrained network provides general representations, while a small learned module changes how hidden states are transformed for a particular domain or task.
+
+This is not equivalent to placing examples in a prompt. Adapter parameters are learned during a training step and saved; at inference, the selected adapter participates in the forward pass. It is also distinct from LoRA: LoRA adds a low-rank update to selected weight matrices, while a bottleneck adapter adds a small neural transformation in the network's layer computation. Both can reduce per-task trainable parameters, but their runtime and composition behavior differ.
+
+Adapters are useful when many related tasks share an expensive base model, such as separate support-intent models for different products. They are not automatically cheaper end to end. The shared base still has to be loaded, each adapter needs storage and evaluation, and the inserted computation can add latency. The benefit depends on sharing the base across tasks and on the adapter-enabled runtime supporting the chosen architecture.
 
 ## How It Works
 
-**Adapter Architecture:**
-```
-Input (hidden state h ∈ ℝ^d)
-  ↓
-Down-project: h_down = W_down @ h + b_down  (d → r)
-  ↓
-Activation: h_act = ReLU(h_down)
-  ↓
-Up-project: h_out = W_up @ h_act + b_up  (r → d)
-  ↓
-Output: y = h + α * h_out  (residual connection)
+For a hidden vector `h` with width `d`, a common bottleneck adapter computes a down projection, nonlinearity, and up projection, then adds the result to the residual stream:
+
+```text
+z = h + W_up f(W_down h + b_down) + b_up
 ```
 
-**Bottleneck Design:**
-- Input dimension: d (hidden size, typically 768 or 1024)
-- Bottleneck dimension: r (adapter size, typically 32-64)
-- Trainable parameters: r*d + d*r + 2d ≈ 2*r*d
-- For d=768, r=64: ~98k params per adapter
-- Multiple adapters can be stacked: series, parallel, or hierarchical
+Here `W_down` maps `d` dimensions to bottleneck width `r`, `W_up` maps `r` back to `d`, and `f` is an activation such as ReLU. The residual connection preserves a direct path for the original representation. Biases and normalization details vary by implementation. In a simple two-linear-layer module, the trainable count is approximately `2dr + d + r`; omitting biases gives `2dr`. For example, `d=768` and `r=32` gives 49,952 parameters with biases, per adapter module. A transformer with modules at multiple locations multiplies that count accordingly.
 
-**Placement in Transformer:**
-Adapters typically inserted after attention or FF layer in each transformer block:
-```
-MultiHeadAttention(x) + x
-    ↓
-Adapter(x)  [trained]
-    ↓
-LayerNorm
-    ↓
-FeedForward(x) + x
-    ↓
-Adapter(x)  [trained]
-```
+The original Houlsby design inserts adapters around transformer sublayers; other adapter families change placement, activation, normalization, or parameterization. Thus “an adapter” does not uniquely imply one topology or one parameter percentage. The implementation and configuration determine the actual parameter count and compute. A reliable report counts trainable parameters from the instantiated model rather than quoting a rule of thumb.
 
-**Multi-Task Adaptation:**
-- Single-adapter: one adapter for one task
-- Stacked-adapters: layers of adapters for increasing capacity
-- Parallel-adapters: different adapters for different modalities or domains
-- Adapter fusion: learnable combination of task-specific adapters
+During training, the base parameters are frozen and gradients update adapter parameters (and any explicitly chosen task head). The optimizer sees only the trainable set. At inference, the application loads the base and the matching adapter, then routes a request to the appropriate task configuration. Storing a shared base once can reduce duplicated checkpoint storage, while adapter switching requires careful isolation so that requests do not accidentally use another task's weights.
 
-### Workflow Flowchart
-
-```mermaid
-graph LR
-    A["Base Model<br/>Frozen"] -->|Query| B["Adapter 1<br/>Task A"]
-    A -->|Query| C["Adapter 2<br/>Task B"]
-    A -->|Query| D["Adapter 3<br/>Task C"]
-    B --> E["Output A"]
-    C --> E
-    D --> E
-
-    style A fill:#e3f2fd
-    style B fill:#fff3e0
-    style C fill:#fff3e0
-    style D fill:#fff3e0
-    style E fill:#e8f5e9
-```
+Adapter composition is architecture-dependent. Sequential composition applies one module after another and can increase depth and runtime. Parallel or fusion methods combine modules differently and may require a trained composition mechanism. Do not assume that arbitrary independently trained adapters can be stacked without validation: they may conflict, and order can affect outputs. For a single task, compare the adapter against a full fine-tuning or LoRA baseline on the same held-out split, training budget, and deployment hardware.
 
 ## Trade-offs
 
-| Property | Adapters | LoRA | Full FT | Prefix Tuning |
-|----------|----------|------|---------|--------------|
-| Trainable params | 2-5% | 1-3% | 100% | 1-2% |
-| Flexibility | High (add/remove) | High | N/A | Medium |
-| Architecture | Bottleneck | Low-rank | All params | Prefix only |
-| Multi-task | Yes (stack/parallel) | Yes (multi-LoRA) | No | Limited |
-| Inference latency | +5-10% | Merged (0%) | 1x | +2-5% |
-| Memory during training | 80-90% saved | 90-95% saved | None | 85-90% saved |
+| Choice | Trainable state | Inference behavior | Strong fit | Main cost or risk |
+|---|---|---|---|---|
+| Bottleneck adapter | Small inserted modules, plus optional task head | Adds module computation; base can be shared | Many task-specific variants sharing one base | Adapter routing, storage, and extra latency |
+| LoRA | Low-rank factors on selected matrices | Some implementations merge updates into base weights | Efficient updates where mergeable serving matters | Target-module choice and merge/quantization compatibility |
+| Full fine-tuning | Most or all model weights | No adapter branch at serving | Maximum freedom when data and compute support it | Separate large checkpoints and higher training cost |
+| Prompt or prefix tuning | Learned prompt/prefix parameters | Adds or lengthens input context | Adaptation through supported prompt interfaces | Extra context cost and architecture-specific behavior |
 
-**When to use adapters:**
-- Multiple tasks on same base (stack adapters per task)
-- Domain-specific fine-tuning with flexibility
-- When you prefer architectural over rank-based parametrization
-- If you need to add/remove skills without retraining
-
-**When LoRA is better:**
-- Merging for deployment is important (LoRA merges clean into weights)
-- You want minimal inference overhead
-- Simplicity is priority
+The decision should be made against a fixed evaluation set and operational target. Compare quality at equal data and tuning effort, then measure peak training memory, checkpoint size, tokens per second, and p95 latency with the actual serving stack. An adapter can win on task isolation or checkpoint reuse while losing on latency; LoRA can be easier to merge, but merge support is not universal. Full tuning may be justified when the task needs broad representation changes that the selected parameterization cannot express. No method guarantees a particular accuracy or percentage of saved memory across model families.
 
 ## Implementation
 
+This dependency-light example computes the size of a two-projection adapter. It demonstrates parameter accounting only; it does not train a model or represent every adapter variant.
+
 ```python
-from peft import get_peft_model, AdapterConfig
-from transformers import AutoModelForSequenceClassification, Trainer, TrainingArguments
+def bottleneck_adapter_parameters(hidden_size: int, bottleneck: int, bias: bool = True) -> int:
+    if hidden_size <= 0 or bottleneck <= 0:
+        raise ValueError("dimensions must be positive")
+    weights = hidden_size * bottleneck + bottleneck * hidden_size
+    biases = hidden_size + bottleneck if bias else 0
+    return weights + biases
 
-# Load pre-trained model
-model = AutoModelForSequenceClassification.from_pretrained("bert-base-uncased", num_labels=2)
-
-# Configure adapters
-adapter_config = AdapterConfig(
-    adapter_len=64,  # bottleneck dimension
-    adapter_init_fn="bert",  # initialization strategy
-    adapter_type="bottleneck",  # bottleneck vs other types
-    hidden_act="relu",
-    reduction_factor=16  # r = hidden_size / reduction_factor
-)
-
-# Apply adapter to model
-model = get_peft_model(model, adapter_config)
-print(model.print_trainable_parameters())
-# Output: trainable params: 394K || all params: 110M || trainable%: 0.36%
-
-# Define training arguments
-training_args = TrainingArguments(
-    output_dir="./adapter_checkpoint",
-    num_train_epochs=3,
-    per_device_train_batch_size=16,
-    learning_rate=5e-4,
-    warmup_steps=500,
-)
-
-# Train only adapters
-trainer = Trainer(
-    model=model,
-    args=training_args,
-    train_dataset=train_dataset,
-    eval_dataset=eval_dataset,
-)
-trainer.train()
-
-# Save adapter
-model.save_pretrained("./task_adapter")
-
-# Load adapter on base model
-new_model = AutoModelForSequenceClassification.from_pretrained("bert-base-uncased")
-new_model = get_peft_model(new_model, adapter_config)
-new_model = PeftModel.from_pretrained(new_model, "./task_adapter")
-
-# For multi-task: load multiple adapters
-model.load_adapter("adapter1", "task1")
-model.load_adapter("adapter2", "task2")
-model.set_active_adapters(["task1"])  # Switch task at inference
+assert bottleneck_adapter_parameters(768, 32) == 49_952
+assert bottleneck_adapter_parameters(768, 32, bias=False) == 49_152
+try:
+    bottleneck_adapter_parameters(768, 0)
+except ValueError:
+    pass
+else:
+    raise AssertionError("zero-width bottleneck must be rejected")
 ```
+
+For a real training run, first verify that the library supports the exact model architecture and adapter type. Freeze the base, inspect the named trainable parameters, and confirm gradients reach the adapter after a backward pass. Save the adapter configuration with the weights, pin the base-model revision, and test loading in a fresh process. These checks catch an apparently successful run that accidentally tuned the whole model or saved an adapter that cannot be paired with the intended base.
 
 ## Failure Modes
 
-- **Choosing wrong bottleneck size:** r=8 too small (underfitting), r=256 defeats purpose. Try r=32 or r=64.
-- **Freezing adapter weights:** Forgetting to set `requires_grad=True` on adapter weights while freezing base. Double-check parameter groups.
-- **Not using residual connections:** Output y = h + adapter(h) is critical; raw replacement hurts stability.
-- **Adapter placement:** Inserting only after attention but not FF (or vice versa) limits expressiveness. Use both.
-- **Scaling issues at inference:** Adapters add latency if implemented naively. Use optimized libraries (PEFT, adapters).
-- **Stacking too many:** Stacking 10 adapters makes training slow and memory expensive. Optimal: 2-4 adapters.
-- **Not reusing base weights:** Advantages of adapters lost if you don't share base model across tasks. Reuse for efficiency.
+- **Capacity is too small for the domain shift.** Training loss and held-out task metrics both plateau below a full-tuning baseline. Sweep bottleneck width or placement with a fixed validation protocol; if gains stop while the gap remains, compare LoRA or full fine-tuning.
+- **Base weights are not actually frozen.** Trainable-parameter counts exceed the intended adapter and head, or base tensors change after an optimizer step. Assert the trainable parameter names and compare a base-weight checksum before and after a short update.
+- **Adapter and base revisions are mismatched.** Loading may fail, or outputs degrade despite apparently valid tensors. Store the model identifier and revision with the adapter, then run a known input/output regression test after loading.
+- **Task routing leaks state across requests.** A multi-tenant service can return results using the previously active adapter. Include adapter identity in request-scoped configuration and run interleaved A/B requests to verify deterministic isolation.
+- **Serving cost is assumed away.** Offline quality is acceptable but p95 latency or throughput misses the service objective. Benchmark the deployed adapter runtime against the same base without adapters, including adapter switching and batching.
+- **Adapters are stacked without compatibility evidence.** Quality becomes order-dependent or unstable. Evaluate each composition and ordering on held-out examples; use a supported fusion method or keep adapters separate when composition has no validated benefit.
 
 ## Interview Quick Reference
 
-| Question | What to say |
+| Question | Answer |
 |---|---|
-| "Adapters?" | Bottleneck modules inserted in transformer. Train only adapters (2-5% params), freeze base. Like LoRA but different architecture. |
-| "vs LoRA?" | LoRA: low-rank matrices (W = AB^T). Adapters: feed-forward bottleneck. Similar efficiency, different structure. LoRA merges cleaner. |
-| "Bottleneck size?" | r=32 or r=64 typical. Smaller = faster, less capacity. Larger = slower, more expressive. Try empirically. |
-| "Multi-task with adapters?" | Stack adapters per task on shared base. Efficient: only r*d params per task, share base weights. |
-| "Inference cost?" | +5-10% latency vs full FT (add bottleneck FF). LoRA is cleaner (merges to 0% overhead). |
-| "When use adapters?" | Multiple tasks, need architectural flexibility, or prefer FF over low-rank. Otherwise LoRA simpler. |
+| What does a bottleneck adapter learn? | A down projection, nonlinearity, and up projection inserted into a frozen network's computation, typically with a residual path. |
+| How does it differ from LoRA? | Adapters add a module to the forward path; LoRA parameterizes a low-rank update to selected weight matrices. Compare the actual target modules and serving implementation. |
+| How do you estimate adapter size? | For two biased linear layers, approximately `2dr + d + r` parameters per module; multiply by the number of insertion sites and count any task head. |
+| When would you prefer full fine-tuning? | When representative validation shows the small update cannot meet the quality target and the added training/storage cost is acceptable. |
+| Design follow-up: how would you validate a multi-task adapter service? | Pin the shared base, test each adapter independently, interleave requests to test routing isolation, and report task quality, checkpoint size, throughput, and tail latency. |
 
-
-
-**Design follow-up:** How would you monitor this choice in production and decide when to use an alternative?
 ## Related Concepts
 
-- [[lora]] — low-rank alternative with similar efficiency
-- [[parameter-efficient-finetuning]] — PEFT umbrella including adapters and LoRA
-- [[fine-tuning]] — full fine-tuning baseline
-- [[prefix-tuning]] — another PEFT method using learnable tokens
-- [[instruction-tuning]] — task-specific fine-tuning patterns
+- [LoRA](08-lora.md) — low-rank weight updates, often a closer comparison for parameter-efficient adaptation.
+- [Parameter-Efficient Fine-Tuning](11-parameter-efficient-finetuning.md) — broader family that includes adapters and LoRA.
+- [Prefix Tuning](10-prefix-tuning.md) — adaptation through learned prefix representations.
+- [Fine-Tuning](04-finetuning.md) — full-model baseline and its data and compute trade-offs.
+- [Adapters practice](../interview-prep/curriculum-practice.md#adapters) — the matching manifest-owned assessment.
+- [Parameter-Efficient Transfer Learning for NLP](https://proceedings.mlr.press/v97/houlsby19a.html) — original adapter study.
+- [Adapters: A Unified Library for Parameter-Efficient and Modular Transfer Learning](https://arxiv.org/abs/2311.11077) — adapter methods and their software ecosystem.
 
 ## Real-World Examples
 
-### Multi-Lingual Adapters for Customer Support
-Base model: mBERT (multi-lingual). Adapters: one per language (English, Spanish, French, Mandarin). Each adapter trained on 5K language-specific customer support conversations. Production: route incoming query to language-specific adapter → classify intent → ticket assignment. Result: 92% accuracy per language, shared base model saves 80% storage.
-
-### Task-Specific Adapters for E-Commerce
-Base model: RoBERTa. Adapters: sentiment (product reviews), NER (brand/product extraction), classification (returns reason), search ranking (relevance). Each adapter 512KB. Deploy one base model + 4 adapters = 1.5GB (vs 700MB×4 for full models). Latency: +0.5ms per adapter inference.
-
-### Efficient Domain Adaptation Pipeline
-Medical domain adapter: trained on 10K medical abstracts. Legal domain adapter: trained on 5K legal contracts. Each ~1M parameters. Swap adapters based on document classification. Accuracy: 94% (medical), 91% (legal). Training time: 2 hours per adapter (vs 48 hours full fine-tune).
-
-## Real-World Examples
-
-### Multi-Lingual Adapters for Customer Support
-Base model: mBERT (multi-lingual). Adapters: one per language (English, Spanish, French, Mandarin). Each adapter trained on 5K language-specific customer support conversations. Production: route incoming query to language-specific adapter → classify intent → ticket assignment. Result: 92% accuracy per language, shared base model saves 80% storage.
-
-### Task-Specific Adapters for E-Commerce
-Base model: RoBERTa. Adapters: sentiment (product reviews), NER (brand/product extraction), classification (returns reason), search ranking (relevance). Each adapter 512KB. Deploy one base model + 4 adapters = 1.5GB (vs 700MB×4 for full models). Latency: +0.5ms per adapter inference.
-
-### Efficient Domain Adaptation Pipeline
-Medical domain adapter: trained on 10K medical abstracts. Legal domain adapter: trained on 5K legal contracts. Each ~1M parameters. Swap adapters based on document classification. Accuracy: 94% (medical), 91% (legal). Training time: 2 hours per adapter (vs 48 hours full fine-tune).
-
-## Real-World Examples
-
-### Multi-Lingual Adapters for Customer Support
-Base model: mBERT (multi-lingual). Adapters: one per language (English, Spanish, French, Mandarin). Each adapter trained on 5K language-specific customer support conversations. Production: route incoming query to language-specific adapter → classify intent → ticket assignment. Result: 92% accuracy per language, shared base model saves 80% storage.
-
-### Task-Specific Adapters for E-Commerce
-Base model: RoBERTa. Adapters: sentiment (product reviews), NER (brand/product extraction), classification (returns reason), search ranking (relevance). Each adapter 512KB. Deploy one base model + 4 adapters = 1.5GB (vs 700MB×4 for full models). Latency: +0.5ms per adapter inference.
-
-### Efficient Domain Adaptation Pipeline
-Medical domain adapter: trained on 10K medical abstracts. Legal domain adapter: trained on 5K legal contracts. Each ~1M parameters. Swap adapters based on document classification. Accuracy: 94% (medical), 91% (legal). Training time: 2 hours per adapter (vs 48 hours full fine-tune).
-
-## Real-World Examples
-
-### Multi-Lingual Adapters for Customer Support
-Base model: mBERT (multi-lingual). Adapters: one per language (English, Spanish, French, Mandarin). Each adapter trained on 5K language-specific customer support conversations. Production: route incoming query to language-specific adapter → classify intent → ticket assignment. Result: 92% accuracy per language, shared base model saves 80% storage.
-
-### Task-Specific Adapters for E-Commerce
-Base model: RoBERTa. Adapters: sentiment (product reviews), NER (brand/product extraction), classification (returns reason), search ranking (relevance). Each adapter 512KB. Deploy one base model + 4 adapters = 1.5GB (vs 700MB×4 for full models). Latency: +0.5ms per adapter inference.
-
-### Efficient Domain Adaptation Pipeline
-Medical domain adapter: trained on 10K medical abstracts. Legal domain adapter: trained on 5K legal contracts. Each ~1M parameters. Swap adapters based on document classification. Accuracy: 94% (medical), 91% (legal). Training time: 2 hours per adapter (vs 48 hours full fine-tune).
-
-## Real-World Examples
-
-### Multi-Lingual Adapters for Customer Support
-Base model: mBERT (multi-lingual). Adapters: one per language (English, Spanish, French, Mandarin). Each adapter trained on 5K language-specific customer support conversations. Production: route incoming query to language-specific adapter → classify intent → ticket assignment. Result: 92% accuracy per language, shared base model saves 80% storage.
-
-### Task-Specific Adapters for E-Commerce
-Base model: RoBERTa. Adapters: sentiment (product reviews), NER (brand/product extraction), classification (returns reason), search ranking (relevance). Each adapter 512KB. Deploy one base model + 4 adapters = 1.5GB (vs 700MB×4 for full models). Latency: +0.5ms per adapter inference.
-
-### Efficient Domain Adaptation Pipeline
-Medical domain adapter: trained on 10K medical abstracts. Legal domain adapter: trained on 5K legal contracts. Each ~1M parameters. Swap adapters based on document classification. Accuracy: 94% (medical), 91% (legal). Training time: 2 hours per adapter (vs 48 hours full fine-tune).
-
-## Real-World Examples
-
-### Multi-Lingual Adapters for Customer Support
-Base model: mBERT (multi-lingual). Adapters: one per language (English, Spanish, French, Mandarin). Each adapter trained on 5K language-specific customer support conversations. Production: route incoming query to language-specific adapter → classify intent → ticket assignment. Result: 92% accuracy per language, shared base model saves 80% storage.
-
-### Task-Specific Adapters for E-Commerce
-Base model: RoBERTa. Adapters: sentiment (product reviews), NER (brand/product extraction), classification (returns reason), search ranking (relevance). Each adapter 512KB. Deploy one base model + 4 adapters = 1.5GB (vs 700MB×4 for full models). Latency: +0.5ms per adapter inference.
-
-### Efficient Domain Adaptation Pipeline
-Medical domain adapter: trained on 10K medical abstracts. Legal domain adapter: trained on 5K legal contracts. Each ~1M parameters. Swap adapters based on document classification. Accuracy: 94% (medical), 91% (legal). Training time: 2 hours per adapter (vs 48 hours full fine-tune).
-
-## Real-World Examples
-
-### Multi-Lingual Adapters for Customer Support
-Base model: mBERT (multi-lingual). Adapters: one per language (English, Spanish, French, Mandarin). Each adapter trained on 5K language-specific customer support conversations. Production: route incoming query to language-specific adapter → classify intent → ticket assignment. Result: 92% accuracy per language, shared base model saves 80% storage.
-
-### Task-Specific Adapters for E-Commerce
-Base model: RoBERTa. Adapters: sentiment (product reviews), NER (brand/product extraction), classification (returns reason), search ranking (relevance). Each adapter 512KB. Deploy one base model + 4 adapters = 1.5GB (vs 700MB×4 for full models). Latency: +0.5ms per adapter inference.
-
-### Efficient Domain Adaptation Pipeline
-Medical domain adapter: trained on 10K medical abstracts. Legal domain adapter: trained on 5K legal contracts. Each ~1M parameters. Swap adapters based on document classification. Accuracy: 94% (medical), 91% (legal). Training time: 2 hours per adapter (vs 48 hours full fine-tune).
-
-## Topic-specific notes
-
-**Q: How do adapter layers differ architecturally from LoRA, and when does that matter?**
-A: Adapters insert new layers (down-proj → activation → up-proj) sequentially into the model's forward pass, adding computational overhead at inference. LoRA adds parallel low-rank matrices that are merged into existing weights before inference, eliminating overhead. For latency-sensitive applications, prefer LoRA (zero inference overhead after merging). Prefer adapters for multi-task serving where you need to switch tasks without reloading the model.
-
-**Q: What bottleneck dimension should you use for adapter layers?**
-A: Typical bottleneck dimensions: 16-128 for encoder-only models (BERT), 32-256 for decoder models. The bottleneck dimension controls the number of trainable parameters: roughly 2 × hidden_dim × bottleneck_dim per adapter. Start at 64 and reduce if you see overfitting. The original Adapter paper used 64 for BERT-base (768 hidden dim), yielding ~98K parameters per task.
-
-**Q: How do you serve multiple tasks with adapter-based fine-tuning?**
-A: Keep the base model in shared GPU memory, load only the task-specific adapter weights per request (a few MB each). At inference, route requests to the appropriate adapter based on task classification. PEFT's `set_adapter` method allows hot-swapping adapters in ~1ms. This pattern enables serving 100+ task-specific models on the same GPU that would otherwise require 100× the memory for separate full fine-tuned models.
-
-**Q: Why might adapters underperform LoRA for the same parameter budget?**
-A: Adapters modify the residual stream sequentially—their effect must pass through subsequent layers before contributing to the final output. LoRA modifies weights directly in the attention mechanism, allowing more direct gradient flow. Additionally, adapters add depth (sequential non-linearity) which can be harder to optimize. In practice the gap is small (1-3% on most benchmarks), but LoRA is now the dominant choice due to zero inference overhead.
-
-**Q: What happens to the base model's representations when adapters are trained?**
-A: Base model weights remain frozen—only adapter parameters update. The base model's representations are preserved, enabling catastrophic forgetting resistance. Adapters learn to reroute activations to achieve task-specific behavior through the bottleneck transformations. This means adapters work best when the base model's representations are already relevant to the task; for very out-of-domain tasks, adapter capacity may be insufficient.
-
-**Q: How do you evaluate whether adapters have learned the target task vs. just memorized training data?**
-A: Measure: train vs. test performance gap (large gap = overfitting). Test on inputs with slight paraphrasing of training examples. Check performance on a held-out subset of the task distribution. If the model performs well only on near-duplicates of training examples, increase adapter dropout, reduce bottleneck dimension, or collect more diverse training data.
-
-## Resources
-
-- [Parameter-Efficient Transfer Learning for NLP](https://arxiv.org/abs/1902.00751)
-- [Adapters: A Unified Library for Parameter-Efficient and Modular Transfer Learning](https://arxiv.org/abs/2311.11077)
-- [PEFT Library Documentation](https://huggingface.co/docs/peft/index)
-- [Adapter Hub](https://adapterhub.ml/)
-
-## Concept Relationships
-
-```mermaid
-graph TD
-    A["Adapters"]
-    B["Fine-tuning"] -->|prerequisite| A
-    A -->|used with| D["LoRA (Low-Rank Adaptation)"]
-    A -->|used with| D["Prefix Tuning"]
-    
-    style A fill:#fff3e0
-```
-
-## Interview Questions
-
-**Q: What are adapters and why use them instead of full fine-tuning?**
-*A: Adapters are small trainable modules inserted into a frozen base model. Instead of updating all 7B parameters, you train only 0.5-1M parameters. Advantages: 50-100x fewer parameters, faster training, easier multi-task management. Trade-off: slightly slower inference (2-5%) due to extra computation.*
-
-**Q: How do adapters compare to LoRA?**
-*A: Both are parameter-efficient. Adapters: bottleneck design (d→64→d), ~0.5M params/task, cleaner separation. LoRA: low-rank matrices (rank 4-8), ~0.1-1M params/task, better for large models. LoRA is newer and more popular; adapters still used in multi-task scenarios (Hub-style routing).*
-
-**Q: When would you use multi-task adapters vs single-task?**
-*A: Single-task: each task gets dedicated adapter (cleaner). Multi-task: one adapter trains on multiple tasks (parameter sharing, faster). Choose multi-task if tasks are related (sentiment analysis on different domains); single-task if tasks are distinct (translation + QA).*
-
-**Q: How do you handle adapter inference at scale?**
-*A: Load base model once, swap adapters for different tasks (lightweight). Routing: use a head network to select best adapter. Merging: merge adapters into base model for deployment (lose multi-task capability but gain speed).*
-
-**Q: What happens if you adapt a model already adapted?**
-*A: Adapter stacking works but shows diminishing returns. 1st adapter: 10% gain. 2nd adapter on top: +3-4% gain. Usually cap at 2 adapters. Better to use one well-tuned adapter or full fine-tuning if precision matters.*
-
-## Real-World Applications
-
-### Meta (Facebook): Efficient model specialization
-Uses adapters to quickly adapt LLAMA models to specific languages and domains without full retraining. Reduces deployment footprint significantly.
-
-### Microsoft: Multi-tenant serving
-Deploys adapters for different enterprise customers on shared base models. Each customer gets a specialized model via lightweight adapters.
-
-### Google: Task-specific models
-Uses adapter-like modules in T5 and FLAN to efficiently adapt to new tasks without retraining massive models.
-
-## Best Practices
-
-- Keep bottleneck dimension between 8-64. Too small loses expressiveness, too large wastes parameters.
-- Initialize down-projection with uniform distribution, up-projection with zeros to start as identity.
-- Add layer normalization after residual connection for training stability.
-- Use adapters in every transformer layer for consistent improvement across depths.
-
-## Common Pitfalls to Avoid
-
-- **Adapter bottleneck too small**: Adapter bottleneck too small: insufficient capacity for complex task shifts
-- **Placing adapters only in middle layers**: Placing adapters only in middle layers: misses specialization opportunities in early/late layers
-- **Not freezing base model**: Not freezing base model: defeats the purpose of parameter efficiency
-- **Insufficient adapter training data**: Insufficient adapter training data: small adaptation sets may overfit to adapters
+Consider a support platform that serves a shared multilingual encoder with one adapter per product line. This can avoid storing a full copy of the encoder for every product. Before adopting it, the team should measure each product's classification quality, adapter storage, cold-load behavior, and routing latency; the architecture alone does not establish a particular savings figure. If product data has different label definitions, evaluation must also be product-specific rather than averaged into one misleading score.
