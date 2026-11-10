@@ -1,6 +1,6 @@
 # Repository Status
 
-**Last reviewed:** 2026-11-09
+**Last reviewed:** 2026-11-10
 **Inventory command:** `python3 scripts/report_repository_inventory.py`
 **Curriculum audit:** `python3 scripts/audit_curriculum.py --format json`
 
@@ -61,6 +61,11 @@ match the contents.
   required and 152 baseline. The four newly inventoried tracks (AI
   fundamentals, RL, CV, NLP) and the remaining Statistics, MLOps, and Modern
   AI concepts remain baseline pending content review.
+- Terra reviewed the curriculum-map agreement batch. Unsupported practice
+  references were removed from 45 baseline Modern AI records; focused map and
+  manifest checks pass.
+- Full local suite after this batch: `490 passed, 275 skipped`; skips are
+  Tier 2 notebook executions without a locally registered Python kernel.
 
 ## Current program work
 

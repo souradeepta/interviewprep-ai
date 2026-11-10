@@ -1,6 +1,6 @@
 # Curriculum Map and Role Paths
 
-This map is the shared prerequisite source for the role paths. Start at the earliest stage you cannot yet demonstrate; the self-checks below let you test out of material without assuming that similarly named tracks are equivalent.
+The manifest is the canonical lesson prerequisite graph. This map explains recommended sequences, role paths, and self-checks; its week-to-week ordering is guidance rather than a hard prerequisite. Start at the earliest stage you cannot yet demonstrate, and use the checks below to test out without assuming that similarly named tracks are equivalent.
 
 ## Prerequisite sequence
 

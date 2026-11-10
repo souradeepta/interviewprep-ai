@@ -1,18 +1,20 @@
 # Terra/Luna Implementation Handoff
 
 > Continuation update — 2026-11-10: This update supersedes the point-in-time
-> clean-tree and next-step statements below. Current work is an active,
-> continuation commit `b98571b` of the repository improvement plan. Do not assume
+> clean-tree and next-step statements below. Current work is an active
+> continuation at `ecfbb1c` on `origin/master`. Do not assume
 > the original `8dfaf25` worktree snapshot still describes repository state.
 
 ## Current continuation state
 
 - The prior reviewed LLM batch is committed and pushed as `6a2f1cc`.
-- Inventory and notebook-tier baseline work is committed as `b98571b` and is
-  being pushed with this handoff update.
+- Inventory and notebook-tier baseline work is committed and pushed as
+  `b98571b`.
 - Manifest coverage now includes 324 lessons across ten tracks: 172 required
-  and 152 baseline. All 73 curriculum-map concept links are indexed and associated with
-  manifest roadmap fields. Empty prerequisites on baseline records are
+  and 152 baseline. All 73 curriculum-map concept links are indexed and
+  associated with manifest roadmap fields. The map states that the manifest
+  owns hard prerequisites while role paths are recommendations. Empty
+  prerequisites on baseline records are
   explicitly provisional until reviewed; other README-advertised artifact
   families are counted separately.
 - `scripts/report_repository_inventory.py` reports recursive instructional
@@ -30,20 +32,26 @@
   provider setup, toy-corpus retrieval, model-wrapper tensor handling, and
   mocked HTTP retry behavior. The other Tier 3 alternatives remain proposed,
   so do not claim the execution-tier phase is complete.
-- The current `pytest` result before this continuation's latest changes was
-  `484 passed, 61 skipped`; after expanding Tier 2, the focused repository
-  integrity suite reported `14 passed, 275 skipped` locally because no Python
-  kernel is registered. CI installs a kernel and is the required execution
-  evidence for the Tier 2 set.
+- Terra independently reviewed the curriculum-map manifest batch. The first
+  pass found that 45 baseline Modern AI lessons had unsupported links to one
+  inference practice page; those associations were removed. The review also
+  prompted unique concept-path ownership checks and broader Markdown link
+  parsing. The corrected batch passed all 27 curriculum quality tests, the
+  curriculum audit (324 lessons; no errors or warnings), and the active link
+  audit (zero problems).
+- The fresh full suite reports `490 passed, 275 skipped`; all 275 skips are
+  Tier 2 notebook executions because no Python kernel is registered locally.
+  CI installs the pinned kernel and remains the required execution evidence
+  for that set.
 
 ## Immediate next steps
 
 1. Extend representative coverage to the remaining Tier 3 resource classes,
    improve classification of IPython cells, and have Terra review the updated
    ledger.
-2. Complete Phase 1 manifest/map agreement for all maps and role paths,
-   including true prerequisites and explicit recommended sequences rather
-   than implying all study order is a hard prerequisite.
+2. Extend Phase 1 checks to remaining maps, role paths, and artifact families;
+   agree explicit inclusion/exclusion rules and resolve prerequisite edges
+   before promoting baseline lessons.
 3. Complete the statistics/core-ML learner journey, then content review in
    bounded MLOps, statistics, Agentic AI, Modern AI, LLM, and practice/project
    batches.
