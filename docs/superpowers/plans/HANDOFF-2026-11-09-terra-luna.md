@@ -10,10 +10,11 @@
 - The prior reviewed LLM batch is committed and pushed as `6a2f1cc`.
 - Inventory and notebook-tier baseline work is committed as `b98571b` and is
   being pushed with this handoff update.
-- Manifest coverage now includes 248 lessons across ten tracks: 172 required
-  and 76 baseline. Baseline AI, RL, CV, and NLP prerequisites are explicitly
-  provisional until reviewed; other README-advertised artifact families are
-  counted separately.
+- Manifest coverage now includes 324 lessons across ten tracks: 172 required
+  and 152 baseline. All 73 curriculum-map concept links are indexed and associated with
+  manifest roadmap fields. Empty prerequisites on baseline records are
+  explicitly provisional until reviewed; other README-advertised artifact
+  families are counted separately.
 - `scripts/report_repository_inventory.py` reports recursive instructional
   file counts and excludes folder README files. `audit_curriculum.py` reports
   unindexed concepts, notebooks, and implementations per track.
@@ -40,9 +41,9 @@
 1. Extend representative coverage to the remaining Tier 3 resource classes,
    improve classification of IPython cells, and have Terra review the updated
    ledger.
-2. Complete Phase 1 manifest/map agreement, including true prerequisites and
-   explicit recommended sequences rather than implying all study order is a
-   hard prerequisite.
+2. Complete Phase 1 manifest/map agreement for all maps and role paths,
+   including true prerequisites and explicit recommended sequences rather
+   than implying all study order is a hard prerequisite.
 3. Complete the statistics/core-ML learner journey, then content review in
    bounded MLOps, statistics, Agentic AI, Modern AI, LLM, and practice/project
    batches.
@@ -194,7 +195,8 @@ working tree.
 - finish the remaining LLM warning batch and decide whether to repair its
   paired notebooks/practice using the same evidence-driven rule;
 - complete the statistics/core-ML pilot learner journey;
-- expand manifest coverage beyond the current six tracks;
+- index and classify remaining non-lesson artifact families in the manifest's
+  inventory contract;
 - classify every notebook into execution tiers and maintain an explicit skip
   list;
 - repair or review MLOps, statistics, Agentic AI, Modern AI, practice, and

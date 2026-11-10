@@ -2,6 +2,8 @@
 
 import importlib.util
 import json
+import posixpath
+import re
 import subprocess
 import sys
 from pathlib import Path
@@ -21,13 +23,13 @@ SPEC.loader.exec_module(AUDIT)
 def test_checked_in_manifest_records_all_audited_tracks():
     report = AUDIT.audit()
     assert report["ok"], report["errors"]
-    assert report["lesson_count"] == 248
-    assert report["baseline_count"] == 76
+    assert report["lesson_count"] == 324
+    assert report["baseline_count"] == 152
     assert report["required_count"] == 172
     data, errors = AUDIT._manifest_data(ROOT / "data/curriculum_manifest.json")
     assert not errors
     from collections import Counter
-    assert Counter(lesson["track"] for lesson in data["lessons"]) == {"ml": 40, "modern-ai": 10, "mlops": 8, "stats": 6, "llm": 44, "agentic-ai": 64, "ai": 40, "rl": 20, "cv": 8, "nlp": 8}
+    assert Counter(lesson["track"] for lesson in data["lessons"]) == {"ml": 40, "modern-ai": 55, "mlops": 24, "stats": 21, "llm": 44, "agentic-ai": 64, "ai": 40, "rl": 20, "cv": 8, "nlp": 8}
 
 
 def test_checked_in_manifest_prerequisites_are_resolved_and_acyclic():
@@ -35,9 +37,37 @@ def test_checked_in_manifest_prerequisites_are_resolved_and_acyclic():
     assert not errors
     result, _ = AUDIT._validate_manifest(data, ROOT, "ml")
     assert not result
-    assert len(data["entry_lessons"]) == 80
+    assert len(data["entry_lessons"]) == 156
     assert {"ai/gradient-descent", "rl/markov-decision-processes", "cv/image-classification", "cv/vision-transformers", "nlp/text-preprocessing", "llm/tokenization"} <= set(data["entry_lessons"])
     assert "llm/tokenization" in data["entry_lessons"]
+
+
+def test_curriculum_map_links_and_manifest_roadmap_fields_agree():
+    data, errors = AUDIT._manifest_data(ROOT / "data/curriculum_manifest.json")
+    assert not errors
+    concept_paths = [lesson["concept"] for lesson in data["lessons"]]
+    assert len(concept_paths) == len(set(concept_paths)), "manifest concept paths must have unique owners"
+    concepts = {lesson["concept"]: lesson for lesson in data["lessons"]}
+    roadmap = ROOT / "roadmaps/curriculum-map.md"
+    content = roadmap.read_text(encoding="utf-8")
+    destinations = re.findall(r"(?<!!)\[[^\]]*\]\(([^)]+)\)", content)
+    definitions = dict(re.findall(r"(?m)^\[([^\]]+)\]:\s*<?([^\s>]+)>?", content))
+    for label in re.findall(r"(?<!!)\[([^\]]+)\]\[([^\]]*)\]", content):
+        destinations.append(definitions.get(label[1] or label[0], ""))
+    linked_paths = []
+    for raw in destinations:
+        raw = raw.strip().strip("<>")
+        target = posixpath.normpath(posixpath.join("roadmaps", raw.split("#", 1)[0].split()[0])) if raw else ""
+        if "/concepts/" in target:
+            linked_paths.append(target)
+    linked = set(linked_paths)
+    assert linked <= set(concepts)
+    assert len(linked) == 73
+    for target in linked:
+        assert "roadmaps/curriculum-map.md" in concepts[target].get("roadmap", [])
+    for target, lesson in concepts.items():
+        if "roadmaps/curriculum-map.md" in lesson.get("roadmap", []):
+            assert target in linked
 
 
 def _valid_concept() -> str:

@@ -54,7 +54,68 @@
     "llm/tokenization",
     "ml/probability-statistics",
     "ml/supervised-learning",
+    "mlops/ab-testing",
+    "mlops/containerization",
+    "mlops/data-pipelines",
+    "mlops/data-testing",
+    "mlops/data-validation",
+    "mlops/data-versioning",
+    "mlops/deployment-strategies",
+    "mlops/evaluation-metrics",
+    "mlops/experiment-tracking",
+    "mlops/feature-stores",
+    "mlops/hyperparameter-optimization",
+    "mlops/model-registry",
+    "mlops/model-serving",
+    "mlops/model-testing",
+    "mlops/model-versioning",
     "mlops/monitoring-alert-design",
+    "mlops/reproducibility",
+    "modern-ai/adaptive-layer-selection",
+    "modern-ai/advanced-rag-patterns",
+    "modern-ai/agentic-sdk",
+    "modern-ai/agentic-testing-harness",
+    "modern-ai/ai-gateway-routing",
+    "modern-ai/ai-red-teaming",
+    "modern-ai/attention-pattern-learning",
+    "modern-ai/beam-search-optimization",
+    "modern-ai/cache-aware-scheduling",
+    "modern-ai/chain-of-draft",
+    "modern-ai/conditional-computation",
+    "modern-ai/constitutional-ai-rlaif",
+    "modern-ai/context-compression",
+    "modern-ai/context-distillation",
+    "modern-ai/continual-learning-llms",
+    "modern-ai/distributed-inference",
+    "modern-ai/dynamic-batching",
+    "modern-ai/embedding-quantization",
+    "modern-ai/flash-attention",
+    "modern-ai/grammar-constrained-generation",
+    "modern-ai/heterogeneous-ensemble",
+    "modern-ai/latency-sla-prediction",
+    "modern-ai/layer-skipping",
+    "modern-ai/llm-evaluation-harness",
+    "modern-ai/llm-serving-frameworks",
+    "modern-ai/llmops",
+    "modern-ai/mcp-memory",
+    "modern-ai/mcp-model-context-protocol",
+    "modern-ai/mcp-tunnel",
+    "modern-ai/mixed-bit-quantization",
+    "modern-ai/model-cascading",
+    "modern-ai/model-merging",
+    "modern-ai/multimodal-finetuning",
+    "modern-ai/neuron-importance-scoring",
+    "modern-ai/online-knowledge-distillation",
+    "modern-ai/persistent-ai-memory",
+    "modern-ai/raft-retrieval-augmented-finetuning",
+    "modern-ai/rag-memory-store",
+    "modern-ai/reflexion-self-critique",
+    "modern-ai/router-learning",
+    "modern-ai/structured-generation",
+    "modern-ai/synthetic-data-generation",
+    "modern-ai/test-time-compute-scaling",
+    "modern-ai/token-decompression",
+    "modern-ai/token-pruning-merging",
     "nlp/bert-and-pretraining",
     "nlp/information-retrieval",
     "nlp/named-entity-recognition",
@@ -82,7 +143,22 @@
     "rl/rlhf",
     "rl/sarsa",
     "rl/soft-actor-critic",
-    "rl/temporal-difference-learning"
+    "rl/temporal-difference-learning",
+    "stats/ab-testing-statistics",
+    "stats/bayesian-inference",
+    "stats/causal-inference",
+    "stats/confidence-intervals",
+    "stats/distributions-reference",
+    "stats/hypothesis-testing",
+    "stats/information-theory",
+    "stats/markov-chains-mcmc",
+    "stats/maximum-likelihood-estimation",
+    "stats/monte-carlo-sampling",
+    "stats/multivariate-statistics",
+    "stats/probability-fundamentals",
+    "stats/statistical-ml-connections",
+    "stats/statistical-power-sample-size",
+    "stats/time-series-statistics"
   ],
   "lessons": [
     {
@@ -203,7 +279,10 @@
         "ml/interview-prep/ml-theory-questions.md"
       ],
       "estimated_minutes": 60,
-      "quality_status": "required"
+      "quality_status": "required",
+      "roadmap": [
+        "roadmaps/curriculum-map.md"
+      ]
     },
     {
       "id": "ml/data-leakage",
@@ -223,7 +302,10 @@
         "ml/interview-prep/ml-theory-questions.md"
       ],
       "estimated_minutes": 60,
-      "quality_status": "required"
+      "quality_status": "required",
+      "roadmap": [
+        "roadmaps/curriculum-map.md"
+      ]
     },
     {
       "id": "ml/distributed-training",
@@ -343,7 +425,10 @@
         "ml/interview-prep/ml-theory-questions.md"
       ],
       "estimated_minutes": 60,
-      "quality_status": "required"
+      "quality_status": "required",
+      "roadmap": [
+        "roadmaps/curriculum-map.md"
+      ]
     },
     {
       "id": "ml/feature-engineering",
@@ -363,7 +448,10 @@
         "ml/interview-prep/ml-theory-questions.md"
       ],
       "estimated_minutes": 60,
-      "quality_status": "required"
+      "quality_status": "required",
+      "roadmap": [
+        "roadmaps/curriculum-map.md"
+      ]
     },
     {
       "id": "ml/gradient-accumulation",
@@ -623,7 +711,10 @@
         "ml/interview-prep/ml-theory-questions.md"
       ],
       "estimated_minutes": 75,
-      "quality_status": "required"
+      "quality_status": "required",
+      "roadmap": [
+        "roadmaps/curriculum-map.md"
+      ]
     },
     {
       "id": "ml/optimization",
@@ -643,7 +734,10 @@
         "ml/interview-prep/ml-theory-questions.md"
       ],
       "estimated_minutes": 75,
-      "quality_status": "required"
+      "quality_status": "required",
+      "roadmap": [
+        "roadmaps/curriculum-map.md"
+      ]
     },
     {
       "id": "ml/overfitting-underfitting",
@@ -663,7 +757,10 @@
         "ml/interview-prep/ml-theory-questions.md"
       ],
       "estimated_minutes": 60,
-      "quality_status": "required"
+      "quality_status": "required",
+      "roadmap": [
+        "roadmaps/curriculum-map.md"
+      ]
     },
     {
       "id": "ml/probability-statistics",
@@ -741,7 +838,10 @@
         "ml/interview-prep/ml-theory-questions.md"
       ],
       "estimated_minutes": 60,
-      "quality_status": "required"
+      "quality_status": "required",
+      "roadmap": [
+        "roadmaps/curriculum-map.md"
+      ]
     },
     {
       "id": "ml/rnns-lstms",
@@ -779,7 +879,10 @@
         "ml/interview-prep/ml-theory-questions.md"
       ],
       "estimated_minutes": 60,
-      "quality_status": "required"
+      "quality_status": "required",
+      "roadmap": [
+        "roadmaps/curriculum-map.md"
+      ]
     },
     {
       "id": "ml/support-vector-machines",
@@ -1387,7 +1490,10 @@
         "llm/interview-prep/curriculum-practice.md#tokenization"
       ],
       "estimated_minutes": 60,
-      "quality_status": "required"
+      "quality_status": "required",
+      "roadmap": [
+        "roadmaps/curriculum-map.md"
+      ]
     },
     {
       "id": "llm/embeddings",
@@ -1407,7 +1513,10 @@
         "llm/interview-prep/curriculum-practice.md#embeddings"
       ],
       "estimated_minutes": 60,
-      "quality_status": "required"
+      "quality_status": "required",
+      "roadmap": [
+        "roadmaps/curriculum-map.md"
+      ]
     },
     {
       "id": "llm/pretraining",
@@ -1607,7 +1716,10 @@
         "llm/interview-prep/curriculum-practice.md#prompting"
       ],
       "estimated_minutes": 60,
-      "quality_status": "required"
+      "quality_status": "required",
+      "roadmap": [
+        "roadmaps/curriculum-map.md"
+      ]
     },
     {
       "id": "llm/few-shot-learning",
@@ -1727,7 +1839,10 @@
         "llm/interview-prep/curriculum-practice.md#rag-retrieval-augmented-generation"
       ],
       "estimated_minutes": 60,
-      "quality_status": "required"
+      "quality_status": "required",
+      "roadmap": [
+        "roadmaps/curriculum-map.md"
+      ]
     },
     {
       "id": "llm/retrieval-augmented-generation",
@@ -1747,7 +1862,10 @@
         "llm/interview-prep/curriculum-practice.md#retrieval-augmented-generation-rag"
       ],
       "estimated_minutes": 60,
-      "quality_status": "required"
+      "quality_status": "required",
+      "roadmap": [
+        "roadmaps/curriculum-map.md"
+      ]
     },
     {
       "id": "llm/vector-databases",
@@ -1767,7 +1885,10 @@
         "llm/interview-prep/curriculum-practice.md#vector-databases"
       ],
       "estimated_minutes": 60,
-      "quality_status": "required"
+      "quality_status": "required",
+      "roadmap": [
+        "roadmaps/curriculum-map.md"
+      ]
     },
     {
       "id": "llm/semantic-search",
@@ -1787,7 +1908,10 @@
         "llm/interview-prep/curriculum-practice.md#semantic-search"
       ],
       "estimated_minutes": 60,
-      "quality_status": "required"
+      "quality_status": "required",
+      "roadmap": [
+        "roadmaps/curriculum-map.md"
+      ]
     },
     {
       "id": "llm/semantic-caching",
@@ -1827,7 +1951,10 @@
         "llm/interview-prep/curriculum-practice.md#kv-cache"
       ],
       "estimated_minutes": 60,
-      "quality_status": "required"
+      "quality_status": "required",
+      "roadmap": [
+        "roadmaps/curriculum-map.md"
+      ]
     },
     {
       "id": "llm/attention-optimization",
@@ -1867,7 +1994,10 @@
         "llm/interview-prep/curriculum-practice.md#context-window"
       ],
       "estimated_minutes": 60,
-      "quality_status": "required"
+      "quality_status": "required",
+      "roadmap": [
+        "roadmaps/curriculum-map.md"
+      ]
     },
     {
       "id": "llm/continuous-batching",
@@ -1887,7 +2017,10 @@
         "llm/interview-prep/curriculum-practice.md#continuous-batching"
       ],
       "estimated_minutes": 60,
-      "quality_status": "required"
+      "quality_status": "required",
+      "roadmap": [
+        "roadmaps/curriculum-map.md"
+      ]
     },
     {
       "id": "llm/speculative-decoding",
@@ -2007,7 +2140,10 @@
         "llm/interview-prep/curriculum-practice.md#evaluation-for-llms"
       ],
       "estimated_minutes": 60,
-      "quality_status": "required"
+      "quality_status": "required",
+      "roadmap": [
+        "roadmaps/curriculum-map.md"
+      ]
     },
     {
       "id": "llm/vision-transformers",
@@ -2147,7 +2283,10 @@
         "llm/interview-prep/curriculum-practice.md#long-context-handling"
       ],
       "estimated_minutes": 60,
-      "quality_status": "required"
+      "quality_status": "required",
+      "roadmap": [
+        "roadmaps/curriculum-map.md"
+      ]
     },
     {
       "id": "llm/retrieval-systems",
@@ -2167,7 +2306,10 @@
         "llm/interview-prep/curriculum-practice.md#retrieval-systems"
       ],
       "estimated_minutes": 60,
-      "quality_status": "required"
+      "quality_status": "required",
+      "roadmap": [
+        "roadmaps/curriculum-map.md"
+      ]
     },
     {
       "id": "llm/prompt-injection-security",
@@ -2187,7 +2329,10 @@
         "llm/interview-prep/curriculum-practice.md#prompt-injection-security"
       ],
       "estimated_minutes": 60,
-      "quality_status": "required"
+      "quality_status": "required",
+      "roadmap": [
+        "roadmaps/curriculum-map.md"
+      ]
     },
     {
       "id": "llm/model-editing",
@@ -2287,7 +2432,10 @@
         "agentic-ai/interview-prep/curriculum-practice.md#agent-loops"
       ],
       "estimated_minutes": 60,
-      "quality_status": "required"
+      "quality_status": "required",
+      "roadmap": [
+        "roadmaps/curriculum-map.md"
+      ]
     },
     {
       "id": "agentic-ai/tool-use",
@@ -2307,7 +2455,10 @@
         "agentic-ai/interview-prep/curriculum-practice.md#tool-use"
       ],
       "estimated_minutes": 60,
-      "quality_status": "required"
+      "quality_status": "required",
+      "roadmap": [
+        "roadmaps/curriculum-map.md"
+      ]
     },
     {
       "id": "agentic-ai/tool-calling",
@@ -2347,7 +2498,10 @@
         "agentic-ai/interview-prep/curriculum-practice.md#function-calling"
       ],
       "estimated_minutes": 60,
-      "quality_status": "required"
+      "quality_status": "required",
+      "roadmap": [
+        "roadmaps/curriculum-map.md"
+      ]
     },
     {
       "id": "agentic-ai/structured-output",
@@ -2367,7 +2521,10 @@
         "agentic-ai/interview-prep/curriculum-practice.md#structured-output"
       ],
       "estimated_minutes": 60,
-      "quality_status": "required"
+      "quality_status": "required",
+      "roadmap": [
+        "roadmaps/curriculum-map.md"
+      ]
     },
     {
       "id": "agentic-ai/planning-reasoning",
@@ -2387,7 +2544,10 @@
         "agentic-ai/interview-prep/curriculum-practice.md#planning-agents"
       ],
       "estimated_minutes": 60,
-      "quality_status": "required"
+      "quality_status": "required",
+      "roadmap": [
+        "roadmaps/curriculum-map.md"
+      ]
     },
     {
       "id": "agentic-ai/react-reasoning-acting",
@@ -2407,7 +2567,10 @@
         "agentic-ai/interview-prep/curriculum-practice.md#react-reasoning-acting"
       ],
       "estimated_minutes": 60,
-      "quality_status": "required"
+      "quality_status": "required",
+      "roadmap": [
+        "roadmaps/curriculum-map.md"
+      ]
     },
     {
       "id": "agentic-ai/tree-of-thought",
@@ -2747,7 +2910,10 @@
         "agentic-ai/interview-prep/curriculum-practice.md#retrieval-augmented-generation"
       ],
       "estimated_minutes": 60,
-      "quality_status": "required"
+      "quality_status": "required",
+      "roadmap": [
+        "roadmaps/curriculum-map.md"
+      ]
     },
     {
       "id": "agentic-ai/error-recovery",
@@ -2767,7 +2933,10 @@
         "agentic-ai/interview-prep/curriculum-practice.md#error-recovery-in-agents"
       ],
       "estimated_minutes": 60,
-      "quality_status": "required"
+      "quality_status": "required",
+      "roadmap": [
+        "roadmaps/curriculum-map.md"
+      ]
     },
     {
       "id": "agentic-ai/agent-debugging",
@@ -2787,7 +2956,10 @@
         "agentic-ai/interview-prep/curriculum-practice.md#agent-debugging"
       ],
       "estimated_minutes": 60,
-      "quality_status": "required"
+      "quality_status": "required",
+      "roadmap": [
+        "roadmaps/curriculum-map.md"
+      ]
     },
     {
       "id": "agentic-ai/agent-testing",
@@ -2807,7 +2979,10 @@
         "agentic-ai/interview-prep/curriculum-practice.md#agent-testing"
       ],
       "estimated_minutes": 60,
-      "quality_status": "required"
+      "quality_status": "required",
+      "roadmap": [
+        "roadmaps/curriculum-map.md"
+      ]
     },
     {
       "id": "agentic-ai/agent-evals",
@@ -2827,7 +3002,10 @@
         "agentic-ai/interview-prep/curriculum-practice.md#agent-evals"
       ],
       "estimated_minutes": 60,
-      "quality_status": "required"
+      "quality_status": "required",
+      "roadmap": [
+        "roadmaps/curriculum-map.md"
+      ]
     },
     {
       "id": "agentic-ai/agent-monitoring",
@@ -2867,7 +3045,10 @@
         "agentic-ai/interview-prep/curriculum-practice.md#observability-for-agents"
       ],
       "estimated_minutes": 60,
-      "quality_status": "required"
+      "quality_status": "required",
+      "roadmap": [
+        "roadmaps/curriculum-map.md"
+      ]
     },
     {
       "id": "agentic-ai/tracing-agents",
@@ -2887,7 +3068,10 @@
         "agentic-ai/interview-prep/curriculum-practice.md#distributed-tracing-for-agents"
       ],
       "estimated_minutes": 60,
-      "quality_status": "required"
+      "quality_status": "required",
+      "roadmap": [
+        "roadmaps/curriculum-map.md"
+      ]
     },
     {
       "id": "agentic-ai/latency-optimization-agents",
@@ -2927,7 +3111,10 @@
         "agentic-ai/interview-prep/curriculum-practice.md#agent-cost-optimization"
       ],
       "estimated_minutes": 60,
-      "quality_status": "required"
+      "quality_status": "required",
+      "roadmap": [
+        "roadmaps/curriculum-map.md"
+      ]
     },
     {
       "id": "agentic-ai/agent-prompt-engineering",
@@ -2967,7 +3154,10 @@
         "agentic-ai/interview-prep/curriculum-practice.md#safety-alignment"
       ],
       "estimated_minutes": 60,
-      "quality_status": "required"
+      "quality_status": "required",
+      "roadmap": [
+        "roadmaps/curriculum-map.md"
+      ]
     },
     {
       "id": "agentic-ai/human-agent-collaboration",
@@ -2987,7 +3177,10 @@
         "agentic-ai/interview-prep/curriculum-practice.md#human-agent-collaboration"
       ],
       "estimated_minutes": 60,
-      "quality_status": "required"
+      "quality_status": "required",
+      "roadmap": [
+        "roadmaps/curriculum-map.md"
+      ]
     },
     {
       "id": "agentic-ai/coding-agents",
@@ -3367,7 +3560,10 @@
         "agentic-ai/interview-prep/curriculum-practice.md#agent-deployment-patterns"
       ],
       "estimated_minutes": 60,
-      "quality_status": "required"
+      "quality_status": "required",
+      "roadmap": [
+        "roadmaps/curriculum-map.md"
+      ]
     },
     {
       "id": "agentic-ai/agent-state-management",
@@ -3387,7 +3583,10 @@
         "agentic-ai/interview-prep/curriculum-practice.md#agent-state-management"
       ],
       "estimated_minutes": 60,
-      "quality_status": "required"
+      "quality_status": "required",
+      "roadmap": [
+        "roadmaps/curriculum-map.md"
+      ]
     },
     {
       "id": "agentic-ai/advanced-reasoning-variants",
@@ -3447,7 +3646,10 @@
         "agentic-ai/interview-prep/curriculum-practice.md#agent-security-and-sandboxing"
       ],
       "estimated_minutes": 60,
-      "quality_status": "required"
+      "quality_status": "required",
+      "roadmap": [
+        "roadmaps/curriculum-map.md"
+      ]
     },
     {
       "id": "agentic-ai/multi-turn-conversation",
@@ -3487,7 +3689,10 @@
         "agentic-ai/interview-prep/curriculum-practice.md#agent-cost-analysis"
       ],
       "estimated_minutes": 60,
-      "quality_status": "required"
+      "quality_status": "required",
+      "roadmap": [
+        "roadmaps/curriculum-map.md"
+      ]
     },
     {
       "id": "agentic-ai/agent-frameworks-comparison",
@@ -3543,7 +3748,10 @@
       ],
       "practice": [],
       "estimated_minutes": 45,
-      "quality_status": "baseline"
+      "quality_status": "baseline",
+      "roadmap": [
+        "roadmaps/curriculum-map.md"
+      ]
     },
     {
       "id": "ai/backpropagation",
@@ -3623,7 +3831,10 @@
       ],
       "practice": [],
       "estimated_minutes": 45,
-      "quality_status": "baseline"
+      "quality_status": "baseline",
+      "roadmap": [
+        "roadmaps/curriculum-map.md"
+      ]
     },
     {
       "id": "ai/logistic-regression",
@@ -3639,7 +3850,10 @@
       ],
       "practice": [],
       "estimated_minutes": 45,
-      "quality_status": "baseline"
+      "quality_status": "baseline",
+      "roadmap": [
+        "roadmaps/curriculum-map.md"
+      ]
     },
     {
       "id": "ai/decision-trees",
@@ -3655,7 +3869,10 @@
       ],
       "practice": [],
       "estimated_minutes": 45,
-      "quality_status": "baseline"
+      "quality_status": "baseline",
+      "roadmap": [
+        "roadmaps/curriculum-map.md"
+      ]
     },
     {
       "id": "ai/random-forests",
@@ -3671,7 +3888,10 @@
       ],
       "practice": [],
       "estimated_minutes": 45,
-      "quality_status": "baseline"
+      "quality_status": "baseline",
+      "roadmap": [
+        "roadmaps/curriculum-map.md"
+      ]
     },
     {
       "id": "ai/gradient-boosting",
@@ -3687,7 +3907,10 @@
       ],
       "practice": [],
       "estimated_minutes": 45,
-      "quality_status": "baseline"
+      "quality_status": "baseline",
+      "roadmap": [
+        "roadmaps/curriculum-map.md"
+      ]
     },
     {
       "id": "ai/support-vector-machines",
@@ -3735,7 +3958,10 @@
       ],
       "practice": [],
       "estimated_minutes": 45,
-      "quality_status": "baseline"
+      "quality_status": "baseline",
+      "roadmap": [
+        "roadmaps/curriculum-map.md"
+      ]
     },
     {
       "id": "ai/activation-functions",
@@ -4816,10 +5042,1312 @@
       ],
       "estimated_minutes": 45,
       "quality_status": "baseline"
+    },
+    {
+      "id": "modern-ai/llm-evaluation-harness",
+      "track": "modern-ai",
+      "level": "foundation",
+      "concept": "modern-ai/concepts/01-llm-evaluation-harness.md",
+      "notebook": "modern-ai/notebooks/01-llm-evaluation-harness.ipynb",
+      "implementation": "modern-ai/implementations/01-llm-evaluation-harness.py",
+      "prerequisites": [],
+      "outcomes": [
+        "Explain the core idea of LLM Evaluation Harness.",
+        "Apply LLM Evaluation Harness to a stated example or constraint."
+      ],
+      "estimated_minutes": 45,
+      "quality_status": "baseline",
+      "roadmap": [
+        "roadmaps/curriculum-map.md"
+      ]
+    },
+    {
+      "id": "modern-ai/ai-red-teaming",
+      "track": "modern-ai",
+      "level": "foundation",
+      "concept": "modern-ai/concepts/02-ai-red-teaming.md",
+      "notebook": "modern-ai/notebooks/02-ai-red-teaming.ipynb",
+      "implementation": "modern-ai/implementations/02-ai-red-teaming.py",
+      "prerequisites": [],
+      "outcomes": [
+        "Explain the core idea of AI Red-Teaming.",
+        "Apply AI Red-Teaming to a stated example or constraint."
+      ],
+      "estimated_minutes": 45,
+      "quality_status": "baseline",
+      "roadmap": [
+        "roadmaps/curriculum-map.md"
+      ]
+    },
+    {
+      "id": "modern-ai/agentic-testing-harness",
+      "track": "modern-ai",
+      "level": "intermediate",
+      "concept": "modern-ai/concepts/03-agentic-testing-harness.md",
+      "notebook": "modern-ai/notebooks/03-agentic-testing-harness.ipynb",
+      "implementation": "modern-ai/implementations/03-agentic-testing-harness.py",
+      "prerequisites": [],
+      "outcomes": [
+        "Explain the core idea of Agentic Testing Harness.",
+        "Apply Agentic Testing Harness to a stated example or constraint."
+      ],
+      "estimated_minutes": 45,
+      "quality_status": "baseline"
+    },
+    {
+      "id": "modern-ai/persistent-ai-memory",
+      "track": "modern-ai",
+      "level": "intermediate",
+      "concept": "modern-ai/concepts/04-persistent-ai-memory.md",
+      "notebook": "modern-ai/notebooks/04-persistent-ai-memory.ipynb",
+      "implementation": "modern-ai/implementations/04-persistent-ai-memory.py",
+      "prerequisites": [],
+      "outcomes": [
+        "Explain the core idea of Persistent AI Memory.",
+        "Apply Persistent AI Memory to a stated example or constraint."
+      ],
+      "estimated_minutes": 45,
+      "quality_status": "baseline"
+    },
+    {
+      "id": "modern-ai/advanced-rag-patterns",
+      "track": "modern-ai",
+      "level": "intermediate",
+      "concept": "modern-ai/concepts/05-advanced-rag-patterns.md",
+      "notebook": "modern-ai/notebooks/05-advanced-rag-patterns.ipynb",
+      "implementation": "modern-ai/implementations/05-advanced-rag-patterns.py",
+      "prerequisites": [],
+      "outcomes": [
+        "Explain the core idea of Advanced RAG Patterns.",
+        "Apply Advanced RAG Patterns to a stated example or constraint."
+      ],
+      "estimated_minutes": 45,
+      "quality_status": "baseline",
+      "roadmap": [
+        "roadmaps/curriculum-map.md"
+      ]
+    },
+    {
+      "id": "modern-ai/context-distillation",
+      "track": "modern-ai",
+      "level": "intermediate",
+      "concept": "modern-ai/concepts/06-context-distillation.md",
+      "notebook": "modern-ai/notebooks/06-context-distillation.ipynb",
+      "implementation": "modern-ai/implementations/06-context-distillation.py",
+      "prerequisites": [],
+      "outcomes": [
+        "Explain the core idea of Context Distillation.",
+        "Apply Context Distillation to a stated example or constraint."
+      ],
+      "estimated_minutes": 45,
+      "quality_status": "baseline"
+    },
+    {
+      "id": "modern-ai/synthetic-data-generation",
+      "track": "modern-ai",
+      "level": "intermediate",
+      "concept": "modern-ai/concepts/07-synthetic-data-generation.md",
+      "notebook": "modern-ai/notebooks/07-synthetic-data-generation.ipynb",
+      "implementation": "modern-ai/implementations/07-synthetic-data-generation.py",
+      "prerequisites": [],
+      "outcomes": [
+        "Explain the core idea of Synthetic Data Generation.",
+        "Apply Synthetic Data Generation to a stated example or constraint."
+      ],
+      "estimated_minutes": 45,
+      "quality_status": "baseline"
+    },
+    {
+      "id": "modern-ai/constitutional-ai-rlaif",
+      "track": "modern-ai",
+      "level": "intermediate",
+      "concept": "modern-ai/concepts/08-constitutional-ai-rlaif.md",
+      "notebook": "modern-ai/notebooks/08-constitutional-ai-rlaif.ipynb",
+      "implementation": "modern-ai/implementations/08-constitutional-ai-rlaif.py",
+      "prerequisites": [],
+      "outcomes": [
+        "Explain the core idea of Constitutional AI & RLAIF.",
+        "Apply Constitutional AI & RLAIF to a stated example or constraint."
+      ],
+      "estimated_minutes": 45,
+      "quality_status": "baseline"
+    },
+    {
+      "id": "modern-ai/raft-retrieval-augmented-finetuning",
+      "track": "modern-ai",
+      "level": "intermediate",
+      "concept": "modern-ai/concepts/09-raft-retrieval-augmented-finetuning.md",
+      "notebook": "modern-ai/notebooks/09-raft-retrieval-augmented-finetuning.ipynb",
+      "implementation": "modern-ai/implementations/09-raft-retrieval-augmented-finetuning.py",
+      "prerequisites": [],
+      "outcomes": [
+        "Explain the core idea of RAFT.",
+        "Apply RAFT to a stated example or constraint."
+      ],
+      "estimated_minutes": 45,
+      "quality_status": "baseline"
+    },
+    {
+      "id": "modern-ai/model-merging",
+      "track": "modern-ai",
+      "level": "intermediate",
+      "concept": "modern-ai/concepts/10-model-merging.md",
+      "notebook": "modern-ai/notebooks/10-model-merging.ipynb",
+      "implementation": "modern-ai/implementations/10-model-merging.py",
+      "prerequisites": [],
+      "outcomes": [
+        "Explain the core idea of Model Merging.",
+        "Apply Model Merging to a stated example or constraint."
+      ],
+      "estimated_minutes": 45,
+      "quality_status": "baseline"
+    },
+    {
+      "id": "modern-ai/flash-attention",
+      "track": "modern-ai",
+      "level": "intermediate",
+      "concept": "modern-ai/concepts/11-flash-attention.md",
+      "notebook": "modern-ai/notebooks/11-flash-attention.ipynb",
+      "implementation": "modern-ai/implementations/11-flash-attention.py",
+      "prerequisites": [],
+      "outcomes": [
+        "Explain the core idea of Flash Attention.",
+        "Apply Flash Attention to a stated example or constraint."
+      ],
+      "estimated_minutes": 45,
+      "quality_status": "baseline"
+    },
+    {
+      "id": "modern-ai/test-time-compute-scaling",
+      "track": "modern-ai",
+      "level": "intermediate",
+      "concept": "modern-ai/concepts/12-test-time-compute-scaling.md",
+      "notebook": "modern-ai/notebooks/12-test-time-compute-scaling.ipynb",
+      "implementation": "modern-ai/implementations/12-test-time-compute-scaling.py",
+      "prerequisites": [],
+      "outcomes": [
+        "Explain the core idea of Test-Time Compute Scaling.",
+        "Apply Test-Time Compute Scaling to a stated example or constraint."
+      ],
+      "estimated_minutes": 45,
+      "quality_status": "baseline"
+    },
+    {
+      "id": "modern-ai/llm-serving-frameworks",
+      "track": "modern-ai",
+      "level": "intermediate",
+      "concept": "modern-ai/concepts/13-llm-serving-frameworks.md",
+      "notebook": "modern-ai/notebooks/13-llm-serving-frameworks.ipynb",
+      "implementation": "modern-ai/implementations/13-llm-serving-frameworks.py",
+      "prerequisites": [],
+      "outcomes": [
+        "Explain the core idea of LLM Serving Frameworks.",
+        "Apply LLM Serving Frameworks to a stated example or constraint."
+      ],
+      "estimated_minutes": 45,
+      "quality_status": "baseline"
+    },
+    {
+      "id": "modern-ai/structured-generation",
+      "track": "modern-ai",
+      "level": "intermediate",
+      "concept": "modern-ai/concepts/14-structured-generation.md",
+      "notebook": "modern-ai/notebooks/14-structured-generation.ipynb",
+      "implementation": "modern-ai/implementations/14-structured-generation.py",
+      "prerequisites": [],
+      "outcomes": [
+        "Explain the core idea of Structured Generation.",
+        "Apply Structured Generation to a stated example or constraint."
+      ],
+      "estimated_minutes": 45,
+      "quality_status": "baseline"
+    },
+    {
+      "id": "modern-ai/reflexion-self-critique",
+      "track": "modern-ai",
+      "level": "intermediate",
+      "concept": "modern-ai/concepts/15-reflexion-self-critique.md",
+      "notebook": "modern-ai/notebooks/15-reflexion-self-critique.ipynb",
+      "implementation": "modern-ai/implementations/15-reflexion-self-critique.py",
+      "prerequisites": [],
+      "outcomes": [
+        "Explain the core idea of Reflexion & Self-Critique.",
+        "Apply Reflexion & Self-Critique to a stated example or constraint."
+      ],
+      "estimated_minutes": 45,
+      "quality_status": "baseline"
+    },
+    {
+      "id": "modern-ai/chain-of-draft",
+      "track": "modern-ai",
+      "level": "intermediate",
+      "concept": "modern-ai/concepts/16-chain-of-draft.md",
+      "notebook": "modern-ai/notebooks/16-chain-of-draft.ipynb",
+      "implementation": "modern-ai/implementations/16-chain-of-draft.py",
+      "prerequisites": [],
+      "outcomes": [
+        "Explain the core idea of Chain-of-Draft.",
+        "Apply Chain-of-Draft to a stated example or constraint."
+      ],
+      "estimated_minutes": 45,
+      "quality_status": "baseline"
+    },
+    {
+      "id": "modern-ai/continual-learning-llms",
+      "track": "modern-ai",
+      "level": "intermediate",
+      "concept": "modern-ai/concepts/17-continual-learning-llms.md",
+      "notebook": "modern-ai/notebooks/17-continual-learning-llms.ipynb",
+      "implementation": "modern-ai/implementations/17-continual-learning-llms.py",
+      "prerequisites": [],
+      "outcomes": [
+        "Explain the core idea of Continual Learning for LLMs.",
+        "Apply Continual Learning for LLMs to a stated example or constraint."
+      ],
+      "estimated_minutes": 45,
+      "quality_status": "baseline"
+    },
+    {
+      "id": "modern-ai/llmops",
+      "track": "modern-ai",
+      "level": "intermediate",
+      "concept": "modern-ai/concepts/18-llmops.md",
+      "notebook": "modern-ai/notebooks/18-llmops.ipynb",
+      "implementation": "modern-ai/implementations/18-llmops.py",
+      "prerequisites": [],
+      "outcomes": [
+        "Explain the core idea of LLMOps.",
+        "Apply LLMOps to a stated example or constraint."
+      ],
+      "estimated_minutes": 45,
+      "quality_status": "baseline"
+    },
+    {
+      "id": "modern-ai/ai-gateway-routing",
+      "track": "modern-ai",
+      "level": "intermediate",
+      "concept": "modern-ai/concepts/19-ai-gateway-routing.md",
+      "notebook": "modern-ai/notebooks/19-ai-gateway-routing.ipynb",
+      "implementation": "modern-ai/implementations/19-ai-gateway-routing.py",
+      "prerequisites": [],
+      "outcomes": [
+        "Explain the core idea of AI Gateway & Routing.",
+        "Apply AI Gateway & Routing to a stated example or constraint."
+      ],
+      "estimated_minutes": 45,
+      "quality_status": "baseline",
+      "roadmap": [
+        "roadmaps/curriculum-map.md"
+      ]
+    },
+    {
+      "id": "modern-ai/multimodal-finetuning",
+      "track": "modern-ai",
+      "level": "intermediate",
+      "concept": "modern-ai/concepts/20-multimodal-finetuning.md",
+      "notebook": "modern-ai/notebooks/20-multimodal-finetuning.ipynb",
+      "implementation": "modern-ai/implementations/20-multimodal-finetuning.py",
+      "prerequisites": [],
+      "outcomes": [
+        "Explain the core idea of Multimodal Fine-tuning.",
+        "Apply Multimodal Fine-tuning to a stated example or constraint."
+      ],
+      "estimated_minutes": 45,
+      "quality_status": "baseline"
+    },
+    {
+      "id": "modern-ai/mcp-model-context-protocol",
+      "track": "modern-ai",
+      "level": "intermediate",
+      "concept": "modern-ai/concepts/21-mcp-model-context-protocol.md",
+      "notebook": "modern-ai/notebooks/21-mcp-model-context-protocol.ipynb",
+      "implementation": "modern-ai/implementations/21-mcp-model-context-protocol.py",
+      "prerequisites": [],
+      "outcomes": [
+        "Explain the core idea of MCP (Model Context Protocol).",
+        "Apply MCP (Model Context Protocol) to a stated example or constraint."
+      ],
+      "estimated_minutes": 45,
+      "quality_status": "baseline"
+    },
+    {
+      "id": "modern-ai/mcp-memory",
+      "track": "modern-ai",
+      "level": "intermediate",
+      "concept": "modern-ai/concepts/22-mcp-memory.md",
+      "notebook": "modern-ai/notebooks/22-mcp-memory.ipynb",
+      "implementation": "modern-ai/implementations/22-mcp-memory.py",
+      "prerequisites": [],
+      "outcomes": [
+        "Explain the core idea of MCP Memory.",
+        "Apply MCP Memory to a stated example or constraint."
+      ],
+      "estimated_minutes": 45,
+      "quality_status": "baseline"
+    },
+    {
+      "id": "modern-ai/rag-memory-store",
+      "track": "modern-ai",
+      "level": "intermediate",
+      "concept": "modern-ai/concepts/23-rag-memory-store.md",
+      "notebook": "modern-ai/notebooks/23-rag-memory-store.ipynb",
+      "implementation": "modern-ai/implementations/23-rag-memory-store.py",
+      "prerequisites": [],
+      "outcomes": [
+        "Explain the core idea of RAG Memory Store.",
+        "Apply RAG Memory Store to a stated example or constraint."
+      ],
+      "estimated_minutes": 45,
+      "quality_status": "baseline",
+      "roadmap": [
+        "roadmaps/curriculum-map.md"
+      ]
+    },
+    {
+      "id": "modern-ai/mcp-tunnel",
+      "track": "modern-ai",
+      "level": "intermediate",
+      "concept": "modern-ai/concepts/24-mcp-tunnel.md",
+      "notebook": "modern-ai/notebooks/24-mcp-tunnel.ipynb",
+      "implementation": "modern-ai/implementations/24-mcp-tunnel.py",
+      "prerequisites": [],
+      "outcomes": [
+        "Explain the core idea of MCP Tunnel.",
+        "Apply MCP Tunnel to a stated example or constraint."
+      ],
+      "estimated_minutes": 45,
+      "quality_status": "baseline"
+    },
+    {
+      "id": "modern-ai/agentic-sdk",
+      "track": "modern-ai",
+      "level": "intermediate",
+      "concept": "modern-ai/concepts/25-agentic-sdk.md",
+      "notebook": "modern-ai/notebooks/25-agentic-sdk.ipynb",
+      "implementation": "modern-ai/implementations/25-agentic-sdk.py",
+      "prerequisites": [],
+      "outcomes": [
+        "Explain the core idea of Agentic SDK.",
+        "Apply Agentic SDK to a stated example or constraint."
+      ],
+      "estimated_minutes": 45,
+      "quality_status": "baseline"
+    },
+    {
+      "id": "modern-ai/token-pruning-merging",
+      "track": "modern-ai",
+      "level": "intermediate",
+      "concept": "modern-ai/concepts/36-token-pruning-merging.md",
+      "notebook": "modern-ai/notebooks/36-token-pruning-merging.ipynb",
+      "implementation": "modern-ai/implementations/36-token-pruning-merging.py",
+      "prerequisites": [],
+      "outcomes": [
+        "Explain the core idea of Token Pruning and Merging.",
+        "Apply Token Pruning and Merging to a stated example or constraint."
+      ],
+      "estimated_minutes": 45,
+      "quality_status": "baseline"
+    },
+    {
+      "id": "modern-ai/adaptive-layer-selection",
+      "track": "modern-ai",
+      "level": "intermediate",
+      "concept": "modern-ai/concepts/37-adaptive-layer-selection.md",
+      "notebook": "modern-ai/notebooks/37-adaptive-layer-selection.ipynb",
+      "implementation": "modern-ai/implementations/37-adaptive-layer-selection.py",
+      "prerequisites": [],
+      "outcomes": [
+        "Explain the core idea of Adaptive Layer Selection.",
+        "Apply Adaptive Layer Selection to a stated example or constraint."
+      ],
+      "estimated_minutes": 45,
+      "quality_status": "baseline"
+    },
+    {
+      "id": "modern-ai/layer-skipping",
+      "track": "modern-ai",
+      "level": "intermediate",
+      "concept": "modern-ai/concepts/38-layer-skipping.md",
+      "notebook": "modern-ai/notebooks/38-layer-skipping.ipynb",
+      "implementation": "modern-ai/implementations/38-layer-skipping.py",
+      "prerequisites": [],
+      "outcomes": [
+        "Explain the core idea of Layer Skipping.",
+        "Apply Layer Skipping to a stated example or constraint."
+      ],
+      "estimated_minutes": 45,
+      "quality_status": "baseline"
+    },
+    {
+      "id": "modern-ai/router-learning",
+      "track": "modern-ai",
+      "level": "intermediate",
+      "concept": "modern-ai/concepts/39-router-learning.md",
+      "notebook": "modern-ai/notebooks/39-router-learning.ipynb",
+      "implementation": "modern-ai/implementations/39-router-learning.py",
+      "prerequisites": [],
+      "outcomes": [
+        "Explain the core idea of Router Learning and Adaptive Routing.",
+        "Apply Router Learning and Adaptive Routing to a stated example or constraint."
+      ],
+      "estimated_minutes": 45,
+      "quality_status": "baseline"
+    },
+    {
+      "id": "modern-ai/beam-search-optimization",
+      "track": "modern-ai",
+      "level": "intermediate",
+      "concept": "modern-ai/concepts/40-beam-search-optimization.md",
+      "notebook": "modern-ai/notebooks/40-beam-search-optimization.ipynb",
+      "implementation": "modern-ai/implementations/40-beam-search-optimization.py",
+      "prerequisites": [],
+      "outcomes": [
+        "Explain the core idea of Beam Search Optimization.",
+        "Apply Beam Search Optimization to a stated example or constraint."
+      ],
+      "estimated_minutes": 45,
+      "quality_status": "baseline"
+    },
+    {
+      "id": "modern-ai/grammar-constrained-generation",
+      "track": "modern-ai",
+      "level": "intermediate",
+      "concept": "modern-ai/concepts/41-grammar-constrained-generation.md",
+      "notebook": "modern-ai/notebooks/41-grammar-constrained-generation.ipynb",
+      "implementation": "modern-ai/implementations/41-grammar-constrained-generation.py",
+      "prerequisites": [],
+      "outcomes": [
+        "Explain the core idea of Grammar-Constrained Generation.",
+        "Apply Grammar-Constrained Generation to a stated example or constraint."
+      ],
+      "estimated_minutes": 45,
+      "quality_status": "baseline"
+    },
+    {
+      "id": "modern-ai/mixed-bit-quantization",
+      "track": "modern-ai",
+      "level": "intermediate",
+      "concept": "modern-ai/concepts/42-mixed-bit-quantization.md",
+      "notebook": "modern-ai/notebooks/42-mixed-bit-quantization.ipynb",
+      "implementation": "modern-ai/implementations/42-mixed-bit-quantization.py",
+      "prerequisites": [],
+      "outcomes": [
+        "Explain the core idea of Mixed-Bit Quantization.",
+        "Apply Mixed-Bit Quantization to a stated example or constraint."
+      ],
+      "estimated_minutes": 45,
+      "quality_status": "baseline"
+    },
+    {
+      "id": "modern-ai/embedding-quantization",
+      "track": "modern-ai",
+      "level": "intermediate",
+      "concept": "modern-ai/concepts/43-embedding-quantization.md",
+      "notebook": "modern-ai/notebooks/43-embedding-quantization.ipynb",
+      "implementation": "modern-ai/implementations/43-embedding-quantization.py",
+      "prerequisites": [],
+      "outcomes": [
+        "Explain the core idea of Embedding Quantization.",
+        "Apply Embedding Quantization to a stated example or constraint."
+      ],
+      "estimated_minutes": 45,
+      "quality_status": "baseline"
+    },
+    {
+      "id": "modern-ai/token-decompression",
+      "track": "modern-ai",
+      "level": "intermediate",
+      "concept": "modern-ai/concepts/44-token-decompression.md",
+      "notebook": "modern-ai/notebooks/44-token-decompression.ipynb",
+      "implementation": "modern-ai/implementations/44-token-decompression.py",
+      "prerequisites": [],
+      "outcomes": [
+        "Explain the core idea of Token Decompression and Recovery.",
+        "Apply Token Decompression and Recovery to a stated example or constraint."
+      ],
+      "estimated_minutes": 45,
+      "quality_status": "baseline"
+    },
+    {
+      "id": "modern-ai/attention-pattern-learning",
+      "track": "modern-ai",
+      "level": "intermediate",
+      "concept": "modern-ai/concepts/45-attention-pattern-learning.md",
+      "notebook": "modern-ai/notebooks/45-attention-pattern-learning.ipynb",
+      "implementation": "modern-ai/implementations/45-attention-pattern-learning.py",
+      "prerequisites": [],
+      "outcomes": [
+        "Explain the core idea of Attention Pattern Learning.",
+        "Apply Attention Pattern Learning to a stated example or constraint."
+      ],
+      "estimated_minutes": 45,
+      "quality_status": "baseline"
+    },
+    {
+      "id": "modern-ai/neuron-importance-scoring",
+      "track": "modern-ai",
+      "level": "intermediate",
+      "concept": "modern-ai/concepts/46-neuron-importance-scoring.md",
+      "notebook": "modern-ai/notebooks/46-neuron-importance-scoring.ipynb",
+      "implementation": "modern-ai/implementations/46-neuron-importance-scoring.py",
+      "prerequisites": [],
+      "outcomes": [
+        "Explain the core idea of Neuron Importance Scoring.",
+        "Apply Neuron Importance Scoring to a stated example or constraint."
+      ],
+      "estimated_minutes": 45,
+      "quality_status": "baseline"
+    },
+    {
+      "id": "modern-ai/dynamic-batching",
+      "track": "modern-ai",
+      "level": "intermediate",
+      "concept": "modern-ai/concepts/47-dynamic-batching.md",
+      "notebook": "modern-ai/notebooks/47-dynamic-batching.ipynb",
+      "implementation": "modern-ai/implementations/47-dynamic-batching.py",
+      "prerequisites": [],
+      "outcomes": [
+        "Explain the core idea of Dynamic Batching.",
+        "Apply Dynamic Batching to a stated example or constraint."
+      ],
+      "estimated_minutes": 45,
+      "quality_status": "baseline"
+    },
+    {
+      "id": "modern-ai/model-cascading",
+      "track": "modern-ai",
+      "level": "intermediate",
+      "concept": "modern-ai/concepts/48-model-cascading.md",
+      "notebook": "modern-ai/notebooks/48-model-cascading.ipynb",
+      "implementation": "modern-ai/implementations/48-model-cascading.py",
+      "prerequisites": [],
+      "outcomes": [
+        "Explain the core idea of Model Cascading.",
+        "Apply Model Cascading to a stated example or constraint."
+      ],
+      "estimated_minutes": 45,
+      "quality_status": "baseline"
+    },
+    {
+      "id": "modern-ai/latency-sla-prediction",
+      "track": "modern-ai",
+      "level": "intermediate",
+      "concept": "modern-ai/concepts/49-latency-sla-prediction.md",
+      "notebook": "modern-ai/notebooks/49-latency-sla-prediction.ipynb",
+      "implementation": "modern-ai/implementations/49-latency-sla-prediction.py",
+      "prerequisites": [],
+      "outcomes": [
+        "Explain the core idea of Latency SLA Prediction.",
+        "Apply Latency SLA Prediction to a stated example or constraint."
+      ],
+      "estimated_minutes": 45,
+      "quality_status": "baseline"
+    },
+    {
+      "id": "modern-ai/cache-aware-scheduling",
+      "track": "modern-ai",
+      "level": "intermediate",
+      "concept": "modern-ai/concepts/50-cache-aware-scheduling.md",
+      "notebook": "modern-ai/notebooks/50-cache-aware-scheduling.ipynb",
+      "implementation": "modern-ai/implementations/50-cache-aware-scheduling.py",
+      "prerequisites": [],
+      "outcomes": [
+        "Explain the core idea of Cache-Aware Scheduling.",
+        "Apply Cache-Aware Scheduling to a stated example or constraint."
+      ],
+      "estimated_minutes": 45,
+      "quality_status": "baseline"
+    },
+    {
+      "id": "modern-ai/distributed-inference",
+      "track": "modern-ai",
+      "level": "intermediate",
+      "concept": "modern-ai/concepts/51-distributed-inference.md",
+      "notebook": "modern-ai/notebooks/51-distributed-inference.ipynb",
+      "implementation": "modern-ai/implementations/51-distributed-inference.py",
+      "prerequisites": [],
+      "outcomes": [
+        "Explain the core idea of Distributed Inference.",
+        "Apply Distributed Inference to a stated example or constraint."
+      ],
+      "estimated_minutes": 45,
+      "quality_status": "baseline"
+    },
+    {
+      "id": "modern-ai/heterogeneous-ensemble",
+      "track": "modern-ai",
+      "level": "intermediate",
+      "concept": "modern-ai/concepts/52-heterogeneous-ensemble.md",
+      "notebook": "modern-ai/notebooks/52-heterogeneous-ensemble.ipynb",
+      "implementation": "modern-ai/implementations/52-heterogeneous-ensemble.py",
+      "prerequisites": [],
+      "outcomes": [
+        "Explain the core idea of Heterogeneous Ensemble.",
+        "Apply Heterogeneous Ensemble to a stated example or constraint."
+      ],
+      "estimated_minutes": 45,
+      "quality_status": "baseline"
+    },
+    {
+      "id": "modern-ai/conditional-computation",
+      "track": "modern-ai",
+      "level": "intermediate",
+      "concept": "modern-ai/concepts/53-conditional-computation.md",
+      "notebook": "modern-ai/notebooks/53-conditional-computation.ipynb",
+      "implementation": "modern-ai/implementations/53-conditional-computation.py",
+      "prerequisites": [],
+      "outcomes": [
+        "Explain the core idea of Conditional Computation.",
+        "Apply Conditional Computation to a stated example or constraint."
+      ],
+      "estimated_minutes": 45,
+      "quality_status": "baseline"
+    },
+    {
+      "id": "modern-ai/context-compression",
+      "track": "modern-ai",
+      "level": "intermediate",
+      "concept": "modern-ai/concepts/54-context-compression.md",
+      "notebook": "modern-ai/notebooks/54-context-compression.ipynb",
+      "implementation": "modern-ai/implementations/54-context-compression.py",
+      "prerequisites": [],
+      "outcomes": [
+        "Explain the core idea of Context Compression.",
+        "Apply Context Compression to a stated example or constraint."
+      ],
+      "estimated_minutes": 45,
+      "quality_status": "baseline"
+    },
+    {
+      "id": "modern-ai/online-knowledge-distillation",
+      "track": "modern-ai",
+      "level": "intermediate",
+      "concept": "modern-ai/concepts/55-online-knowledge-distillation.md",
+      "notebook": "modern-ai/notebooks/55-online-knowledge-distillation.ipynb",
+      "implementation": "modern-ai/implementations/55-online-knowledge-distillation.py",
+      "prerequisites": [],
+      "outcomes": [
+        "Explain the core idea of Online Knowledge Distillation.",
+        "Apply Online Knowledge Distillation to a stated example or constraint."
+      ],
+      "estimated_minutes": 45,
+      "quality_status": "baseline"
+    },
+    {
+      "id": "mlops/data-pipelines",
+      "track": "mlops",
+      "level": "foundation",
+      "concept": "mlops/concepts/01-data-pipelines.md",
+      "notebook": "mlops/notebooks/01-data-pipelines.ipynb",
+      "implementation": "mlops/implementations/01-data-pipelines.py",
+      "prerequisites": [],
+      "outcomes": [
+        "Explain the core idea of Data Pipelines: Building Reliable ETL for ML.",
+        "Apply Data Pipelines: Building Reliable ETL for ML to a stated example or constraint."
+      ],
+      "practice": [
+        "mlops/interview-prep/mlops-interview-questions.md"
+      ],
+      "estimated_minutes": 45,
+      "quality_status": "baseline",
+      "roadmap": [
+        "roadmaps/curriculum-map.md"
+      ]
+    },
+    {
+      "id": "mlops/feature-stores",
+      "track": "mlops",
+      "level": "foundation",
+      "concept": "mlops/concepts/02-feature-stores.md",
+      "notebook": "mlops/notebooks/02-feature-stores.ipynb",
+      "implementation": "mlops/implementations/02-feature-stores.py",
+      "prerequisites": [],
+      "outcomes": [
+        "Explain the core idea of Feature Stores: Serving Features at Production Scale.",
+        "Apply Feature Stores: Serving Features at Production Scale to a stated example or constraint."
+      ],
+      "practice": [
+        "mlops/interview-prep/mlops-interview-questions.md"
+      ],
+      "estimated_minutes": 45,
+      "quality_status": "baseline",
+      "roadmap": [
+        "roadmaps/curriculum-map.md"
+      ]
+    },
+    {
+      "id": "mlops/data-validation",
+      "track": "mlops",
+      "level": "intermediate",
+      "concept": "mlops/concepts/03-data-validation.md",
+      "notebook": "mlops/notebooks/03-data-validation.ipynb",
+      "implementation": "mlops/implementations/03-data-validation.py",
+      "prerequisites": [],
+      "outcomes": [
+        "Explain the core idea of Data Validation: Quality Checks for Production Pipelines.",
+        "Apply Data Validation: Quality Checks for Production Pipelines to a stated example or constraint."
+      ],
+      "practice": [
+        "mlops/interview-prep/mlops-interview-questions.md"
+      ],
+      "estimated_minutes": 45,
+      "quality_status": "baseline",
+      "roadmap": [
+        "roadmaps/curriculum-map.md"
+      ]
+    },
+    {
+      "id": "mlops/data-versioning",
+      "track": "mlops",
+      "level": "intermediate",
+      "concept": "mlops/concepts/04-data-versioning.md",
+      "notebook": "mlops/notebooks/04-data-versioning.ipynb",
+      "implementation": "mlops/implementations/04-data-versioning.py",
+      "prerequisites": [],
+      "outcomes": [
+        "Explain the core idea of Data Versioning: Reproducibility and Lineage for ML.",
+        "Apply Data Versioning: Reproducibility and Lineage for ML to a stated example or constraint."
+      ],
+      "practice": [
+        "mlops/interview-prep/mlops-interview-questions.md"
+      ],
+      "estimated_minutes": 45,
+      "quality_status": "baseline"
+    },
+    {
+      "id": "mlops/experiment-tracking",
+      "track": "mlops",
+      "level": "intermediate",
+      "concept": "mlops/concepts/05-experiment-tracking.md",
+      "notebook": "mlops/notebooks/05-experiment-tracking.ipynb",
+      "implementation": null,
+      "prerequisites": [],
+      "outcomes": [
+        "Explain the core idea of Experiment Tracking: Organizing ML Experiments at Scale.",
+        "Apply Experiment Tracking: Organizing ML Experiments at Scale to a stated example or constraint."
+      ],
+      "practice": [
+        "mlops/interview-prep/mlops-interview-questions.md"
+      ],
+      "estimated_minutes": 45,
+      "quality_status": "baseline",
+      "roadmap": [
+        "roadmaps/curriculum-map.md"
+      ]
+    },
+    {
+      "id": "mlops/model-versioning",
+      "track": "mlops",
+      "level": "intermediate",
+      "concept": "mlops/concepts/06-model-versioning.md",
+      "notebook": "mlops/notebooks/06-model-versioning.ipynb",
+      "implementation": "mlops/implementations/06-model-versioning.py",
+      "prerequisites": [],
+      "outcomes": [
+        "Explain the core idea of Model Versioning & Registry: Managing Models in Production.",
+        "Apply Model Versioning & Registry: Managing Models in Production to a stated example or constraint."
+      ],
+      "practice": [
+        "mlops/interview-prep/mlops-interview-questions.md"
+      ],
+      "estimated_minutes": 45,
+      "quality_status": "baseline"
+    },
+    {
+      "id": "mlops/reproducibility",
+      "track": "mlops",
+      "level": "intermediate",
+      "concept": "mlops/concepts/07-reproducibility.md",
+      "notebook": "mlops/notebooks/07-reproducibility.ipynb",
+      "implementation": "mlops/implementations/07-reproducibility.py",
+      "prerequisites": [],
+      "outcomes": [
+        "Explain the core idea of Reproducibility: Exact Replication of ML Results.",
+        "Apply Reproducibility: Exact Replication of ML Results to a stated example or constraint."
+      ],
+      "practice": [
+        "mlops/interview-prep/mlops-interview-questions.md"
+      ],
+      "estimated_minutes": 45,
+      "quality_status": "baseline",
+      "roadmap": [
+        "roadmaps/curriculum-map.md"
+      ]
+    },
+    {
+      "id": "mlops/hyperparameter-optimization",
+      "track": "mlops",
+      "level": "intermediate",
+      "concept": "mlops/concepts/08-hyperparameter-optimization.md",
+      "notebook": "mlops/notebooks/08-hyperparameter-optimization.ipynb",
+      "implementation": "mlops/implementations/08-hyperparameter-optimization.py",
+      "prerequisites": [],
+      "outcomes": [
+        "Explain the core idea of Hyperparameter Optimization: Finding the Best Model Configuration.",
+        "Apply Hyperparameter Optimization: Finding the Best Model Configuration to a stated example or constraint."
+      ],
+      "practice": [
+        "mlops/interview-prep/mlops-interview-questions.md"
+      ],
+      "estimated_minutes": 45,
+      "quality_status": "baseline"
+    },
+    {
+      "id": "mlops/model-testing",
+      "track": "mlops",
+      "level": "intermediate",
+      "concept": "mlops/concepts/09-model-testing.md",
+      "notebook": "mlops/notebooks/09-model-testing.ipynb",
+      "implementation": "mlops/implementations/09-model-testing.py",
+      "prerequisites": [],
+      "outcomes": [
+        "Explain the core idea of Model Testing: Ensuring Production-Ready ML Systems.",
+        "Apply Model Testing: Ensuring Production-Ready ML Systems to a stated example or constraint."
+      ],
+      "practice": [
+        "mlops/interview-prep/mlops-interview-questions.md"
+      ],
+      "estimated_minutes": 45,
+      "quality_status": "baseline",
+      "roadmap": [
+        "roadmaps/curriculum-map.md"
+      ]
+    },
+    {
+      "id": "mlops/data-testing",
+      "track": "mlops",
+      "level": "intermediate",
+      "concept": "mlops/concepts/10-data-testing.md",
+      "notebook": "mlops/notebooks/10-data-testing.ipynb",
+      "implementation": "mlops/implementations/10-data-testing.py",
+      "prerequisites": [],
+      "outcomes": [
+        "Explain the core idea of Data Testing: Validating Input Quality for Production ML.",
+        "Apply Data Testing: Validating Input Quality for Production ML to a stated example or constraint."
+      ],
+      "practice": [
+        "mlops/interview-prep/mlops-interview-questions.md"
+      ],
+      "estimated_minutes": 45,
+      "quality_status": "baseline"
+    },
+    {
+      "id": "mlops/ab-testing",
+      "track": "mlops",
+      "level": "intermediate",
+      "concept": "mlops/concepts/11-ab-testing.md",
+      "notebook": "mlops/notebooks/11-ab-testing.ipynb",
+      "implementation": "mlops/implementations/11-ab-testing.py",
+      "prerequisites": [],
+      "outcomes": [
+        "Explain the core idea of A/B Testing & Experimentation: Validating Models with Statistical Rigor.",
+        "Apply A/B Testing & Experimentation: Validating Models with Statistical Rigor to a stated example or constraint."
+      ],
+      "practice": [
+        "mlops/interview-prep/mlops-interview-questions.md"
+      ],
+      "estimated_minutes": 45,
+      "quality_status": "baseline"
+    },
+    {
+      "id": "mlops/evaluation-metrics",
+      "track": "mlops",
+      "level": "intermediate",
+      "concept": "mlops/concepts/12-evaluation-metrics.md",
+      "notebook": "mlops/notebooks/12-evaluation-metrics.ipynb",
+      "implementation": "mlops/implementations/12-evaluation-metrics.py",
+      "prerequisites": [],
+      "outcomes": [
+        "Explain the core idea of Evaluation Metrics: Choosing the Right Measures of Success.",
+        "Apply Evaluation Metrics: Choosing the Right Measures of Success to a stated example or constraint."
+      ],
+      "practice": [
+        "mlops/interview-prep/mlops-interview-questions.md"
+      ],
+      "estimated_minutes": 45,
+      "quality_status": "baseline",
+      "roadmap": [
+        "roadmaps/curriculum-map.md"
+      ]
+    },
+    {
+      "id": "mlops/containerization",
+      "track": "mlops",
+      "level": "intermediate",
+      "concept": "mlops/concepts/13-containerization.md",
+      "notebook": "mlops/notebooks/13-containerization.ipynb",
+      "implementation": "mlops/implementations/13-containerization.py",
+      "prerequisites": [],
+      "outcomes": [
+        "Explain the core idea of Containerization & Docker: Packaging ML Systems for Deployment.",
+        "Apply Containerization & Docker: Packaging ML Systems for Deployment to a stated example or constraint."
+      ],
+      "practice": [
+        "mlops/interview-prep/mlops-interview-questions.md"
+      ],
+      "estimated_minutes": 45,
+      "quality_status": "baseline"
+    },
+    {
+      "id": "mlops/model-serving",
+      "track": "mlops",
+      "level": "intermediate",
+      "concept": "mlops/concepts/14-model-serving.md",
+      "notebook": "mlops/notebooks/14-model-serving.ipynb",
+      "implementation": "mlops/implementations/14-model-serving.py",
+      "prerequisites": [],
+      "outcomes": [
+        "Explain the core idea of Model Serving Frameworks: Making Models Available for Predictions.",
+        "Apply Model Serving Frameworks: Making Models Available for Predictions to a stated example or constraint."
+      ],
+      "practice": [
+        "mlops/interview-prep/mlops-interview-questions.md"
+      ],
+      "estimated_minutes": 45,
+      "quality_status": "baseline",
+      "roadmap": [
+        "roadmaps/curriculum-map.md"
+      ]
+    },
+    {
+      "id": "mlops/model-registry",
+      "track": "mlops",
+      "level": "intermediate",
+      "concept": "mlops/concepts/15-model-registry.md",
+      "notebook": "mlops/notebooks/15-model-registry.ipynb",
+      "implementation": "mlops/implementations/15-model-registry.py",
+      "prerequisites": [],
+      "outcomes": [
+        "Explain the core idea of Model Registry & CI/CD: Automating Model Deployment Pipelines.",
+        "Apply Model Registry & CI/CD: Automating Model Deployment Pipelines to a stated example or constraint."
+      ],
+      "practice": [
+        "mlops/interview-prep/mlops-interview-questions.md"
+      ],
+      "estimated_minutes": 45,
+      "quality_status": "baseline",
+      "roadmap": [
+        "roadmaps/curriculum-map.md"
+      ]
+    },
+    {
+      "id": "mlops/deployment-strategies",
+      "track": "mlops",
+      "level": "intermediate",
+      "concept": "mlops/concepts/16-deployment-strategies.md",
+      "notebook": "mlops/notebooks/16-deployment-strategies.ipynb",
+      "implementation": "mlops/implementations/16-deployment-strategies.py",
+      "prerequisites": [],
+      "outcomes": [
+        "Explain the core idea of Deployment Strategies: Strategies for Rolling Out Models Safely.",
+        "Apply Deployment Strategies: Strategies for Rolling Out Models Safely to a stated example or constraint."
+      ],
+      "practice": [
+        "mlops/interview-prep/mlops-interview-questions.md"
+      ],
+      "estimated_minutes": 45,
+      "quality_status": "baseline",
+      "roadmap": [
+        "roadmaps/curriculum-map.md"
+      ]
+    },
+    {
+      "id": "stats/probability-fundamentals",
+      "track": "stats",
+      "level": "foundation",
+      "concept": "stats/concepts/01-probability-fundamentals.md",
+      "notebook": "stats/notebooks/01-probability-fundamentals.ipynb",
+      "implementation": null,
+      "prerequisites": [],
+      "outcomes": [
+        "Explain the core idea of Probability Fundamentals.",
+        "Apply Probability Fundamentals to a stated example or constraint."
+      ],
+      "practice": [
+        "stats/interview-prep/statistics-interview-questions.md"
+      ],
+      "estimated_minutes": 45,
+      "quality_status": "baseline",
+      "roadmap": [
+        "roadmaps/curriculum-map.md"
+      ]
+    },
+    {
+      "id": "stats/distributions-reference",
+      "track": "stats",
+      "level": "foundation",
+      "concept": "stats/concepts/02-distributions-reference.md",
+      "notebook": "stats/notebooks/02-distributions-reference.ipynb",
+      "implementation": null,
+      "prerequisites": [],
+      "outcomes": [
+        "Explain the core idea of Distributions Reference.",
+        "Apply Distributions Reference to a stated example or constraint."
+      ],
+      "practice": [
+        "stats/interview-prep/statistics-interview-questions.md"
+      ],
+      "estimated_minutes": 45,
+      "quality_status": "baseline",
+      "roadmap": [
+        "roadmaps/curriculum-map.md"
+      ]
+    },
+    {
+      "id": "stats/bayesian-inference",
+      "track": "stats",
+      "level": "intermediate",
+      "concept": "stats/concepts/03-bayesian-inference.md",
+      "notebook": "stats/notebooks/03-bayesian-inference.ipynb",
+      "implementation": null,
+      "prerequisites": [],
+      "outcomes": [
+        "Explain the core idea of Bayesian Inference.",
+        "Apply Bayesian Inference to a stated example or constraint."
+      ],
+      "practice": [
+        "stats/interview-prep/statistics-interview-questions.md"
+      ],
+      "estimated_minutes": 45,
+      "quality_status": "baseline"
+    },
+    {
+      "id": "stats/maximum-likelihood-estimation",
+      "track": "stats",
+      "level": "intermediate",
+      "concept": "stats/concepts/04-maximum-likelihood-estimation.md",
+      "notebook": "stats/notebooks/04-maximum-likelihood-estimation.ipynb",
+      "implementation": null,
+      "prerequisites": [],
+      "outcomes": [
+        "Explain the core idea of Maximum Likelihood Estimation.",
+        "Apply Maximum Likelihood Estimation to a stated example or constraint."
+      ],
+      "practice": [
+        "stats/interview-prep/statistics-interview-questions.md"
+      ],
+      "estimated_minutes": 45,
+      "quality_status": "baseline",
+      "roadmap": [
+        "roadmaps/curriculum-map.md"
+      ]
+    },
+    {
+      "id": "stats/hypothesis-testing",
+      "track": "stats",
+      "level": "intermediate",
+      "concept": "stats/concepts/05-hypothesis-testing.md",
+      "notebook": "stats/notebooks/05-hypothesis-testing.ipynb",
+      "implementation": null,
+      "prerequisites": [],
+      "outcomes": [
+        "Explain the core idea of Hypothesis Testing.",
+        "Apply Hypothesis Testing to a stated example or constraint."
+      ],
+      "practice": [
+        "stats/interview-prep/statistics-interview-questions.md"
+      ],
+      "estimated_minutes": 45,
+      "quality_status": "baseline",
+      "roadmap": [
+        "roadmaps/curriculum-map.md"
+      ]
+    },
+    {
+      "id": "stats/confidence-intervals",
+      "track": "stats",
+      "level": "intermediate",
+      "concept": "stats/concepts/06-confidence-intervals.md",
+      "notebook": "stats/notebooks/06-confidence-intervals.ipynb",
+      "implementation": null,
+      "prerequisites": [],
+      "outcomes": [
+        "Explain the core idea of Confidence Intervals.",
+        "Apply Confidence Intervals to a stated example or constraint."
+      ],
+      "practice": [
+        "stats/interview-prep/statistics-interview-questions.md"
+      ],
+      "estimated_minutes": 45,
+      "quality_status": "baseline",
+      "roadmap": [
+        "roadmaps/curriculum-map.md"
+      ]
+    },
+    {
+      "id": "stats/statistical-power-sample-size",
+      "track": "stats",
+      "level": "intermediate",
+      "concept": "stats/concepts/07-statistical-power-sample-size.md",
+      "notebook": "stats/notebooks/07-statistical-power-sample-size.ipynb",
+      "implementation": null,
+      "prerequisites": [],
+      "outcomes": [
+        "Explain the core idea of Statistical Power and Sample Size.",
+        "Apply Statistical Power and Sample Size to a stated example or constraint."
+      ],
+      "practice": [
+        "stats/interview-prep/statistics-interview-questions.md"
+      ],
+      "estimated_minutes": 45,
+      "quality_status": "baseline",
+      "roadmap": [
+        "roadmaps/curriculum-map.md"
+      ]
+    },
+    {
+      "id": "stats/ab-testing-statistics",
+      "track": "stats",
+      "level": "intermediate",
+      "concept": "stats/concepts/08-ab-testing-statistics.md",
+      "notebook": "stats/notebooks/08-ab-testing-statistics.ipynb",
+      "implementation": null,
+      "prerequisites": [],
+      "outcomes": [
+        "Explain the core idea of A/B Testing Statistics.",
+        "Apply A/B Testing Statistics to a stated example or constraint."
+      ],
+      "practice": [
+        "stats/interview-prep/statistics-interview-questions.md"
+      ],
+      "estimated_minutes": 45,
+      "quality_status": "baseline",
+      "roadmap": [
+        "roadmaps/curriculum-map.md"
+      ]
+    },
+    {
+      "id": "stats/causal-inference",
+      "track": "stats",
+      "level": "intermediate",
+      "concept": "stats/concepts/09-causal-inference.md",
+      "notebook": "stats/notebooks/09-causal-inference.ipynb",
+      "implementation": null,
+      "prerequisites": [],
+      "outcomes": [
+        "Explain the core idea of Causal Inference.",
+        "Apply Causal Inference to a stated example or constraint."
+      ],
+      "practice": [
+        "stats/interview-prep/statistics-interview-questions.md"
+      ],
+      "estimated_minutes": 45,
+      "quality_status": "baseline",
+      "roadmap": [
+        "roadmaps/curriculum-map.md"
+      ]
+    },
+    {
+      "id": "stats/information-theory",
+      "track": "stats",
+      "level": "intermediate",
+      "concept": "stats/concepts/10-information-theory.md",
+      "notebook": "stats/notebooks/10-information-theory.ipynb",
+      "implementation": null,
+      "prerequisites": [],
+      "outcomes": [
+        "Explain the core idea of Information Theory.",
+        "Apply Information Theory to a stated example or constraint."
+      ],
+      "practice": [
+        "stats/interview-prep/statistics-interview-questions.md"
+      ],
+      "estimated_minutes": 45,
+      "quality_status": "baseline"
+    },
+    {
+      "id": "stats/monte-carlo-sampling",
+      "track": "stats",
+      "level": "intermediate",
+      "concept": "stats/concepts/11-monte-carlo-sampling.md",
+      "notebook": "stats/notebooks/11-monte-carlo-sampling.ipynb",
+      "implementation": null,
+      "prerequisites": [],
+      "outcomes": [
+        "Explain the core idea of Monte Carlo Sampling.",
+        "Apply Monte Carlo Sampling to a stated example or constraint."
+      ],
+      "practice": [
+        "stats/interview-prep/statistics-interview-questions.md"
+      ],
+      "estimated_minutes": 45,
+      "quality_status": "baseline"
+    },
+    {
+      "id": "stats/markov-chains-mcmc",
+      "track": "stats",
+      "level": "intermediate",
+      "concept": "stats/concepts/12-markov-chains-mcmc.md",
+      "notebook": "stats/notebooks/12-markov-chains-mcmc.ipynb",
+      "implementation": null,
+      "prerequisites": [],
+      "outcomes": [
+        "Explain the core idea of Markov Chains and MCMC.",
+        "Apply Markov Chains and MCMC to a stated example or constraint."
+      ],
+      "practice": [
+        "stats/interview-prep/statistics-interview-questions.md"
+      ],
+      "estimated_minutes": 45,
+      "quality_status": "baseline"
+    },
+    {
+      "id": "stats/multivariate-statistics",
+      "track": "stats",
+      "level": "intermediate",
+      "concept": "stats/concepts/13-multivariate-statistics.md",
+      "notebook": "stats/notebooks/13-multivariate-statistics.ipynb",
+      "implementation": null,
+      "prerequisites": [],
+      "outcomes": [
+        "Explain the core idea of Multivariate Statistics.",
+        "Apply Multivariate Statistics to a stated example or constraint."
+      ],
+      "practice": [
+        "stats/interview-prep/statistics-interview-questions.md"
+      ],
+      "estimated_minutes": 45,
+      "quality_status": "baseline"
+    },
+    {
+      "id": "stats/time-series-statistics",
+      "track": "stats",
+      "level": "intermediate",
+      "concept": "stats/concepts/14-time-series-statistics.md",
+      "notebook": "stats/notebooks/14-time-series-statistics.ipynb",
+      "implementation": null,
+      "prerequisites": [],
+      "outcomes": [
+        "Explain the core idea of Time Series Statistics.",
+        "Apply Time Series Statistics to a stated example or constraint."
+      ],
+      "practice": [
+        "stats/interview-prep/statistics-interview-questions.md"
+      ],
+      "estimated_minutes": 45,
+      "quality_status": "baseline"
+    },
+    {
+      "id": "stats/statistical-ml-connections",
+      "track": "stats",
+      "level": "intermediate",
+      "concept": "stats/concepts/15-statistical-ml-connections.md",
+      "notebook": "stats/notebooks/15-statistical-ml-connections.ipynb",
+      "implementation": null,
+      "prerequisites": [],
+      "outcomes": [
+        "Explain the core idea of Statistical-ML Connections.",
+        "Apply Statistical-ML Connections to a stated example or constraint."
+      ],
+      "practice": [
+        "stats/interview-prep/statistics-interview-questions.md"
+      ],
+      "estimated_minutes": 45,
+      "quality_status": "baseline"
     }
   ],
   "audit_policy": {
-    "baseline_entry_lessons_note": "For baseline lessons in ai, rl, cv, and nlp, an empty prerequisite list means the relationship is not yet reviewed; these provisional roots do not assert that the topic has no prerequisites. Resolve them against learner paths before promotion to required.",
+    "baseline_entry_lessons_note": "For baseline lessons with empty prerequisites, the relationship has not yet been reviewed; these provisional roots do not assert that the topic has no prerequisites. Resolve them against learner paths before promotion to required.",
     "quality_status_values": [
       "baseline",
       "required"

@@ -10,10 +10,11 @@ folder index READMEs. Counts do not imply that each artifact has passed the
 content standard. Manifest lessons are the audited denominator; tracks with
 some manifest entries may still contain unindexed artifacts.
 
-For the 76 baseline AI, RL, CV, and NLP records, empty prerequisites are
-provisional inventory roots. They mean prerequisite relationships have not yet
-been reviewed, not that the lesson is suitable for a learner with no
-background. Resolve those links before promoting the records to `required`.
+For baseline records with empty prerequisites, the relationship is provisional.
+This includes AI, RL, CV, NLP, and lessons newly inventoried from Statistics,
+MLOps, and Modern AI. Empty prerequisites mean they have not yet been reviewed,
+not that a lesson is suitable for a learner with no background. Resolve those
+links before promoting records to `required`.
 
 ## Current instructional inventory
 
@@ -23,10 +24,10 @@ background. Resolve those links before promoting the records to `required`.
 | Machine learning (`ml`) | 40 | 40 | 0 | 40 |
 | LLM (`llm`) | 44 | 45 | 45 | 44 |
 | Agentic AI (`agentic-ai`) | 64 | 64 | 64 | 64 |
-| Modern AI (`modern-ai`) | 55 | 55 | 55 | 10 |
-| MLOps (`mlops`) | 24 | 25 | 24 | 8 |
+| Modern AI (`modern-ai`) | 55 | 55 | 55 | 55 (10 required, 45 baseline) |
+| MLOps (`mlops`) | 24 | 25 | 24 | 24 (8 required, 16 baseline) |
 | Reinforcement learning (`rl`) | 20 | 20 | 20 | 20 baseline |
-| Statistics (`stats`) | 21 | 21 | 0 | 6 required |
+| Statistics (`stats`) | 21 | 21 | 0 | 21 (6 required, 15 baseline) |
 | Computer vision (`cv`) | 8 | 8 | 0 | 8 baseline |
 | NLP (`nlp`) | 8 | 8 | 0 | 8 baseline |
 
@@ -56,9 +57,10 @@ match the contents.
   in `tests/test_tier3_representatives.py`; these test provider setup, local
   retrieval, model wrapper shape handling, and mocked HTTP retries. Other Tier
   3 paths still rely on structural checks and proposed per-notebook alternatives.
-- Manifest audit coverage is ten instructional tracks with 248 lessons: 172
-  required lessons across ML, Statistics, Modern AI, MLOps, LLM, and Agentic
-  AI; plus 76 baseline lessons across AI fundamentals, RL, CV, and NLP.
+- Manifest audit coverage is ten instructional tracks with 324 lessons: 172
+  required and 152 baseline. The four newly inventoried tracks (AI
+  fundamentals, RL, CV, NLP) and the remaining Statistics, MLOps, and Modern
+  AI concepts remain baseline pending content review.
 
 ## Current program work
 
