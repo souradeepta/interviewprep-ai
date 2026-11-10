@@ -1,294 +1,121 @@
 # Instruction Tuning
-
-Pre-trained LLMs generate text continuation (predict next token).
+TL;DR: Instruction tuning is supervised fine-tuning on examples framed as tasks or requests, intended to make a pretrained model respond usefully to instructions across a distribution of tasks.
 
 ## Prerequisites
 
-Familiarity with finetuning. This note focuses on the LLM-specific mechanism and its engineering selection boundary.
+Understand causal language modeling and supervised fine-tuning. Instruction tuning is a data and training objective pattern, not a separate model architecture or a guarantee of alignment; preference optimization and safety evaluation address additional questions.
 
 ## Learning Outcomes
 
-- Explain the mechanism and assumptions behind instruction tuning.
-- Compare its main alternative using task quality and one operational cost.
-- Diagnose a failure using a metric or example tied to instruction tuning.
+- Distinguish instruction-tuning examples from raw next-token pretraining and narrow task fine-tuning.
+- Explain how prompt/response formatting and loss masks determine the behavior being trained.
+- Design a task-diverse training and held-out evaluation split that tests generalization.
+- Diagnose instruction overfitting, task imbalance, and template mismatch from targeted examples.
 
 ## Core Intuition
 
-Pre-trained LLMs generate text continuation (predict next token). Instruction tuning teaches them to be assistants: read instruction, generate helpful response. Models become more controllable, safer, more aligned with human expectations.
+A pretrained language model learns to continue text. An instruction-tuned model is further trained on demonstrations where a request is paired with a desired response. This makes task framing part of the learned input-output pattern. For example, a raw corpus may contain an encyclopedia article; an instruction example may ask “Summarize this passage in two sentences” and provide a summary. The second form directly demonstrates the desired mapping.
+
+The breadth of the demonstrations matters. Training only on sentiment classification teaches a narrow task mapping, even if each row is written as an instruction. A mixture of tasks, phrasings, domains, and response constraints can encourage transfer to unseen combinations, but no fixed task count or dataset size guarantees that transfer. A system tuned for helpful answers also needs evaluation for correctness, refusal behavior, privacy, and other product requirements. Instruction tuning supplies demonstrations; it does not certify the resulting behavior.
 
 ## How It Works
 
-**Data Format:**
-```
-Pre-training: "Once upon a time, there was a..."
-             → model learns to continue stories
+An example is usually serialized as a prompt `x` and target answer `y`, perhaps with role markers, delimiters, or a chat template. The model is trained with next-token cross-entropy on target tokens. A mask can set loss to zero for prompt positions so the example teaches the answer conditional on the request. Template tokens and turn boundaries must match the serving-time format. Training on one template and serving another creates a distribution shift even if the words appear similar.
 
-Instruction tuning:
-  Input: "What is the capital of France?"
-  Output: "The capital of France is Paris."
-  
-  Input: "Summarize this article: [article text]"
-  Output: "[summary]"
-  
-  Input: "Write a poem about winter"
-  Output: "[poem]"
-```
+Task diversity can be introduced by mixing datasets such as summarization, extraction, coding, translation, and question answering. The sampling policy determines which tasks dominate optimization: equal rows may not mean equal influence if answer lengths differ. Inspect examples and token counts by task, language, and response type. Deduplicate source content before splitting; otherwise the same answer or source passage can leak across train and evaluation. Hold out task families or instruction phrasings when the claim is generalization to new tasks or wording.
 
-**Training Process:**
-```
-1. Collect instruction-response pairs (10k-100k pairs)
-2. Format as: "[INST] {instruction} [/INST] {response}"
-3. Train on response prediction (LM loss)
-4. Use moderate learning rate (1e-5 to 5e-5)
-5. Train for 1-3 epochs
-```
+Instruction tuning is commonly one stage of post-training. A model may then undergo preference optimization using comparisons or rankings, and separate safety and policy evaluation. These stages have different supervision: a demonstration says what answer to imitate; a preference label says which output is preferred among alternatives. Do not describe ordinary instruction tuning as human-feedback optimization unless preferences actually enter the objective.
 
-**Data Mix:**
-- Mix task types (QA, summarization, translation, reasoning, creative)
-- Balance of easy and hard examples
-- Include few-shot examples in some instructions
-- Vary instruction phrasing (multiple ways to ask same thing)
-
-**Example Dataset Structure:**
-```json
-{
-  "instruction": "Classify sentiment",
-  "input": "I love this movie!",
-  "output": "Positive"
-}
-{
-  "instruction": "Summarize in 1 sentence",
-  "input": "[long article]",
-  "output": "[1-sentence summary]"
-}
-```
+Evaluate both familiar and held-out requests. Use task-specific exact-match or structured-output checks when possible, human ratings for open-ended quality, and targeted regression sets for factuality and safety. Test format constraints, ambiguous instructions, multilingual requests, and adversarial or out-of-scope inputs. A gain on an aggregate benchmark may hide a regression in a small task or language slice; report per-task results and uncertainty.
 
 ### Workflow Flowchart
 
 ```mermaid
 graph LR
-    A["Base Model"] -->|SFT| B["Task-Specific<br/>Narrow"]
-    A -->|Instruction-Tuning| C["Instruction-Following<br/>Broad"]
-    B -->|Unseen Task| D["Poor"]
-    C -->|Unseen Task| E["Good"]
-
-    style A fill:#e3f2fd
-    style B fill:#fff3e0
-    style C fill:#e8f5e9
-    style D fill:#ffebee
-    style E fill:#c8e6c9
+    A[Define assistant behavior] --> B[Collect and review demonstrations]
+    B --> C[Apply chat template and target mask]
+    C --> D[Train on task mixture]
+    D --> E[Evaluate held-out tasks and regressions]
+    E --> F[Iterate data or training recipe]
 ```
 
 ## Trade-offs
 
-| Aspect | Pre-trained | Instruction-Tuned |
-|--------|---|---|
-| Task adherence | Low (ignores instructions) | High (follows instructions) |
-| Helpfulness | Low (continues, not responds) | High (assistant-like) |
-| Data required | Billions tokens (pre-training) | 10k-100k pairs (tuning) |
-| Flexibility | Limited | High (handles new tasks) |
-| Training cost | Enormous | Low (weeks, not months) |
+| Data strategy | Benefit | Risk | Useful when |
+|---|---|---|---|
+| Single-task demonstrations | Clear target and easier diagnosis | Narrow behavior and phrasing overfit | A bounded product task has stable input/output |
+| Multi-task mixture | Covers diverse requests and may support transfer | Task imbalance and conflicting styles | The model must handle a family of tasks |
+| Synthetic demonstrations | Can scale coverage and formatting | Teacher errors and style artifacts propagate | Synthetic data is filtered and checked against trusted tests |
+| Human-reviewed demonstrations | Better control over correctness and tone | Annotation time, disagreement, and cost | Quality-sensitive behaviors need explicit targets |
 
-**Data quality vs quantity:**
-- 100 high-quality instructions: 85% performance
-- 10k low-quality instructions: 75% performance
-- 10k high-quality instructions: 95% performance
+Quality and coverage are separate dimensions. A large set of duplicated or low-quality examples can reinforce one flawed pattern; a small set may omit important cases. Measure duplicate rate, task/language coverage, answer quality, and label agreement. Keep the evaluation set independently curated and frozen. If the primary need is current factual knowledge, retrieval is often more appropriate than teaching facts through examples. If the model already follows a task under a good prompt, additional tuning may not justify the regression and maintenance risk.
 
 ## Implementation
 
+This dependency-light example formats one instruction-response record and constructs a token-level loss mask. The symbolic tokens stand in for a tokenizer's actual IDs; the example makes the supervision boundary explicit.
+
 ```python
-from transformers import AutoTokenizer, AutoModelForCausalLM, Trainer, TrainingArguments
-from datasets import Dataset
+def build_training_example(instruction, answer):
+    prompt = ["<user>", instruction, "<assistant>"]
+    target = [answer, "<eos>"]
+    tokens = prompt + target
+    loss_mask = [0] * len(prompt) + [1] * len(target)
+    return tokens, loss_mask
 
-# Training data (instruction-response pairs)
-training_data = [
-    {
-        "instruction": "Classify the sentiment of this text: I love this!",
-        "response": "Positive"
-    },
-    {
-        "instruction": "Translate to Spanish: Hello, how are you?",
-        "response": "Hola, ¿cómo estás?"
-    },
-    {
-        "instruction": "Summarize in one sentence: [long text]",
-        "response": "[summary]"
-    }
-]
-
-# Format data
-def format_instruction(example):
-    text = f"[INST] {example['instruction']} [/INST] {example['response']}"
-    return {"text": text}
-
-dataset = Dataset.from_dict({
-    "instruction": [d["instruction"] for d in training_data],
-    "response": [d["response"] for d in training_data]
-})
-formatted_dataset = dataset.map(format_instruction)
-
-# Load model
-model_name = "meta-llama/Llama-2-7b-hf"
-tokenizer = AutoTokenizer.from_pretrained(model_name)
-model = AutoModelForCausalLM.from_pretrained(model_name)
-
-# Tokenize
-def tokenize(examples):
-    return tokenizer(examples["text"], max_length=512, truncation=True)
-
-tokenized = formatted_dataset.map(tokenize, batched=True)
-
-# Train
-training_args = TrainingArguments(
-    output_dir="./instruction_tuned_model",
-    learning_rate=5e-5,
-    num_train_epochs=3,
-    per_device_train_batch_size=8,
-    warmup_steps=100,
+tokens, mask = build_training_example(
+    "Return the sentiment label for: I loved the film.", "positive"
 )
-
-trainer = Trainer(
-    model=model,
-    args=training_args,
-    train_dataset=tokenized,
-)
-trainer.train()
+assert len(tokens) == len(mask)
+assert sum(mask) == 2
+assert all(value == 0 for value in mask[:3])
+print(list(zip(tokens, mask)))
 ```
+
+In a real trainer, use the model's supported chat template and tokenizer, construct labels with the intended ignore index, and inspect decoded examples alongside masks. Do not assume a literal `[INST]` string is correct for every checkpoint. The paired notebook currently demonstrates pretrained-model inference; it does not run instruction-tuning training. Use it to inspect inference behavior, and treat this example as a demonstration of how training records and loss masks are prepared.
 
 ## Failure Modes
 
-- **Low-quality responses:** Garbage in, garbage out. If training responses are bad, model learns bad behavior.
-- **Overfitting on instructions:** Model memorizes specific phrasing. Vary instruction phrasing to generalize.
-- **Forgetting pre-trained knowledge:** If tuning on narrow domain, model loses general knowledge. Mix in diverse tasks.
-- **No validation:** Train/test on same task types → false confidence. Test on unseen instructions.
-- **Imbalanced data:** If 80% summarization, 20% translation, model biased toward summarization. Balance task distribution.
-- **Long-term instruction sensitivity:** If all training examples start with "Classify:", model expects that format. Vary formats.
+- **Template mismatch:** the model is trained with separators or role order that serving never uses. Compare rendered training prompts to production requests and test a handful of exact serialized examples end to end.
+- **Prompt tokens receive unintended loss:** the model learns to reproduce user text or formatting rather than answer it. Decode labels/masks for each role and assert that only intended target positions contribute.
+- **Task imbalance:** one task or long-answer category dominates the token loss. Report target-token counts by task and evaluate per task; adjust sampling based on measured gaps.
+- **Instruction phrasing overfit:** performance falls on paraphrases despite strong training scores. Hold out phrasings and task templates, then add representative variation rather than duplicating near-identical prompts.
+- **Synthetic teacher artifacts:** generated demonstrations contain plausible but false claims or a single model's style. Audit samples against trusted sources and tests; include provenance and filtering rules.
+- **Calling imitation “alignment”:** the model imitates demonstrations but may fail preference, safety, or robustness requirements. Evaluate those objectives independently and use the corresponding supervision where needed.
 
 ## Interview Quick Reference
 
-| Question | What to say |
+| Question | Answer |
 |---|---|
-| "Instruction tuning?" | Fine-tune on (instruction, response) pairs. Teaches models to follow instructions, not just continue text. |
-| "vs fine-tuning?" | Fine-tuning can be task-specific. Instruction tuning is broad (many task types) to make assistants. |
-| "Data requirements?" | 10k-100k high-quality pairs. Quality > quantity. Vary phrasing, mix task types. |
-| "Forgetting knowledge?" | Mix general + domain tasks. Don't tune exclusively on narrow domain. |
-| "Evaluation?" | Test on unseen instructions (not seen during training). Zero-shot generalization is key. |
+| What does instruction tuning teach? | It trains on requests paired with desired responses, shifting a pretrained model toward conditional task completion rather than arbitrary continuation. |
+| How does it differ from generic SFT? | It is a common SFT setup whose examples are phrased as instructions; SFT also includes narrow input-target mappings that need not cover instruction following broadly. |
+| Why use multiple tasks? | A mixture can expose varied request patterns and support transfer, but task balance, quality, and held-out evaluation determine whether that actually happens. |
+| Debugging follow-up: training examples score well but new wording fails. | Check template and prompt distribution, split by task phrasing, measure by task family, and add carefully reviewed paraphrases only if the desired generalization is supported by evidence. |
 
-
-
-**Design follow-up:** How would you monitor this choice in production and decide when to use an alternative?
 ## Related Concepts
 
-- [Fine-tuning](04-finetuning.md) — broader fine-tuning concept
-- [RLHF](06-rlhf.md) — further aligning with human preferences
-- [In-Context Learning](15-in-context-learning.md) — similar goal (instruction following) via prompting
-
-## Real-World Examples
-
-### Instruction-Tuning for Conversational AI
-Base LLM: general but doesn't follow instructions well. Instruction-tuning on 50K diverse instructions: ChatGPT-like behavior. Zero-shot on new tasks: 70% user satisfaction. Standard SFT: 40%.
-
-### Instruction-Tuning for Multilingual
-Base model: trained on 50+ languages. Instruction-tuning: same 50K instructions in each language. Results: instruction-following works in all languages (zero-shot). Enables multilingual assistant.
-
-### Light Instruction-Tuning for Domain
-Medical base model. Domain-specific instructions: 5K medical queries. Light tuning (1 epoch): instruction-following + medical knowledge combined. 90% accuracy on medical QA (vs 70% base).
-
-## Real-World Examples
-
-### Instruction-Tuning for Conversational AI
-Base LLM: general but doesn't follow instructions well. Instruction-tuning on 50K diverse instructions: ChatGPT-like behavior. Zero-shot on new tasks: 70% user satisfaction. Standard SFT: 40%.
-
-### Instruction-Tuning for Multilingual
-Base model: trained on 50+ languages. Instruction-tuning: same 50K instructions in each language. Results: instruction-following works in all languages (zero-shot). Enables multilingual assistant.
-
-### Light Instruction-Tuning for Domain
-Medical base model. Domain-specific instructions: 5K medical queries. Light tuning (1 epoch): instruction-following + medical knowledge combined. 90% accuracy on medical QA (vs 70% base).
-
-## Real-World Examples
-
-### Instruction-Tuning for Conversational AI
-Base LLM: general but doesn't follow instructions well. Instruction-tuning on 50K diverse instructions: ChatGPT-like behavior. Zero-shot on new tasks: 70% user satisfaction. Standard SFT: 40%.
-
-### Instruction-Tuning for Multilingual
-Base model: trained on 50+ languages. Instruction-tuning: same 50K instructions in each language. Results: instruction-following works in all languages (zero-shot). Enables multilingual assistant.
-
-### Light Instruction-Tuning for Domain
-Medical base model. Domain-specific instructions: 5K medical queries. Light tuning (1 epoch): instruction-following + medical knowledge combined. 90% accuracy on medical QA (vs 70% base).
-
-## Real-World Examples
-
-### Instruction-Tuning for Conversational AI
-Base LLM: general but doesn't follow instructions well. Instruction-tuning on 50K diverse instructions: ChatGPT-like behavior. Zero-shot on new tasks: 70% user satisfaction. Standard SFT: 40%.
-
-### Instruction-Tuning for Multilingual
-Base model: trained on 50+ languages. Instruction-tuning: same 50K instructions in each language. Results: instruction-following works in all languages (zero-shot). Enables multilingual assistant.
-
-### Light Instruction-Tuning for Domain
-Medical base model. Domain-specific instructions: 5K medical queries. Light tuning (1 epoch): instruction-following + medical knowledge combined. 90% accuracy on medical QA (vs 70% base).
-
-## Real-World Examples
-
-### Instruction-Tuning for Conversational AI
-Base LLM: general but doesn't follow instructions well. Instruction-tuning on 50K diverse instructions: ChatGPT-like behavior. Zero-shot on new tasks: 70% user satisfaction. Standard SFT: 40%.
-
-### Instruction-Tuning for Multilingual
-Base model: trained on 50+ languages. Instruction-tuning: same 50K instructions in each language. Results: instruction-following works in all languages (zero-shot). Enables multilingual assistant.
-
-### Light Instruction-Tuning for Domain
-Medical base model. Domain-specific instructions: 5K medical queries. Light tuning (1 epoch): instruction-following + medical knowledge combined. 90% accuracy on medical QA (vs 70% base).
-
-## Topic-specific notes
-
-**Q: What makes instruction tuning data high quality vs low quality?**
-A: High quality: diverse task coverage, clear instructions, correct and detailed responses, natural variation in phrasing. Low quality: narrow task distribution (all the same type), short one-word answers, instructions that don't match the response, or machine-generated responses from weak models. The LIMA paper showed 1000 high-quality examples outperforms 50K lower-quality ones—quality of demonstrations matters more than scale.
-
-**Q: How does instruction tuning differ from RLHF?**
-A: Instruction tuning is supervised fine-tuning on (instruction, response) pairs—it teaches the model to follow instructions but doesn't explicitly optimize for human preferences. RLHF adds a reward model trained on human preference comparisons and optimizes the LLM policy against it, teaching the model not just to respond but to respond in ways humans prefer. RLHF requires more infrastructure but produces better-calibrated, safer outputs.
-
-**Q: Why do instruction-tuned models sometimes refuse requests they should fulfill?**
-A: Instruction tuning with safety data teaches refusal patterns that can generalize too broadly. If refusal examples are over-represented or if the refusal classifier operates on surface features (certain keywords), the model learns to refuse similar-sounding but benign requests. Fix by adding targeted examples of similar requests with appropriate completions, and using held-out eval cases for borderline requests.
-
-**Q: How do you maintain capabilities after instruction tuning?**
-A: Instruction tuning on narrow task distributions can hurt performance on tasks not in the fine-tuning set. Mix in general instruction-following data during tuning. Use a lower learning rate. Include examples from the base model's training distribution. Evaluate on a broad benchmark suite (MMLU, HumanEval, etc.) before and after—regressions on these are a sign of capability degradation.
-
-**Q: What is the role of the system prompt in instruction tuning?**
-A: The system prompt sets persistent context and persona that the model follows throughout a conversation. Instruction-tuned models learn to prioritize system prompt instructions over user instructions, enabling enterprise customization without retraining. It's important to include diverse system prompts in training data so the model generalizes to novel ones rather than memorizing a handful of templates.
-
-**Q: How would you create instruction tuning data for a domain-specific use case with no existing labeled data?**
-A: Start with self-instruct: prompt GPT-4 to generate diverse instructions for your domain, filter for quality and novelty, generate responses. Use domain experts to write 50-100 seed examples that capture the desired style and depth, then expand with GPT-4. Validate a sample manually. For specialized domains (legal, medical), have subject-matter experts review generated responses before including them in training data.
+- [Fine-tuning](04-finetuning.md) — the broader supervised adaptation process.
+- [RLHF](06-rlhf.md) — preference-based post-training after demonstrations.
+- [DPO](07-dpo.md) — direct optimization from preference pairs.
+- [In-context learning](15-in-context-learning.md) — inference-time task demonstrations.
+- [LoRA](08-lora.md) — parameter-efficient implementation option.
+- [Instruction-tuning notebook](../notebooks/05-instruction-tuning.ipynb) — paired walkthrough.
+- [Instruction-tuning practice](../interview-prep/curriculum-practice.md#instruction-tuning) — paired assessment.
 
 ## Resources
 
-- [Instruction Tuning with GPT-3.5](https://platform.openai.com/docs/guides/fine-tuning)
+- [Finetuned Language Models Are Zero-Shot Learners (FLAN)](https://arxiv.org/abs/2109.01652)
 - [The Flan Collection: Designing Data and Methods for Effective Instruction Tuning](https://arxiv.org/abs/2301.13688)
-- [Alpaca: A Strong, Replicable Instruction-Following Model](https://crfm.stanford.edu/2023/03/13/alpaca.html)
+- [Scaling Instruction-Finetuned Language Models](https://arxiv.org/abs/2210.11416)
+- [Llama 2: Open Foundation and Fine-Tuned Chat Models](https://arxiv.org/abs/2307.09288)
+- [Stanford Alpaca: A Strong, Replicable Instruction-Following Model](https://crfm.stanford.edu/2023/03/13/alpaca.html)
+- [OpenAI fine-tuning guide](https://platform.openai.com/docs/guides/fine-tuning)
 
 ## Concept Relationships
 
-```mermaid
-graph TD
-    A["Instruction Tuning"]
-    B["Fine-tuning"] -->|prerequisite| A
-    A -->|used with| D["RLHF (Reinforcement Learning from Human Feedback)"]
-    A -->|used with| D["DPO (Direct Preference Optimization)"]
-    
-    style A fill:#fff3e0
-```
+Instruction tuning is supervised fine-tuning over instruction-shaped demonstrations; preference training uses comparisons rather than a single target answer. Notebook: [05-instruction-tuning.ipynb](../notebooks/05-instruction-tuning.ipynb). Practice: [instruction-tuning questions](../interview-prep/curriculum-practice.md#instruction-tuning).
 
 ## Interview Questions
 
-**Q: What's instruction-tuning and why is it important?**
-*A: Fine-tune models on (instruction, output) pairs instead of raw text. 'Write a poem about X' → poem. Makes models follow instructions better. Without: same model learns to predict next token (not instructions). With: models understand tasks, improve zero-shot capability on unseen tasks.*
+**How would you measure generalization to instructions the model has not seen?**
 
-**Q: How is instruction-tuning different from supervised fine-tuning?**
-*A: SFT: (input, target) pairs. Instruction-tuning: (instruction, input, output) triples with diverse instructions. SFT: narrow, task-specific. Instruction-tuning: broad, instruction-following. Instruction-tuning improves generalization to new tasks.*
-
-**Q: What makes good instruction-tuning data?**
-*A: Diverse: wide range of tasks (QA, summarization, writing, coding, math). Instructions clear and specific. Multiple ways to say same task. Quality outputs. Mix simple and complex. Include edge cases.*
-
-**Q: How much instruction-tuning data do you need?**
-*A: Small models (7B): 10K instructions suffices. Large models (70B): 100K better. Research: diminishing returns after 50K. More important: diversity and quality, not quantity. 1K high-quality > 100K low-quality.*
-
-**Q: Does instruction-tuning hurt base capabilities?**
-*A: Slight decrease on original pretraining tasks (~1-2% perplexity). Gain: zero-shot instruction following (+30-50% on held-out tasks). Net positive for general assistants. For specialized models: may want to avoid instruction-tuning.*
+Create a frozen test set with held-out task families and separately held-out paraphrases, while preventing source or answer leakage. Compare the base and tuned models under the same template and decoding settings; score structured tasks automatically and open-ended tasks with a rubric and blinded review. Report each slice so broad gains cannot hide a regression.

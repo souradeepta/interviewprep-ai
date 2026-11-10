@@ -1,285 +1,125 @@
 # Fine-tuning
-
-Pre-training teaches general knowledge (language structure, facts).
+TL;DR: Fine-tuning continues optimization from a pretrained checkpoint on a defined target objective, trading training and evaluation cost for a behavior change encoded in model weights.
 
 ## Prerequisites
 
-Familiarity with pretraining. This note focuses on the LLM-specific mechanism and its engineering selection boundary.
+Understand next-token pretraining, train/validation/test splits, and gradient-based optimization. This lesson covers supervised adaptation of language models; instruction tuning is a specialized data and objective pattern, while LoRA changes which parameters are trainable.
 
 ## Learning Outcomes
 
-- Explain the mechanism and assumptions behind fine-tuning.
-- Compare its main alternative using task quality and one operational cost.
-- Diagnose a failure using a metric or example tied to fine-tuning.
+- Describe how a supervised example contributes a loss and gradient during fine-tuning.
+- Decide whether a behavior gap calls for prompting, retrieval, supervised tuning, or preference optimization.
+- Design a leakage-resistant evaluation that measures the intended behavior and retained capabilities.
+- Diagnose underfitting, overfitting, forgetting, or data contamination from concrete signals.
 
 ## Core Intuition
 
-Pre-training teaches general knowledge (language structure, facts). Fine-tuning teaches specific patterns (your domain, style, outputs). It's transfer learning: don't start from scratch, start from a good checkpoint.
+Pretraining teaches a model broad statistical regularities by predicting text. Fine-tuning makes a smaller, explicit set of examples influential for a target behavior: given an input and a desired response, update some or all model parameters so that the response becomes more likely. It does not add a clean database entry or guarantee that facts will be recalled reliably. It changes a distributed parameter state, which can alter multiple behaviors at once.
+
+Use an analogy of adjusting a trained musician's technique for a particular repertoire: practice can improve a target performance, but a narrow rehearsal schedule may weaken neglected skills. The analogy has limits: model updates are numerical optimization, and the effect depends on architecture, data, optimizer, and scale. The practical question is not “how many examples always suffice?” but “does this data and training recipe improve the behavior on held-out cases without unacceptable regressions?”
 
 ## How It Works
 
-**Full Fine-tuning:**
-- Load pre-trained weights (e.g., LLaMA 7B)
-- Keep architecture, replace head (if needed) or use entire model
-- Train on task data with learning rate usually 1e-5 to 1e-4 (lower than pretraining)
-- Update all parameters
+For a causal language model, training data is serialized as token sequences. At selected target positions, the model produces logits `z_t`; softmax gives `p(token | preceding tokens)`. The usual token-level cross-entropy is `L = -Σ_t m_t log p(y_t | x_<t) / Σ_t m_t`, where `m_t` is a mask indicating which positions contribute to loss. In full fine-tuning, gradients update the selected model parameters. In parameter-efficient tuning, the base weights are frozen and a smaller parameter set is trained; see [LoRA](08-lora.md).
 
-**Sequence-to-Sequence Example (Summarization):**
-```
-Pre-trained: LLaMA (general knowledge)
-Task data: (document, summary) pairs
-Loss: compute likelihood of summary given document
-Update: all weights via backprop
-Result: LLM that summarizes well
-```
+The data contract matters. Each example should identify the intended input, target, formatting, and which tokens receive loss. For conversational SFT, many recipes mask user/prompt tokens and train on assistant answer tokens; other objectives may use a different mask. Duplicates, train/test overlap, incorrect labels, and inconsistent templates can dominate apparent quality. Deduplicate and split by source, user, document, or time where examples are correlated; random row splits can leak near-duplicates across partitions.
 
-**Cost Structure:**
-- Compute: proportional to params × tokens × epochs
-- LLaMA 7B: 1 epoch on 10k examples ≈ 1-2 GPU-days (A100)
-- LLaMA 70B: 1 epoch on 10k examples ≈ 10+ GPU-days
-- Data: requires labeled examples (100s-10ks)
+Before tuning, define the observed failure and an evaluation set that represents it. Compare against prompt-only, retrieval, or a smaller baseline. A model update is attractive when the target behavior is repeated and stable, the examples are lawful and representative, and inference-time adaptation cannot meet requirements. Retrieval is often better for frequently changing factual content; prompting is easier to revise when the task is already within the model's capability. Supervised tuning is not a substitute for a reliable source of current facts.
 
-**Typical Process:**
-1. Prepare data: (input, target) pairs in jsonl format
-2. Split: 80/10/10 train/val/test
-3. Configure: learning rate, batch size, num_epochs, warmup
-4. Train: forward pass → loss → backward → update weights
-5. Evaluate: perplexity, task-specific metrics on test set
-6. Deploy: load fine-tuned weights, run inference
+Training usually monitors training and validation loss plus task-specific metrics. Lower validation loss means better likelihood on that held-out distribution, not necessarily better instruction following, factuality, safety, or user value. Evaluate with a fixed test set and targeted human or programmatic judgments. Compare paired outputs under the same decoding configuration and include regression tests for capabilities the base model must retain. Select checkpoints on validation evidence; do not repeatedly tune against the final test set.
 
 ### Workflow Flowchart
 
 ```mermaid
-graph TD
-    A["Pre-Trained Model"] -->|No Training| B["General Knowledge<br/>70% on Task"]
-    A -->|Fine-Tune| C["Task-Specific<br/>90% on Task"]
-    A -->|Few-Shot| D["Prompt Engineering<br/>60% on Task"]
-
-    C -->|Cost| E["High Upfront<br/>Low Per-Query"]
-    B -->|Cost| F["None<br/>Low Quality"]
-    D -->|Cost| G["None<br/>Medium Quality"]
-
-    style A fill:#e3f2fd
-    style C fill:#e8f5e9
-    style E fill:#fff3e0
+graph LR
+    A[Define behavior gap] --> B[Prepare and split examples]
+    B --> C[Train selected parameters]
+    C --> D[Select checkpoint on validation]
+    D --> E[Evaluate target and regression suites]
+    E --> F[Deploy with rollback path]
 ```
 
 ## Trade-offs
 
-| Aspect | RAG | Fine-Tuning | Prompt Engineering |
-|--------|-----|------------|------------------|
-| Data needed | Docs only | Labeled pairs | None |
-| Cost (compute) | Low | High | None |
-| Accuracy ceiling | Medium | High | Low-Medium |
-| Latency | Slower (retrieval) | Fast | Fast |
-| Customization | Easy (swap docs) | Slow (retrain) | Easy (change prompt) |
-| Knowledge cutoff | Can be current | Frozen at training | Frozen at training |
+| Approach | Strength | Cost or limitation | Prefer when |
+|---|---|---|---|
+| Prompting | Fast iteration; no model artifact | Prompt length and output may vary; capability may be insufficient | A clear instruction elicits behavior already present |
+| Retrieval (RAG) | External facts can be updated and cited | Requires indexed sources and retrieval quality | Answers depend on changing or auditable knowledge |
+| Full fine-tuning | All selected weights can adapt; no adapter routing | Highest optimizer/state memory and checkpoint management cost | Strong evidence supports broad parameter updates |
+| LoRA/PEFT | Fewer trainable parameters and compact task artifact | Capacity and target-module choices constrain adaptation | Hardware or multi-task deployment favors adapters |
 
-**Fine-tuning vs Other Methods:**
-- vs RAG: FT higher accuracy, harder to update; RAG updatable, needs good retriever
-- vs Prompt Engineering: FT more powerful, requires data and compute; prompting zero-shot, limited
-- vs LoRA: FT full parameters, expensive; LoRA efficient, slightly lower accuracy
-
-**Data Size Tradeoffs:**
-- 100-1000 examples: helpful, easy overfitting risk
-- 5k-50k examples: sweet spot for good generalization
-- 100k+ examples: diminishing returns, long training
+There is no general example-count or accuracy guarantee. Useful data volume depends on task variation, base-model capability, label consistency, sequence length, and optimization. Likewise, learning rates are recipe- and model-dependent; start from a validated recipe for the architecture, run controlled experiments, and monitor divergence rather than adopting a universal number. Report dataset composition, split policy, training tokens, compute, and evaluation uncertainty so a result can be interpreted and reproduced.
 
 ## Implementation
 
+This runnable standard-library example demonstrates a deterministic, group-aware split. It is not a trainer; its purpose is to make leakage prevention concrete before any optimization begins.
+
 ```python
-import torch
-from transformers import AutoTokenizer, AutoModelForCausalLM, Trainer, TrainingArguments
-from datasets import Dataset
+from collections import defaultdict
 
-# 1. Prepare data
-train_data = [
-    {"text": "Write a poem about winter:\n\nFrosty mornings bring..."},
-    {"text": "Write a poem about summer:\n\nSunlit days of joy..."},
+examples = [
+    {"group": "doc-a", "text": "question 1", "target": "answer 1"},
+    {"group": "doc-a", "text": "question 2", "target": "answer 2"},
+    {"group": "doc-b", "text": "question 3", "target": "answer 3"},
+    {"group": "doc-c", "text": "question 4", "target": "answer 4"},
 ]
-train_dataset = Dataset.from_dict({"text": train_data})
+by_group = defaultdict(list)
+for row in examples:
+    by_group[row["group"]].append(row)
 
-# 2. Load model and tokenizer
-model_name = "gpt2"  # or "meta-llama/Llama-2-7b-hf"
-tokenizer = AutoTokenizer.from_pretrained(model_name)
-model = AutoModelForCausalLM.from_pretrained(model_name)
-
-# 3. Tokenize
-def tokenize_fn(examples):
-    return tokenizer(examples["text"], max_length=512, truncation=True)
-
-tokenized = train_dataset.map(tokenize_fn, batched=True)
-
-# 4. Set up training arguments
-training_args = TrainingArguments(
-    output_dir="./fine_tuned_model",
-    learning_rate=5e-5,
-    num_train_epochs=3,
-    per_device_train_batch_size=8,
-    warmup_steps=100,
-    weight_decay=0.01,
-    save_total_limit=1,  # Keep only best checkpoint
-    evaluation_strategy="steps",
-    eval_steps=100,
-    load_best_model_at_end=True,
-)
-
-# 5. Train
-trainer = Trainer(
-    model=model,
-    args=training_args,
-    train_dataset=tokenized,
-)
-trainer.train()
-
-# 6. Save and reload
-model.save_pretrained("./fine_tuned_model")
-reloaded = AutoModelForCausalLM.from_pretrained("./fine_tuned_model")
+test_groups = {"doc-c"}
+train = [r for g, rows in by_group.items() if g not in test_groups for r in rows]
+test = [r for g, rows in by_group.items() if g in test_groups for r in rows]
+assert {r["group"] for r in train}.isdisjoint({r["group"] for r in test})
+assert len(train) + len(test) == len(examples)
+print(f"train={len(train)}, test={len(test)}")
 ```
+
+For an actual fine-tune, pin the base model and tokenizer, define prompt/target serialization and loss masking, save the training configuration, and keep the test set inaccessible to checkpoint selection. The paired notebook and implementation currently demonstrate pretrained-model inference; they do not train or fine-tune a model. Treat the split above as preparation for training, not as a training run.
 
 ## Failure Modes
 
-- **Overfitting on small data:** With <1k examples, model memorizes. Use regularization (dropout, early stopping), data augmentation, or LoRA instead.
-- **Wrong learning rate:** Too high → divergence, too low → slow convergence. Start with 1e-5 for large models, tune from there.
-- **Including test set in training:** Data leakage. Always separate train/val/test before touching data.
-- **Not monitoring validation loss:** Train loss ≠ generalization. Watch val loss; stop when it plateaus.
-- **Fine-tuning on too few epochs:** Model converges quickly on task data. Monitor early stopping; don't just set fixed epochs.
-- **Catastrophic forgetting:** If fine-tuning on narrow task, may lose general knowledge. Mitigate with mixed task training or regularization.
-- **Not versioning model checkpoints:** Hard to revert if bad fine-tune. Save best checkpoint (best val loss).
-- **Ignoring class imbalance:** If dataset has 90% class A, model biased toward A. Use stratified sampling or weighted loss.
+- **Leakage through duplicates or shared sources:** evaluation appears strong because related examples occur in train and test. Split by source/group/time and use near-duplicate checks; report the split unit.
+- **Training the wrong tokens:** loss on user prompts, padding, or template markers may teach unintended behavior. Inspect tokenized examples and masks, then unit-test which positions contribute to loss.
+- **Overfitting or narrow behavior:** training loss falls while held-out behavior stalls or regresses. Compare validation curves and capability slices; reduce epochs, improve coverage, regularize, or reconsider fine-tuning.
+- **Catastrophic forgetting:** the target score rises while general capabilities or safety behavior falls. Keep a regression suite, mix representative data only when justified, and retain a rollback checkpoint.
+- **Mistaking likelihood for task success:** perplexity can improve without better answers. Evaluate the target metric and human judgments directly, with fixed decoding and blinded comparisons where possible.
+- **Reproducibility failure:** undocumented base revision, tokenizer, data filtering, or random seed makes outcomes incomparable. Version these inputs and save configuration, checkpoint-selection rule, and evaluation results.
 
 ## Interview Quick Reference
 
-| Question | What to say |
+| Question | Answer |
 |---|---|
-| "Fine-tuning vs RAG?" | FT: higher accuracy, requires data + compute, hard to update. RAG: zero-shot, updatable, needs good retriever. |
-| "How much data?" | 5k-50k labeled examples ideal. <1k risks overfitting; >100k diminishing returns. |
-| "Learning rate?" | Start with 1e-5 for large models, 5e-5 for medium. Tune based on val loss trajectory. |
-| "Overfitting?" | Monitor val loss separately. Use early stopping, LoRA, or mixed task training. |
-| "Full vs LoRA?" | Full: all params updated, highest accuracy, expensive. LoRA: 1-5% params, cheaper, comparable accuracy. |
-| "Compute cost?" | LLaMA 7B: 1-2 days on A100 for 10k examples. Scales with model size and data. |
+| Fine-tuning versus RAG? | Tuning changes model parameters for repeated behavior; RAG supplies external context at inference and is easier to update. Choose based on whether the gap is behavior or changing knowledge. |
+| How do you know tuning helped? | Predefine held-out target and regression evaluations, compare with a baseline, and report uncertainty and slices; training loss alone is insufficient. |
+| Full fine-tuning versus LoRA? | Full tuning updates selected base weights and has a higher adaptation capacity/cost; LoRA freezes them and trains low-rank updates, reducing trainable state with task-dependent quality. |
+| Debugging follow-up: training loss improves but users see no gain. | Verify that the training target matches the product behavior, inspect loss masks and held-out examples, test for leakage, then evaluate outputs with the actual task metric and deployment prompt. |
 
-
-
-**Design follow-up:** How would you monitor this choice in production and decide when to use an alternative?
 ## Related Concepts
 
-- [LoRA](08-lora.md) — parameter-efficient fine-tuning (cheaper alternative)
-- [Parameter-Efficient Fine-tuning](11-parameter-efficient-finetuning.md) — broader PEFT methods
-- [Instruction Tuning](05-instruction-tuning.md) — fine-tuning on instruction-following
-- [RLHF](06-rlhf.md) — fine-tuning with human feedback
-- [Transfer Learning](../../ml/concepts/transfer-learning.md) — fine-tuning from scratch perspective
-
-## Real-World Examples
-
-### LoRA Fine-Tuning for Domain Adaptation
-General LLM → Legal domain. Fine-tune on 5K legal documents + contracts. LoRA rank-8: 2 hours training. Result: 42% → 68% accuracy on legal tasks. Cost: $100 (vs $10K full fine-tune). Deployed as legal assistant.
-
-### Full Fine-Tuning for Company Chat
-Goal: make model understand company context (products, policies, customers). Fine-tune on 100K internal documents. Full fine-tuning (smaller model, 3B). Result: 95% accuracy on internal queries. Deployment: on-premise (compliance).
-
-### Multi-Task Fine-Tuning
-One model for: classification, NER, summarization. Fine-tune on all three mixed. Shared representations improve transfer. Accuracy: 85% across all tasks (vs 88% individual models, but single model advantage).
-
-## Real-World Examples
-
-### LoRA Fine-Tuning for Domain Adaptation
-General LLM → Legal domain. Fine-tune on 5K legal documents + contracts. LoRA rank-8: 2 hours training. Result: 42% → 68% accuracy on legal tasks. Cost: $100 (vs $10K full fine-tune). Deployed as legal assistant.
-
-### Full Fine-Tuning for Company Chat
-Goal: make model understand company context (products, policies, customers). Fine-tune on 100K internal documents. Full fine-tuning (smaller model, 3B). Result: 95% accuracy on internal queries. Deployment: on-premise (compliance).
-
-### Multi-Task Fine-Tuning
-One model for: classification, NER, summarization. Fine-tune on all three mixed. Shared representations improve transfer. Accuracy: 85% across all tasks (vs 88% individual models, but single model advantage).
-
-## Real-World Examples
-
-### LoRA Fine-Tuning for Domain Adaptation
-General LLM → Legal domain. Fine-tune on 5K legal documents + contracts. LoRA rank-8: 2 hours training. Result: 42% → 68% accuracy on legal tasks. Cost: $100 (vs $10K full fine-tune). Deployed as legal assistant.
-
-### Full Fine-Tuning for Company Chat
-Goal: make model understand company context (products, policies, customers). Fine-tune on 100K internal documents. Full fine-tuning (smaller model, 3B). Result: 95% accuracy on internal queries. Deployment: on-premise (compliance).
-
-### Multi-Task Fine-Tuning
-One model for: classification, NER, summarization. Fine-tune on all three mixed. Shared representations improve transfer. Accuracy: 85% across all tasks (vs 88% individual models, but single model advantage).
-
-## Real-World Examples
-
-### LoRA Fine-Tuning for Domain Adaptation
-General LLM → Legal domain. Fine-tune on 5K legal documents + contracts. LoRA rank-8: 2 hours training. Result: 42% → 68% accuracy on legal tasks. Cost: $100 (vs $10K full fine-tune). Deployed as legal assistant.
-
-### Full Fine-Tuning for Company Chat
-Goal: make model understand company context (products, policies, customers). Fine-tune on 100K internal documents. Full fine-tuning (smaller model, 3B). Result: 95% accuracy on internal queries. Deployment: on-premise (compliance).
-
-### Multi-Task Fine-Tuning
-One model for: classification, NER, summarization. Fine-tune on all three mixed. Shared representations improve transfer. Accuracy: 85% across all tasks (vs 88% individual models, but single model advantage).
-
-## Real-World Examples
-
-### LoRA Fine-Tuning for Domain Adaptation
-General LLM → Legal domain. Fine-tune on 5K legal documents + contracts. LoRA rank-8: 2 hours training. Result: 42% → 68% accuracy on legal tasks. Cost: $100 (vs $10K full fine-tune). Deployed as legal assistant.
-
-### Full Fine-Tuning for Company Chat
-Goal: make model understand company context (products, policies, customers). Fine-tune on 100K internal documents. Full fine-tuning (smaller model, 3B). Result: 95% accuracy on internal queries. Deployment: on-premise (compliance).
-
-### Multi-Task Fine-Tuning
-One model for: classification, NER, summarization. Fine-tune on all three mixed. Shared representations improve transfer. Accuracy: 85% across all tasks (vs 88% individual models, but single model advantage).
-
-## Topic-specific notes
-
-**Q: When should you fine-tune vs use few-shot prompting?**
-A: Fine-tune when: you have 500+ labeled examples, consistent format/style requirements, latency constraints (shorter prompts), or need behavior that's hard to specify in a prompt. Use few-shot prompting when: you have few examples, the task changes frequently, or you need interpretability into what examples drive performance. Fine-tuning wins on consistency and cost at scale; prompting wins on flexibility and speed of iteration.
-
-**Q: What are the signs that your fine-tuned model is catastrophically forgetting?**
-A: Performance on tasks outside your fine-tuning domain drops significantly. The model stops following safety guidelines. It loses capabilities that the base model had (e.g., multilingual ability, code generation). Mitigate with: lower learning rate (1e-5 vs 1e-4), smaller number of training steps, regularization (weight decay), or mixing in base model data during fine-tuning.
-
-**Q: How do you construct a good fine-tuning dataset?**
-A: Quality over quantity: 500 carefully curated examples often outperforms 5000 noisy ones. Ensure diversity across your input space—don't just collect easy cases. Format data exactly as you'll format inference prompts. Include negative examples or rejection samples if you want the model to decline certain requests. Validate with held-out eval set; track performance vs dataset size to know when you have enough.
-
-**Q: What learning rate should you use for fine-tuning and how do you tune it?**
-A: Start with 1e-5 to 5e-5 for full fine-tuning, 1e-4 for LoRA. Lower than pretraining because weights are already meaningful—large updates cause forgetting. Use linear warmup (5-10% of steps) then cosine decay. Run a learning rate range test: train for 100 steps each at [1e-6, 5e-6, 1e-5, 5e-5, 1e-4], pick the LR just before loss stops decreasing.
-
-**Q: How do you evaluate whether fine-tuning improved the model?**
-A: Always evaluate on a held-out test set that mirrors production distribution. Use task-specific metrics (ROUGE for summarization, exact match for QA, human eval for open-ended). Compare against: base model + same prompt, base model + few-shot, production baseline. Watch for mode collapse: fine-tuned model that always outputs one pattern may have high automatic metrics but fail in production.
-
-**Q: When is full fine-tuning worth the cost vs PEFT methods like LoRA?**
-A: Full fine-tuning is worth it when: the task requires changes to the model's core representations (not just surface behavior), you have large high-quality datasets (100K+ examples), or you'll serve many users sharing one fine-tuned model. PEFT/LoRA is sufficient for most production cases—it achieves 90-95% of full fine-tuning quality at 1-5% of the compute cost. Full fine-tuning rarely justifies cost unless you're training a foundation model.
+- [Pretraining](03-pretraining.md) — the initialization and objective fine-tuning builds on.
+- [Instruction Tuning](05-instruction-tuning.md) — supervised adaptation over instruction-response examples.
+- [RLHF](06-rlhf.md) — preference-based post-training.
+- [LoRA](08-lora.md) — low-rank parameter-efficient updates.
+- [Transfer Learning](../../ml/concepts/transfer-learning.md) — adaptation from a pretrained checkpoint.
+- [Fine-tuning notebook](../notebooks/04-finetuning.ipynb) — paired walkthrough.
+- [Fine-tuning practice](../interview-prep/curriculum-practice.md#fine-tuning) — paired assessment.
 
 ## Resources
 
-- [HuggingFace Fine-tuning Guide](https://huggingface.co/docs/transformers/training)
+- [Hugging Face Transformers: Training](https://huggingface.co/docs/transformers/training)
 - [Fine-Tuning Language Models from Human Preferences](https://arxiv.org/abs/1909.08383)
+- [Training language models to follow instructions with human feedback](https://arxiv.org/abs/2203.02155)
+- [LoRA: Low-Rank Adaptation of Large Language Models](https://arxiv.org/abs/2106.09685)
+- [Transformers Trainer API](https://huggingface.co/docs/transformers/main_classes/trainer)
 - [QLoRA: Efficient Finetuning of Quantized LLMs](https://arxiv.org/abs/2305.14314)
-- [Hugging Face Transformers Trainer](https://huggingface.co/docs/transformers/main_classes/trainer)
 
 ## Concept Relationships
 
-```mermaid
-graph TD
-    A["Fine-tuning"]
-    B["Pretraining"] -->|prerequisite| A
-    A -->|prerequisite for| C["Parameter-Efficient Fine-tuning"]
-    A -->|prerequisite for| C["LoRA (Low-Rank Adaptation)"]
-    A -->|prerequisite for| C["Adapters"]
-    A -->|used with| D["Instruction Tuning"]
-    A -->|used with| D["RLHF (Reinforcement Learning from Human Feedback)"]
-    
-    style A fill:#fff3e0
-```
+Fine-tuning is a family of adaptation procedures; the target format and trainable parameters distinguish instruction tuning and LoRA. Notebook: [04-finetuning.ipynb](../notebooks/04-finetuning.ipynb). Practice: [fine-tuning questions](../interview-prep/curriculum-practice.md#fine-tuning).
 
 ## Interview Questions
 
-**Q: When should you fine-tune vs use prompting/few-shot?**
-*A: Prompting: works for general tasks, no data needed, zero-shot. Few-shot: 1-100 examples, cost per inference. Fine-tune: 100-10K examples, cost upfront, fast inference. Choice: prompting for one-off, fine-tune for repeated queries or distribution shift.*
+**How would you separate data problems from optimization problems?**
 
-**Q: What's the difference between full fine-tuning and parameter-efficient methods?**
-*A: Full: update all weights, best accuracy, slow training, expensive compute. Parameter-efficient (LoRA/adapters): update 0.1-1% of weights, 90% of accuracy, fast, cheap. Trade-off: accuracy ceiling. Use LoRA for most cases, full fine-tune if precision critical.*
-
-**Q: How do you avoid overfitting during fine-tuning?**
-*A: Small dataset: use early stopping, regularization (weight decay), smaller learning rate. Monitor validation loss. Dropout. Data augmentation. With <1K examples: aggressive regularization necessary. With >10K: overfitting less likely.*
-
-**Q: What's catastrophic forgetting and how do you prevent it?**
-*A: Fine-tuning can harm performance on original task. E.g., fine-tune for medical domain, lose general knowledge. Prevention: mix original data (50% original, 50% new). Use lower learning rate. Use adapter instead of full fine-tune.*
-
-**Q: How do you measure fine-tuning success?**
-*A: On validation set: accuracy, F1, perplexity (task-dependent). Compare to baseline: how much improvement? Cost analysis: training cost vs improvement. Ablation: which data/technique helped most?*
+First manually inspect a stratified sample and verify serialization, labels, duplicates, and loss masks. Then run a tiny overfit test: the model should fit a very small clean batch under the intended objective. If that fails, debug the implementation; if it succeeds but held-out performance is weak, inspect split shift, label quality, coverage, and model capacity before increasing compute.

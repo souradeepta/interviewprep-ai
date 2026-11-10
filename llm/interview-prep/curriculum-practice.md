@@ -14,7 +14,7 @@ LLM engineering; explain the design to a senior interviewer.
 Intermediate
 
 ### Expected Answer
-A strong answer names the core mechanism, states assumptions, and connects the design choice to measurable quality, latency, cost, or safety requirements.
+Tokenization maps text through a tokenizer's normalization and segmentation rules into IDs that index a particular model's embedding table. I would pin the tokenizer with the checkpoint and measure token counts on representative production inputs, including code, numbers, and each supported language, because fragmentation affects truncation, context use, and token-based cost. For an input that becomes an unknown token, I would inspect its encoded IDs and compare them with `unk_token_id`; byte fallback instead represents the UTF-8 bytes with ordinary vocabulary IDs and should decode back to the original string. I would test round trips and monitor token counts and truncation by input type. If a language or domain is unusually fragmented, I would benchmark a compatible multilingual/domain tokenizer and model together rather than swap tokenizers under the existing checkpoint.
 
 ### Evaluation
 Score correctness, explicit trade-offs, a measurable validation plan, and treatment of the stated failure mode.
@@ -37,7 +37,7 @@ LLM engineering; explain the design to a senior interviewer.
 Intermediate
 
 ### Expected Answer
-A strong answer names the core mechanism, states assumptions, and connects the design choice to measurable quality, latency, cost, or safety requirements.
+An embedding is a vector whose useful geometry depends on the encoder, pooling method, training objective, and task. For semantic search, I would encode queries and passages with compatible versions, choose cosine or dot product consistently with normalization and the encoder's intended use, and evaluate on judged query-document pairs with Recall@k or nDCG@k. I would compare against lexical search and a hybrid baseline, especially for product IDs and exact terms. I would version the model, preprocessing, pooling, normalization, and vector dimension, and re-embed the corpus after incompatible changes. A concrete input check must reject unequal vector dimensions; for instance, cosine([1, 0], [1]) is undefined and should raise an error rather than silently truncating via `zip`.
 
 ### Evaluation
 Score correctness, explicit trade-offs, a measurable validation plan, and treatment of the stated failure mode.
@@ -83,7 +83,7 @@ LLM engineering; explain the design to a senior interviewer.
 Intermediate
 
 ### Expected Answer
-A strong answer names the core mechanism, states assumptions, and connects the design choice to measurable quality, latency, cost, or safety requirements.
+Fine-tuning updates selected model parameters by minimizing a loss on serialized input-target examples; it is appropriate when a repeated behavior gap cannot be met reliably through prompting or retrieval. I would first define the target behavior, pin the base checkpoint and tokenizer, remove duplicates, split examples by source or group to prevent leakage, and specify which tokens receive loss. I would compare the tuned checkpoint with the base model on a frozen held-out task set and a capability-regression suite, reporting task metrics and uncertainty rather than training loss alone. Training costs include compute, optimizer/activation memory, data review, and checkpoint operations; test contamination, narrow data, or forgetting are key risks. If the need is changing factual knowledge, retrieval is usually easier to update and audit. The paired notebook and implementation in this repository show inference, not a fine-tuning run.
 
 ### Evaluation
 Score correctness, explicit trade-offs, a measurable validation plan, and treatment of the stated failure mode.
@@ -106,7 +106,7 @@ LLM engineering; explain the design to a senior interviewer.
 Intermediate
 
 ### Expected Answer
-A strong answer names the core mechanism, states assumptions, and connects the design choice to measurable quality, latency, cost, or safety requirements.
+Instruction tuning is supervised fine-tuning on task/request and desired-response demonstrations. I would define the supported task mixture, quality-review examples, apply the base model's actual chat template, and mask prompt tokens when the objective is to train only on assistant responses. To test transfer, I would hold out task families and paraphrases as well as source documents, then compare the tuned model with the base under identical prompts and decoding; report per-task accuracy or rubric scores plus factuality, safety, and format regressions. A narrow or imbalanced mixture can cause phrasing overfit or degrade other skills, and synthetic teacher errors can be learned. If the model already follows the task with a prompt, prompting is cheaper; if answers need frequently changing facts, use retrieval. This repository's paired notebook demonstrates inference and does not perform instruction-tuning training.
 
 ### Evaluation
 Score correctness, explicit trade-offs, a measurable validation plan, and treatment of the stated failure mode.
@@ -175,7 +175,7 @@ LLM engineering; explain the design to a senior interviewer.
 Intermediate
 
 ### Expected Answer
-A strong answer names the core mechanism, states assumptions, and connects the design choice to measurable quality, latency, cost, or safety requirements.
+LoRA freezes a pretrained weight matrix `W` and learns a low-rank update `sBA`, with `A` shaped `r × d_in` and `B` shaped `d_out × r`; the adapter therefore has `r(d_in + d_out)` trainable parameters instead of `d_in d_out` for that matrix. I would compare a small set of ranks and target-module choices on the same data and recipe, measuring held-out task quality, regression scores, peak memory, throughput, and adapter size. Low rank can underfit, while larger rank costs more and can overfit; trainable-parameter savings do not remove base-weight or activation memory. I would verify that base weights are frozen and intended modules matched, then compare merged and separate-adapter outputs. Full fine-tuning is an alternative when its added capacity is justified; prompting is preferable when no learned weight change is needed.
 
 ### Evaluation
 Score correctness, explicit trade-offs, a measurable validation plan, and treatment of the stated failure mode.
