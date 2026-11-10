@@ -1,36 +1,11 @@
-"""
-Quantization Aware Distillation
-
-Production-quality implementation of quantization aware distillation.
-"""
-
-import numpy as np
-import torch
-import torch.nn as nn
-from typing import Dict, List, Tuple, Optional
-
-
-class QuantizationAwareDistiller(nn.Module):
-    """Production-grade implementation."""
-    
-    def __init__(self, hidden_dim: int = 64, device: Optional[torch.device] = None):
-        super().__init__()
-        self.hidden_dim = hidden_dim
-        self.device = device or torch.device('cuda' if torch.cuda.is_available() else 'cpu')
-        self.linear = nn.Linear(hidden_dim, hidden_dim)
-        self.norm = nn.LayerNorm(hidden_dim)
-    
-    def forward(self, x: torch.Tensor) -> torch.Tensor:
-        x = x.to(self.device)
-        x = self.linear(x)
-        x = self.norm(x)
-        return x
-
-
-if __name__ == "__main__":
-    device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
-    model = QuantizationAwareDistiller(hidden_dim=64, device=device)
-    x = torch.randn(4, 8, 64)
-    with torch.no_grad():
-        output = model(x)
-    print(f"Input: {x.shape} → Output: {output.shape}")
+"""Measure toy quantization and teacher-student approximation trade-offs."""
+def quantize(values,bits):
+    if bits<1 or bits>16: raise ValueError("bits must be in [1,16]")
+    x=[float(v) for v in values]; lo=min(x); hi=max(x); levels=2**bits-1
+    if hi==lo: return x[:]
+    return [round((v-lo)/(hi-lo)*levels)/levels*(hi-lo)+lo for v in x]
+def mse(a,b): return sum((x-y)**2 for x,y in zip(a,b))/max(1,len(a))
+def compare(weights,student,formats=(8,4,2)):
+    return [{"bits":b,"weight_bytes":len(weights)*b/8,"quantization_mse":mse(weights,quantize(weights,b)),
+             "combined_mse":mse(weights,quantize(weights,b))+mse(quantize(weights,b),student)} for b in formats]
+if __name__ == "__main__": print(compare([-.91,-.3,.2,.55,.98],[-.8,-.25,.14,.48,.82]))

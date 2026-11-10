@@ -1,6 +1,6 @@
 # Statistics for Machine Learning Interviews
 
-Statistics is the mathematical foundation of every machine learning algorithm. Understanding statistics at interview depth means being able to answer not just "what is this?" but "when would you use it, what breaks if you don't, and how would you debug it in production?" This section covers the 15 core statistical concepts that appear most frequently in ML engineering and data science interviews.
+Statistics is the mathematical foundation of every machine learning algorithm. Understanding statistics at interview depth means being able to answer not just "what is this?" but "when would you use it, what breaks if you don't, and how would you debug it in production?" This section covers 21 core statistical concepts that appear frequently in ML engineering and data science interviews.
 
 ## Prerequisites
 
@@ -31,16 +31,29 @@ No prior deep knowledge of statistics is assumed, but comfort with notation like
 | 13 | Multivariate Statistics | Advanced | [13-multivariate-statistics.ipynb](notebooks/13-multivariate-statistics.ipynb) |
 | 14 | Time Series Statistics | Time Series | [14-time-series-statistics.ipynb](notebooks/14-time-series-statistics.ipynb) |
 | 15 | Statistical-ML Connections | Synthesis | [15-statistical-ml-connections.ipynb](notebooks/15-statistical-ml-connections.ipynb) |
+| 16 | Bootstrap and Resampling | Estimation | [16-bootstrap-resampling.ipynb](notebooks/16-bootstrap-resampling.ipynb) |
+| 17 | Permutation Tests and Randomization Inference | Inference | [17-permutation-tests-randomization-inference.ipynb](notebooks/17-permutation-tests-randomization-inference.ipynb) |
+| 18 | Multiple Testing and False-Discovery Control | Inference | [18-multiple-testing-fdr.ipynb](notebooks/18-multiple-testing-fdr.ipynb) |
+| 19 | Missing Data and Imputation Assumptions | Data Quality | [19-missing-data-imputation-assumptions.ipynb](notebooks/19-missing-data-imputation-assumptions.ipynb) |
+| 20 | Regression Diagnostics and Robust Standard Errors | Regression | [20-regression-diagnostics-robust-standard-errors.ipynb](notebooks/20-regression-diagnostics-robust-standard-errors.ipynb) |
+| 21 | Sequential Experimentation and Peeking Control | Experiment Design | [21-sequential-experimentation-peeking-control.ipynb](notebooks/21-sequential-experimentation-peeking-control.ipynb) |
 
 ---
 
 ## Learning Paths
 
+### Interview practice
+
+Use the [Statistics Interview Questions](interview-prep/statistics-interview-questions.md)
+bank for scenario, debugging, and design practice across inference, experiments,
+causal assumptions, resampling, multiplicity, missingness, sequential testing,
+and regression diagnostics.
+
 Different roles and interview types emphasize different subsets of these concepts. Use these curated paths to focus your preparation.
 
 ### Stats for ML Interviews (Core Track)
 **Best for**: MLE, Data Scientist, Applied Scientist roles at any company.
-**Concepts**: 01 → 02 → 03 → 04 → 05 → 06 → 07 → 08
+**Concepts**: 01 → 02 → 03 → 04 → 05 → 06 → 07 → 08 → 16 → 17 → 18
 
 This track covers the absolute fundamentals that appear in virtually every ML interview: probability, common distributions, estimation, hypothesis testing, and regression. Complete this track before anything else.
 
@@ -68,7 +81,7 @@ This track goes deep on the Bayesian perspective: prior-posterior updating, MCMC
 
 ### Production ML Statistics
 **Best for**: MLE at companies running A/B tests, deploying models at scale, or working on data infrastructure.
-**Concepts**: 05 → 06 → 07 → 08 → 09 → 13 → 14
+**Concepts**: 05 → 06 → 07 → 08 → 09 → 16 → 18 → 19 → 20 → 21 → 13 → 14
 
 This track focuses on the statistical skills needed for production ML: A/B testing, experiment design, regression diagnostics, uncertainty quantification, and resampling for robust estimates.
 

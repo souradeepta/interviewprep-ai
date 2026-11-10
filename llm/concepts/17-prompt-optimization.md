@@ -1,16 +1,19 @@
 # Prompt Optimization
 
-## Understanding Prompt Optimization
+Prompts are interfaces to LLMs.
 
-Prompt Optimization is a foundational concept in large language model development that addresses critical challenges in model architecture, training efficiency, or inference performance. Understanding this concept is essential for anyone working with modern language models, whether in research, fine-tuning, or production deployment.
+## Prerequisites
 
-The core innovation underlying Prompt Optimization lies in rethinking standard approaches to achieve better efficiency or effectiveness. Rather than accepting conventional trade-offs, this technique exploits mathematical or architectural insights to push the frontier of what's possible with given computational constraints.
+Familiarity with chain of thought. This note focuses on the LLM-specific mechanism and its engineering selection boundary.
 
-In practical applications, Prompt Optimization enables capabilities that would otherwise be infeasible: reducing computational requirements, improving model quality, enabling faster iteration, or supporting new use cases. The real-world impact has made Prompt Optimization widely adopted across industry applications, from consumer products to enterprise systems.
+## Learning Outcomes
 
-Implementing Prompt Optimization requires understanding both its theoretical foundations and practical considerations. The following sections provide detailed explanations of how Prompt Optimization works, when to use it, common implementation patterns, and lessons learned from production deployments. By mastering these concepts, practitioners can make informed decisions about when and how to apply Prompt Optimization to their specific challenges.
+- Explain the mechanism and assumptions behind prompt optimization.
+- Compare its main alternative using task quality and one operational cost.
+- Diagnose a failure using a metric or example tied to prompt optimization.
 
 ## Core Intuition
+
 Prompts are interfaces to LLMs. Small changes in wording, structure, or examples significantly affect output quality. "Classify sentiment" (70% accuracy) vs. "Classify sentiment as positive/negative/neutral, considering sarcasm" (85% accuracy) show the impact. Optimization is iterative: baseline → refine → measure → repeat.
 
 ## How It Works
@@ -105,7 +108,7 @@ graph LR
     style D fill:#e8f5e9
 ```
 
-## Key Properties / Trade-offs
+## Trade-offs
 
 | Optimization Technique | Time | Cost | Accuracy Gain | Best For |
 |------------------------|------|------|---------------|----------|
@@ -128,19 +131,7 @@ graph LR
 - More structure → easier parsing, slightly verbose
 - Reasoning prompts → slower, better quality
 
-## Common Mistakes / Gotchas
-
-- **Over-specification:** "Classify sentiment: positive, negative, neutral, very positive, somewhat positive, mostly negative..." → confuses model. Keep categories clear and minimal.
-- **Bad examples:** Unrepresentative or inconsistent examples → worse performance. Check examples match distribution.
-- **Too many examples:** 15+ examples exceeds diminishing returns and uses tokens. Optimal: 3-5.
-- **Inconsistent format:** "Output: {sentiment}" vs "Answer: sentiment" → model confused. Be consistent across examples.
-- **Ignoring model personality:** GPT-4 reasoning better with CoT, Claude better with natural language, some models struggle with strict format requirements.
-- **Not testing edge cases:** Sarcasm, idioms, domain jargon. Add examples for these.
-- **Assuming one prompt fits all:** Sentiment in reviews vs tweets vs technical docs need different prompts. Domain matters.
-- **Not measuring baseline:** Can't improve if you don't measure starting point. Always establish baseline first.
-- **Chasing accuracy in wrong metric:** 95% accuracy on test set but 40% on production drift. Measure on representative data.
-
-## Code Example
+## Implementation
 
 ```python
 from anthropic import Anthropic
@@ -269,7 +260,19 @@ print(f"\nOptimization history: {history}")
 print(f"Final accuracy: {accuracy:.2%}")
 ```
 
-## Interview Quick-Reference
+## Failure Modes
+
+- **Over-specification:** "Classify sentiment: positive, negative, neutral, very positive, somewhat positive, mostly negative..." → confuses model. Keep categories clear and minimal.
+- **Bad examples:** Unrepresentative or inconsistent examples → worse performance. Check examples match distribution.
+- **Too many examples:** 15+ examples exceeds diminishing returns and uses tokens. Optimal: 3-5.
+- **Inconsistent format:** "Output: {sentiment}" vs "Answer: sentiment" → model confused. Be consistent across examples.
+- **Ignoring model personality:** GPT-4 reasoning better with CoT, Claude better with natural language, some models struggle with strict format requirements.
+- **Not testing edge cases:** Sarcasm, idioms, domain jargon. Add examples for these.
+- **Assuming one prompt fits all:** Sentiment in reviews vs tweets vs technical docs need different prompts. Domain matters.
+- **Not measuring baseline:** Can't improve if you don't measure starting point. Always establish baseline first.
+- **Chasing accuracy in wrong metric:** 95% accuracy on test set but 40% on production drift. Measure on representative data.
+
+## Interview Quick Reference
 
 | Question | What to say |
 |---|---|
@@ -281,27 +284,16 @@ print(f"Final accuracy: {accuracy:.2%}")
 | "When stop optimizing?" | When gains drop below 2% or ROI not worth effort. Most gains in first 2-3 iterations. |
 | "One-shot vs few-shot?" | One shot: 1 example, 10% gain typical. Few-shot (3-5): 15-25% gain. More is diminishing. |
 
-## Real-World Examples
 
-### Customer Support Chatbot Optimization
-Baseline: generic response template. Optimized: clear categorization + relevant examples + structured output (JSON). Accuracy: 70% → 85%. User satisfaction: 60% → 88%.
 
-### Content Moderation Prompt
-Task: detect toxic content. V1: 'Is this toxic?' (45% recall). V2: 'Identify toxic content: slurs, threats, harassment, ...' (72% recall). V3: Add examples (85%). Cost: same tokens.
+**Design follow-up:** How would you monitor this choice in production and decide when to use an alternative?
+## Related Concepts
 
-### Code Generation Improvement
-Prompt v1: 'Write Python function' (40% correct). Prompt v2: Add type hints, docstring requirements (60%). Prompt v3: Add example functions (78%). Final prompt: 2K tokens vs 100 for basic.
-
-## Real-World Examples
-
-### Customer Support Chatbot Optimization
-Baseline: generic response template. Optimized: clear categorization + relevant examples + structured output (JSON). Accuracy: 70% → 85%. User satisfaction: 60% → 88%.
-
-### Content Moderation Prompt
-Task: detect toxic content. V1: 'Is this toxic?' (45% recall). V2: 'Identify toxic content: slurs, threats, harassment, ...' (72% recall). V3: Add examples (85%). Cost: same tokens.
-
-### Code Generation Improvement
-Prompt v1: 'Write Python function' (40% correct). Prompt v2: Add type hints, docstring requirements (60%). Prompt v3: Add example functions (78%). Final prompt: 2K tokens vs 100 for basic.
+- [[prompting]] — general prompting principles and frameworks
+- [[few-shot-learning]] — in-context examples as optimization technique
+- [[chain-of-thought]] — reasoning prompts for complex tasks
+- [[in-context-learning]] — broader ICL patterns
+- [[instruction-tuning]] — fine-tuning to improve instruction following
 
 ## Real-World Examples
 
@@ -325,7 +317,29 @@ Task: detect toxic content. V1: 'Is this toxic?' (45% recall). V2: 'Identify tox
 ### Code Generation Improvement
 Prompt v1: 'Write Python function' (40% correct). Prompt v2: Add type hints, docstring requirements (60%). Prompt v3: Add example functions (78%). Final prompt: 2K tokens vs 100 for basic.
 
-## Interview Q&A
+## Real-World Examples
+
+### Customer Support Chatbot Optimization
+Baseline: generic response template. Optimized: clear categorization + relevant examples + structured output (JSON). Accuracy: 70% → 85%. User satisfaction: 60% → 88%.
+
+### Content Moderation Prompt
+Task: detect toxic content. V1: 'Is this toxic?' (45% recall). V2: 'Identify toxic content: slurs, threats, harassment, ...' (72% recall). V3: Add examples (85%). Cost: same tokens.
+
+### Code Generation Improvement
+Prompt v1: 'Write Python function' (40% correct). Prompt v2: Add type hints, docstring requirements (60%). Prompt v3: Add example functions (78%). Final prompt: 2K tokens vs 100 for basic.
+
+## Real-World Examples
+
+### Customer Support Chatbot Optimization
+Baseline: generic response template. Optimized: clear categorization + relevant examples + structured output (JSON). Accuracy: 70% → 85%. User satisfaction: 60% → 88%.
+
+### Content Moderation Prompt
+Task: detect toxic content. V1: 'Is this toxic?' (45% recall). V2: 'Identify toxic content: slurs, threats, harassment, ...' (72% recall). V3: Add examples (85%). Cost: same tokens.
+
+### Code Generation Improvement
+Prompt v1: 'Write Python function' (40% correct). Prompt v2: Add type hints, docstring requirements (60%). Prompt v3: Add example functions (78%). Final prompt: 2K tokens vs 100 for basic.
+
+## Topic-specific notes
 
 **Q: What is the difference between manual prompt engineering and automatic prompt optimization?**
 A: Manual engineering: a human iteratively edits the prompt based on failure analysis—fast to set up, interpretable, but labor-intensive and doesn't scale. Automatic optimization: algorithms (gradient-based like AutoPrompt, reinforcement learning like PromptAgent, or LLM-based meta-prompting like APE) search the prompt space programmatically. Auto-optimization finds non-intuitive prompts that outperform manual ones by 5-20% but requires an eval dataset and compute for optimization. Use auto-optimization when the eval set is large enough and you've exhausted manual improvements.
@@ -345,15 +359,8 @@ A: Maintain a prompt registry with version control. Deploy experiments using you
 **Q: What are the limits of prompt optimization and when should you fine-tune instead?**
 A: Prompt optimization can't: add knowledge the model doesn't have, change fundamental capabilities (e.g., can't make a 7B model reason like a 70B model), or solve tasks that require more context than fits in the window. Switch to fine-tuning when: the best optimized prompt still underperforms your target, the task requires consistent behavior across thousands of calls (prompts have higher variance than fine-tuned models), or the same task will run millions of times (fine-tuning reduces token cost by shortening prompts).
 
-
-## Related Topics
-- [[prompting]] — general prompting principles and frameworks
-- [[few-shot-learning]] — in-context examples as optimization technique
-- [[chain-of-thought]] — reasoning prompts for complex tasks
-- [[in-context-learning]] — broader ICL patterns
-- [[instruction-tuning]] — fine-tuning to improve instruction following
-
 ## Resources
+
 - [Prompt Engineering Guide](https://www.promptingguide.ai/)
 - [OpenAI: Prompt Engineering Best Practices](https://platform.openai.com/docs/guides/prompt-engineering)
 - [Anthropic: Prompt Engineering](https://docs.anthropic.com/en/docs/guides/prompt-engineering)

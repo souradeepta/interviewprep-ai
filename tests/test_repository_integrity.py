@@ -86,7 +86,7 @@ def test_mlops_concepts_have_matching_notebooks_excluding_concept_map():
         ("ai", 40),
         ("llm", 44),
         ("agentic-ai", 64),
-        ("stats", 15),
+        ("stats", 21),
         ("cv", 8),
         ("nlp", 8),
         ("rl", 20),

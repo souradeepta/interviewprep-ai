@@ -1,16 +1,22 @@
 # Knowledge Distillation
 
-## Detailed Explanation
+Temperature-scaled teacher probabilities expose relative class preferences that a hard label discards.
 
-Knowledge distillation transfers knowledge from a large, complex teacher model to a smaller, faster student model by training the student to mimic the teacher's outputs. This enables deploying capable models on resource-constrained devices (phones, edge servers) while maintaining reasonable performance. The key insight is that the teacher's soft predictions (probability distributions) contain more information than just the hard labels, teaching the student not just what to predict but the confidence and uncertainty of the teacher.
+## Prerequisites
 
-The training objective combines two losses: (1) matching the teacher's soft predictions (using temperature-scaled softmax to extract fine-grained probability information), (2) matching true labels (preserving task performance). The temperature parameter controls the softness of predictions—higher temperature reveals more about the teacher's reasoning patterns. Distillation works because teachers learn rich internal representations that capture task structure; students trained to mimic these patterns learn more efficiently than from scratch.
+Understand transformer inputs, tensor shapes, and how to evaluate a model on held-out data. This lesson narrows that background to the mechanism and decisions specific to knowledge distillation.
 
-Knowledge distillation is crucial for practical deployment of modern large models. It enables building systems that are fast enough for real-time use while retaining much of the capable model's knowledge. Understanding it requires appreciating the difference between hard labels and soft probability distributions, and recognizing that simpler models can learn sophisticated behavior by studying complex teachers.
+## Learning Outcomes
+
+- Explain the central mechanism and identify its key inputs and outputs.
+- Compare at least two design choices using a quality measure and an operational cost.
+- Diagnose a failure by selecting a workload slice and testing the assumption it violates.
 
 ## Core Intuition
 
 A master chess player coaching a student doesn't just say 'move the knight here.' Instead, they explain 'the knight move is good because it attacks three pieces while staying protected, and here's why that's stronger than the other moves I considered.' The student learns faster by understanding the master's reasoning. Knowledge distillation teaches student models the 'reasoning' of teacher models.
+
+Temperature-scaled teacher probabilities expose relative class preferences that a hard label discards. A reliable design begins with a simple baseline and makes the specialized method earn its added complexity through measured improvement. Keep the evaluation split and serving constraints fixed so the comparison isolates the design decision.
 
 ## How It Works
 
@@ -28,56 +34,52 @@ graph TD
     B -->|Output| C[Result]
 ```
 
-## Architecture / Trade-offs
+Compare a hard-label student against a student trained with softened teacher targets at matched parameter count. Compare alternatives at a fixed input distribution and record both quality and system cost. For image models, vary resolution and patch size; for fusion, vary which modalities are available; for security, exercise allowed and denied actions; for retrieval, separate candidate generation from ranking. These controls make it possible to tell whether a change fixes the intended bottleneck or only moves it.
 
-### Knowledge Transfer Mechanisms
+A useful experiment includes a baseline, a changed condition, and a deliberately difficult case. Use deterministic synthetic examples first to validate logic, then a held-out realistic slice to estimate task impact. Report uncertainty or repeat runs when training randomness can change the result.
 
-```mermaid
-graph TD
-    A["Teacher Model<br/>Large, accurate"] -->|Extract knowledge| B["Soft targets<br/>Probability distributions"]
-    A -->|Feature extraction| C["Intermediate representations<br/>Hidden layers"]
+## Trade-offs
 
-    B -->|Temperature scaling| D["T=1: Hard targets<br/>T>1: Soft targets<br/>Higher T = more information"]
+| Design | Benefit | Cost or risk | Decision signal |
+|---|---|---|---|
+| Unconstrained baseline | Keeps the largest set of interactions or evidence | Highest memory, compute, or input burden | Use while the workload fits and quality is the priority |
+| Structured method | Bounds a specific resource or failure path | May exclude useful cases | Use when workload structure justifies the constraint |
+| Learned or approximate method | Can adapt behavior to the task | Adds estimation error and tuning sensitivity | Require slice-level quality checks |
+| Modular fallback | Limits blast radius and supports missing inputs | Adds routing or orchestration work | Use when inputs or permissions vary by request |
 
-    D -->|Train| E["Student Model<br/>Small, fast"]
-    C -->|Attention transfer| E
+## Implementation
 
-    E -->|Result| F["Faster inference<br/>Better accuracy than training alone"]
+The following dependency-light check captures one invariant for the topic. It is a logic check, not a claim of end-to-end model performance.
 
-    style A fill:#fff3e0
-    style E fill:#f3e5f5
-    style D fill:#e1f5ff
+```python
+assert abs(sum([.6,.3,.1]) - 1.0) < 1e-9
 ```
 
-### Model Size vs Performance
+For a full experiment, keep a control implementation and record input shape, data split, model version, batch policy, hardware, and measurement method. Measure warm and steady-state latency separately where compilation or caching is involved. A measured result should state the exact workload and include quality; a microbenchmark cannot establish user-facing benefit by itself.
 
-| Student Size | Knowledge Retention | Speedup | Accuracy vs Teacher |
-|--------------|-------------------|---------|-------------------|
-| **Large (90% params)** | ~95% | 1.1x | -0.5% |
-| **Medium (50% params)** | ~85% | 2x | -2% |
-| **Small (10% params)** | ~70% | 10x | -5-10% |
-| **Tiny (1% params)** | ~40% | 50x | -20%+ |
+## Failure Modes
 
-### Distillation Loss Components
+- Student loses rare classes; inspect per-class recall, not only average accuracy. Diagnose by logging the topic-specific signal and comparing it with the expected input contract.
+- Teacher errors are copied; filter or weight low-confidence targets. Build a targeted edge case and check whether the failure is systematic across a meaningful slice.
+- Temperature is too low to reveal class similarity; sweep it on validation data. Compare against the baseline and monitor the affected quality or tail-cost metric after rollout.
 
-```mermaid
-graph LR
-    A["Total Loss"] -->|Distillation| B["L_dist = KL(p_student || p_teacher)<br/>Match soft targets"]
-    A -->|Ground Truth| C["L_task = CrossEntropy(y, p_student)<br/>Match labels"]
+## Interview Quick Reference
 
-    B -->|Weight α| D["Balance trade-off"]
-    C -->|Weight 1-α| D
+| Question | Expected answer |
+|---|---|
+| What is the design’s central mechanism? | Temperature-scaled teacher probabilities expose relative class preferences that a hard label discards. Name its assumptions and the resource or behavior it changes. |
+| What alternative would you evaluate? | Compare the unconstrained baseline with a structured or modular approach on the same task and budget. |
+| How would you investigate a regression? | Slice the affected workload, test the violated assumption, and compare with a control path. |
 
-    D -->|α=0| E["Pure distillation<br/>Depends on teacher"]
-    D -->|α=0.5| F["Balanced<br/>Best for limited teacher quality"]
-    D -->|α=1| G["Pure supervision<br/>Ignore teacher"]
+**Debugging follow-up:** Student loses rare classes; inspect per-class recall, not only average accuracy. What would you log, what held-out case would you add, and which metric would trigger rollback?
 
-    style E fill:#fff3e0
-    style F fill:#e8f5e9
-    style G fill:#ffebee
-```
-## Interview Q&A
+## Related Concepts
 
+Read [attention optimization](24-attention-optimization.md), [evaluation](32-evaluation.md), and the [associated notebook](../notebooks/37-knowledge-distillation.ipynb). Drill: [practice question](../interview-prep/curriculum-practice.md#knowledge-distillation).
+
+References: [primary source](https://arxiv.org/abs/1503.02531); [technical reference](https://huggingface.co/docs/transformers/tasks/distillation).
+
+### Existing interview notes
 
 **Q: Why does distillation work if student has fewer parameters?**
 A: Teacher provides soft targets (probability distributions), not hard labels. These contain more information than one-hot labels. Student learns patterns, not memorizes. Similar to learning from expert rather than raw data.
@@ -93,28 +95,3 @@ A: Distillation: smaller model with fewer parameters (can run on CPU). Quantizat
 
 **Q: How do you evaluate distillation?**
 A: Measure: (1) student performance on task (accuracy, BLEU, etc.), (2) inference latency/memory, (3) training cost (time + compute). Compare: student alone vs distilled vs teacher. Report: accuracy-efficiency frontier.
-
-
-## Best Practices
-
-- Apply best practices specific to this concept
-- Consider edge cases and failure modes
-- Test on representative data
-- Evaluate comprehensively
-
-## Common Pitfalls
-
-- Avoid over-simplification
-- Watch for incorrect assumptions
-- Test edge cases thoroughly
-- Monitor for degradation
-
-## Code Examples
-
-See the associated notebook for implementation and real-world examples.
-
-## Related Concepts
-
-- Understand prerequisites first
-- Connect related topics
-- Build integrated knowledge

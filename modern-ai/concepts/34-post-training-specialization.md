@@ -1,98 +1,85 @@
-# Post-Training Specialization
+# Post-Training Specialization Decisions
 
-## Detailed Explanation
-Post-training specializes base LLMs for specific domains or tasks through a multi-stage pipeline: SFT (supervised fine-tuning) on high-quality demonstrations, then preference alignment via RLHF/DPO to match human values. Modern approaches use Direct Preference Optimization (DPO) to avoid reward model overhead, optimizing directly on preference pairs. Careful data curation, replay buffers, and monitoring for catastrophic forgetting are essential to prevent quality degradation on general tasks.
+**TL;DR:** Choose the lightest adaptation method that closes a measured gap: prompts for instruction following, retrieval for changing facts, adapters for bounded behavior, and full tuning only when evidence supports it.
+
+## Prerequisites
+
+[LLM evaluation](01-llm-evaluation-harness.md), retrieval and supervised learning.
+
+## Learning Outcomes
+
+- Classify a specialization gap as instruction, knowledge or model behavior.
+- Compare prompting, RAG, LoRA and full fine-tuning against that gap.
+- Specify evaluation evidence and regression checks before training.
+- Explain why data freshness and parameter updates are different concerns.
 
 ## Core Intuition
-A general student learns foundational knowledge (base model). Then a domain expert teaches them specific skills via examples (SFT). Finally, a mentor gives feedback on preferences to refine judgment (DPO). Each stage requires care—learning too narrowly makes them forget gen-ed knowledge (catastrophic forgetting).
+
+If an employee needs clearer instructions, rewrite the checklist. If they need current customer records, give them a searchable database. If they need a durable new style or workflow, practice may help. Re-teaching all general knowledge is expensive and risks forgetting. Model adaptation has the same distinction between instructions, external knowledge and changed parameters.
 
 ## How It Works
 
-1. SFT: fine-tune on high-quality demonstration data, CE loss on completions only
-2. Collect preference pairs: pairs of responses with human preference labels
-3. DPO: directly optimize preference: L = -log σ(β·log(π_θ(y_w)/π_ref(y_w)) - β·log(π_θ(y_l)/π_ref(y_l)))
-4. Monitor forgetting: track accuracy on general benchmarks (MMLU, HellaSwag)
-5. Replay general data (5-20% of batch) to mitigate catastrophic forgetting
+Start with a held-out task evaluation and classify failures. Prompting changes the input policy without updating weights. Retrieval-augmented generation fetches external evidence and conditions the model on it; it suits private or frequently changing facts, but retrieval and citation become new failure points. LoRA freezes base weights and learns low-rank updates to selected matrices, reducing trainable parameter count. Full fine-tuning updates many or all parameters and may address broad behavior or capability gaps but needs more data, compute, regression testing and governance.
 
-```mermaid
-graph LR
-    A[Input] --> B[Process] --> C[Output]
-    style B fill:#e1f5ff
+These categories are not mutually exclusive. A tuned model can still use retrieval, and prompts remain part of every method. “We need fine-tuning” is not a diagnosis. Build examples of failures, define measurable acceptance criteria, split data to avoid leakage and compare the least expensive candidate against the baseline. Test general capability retention, safety and distribution shifts in addition to target-task score.
+
+Start with an error taxonomy. Separate missing or stale knowledge, instruction-following failures, formatting errors, reasoning limitations, tool-selection mistakes and safety-policy failures. Each category suggests a different experiment. For a knowledge error, check whether the fact exists in the model's trusted source and whether retrieval can return it. For a behavior error, test whether a clearer instruction and a few demonstrations solve it. For a broad capability gap, estimate whether curated supervised examples cover the desired behavior and whether the base architecture can plausibly learn it.
+
+Retrieval systems add an evidence path that can be updated without changing model weights. Their quality depends on indexing freshness, access control, chunking, ranking and generation grounded in retrieved evidence. Evaluate retrieval recall and answer faithfulness separately. Fine-tuning may teach the model to use citations or follow a domain workflow, but it does not guarantee that remembered facts stay current. A useful hybrid is to tune stable behavior and retrieve changing facts, with explicit tests that prevent unsupported answers when retrieval fails.
+
+LoRA changes a selected set of model transformations through low-rank matrices. This reduces trainable parameters and makes task-specific adapters easier to store than full copies. The rank and target layers control capacity and resource use; higher rank is not automatically better. Compare adapters against prompt-only and full fine-tuning baselines when feasible. Test for interference when multiple adapters or tasks are combined, and version each adapter with its training data, evaluation results and base-model checksum.
+
+Full fine-tuning is an expensive intervention and should have a strong data and evaluation case. Deduplicate near-identical examples, remove evaluation-set contamination, inspect label quality and represent the production distribution. Split by time, customer, document family or other meaningful group so validation is not a memorized neighbor of training. Preserve general instruction and safety examples if those skills must remain. Use staged checkpoints and compare regressions across language, demographic and task slices before replacing a baseline.
+
+Cost includes more than accelerator hours. Count data annotation, experiment iteration, model hosting, adapter or checkpoint storage, evaluation maintenance and rollback. A prompt change is cheap to reverse; a model update creates release and monitoring obligations. For every candidate, record quality delta, latency, token usage, serving memory, freshness and operational burden. A decision matrix is a triage aid: final selection follows measured outcomes and constraints, not fixed example-count thresholds.
+
+## Trade-offs
+
+| Method | Choose when | Main cost / risk |
+|---|---|---|
+| Prompting | Behavior is expressible as instructions/examples | Context limits and prompt sensitivity |
+| RAG | Facts change, are private or need provenance | Retrieval misses and unsupported synthesis |
+| LoRA | Stable, bounded style or task behavior | Dataset coverage, adapter management, forgetting |
+| Full fine-tuning | Broad capability change and substantial curated data | Compute, regression surface and update governance |
+
+If the behavior gap is not measurable, invest first in evaluation examples. If the knowledge changes daily, updating weights creates stale copies; use retrieval with freshness and access controls.
+
+## Implementation with Python
+
+Run `python3 modern-ai/implementations/34-post-training-specialization.py`. Four explicit requirement cases exercise a transparent rule-based decision matrix. Its sample-count thresholds are pedagogical flags, not universal data requirements.
+
+```python
+import runpy
+choose = runpy.run_path("modern-ai/implementations/34-post-training-specialization.py")["recommend"]
+assert choose(True, False, False, False, 0) == "RAG"
 ```
 
-## Architecture / Trade-offs
+## Failure Modes
 
-| Aspect | Value | Notes |
-|--------|-------|-------|
-| Complexity | Advanced | Production-ready |
-| Category | Training | Training domain |
-| Use Case | Multiple | See real-world examples in notebook |
+| Failure | Diagnostic | Mitigation |
+|---|---|---|
+| Fine-tuning used to memorize mutable facts | Update cadence and stale-answer rate | Move facts to retrieval and test freshness |
+| RAG added for a behavior problem | Retrieval succeeds but output policy still fails | Improve instructions or train against behavior examples |
+| Target score improves while general skill regresses | Broad regression suite by capability | Add replay/mix data, constrain updates or roll back |
 
-## Design Challenges
+- Mutable facts become stale after tuning: measure stale-answer rate after source updates and move frequently changing knowledge to a versioned retrieval index.
+- Retrieval is selected for an instruction-following defect: compare evidence retrieval separately from response behavior and test prompt or adapter changes against the same cases.
+- Target benchmark gains mask broad regressions: inspect capability and safety slices on a held-out suite and roll back if the release gate fails.
 
-1. **Challenge 1**: See notebook examples for mitigation strategies.
-2. **Challenge 2**: Production deployment requires careful tuning.
-3. **Challenge 3**: Monitor key metrics during rollout.
+## Interview Quick Reference
 
-## Interview Q&A
-
-**Q1: When would you use this technique vs alternatives?**
-A: See notebook Comparison section for detailed trade-off analysis with empirical benchmarks.
-
-**Q2: What are the main implementation pitfalls?**
-A: See notebook examples which cover common mistakes and their fixes.
-
-**Q3: How do you monitor this in production?**
-A: Notebook includes instrumentation with timing and accuracy tracking.
-
-**Q4: What's the computational cost?**
-A: See envelope calculations in accompanying notebook Level 2 section.
-
-**Q5: How does this scale with model size?**
-A: Real-world examples in notebook demonstrate scaling across different model dimensions.
-
-## Best Practices
-
-- Follow the production patterns in the notebook implementation section
-- Always profile before and after deployment
-- Monitor key metrics (latency, throughput, quality)
-- Start with the basic implementation, optimize later
-- Use the provided utilities from the implementation .py file
-
-## Common Pitfalls
-
-- **Pitfall 1**: Skipping the profiling phase. Fix: Use the timing utilities in the notebook.
-- **Pitfall 2**: Assuming defaults work for your use case. Fix: Tune hyperparameters per notebook examples.
-- **Pitfall 3**: Not monitoring production behavior. Fix: Instrument your code as shown in Real-World Examples.
-
-## Code Examples
-
-See the corresponding Jupyter notebook and Python implementation file for comprehensive, runnable examples with:
-- From-scratch numpy implementations
-- Production torch code with error handling
-- Three different real-world scenarios
-- Comparison benchmarks
+| Question | Expected answer / follow-up |
+|---|---|
+| RAG or fine-tuning for new company policies? | Usually RAG for changing, citable facts; ask what stable behavior may still need tuning. |
+| What evidence justifies LoRA? | Repeatable behavior gap and representative examples; ask how to detect general regression. |
+| How do you compare adaptation choices? | Same held-out tasks, cost/latency and safety metrics; follow up on data leakage. |
 
 ## Related Concepts
 
-- [Concept 01](./01-llm-evaluation-harness.md) – Evaluation frameworks
-- [Concept 05](./05-advanced-rag-patterns.md) – Related retrieval techniques
-- [Concept 11](./11-flash-attention.md) – Attention optimization fundamentals
+See [advanced RAG](05-advanced-rag-patterns.md), [quantization and distillation](31-quantization-aware-distillation.md), [notebook 34](../notebooks/34-post-training-specialization.ipynb), and [inference interview practice](../interview-prep/inference-systems.md#post-training-specialization).
 
----
+When selecting an approach, account for the lifecycle after training. Prompt policies require prompt versioning and regression evaluation. Retrieval requires index refresh, access-control testing and evidence monitoring. Adapters require compatibility tracking and deployment routing. Full fine-tuning requires checkpoint governance, reproducibility and a rollback path. The cheapest experiment is often the one that produces the clearest evidence; keep the candidate artifact isolated until target-task and broad regression checks pass.
 
 ## References
 
-Ouyang et al. (2022). Training Language Models via Human Feedback (InstructGPT). NeurIPS.
-
-Rafailov et al. (2023). Direct Preference Optimization. NeurIPS. arXiv:2305.18290.
-
-Liu et al. (2024). β-DPO: Dynamic Beta. arXiv:2407.08639.
-
-Meta AI (2024). The Llama 3 Herd of Models. arXiv:2407.21783.
-
-Xiao (2024). Avoiding Amnesia: Catastrophic Forgetting Mitigation. Medium.
-
-**Notebook**: `modern-ai/notebooks/post-training-specialization.ipynb` (16 cells, 600-950 code lines)
-
-**Implementation**: `modern-ai/implementations/post-training-specialization.py` (standalone production code)
+[LoRA](https://arxiv.org/abs/2106.09685) and [Retrieval-Augmented Generation](https://arxiv.org/abs/2005.11401).

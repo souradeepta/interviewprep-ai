@@ -19,6 +19,7 @@
 | 08 | [Multimodal Vision-LLM](concepts/08-multimodal-vision-llm.md) | LLaVA, visual instruction tuning | [notebook](notebooks/08-multimodal-vision-llm.ipynb) |
 
 ## Learning Paths
+- **Interview practice:** [CV interview question bank](interview-prep/cv-interview-questions.md) — 15 prompts on labels, metrics, distribution shift, serving, and multimodal evaluation.
 - **CV Fundamentals:** 01 → 02 → 03 → 04
 - **Modern Generative CV:** 04 → 05 → 06
 - **Production CV:** 01 → 02 → 07 → 08

@@ -1,6 +1,74 @@
 # Router Learning and Adaptive Routing
 
-## Detailed Explanation
+**TL;DR:** A learned router assigns each token or request to a computation path; quality depends on routing utility, load balance, and dispatch overhead.
+
+## Prerequisites
+
+[mixture of experts](26-mixture-of-experts.md)
+
+## Learning Outcomes
+
+- Explain the computation and state affected by router learning and adaptive routing.
+- Compare alternatives using quality, latency, and resource measurements.
+- Diagnose a topic-specific failure from an observable signal.
+
+## Core Intuition
+
+Top-k routing offers sparse capacity; hash routing is cheap and deterministic; soft routing blends experts but spends compute across them.
+
+## How It Works
+
+A router computes scores from a representation, applies a routing rule, and dispatches the request to selected experts or models. Training commonly optimizes task loss alongside a load-balancing term; too little balancing overloads a few experts, while too much forces semantically unrelated inputs together. Include communication and capacity in the cost model, not just multiply-adds.
+
+Evaluate routing by token-level quality, expert utilization, overflow/drop rate, all-to-all bytes, and step latency. Compare against dense compute and a simple hash or heuristic baseline. A validation set should include rare domains, since aggregate quality can hide experts that never learn or receive traffic.
+
+## Trade-offs
+
+| Choice | Benefit | Cost or boundary |
+|---|---|---|
+| Top-1 sparse | Direct topic-specific baseline | Establishes quality and resource reference |
+| Top-k sparse | Improves the named objective | Adds its stated operating cost |
+| Soft mixture | Adapts to a useful workload slice | Requires calibration and monitoring |
+| Hash routing | Provides a conservative fallback | Gives up some potential gain |
+
+## Implementation
+
+This dependency-light example isolates the topic’s decision rule; it is not a benchmark of accelerator performance.
+
+```python
+def top_k_route(scores, k):
+    return sorted(range(len(scores)), key=scores.__getitem__, reverse=True)[:k]
+
+assert top_k_route([0.2, 0.8, 0.5], 2) == [1, 2]
+```
+
+## Failure Modes
+
+- Router collapse concentrates traffic: inspect assignment entropy and per-expert counts, then rebalance training or revise capacity.
+- Dispatch dominates expert work: profile communication and batch sizes, then reduce expert count or colocate routes.
+- Load balance harms specialization: evaluate task slices and tune auxiliary loss against quality and utilization together.
+
+## Interview Quick Reference
+
+| Question | Expected answer and follow-up |
+|---|---|
+| What does load balance loss do? | It discourages pathological concentration so expert capacity remains usable; it should not force identical semantic traffic. Follow-up: what utilization plot would you inspect? |
+| When use top-k? | When sparse expert compute is cheaper than dense dispatch and quality remains adequate. Design follow-up: include communication in the break-even test. |
+| How debug a dead expert? | Check router logits, assignment counts, gradient flow, and overflow; inspect whether data supports that expert. |
+
+## Related Concepts
+
+See [mixture of experts](26-mixture-of-experts.md).
+
+## References
+
+- [arxiv.org](https://arxiv.org/abs/1701.06538)
+- [arxiv.org](https://arxiv.org/abs/2101.03961)
+
+### Additional Technical Detail
+
+
+#### Detailed Explanation
 
 Router learning is the process of training a lightweight neural network — called a router or gating network — that dynamically dispatches tokens, samples, or computation to different expert pathways based on the input content. It is the core mechanism in Mixture-of-Experts (MoE) architectures and is increasingly used for inference-time compute allocation, multi-task routing, and dynamic layer selection.
 
@@ -10,11 +78,11 @@ The load-balancing auxiliary loss is critical: without it, routers collapse to s
 
 Router collapse is the dominant failure mode and is often the first thing engineers check when debugging MoE models. Other applications of router learning include: task-specific routing (route medical queries to a medical expert, code to a coding expert), layer-skip routers (decide whether to execute a transformer block), and mixture-of-adapters routing in LoRA ensembles.
 
-## Core Intuition
+#### Core Intuition
 
 Think of a large law firm where every incoming case is reviewed by a dispatcher who routes it to the most appropriate specialist: tax cases go to tax attorneys, criminal cases to criminal defense, contracts to corporate lawyers. The dispatcher (router) learns from experience which features of a case predict which specialist will handle it best. Without the dispatcher enforcing a balanced workload, the most popular specialist gets overwhelmed while others sit idle — that is router collapse.
 
-## How It Works
+#### How It Works
 
 1. **Token hidden state to router** — For each token position, pass the current hidden state `h ∈ R^d` to the router network: a 2-layer MLP with ReLU activation, outputting `logits ∈ R^{N_experts}`.
 2. **Compute expert probabilities** — Apply softmax to router logits: `probs = softmax(logits)`. Each probability indicates how relevant expert e is for this token.
@@ -44,9 +112,9 @@ graph TD
     BAL --> LTOTAL[L_total = L_task + alpha L_balance]
 ```
 
-## Architecture / Trade-offs
+#### Architecture / Trade-offs
 
-### Router Designs: Top-k vs Hash-based vs Soft
+#### Router Designs: Top-k vs Hash-based vs Soft
 
 | Router Type | Assignment | Gradient Flow | Load Balance | Latency | Throughput vs Learned Router | Best For |
 |------------|-----------|---------------|--------------|---------|------------------------------|---------|
@@ -55,7 +123,7 @@ graph TD
 | Soft MoE | Soft, all experts | Direct through all | Natural | 2-3x vs Top-1 | -40 to -55% tokens/sec | Training stability |
 | Hash routing | Deterministic | None (no learning) | Perfect | Lowest | +15–20% tokens/sec | Reproducibility |
 
-### Load Balance Alpha Trade-off (8 experts, Top-2)
+#### Load Balance Alpha Trade-off (8 experts, Top-2)
 
 | Alpha (balance weight) | Expert Utilization | Task Loss | Collapse Risk | Recommended |
 |-----------------------|-------------------|-----------|---------------|-------------|
@@ -64,11 +132,11 @@ graph TD
 | 0.01 | 7-8 experts (near-uniform) | Slightly higher | Low | Standard |
 | 0.1 | 8 experts (uniform) | Higher (over-constrained) | None | Avoid, hurts quality |
 
-### Trade-off Analysis
+#### Trade-off Analysis
 
 Top-1 routing (Switch Transformer) gives maximum efficiency: each token is processed by exactly 1 expert, cutting FFN compute by N_experts times compared to a dense model. But with only 1 expert path, the model cannot combine information from multiple specialists. Top-2 (Mixtral 8x7B) processes each token with 2 of 8 experts, combining their outputs — this adds 15% overhead versus Top-1 but significantly improves quality. The effective parameter count for Mixtral 8x7B is 46.7B, but active parameters per token are ~12.9B (2 of 8 experts + shared layers), giving inference cost similar to a 13B dense model.
 
-## Interview Q&A
+#### Interview Q&A
 
 **Q: What is router collapse and how do you detect and fix it?**
 A: Router collapse is when the router routes nearly all tokens to 1-2 experts, making the remaining N-2 experts idle and unused. The model degenerates to a dense model with wasted capacity. Detection: monitor the per-expert token count distribution during training. If the coefficient of variation (std/mean) of expert utilization exceeds 0.3, you have incipient collapse. Fix: (1) increase alpha from 0.01 to 0.05; (2) add jitter noise to router logits during training (noise = Normal(0, 0.01)); (3) use expert capacity limits that drop overflow tokens, forcing the router to diversify.
@@ -88,7 +156,7 @@ A: When more tokens are routed to expert e than its capacity (tokens_per_batch /
 **Q: How do you efficiently implement router dispatch for batched GPU inference?**
 A: The challenge is that different tokens in a batch go to different experts, creating irregular computation. The standard approach is: (1) for each expert, gather all tokens assigned to it into a contiguous tensor (gather operation); (2) process each expert's batch as a standard matrix multiply; (3) scatter results back to original positions (scatter operation). The gather/scatter overhead is typically 5-15% of total layer time on A100 GPUs. Key optimization: sort tokens by expert assignment before dispatching, improving memory locality. Libraries like Megablocks and Tutel implement this efficiently.
 
-## Best Practices
+#### Best Practices
 
 - Initialize router weights to near-zero (std=0.01) — large initial router weights cause early confident assignment to a few experts and accelerate collapse.
 - Use alpha=0.01 as the default balance loss coefficient; sweep range [0.001, 0.05] if you observe collapse (alpha too low) or quality degradation (alpha too high).
@@ -98,7 +166,7 @@ A: The challenge is that different tokens in a batch go to different experts, cr
 - Use gradient checkpointing on expert FFNs during training to manage memory — MoE models have N times the FFN parameters and can OOM during the backward pass with large batches.
 - For fine-tuning a pretrained MoE, freeze the router and fine-tune expert weights first for 10% of training steps before unfreezing the router — this prevents the router from destabilizing during the transition.
 
-## Common Pitfalls
+#### Common Pitfalls
 
 - **Router collapse makes MoE effectively a dense model**: The router learns to route all tokens to 1-2 experts because it reduces gradient variance — the simplest solution to minimize task loss. Symptom: expert utilization Gini coefficient > 0.8 (highly unequal). Fix: increase alpha, add router noise, or implement hard capacity limits that force routing diversification.
 
@@ -108,7 +176,7 @@ A: The challenge is that different tokens in a batch go to different experts, cr
 
 - **Gradient instability from discrete top-k selection**: The top-k selection operation is non-differentiable — gradients only flow through the selected experts, not through the selection decision itself. Early in training, this causes the router to optimize only for making good use of experts it has already assigned tokens to, ignoring potentially better experts. **Symptom:** Router auxiliary loss decreases as expected but by step 5,000 two experts handle 80%+ of all tokens; remaining 6 experts receive <3% of traffic each despite the balance loss. Fix: use straight-through estimator during the first 1000 training steps, or start with soft MoE (all experts, soft weighting) and anneal to top-k.
 
-## Related Concepts
+#### Related Concepts
 
 - [Adaptive Layer Selection](./37-adaptive-layer-selection.md)
 - [Layer Skipping](./38-layer-skipping.md)

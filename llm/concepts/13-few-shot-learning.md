@@ -1,16 +1,19 @@
 # Few-Shot Learning
 
-## Understanding Few-Shot Learning: Learning from Minimal Examples
+Humans learn fast from examples: show one translation, they get the pattern.
 
-Few-shot learning leverages a fundamental insight about large language models: they possess latent knowledge of diverse tasks and can adapt to new tasks using minimal examples provided as context. Rather than fine-tuning on thousands of examples, few-shot learning provides 3-10 demonstration examples directly in the prompt, allowing the model to infer the task structure and apply it to new inputs. This approach requires zero parameter updates and works immediately.
+## Prerequisites
 
-The mechanism underlying few-shot learning is in-context learning—the model's ability to recognize patterns from demonstrations and apply them to novel inputs without changing its weights. The effectiveness of few-shot learning depends critically on example quality, diversity, and ordering. Well-chosen examples that span the task space enable models to achieve 70-85% of fine-tuned performance while requiring no training whatsoever, making it ideal for rapid prototyping and dynamic task adaptation.
+Familiarity with prompting. This note focuses on the LLM-specific mechanism and its engineering selection boundary.
 
-The trade-offs are straightforward: few-shot learning eliminates training time and infrastructure costs but uses more tokens in the prompt (increasing latency and API costs) and typically achieves 10-15% lower accuracy than fine-tuning on equivalent data. For tasks where quick customization, minimal latency overhead, or frequent task switching is important, few-shot learning often provides the best cost-benefit ratio. For production systems demanding maximum accuracy, fine-tuning remains superior.
+## Learning Outcomes
 
-Practical guidance for few-shot prompt design: (1) Include diverse examples spanning the input space, (2) Place harder examples later to benefit from model warm-up, (3) Use explanations and reasoning steps for complex tasks, (4) Ensure example formatting exactly matches the test input format, (5) Optimize the number of examples (often 3-5 suffice; diminishing returns appear around 10 examples). These techniques consistently improve few-shot performance by 5-15% over naive prompt design.
+- Explain the mechanism and assumptions behind few-shot learning.
+- Compare its main alternative using task quality and one operational cost.
+- Diagnose a failure using a metric or example tied to few-shot learning.
 
 ## Core Intuition
+
 Humans learn fast from examples: show one translation, they get the pattern. Few-shot leverages LLMs' ability to recognize patterns from in-context examples. No weight updates needed.
 
 ## How It Works
@@ -58,7 +61,7 @@ graph TD
     style E fill:#e8f5e9
 ```
 
-## Key Properties / Trade-offs
+## Trade-offs
 
 | Shots | Examples | Latency | Accuracy | Best For |
 |-------|----------|---------|----------|----------|
@@ -69,14 +72,7 @@ graph TD
 
 **Diminishing returns:** Typically 3-5 examples sufficient; 20+ shows little improvement.
 
-## Common Mistakes / Gotchas
-
-- **Bad example selection:** Unrepresentative or wrong examples confuse model. Choose carefully.
-- **Too many examples:** Exceeds context window, dilutes signal. Sweet spot: 3-10.
-- **No instructions:** Only examples, no task description. Add instruction for clarity.
-- **Inconsistent formats:** If examples vary in format, model confused. Be consistent.
-
-## Code Example
+## Implementation
 
 ```python
 from anthropic import Anthropic
@@ -102,7 +98,14 @@ response = client.messages.create(
 print(response.content[0].text)
 ```
 
-## Interview Quick-Reference
+## Failure Modes
+
+- **Bad example selection:** Unrepresentative or wrong examples confuse model. Choose carefully.
+- **Too many examples:** Exceeds context window, dilutes signal. Sweet spot: 3-10.
+- **No instructions:** Only examples, no task description. Add instruction for clarity.
+- **Inconsistent formats:** If examples vary in format, model confused. Be consistent.
+
+## Interview Quick Reference
 
 | Question | What to say |
 |---|---|
@@ -111,16 +114,14 @@ print(response.content[0].text)
 | "How many examples?" | 3-5 for most tasks. More helps complex tasks; diminishing returns >10. |
 | "Bad performance?" | Check example quality and diversity. Adjust format, add instructions. |
 
-## Real-World Examples
 
-### Few-Shot for Customer Intent Classification
-Chatbot: classify support tickets. Examples: 'Refund request' → returns, 'Can't login' → technical, 'Feedback' → general. Zero-shot: 45% accuracy. Few-shot (3 examples): 72% accuracy. Deployed in Zendesk integration.
 
-### Few-Shot Semantic Matching
-Task: match product descriptions to categories. Descriptions vary (informal, typos, abbreviations). Few-shot with diverse examples: 88% accuracy. Cost: <$0.01 per classification vs. $0.50 with fine-tuning.
+**Design follow-up:** How would you monitor this choice in production and decide when to use an alternative?
+## Related Concepts
 
-### Multi-Language Few-Shot
-Translate task instructions to 10 languages. Few-shot examples in each language. Model generalizes zero-shot to other languages through few-shot anchoring. Accuracy: 75% (vs 40% direct translation).
+- [In-Context Learning](15-in-context-learning.md) — broader ICL concept
+- [Zero-Shot Learning](14-zero-shot-learning.md) — no examples, just instructions
+- [Chain-of-Thought](16-chain-of-thought.md) — combine CoT with few-shot for better reasoning
 
 ## Real-World Examples
 
@@ -166,7 +167,18 @@ Task: match product descriptions to categories. Descriptions vary (informal, typ
 ### Multi-Language Few-Shot
 Translate task instructions to 10 languages. Few-shot examples in each language. Model generalizes zero-shot to other languages through few-shot anchoring. Accuracy: 75% (vs 40% direct translation).
 
-## Interview Q&A
+## Real-World Examples
+
+### Few-Shot for Customer Intent Classification
+Chatbot: classify support tickets. Examples: 'Refund request' → returns, 'Can't login' → technical, 'Feedback' → general. Zero-shot: 45% accuracy. Few-shot (3 examples): 72% accuracy. Deployed in Zendesk integration.
+
+### Few-Shot Semantic Matching
+Task: match product descriptions to categories. Descriptions vary (informal, typos, abbreviations). Few-shot with diverse examples: 88% accuracy. Cost: <$0.01 per classification vs. $0.50 with fine-tuning.
+
+### Multi-Language Few-Shot
+Translate task instructions to 10 languages. Few-shot examples in each language. Model generalizes zero-shot to other languages through few-shot anchoring. Accuracy: 75% (vs 40% direct translation).
+
+## Topic-specific notes
 
 **Q: How many few-shot examples are optimal and how do you decide?**
 A: More examples generally improve performance up to a point (diminishing returns after 8-16 examples for most tasks). But each example consumes context window tokens and adds latency. Test with 1, 3, 5, 8 examples on your eval set. For LLMs >10B, 3-5 examples typically captures most of the benefit. For complex tasks requiring diverse coverage, 8-16 may be better. When context is limited (e.g., long user inputs), prioritize quality over quantity—2 excellent examples > 8 mediocre ones.
@@ -186,13 +198,8 @@ A: Fails when: the task requires knowledge the model doesn't have (no amount of 
 **Q: How do you measure if your few-shot examples are actually helping?**
 A: Compare: zero-shot performance vs. your few-shot configuration on a held-out eval set. If few-shot doesn't beat zero-shot by >5%, your examples may not be well-chosen. Run ablations: remove one example at a time and see which ones contribute most. Use leave-one-out cross-validation across your example pool. Track performance vs. number of examples to find the sweet spot for your context budget.
 
-
-## Related Topics
-- [In-Context Learning](15-in-context-learning.md) — broader ICL concept
-- [Zero-Shot Learning](14-zero-shot-learning.md) — no examples, just instructions
-- [Chain-of-Thought](16-chain-of-thought.md) — combine CoT with few-shot for better reasoning
-
 ## Resources
+
 - [In-Context Learning in Large Language Models](https://arxiv.org/abs/2301.00234)
 - [What In-Context Learning "Learns"](https://arxiv.org/abs/2310.00867)
 

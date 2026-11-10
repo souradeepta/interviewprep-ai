@@ -1,100 +1,84 @@
 # Long Context Management
 
-## Detailed Explanation
+**TL;DR:** Context management is a budget-allocation problem: preserve evidence useful to the query while respecting token, latency and attention limits.
 
-Mixture of Experts (MoE) and long context are critical techniques for modern LLMs:
+## Prerequisites
 
-**MoE** enables scaling to trillion-parameter models with sparse activation. Instead of using all parameters, a gating network routes each token to only k expert subnetworks. This achieves 3-4x speedup while maintaining or improving quality. Mixtral 8x7B (2x parameters of 7B single model, <50% extra compute) demonstrates the efficiency gains. DeepSeek-V2 uses 64 experts with auxiliary-loss-free load balancing.
+[Advanced RAG patterns](05-advanced-rag-patterns.md) and basic tokenization.
 
-**Long Context** extends models from 4K tokens (BERT era) to 128K-1M tokens (2026). Techniques like RoPE, position interpolation, and sparse attention enable efficient long-range reasoning. Critical for RAG systems, code analysis, and document understanding where context is key.
+## Learning Outcomes
+
+- Compare truncation, retrieval and summarization against a fixed context budget.
+- Explain why a larger context window does not guarantee effective use of every token.
+- Choose a context strategy using relevance, coverage and provenance tests.
 
 ## Core Intuition
-Reading a 500-page book: you can't memorize page 1 word-for-word when on page 500. Your brain focuses on nearby pages (sliding window) and remembers relative distances (RoPE). To read longer books than trained, you compress position numbers into your learned range (position interpolation).
+
+Imagine answering a question from a large binder when only a few pages can be kept open. Cutting off the end is simple but may discard the answer. Retrieving pages by relevance can preserve evidence but miss supporting context. Summarizing reduces volume but may erase a qualifier or exact number. The context strategy should therefore be evaluated against the actual task, not just how many tokens fit.
 
 ## How It Works
 
-1. **Sliding Window Attention**: Each token attends to w preceding tokens. Complexity O(n·w) instead of O(n²)
-2. **RoPE Encoding**: Rotate query/key by angle m·θ_i where θ_i = base^(-2i/d). Encodes relative distance naturally
-3. **Position Interpolation**: For length extension, scale m' = m·(L_train/L_target) to compress into training range
-4. **ALiBi Penalty**: Apply linear distance penalty: attention_score -= m_h·|i-j|. No learned parameters, strong extrapolation
-5. **Chunked Processing**: Split long sequences with overlap to avoid truncation. Merge results.
+Let each candidate segment d_j have token cost c_j, relevance r_j to query q, and possibly diversity value. A context allocator chooses a set S with \(\sum_{j\in S}c_j\le B\), where B is the prompt budget after system instructions, user input and reserved generation tokens. Truncation follows source order. Retrieval ranks chunks by a relevance function. Summarization transforms selected content into a shorter representation and introduces a lossy channel. These methods can be composed, but each stage needs a measurable contract: recall@k, answer support, citation correctness, compression ratio, and latency.
 
-```mermaid
-graph TD
-    A[Input Tokens] --> B[Gate Network]
-    B --> C{TopK Selection}
-    C --> D[Expert 1]
-    C --> E[Expert 2]
-    D --> F[Weighted Sum]
-    E --> F
-    F --> G[Output]
+Self-attention's dense pairwise work scales approximately quadratically with sequence length in the basic formulation, and key/value memory grows linearly with cached sequence length. Efficient attention kernels improve memory traffic, but they do not fix irrelevant context or lost-in-the-middle behavior. Position encoding extension also does not guarantee retrieval or reasoning quality at the new length.
+
+Budgeting should begin by counting all prompt components with the tokenizer used by the serving model. A character count is not a safe token estimate: code, identifiers, non-English text and punctuation can tokenize very differently. Reserve space for the system policy, chat history, retrieved evidence, tool outputs and expected answer before admitting another document. If the answer cap is ignored, a prompt that fits at admission can still exceed the model's context limit during generation. Keep a margin for tokenizer differences and protocol framing.
+
+Retrieval quality depends on chunk boundaries as well as ranking. Very short chunks lose definitions and references; very large chunks spend the budget on unrelated text. Overlap can preserve boundary context but causes duplicate evidence. A robust retrieval evaluation measures recall of labeled supporting spans and answer completeness, then checks source diversity and duplication. Include exact-match queries, paraphrases, rare names and questions whose answer requires joining evidence from multiple sections. Semantic similarity alone can rank a passage that discusses the same topic but does not support the claim.
+
+Summarization has a different objective from retrieval. A summary can keep broad themes while dropping a date, negation or exception that determines the answer. For high-stakes facts, retain source citations and test each generated claim against the original passage. Hierarchical summarization introduces repeated lossy transformations; inspect whether a fact survives each level rather than validating only the final prose. Query-focused summaries can preserve relevant details better than general summaries, but depend on having the right query before compression.
+
+Long-context evaluation should distinguish capacity from effective context use. Construct probes with the same evidence placed near the beginning, middle and end, and report accuracy by position. Add distractor passages that share vocabulary with the answer and measure whether the system cites the correct source. Test context lengths around realistic percentiles and maximums, not just one impressive long example. Track prompt tokens, prefill latency, cache bytes and output quality together so a strategy is not labeled efficient solely because it reduces one resource.
+
+The allocator is also a policy boundary. System instructions and safety rules should not be displaced by low-confidence retrieval. A practical priority ordering can reserve mandatory policy tokens, allocate a bounded history window, select evidence by relevance and provenance, then reserve a generation allowance. When no evidence fits, return a clear insufficiency result rather than silently truncating the tail. For conversational systems, summarize old turns with speaker and temporal markers and keep the original transcript addressable when auditability matters.
+
+## Trade-offs
+
+| Strategy | Works well when | Failure boundary |
+|---|---|---|
+| Truncation | The tail is low value or order encodes priority | Relevant facts appear late |
+| Retrieval | Evidence is separable and queryable | Ranking misses rare terms or cross-document dependencies |
+| Summarization | Broad context must be compressed | Exact details, caveats or provenance must survive |
+| Hybrid | Retrieval selects evidence and a summary organizes it | Errors compound across retrieval and compression |
+
+Prefer a retrieval path when facts need provenance or change frequently. Prefer summarization when broad themes matter more than exact wording, after verifying that the summary retains task-critical evidence.
+
+## Implementation with Python
+
+Run `python3 modern-ai/implementations/27-long-context-management.py`. It compares source-order truncation, query-term retrieval and a deliberately simple extractive compression proxy on fixed sentence snippets. It is a teaching baseline, not a semantic search model.
+
+```python
+import runpy
+allocate = runpy.run_path("modern-ai/implementations/27-long-context-management.py")["allocate"]
+snippets = ["refunds take five days", "annual plan renews in June"]
+selected = allocate(snippets, 1, "retrieve", ("renewal",))
+assert "renewal" in selected[0]
 ```
 
-## Architecture / Trade-offs
+## Failure Modes
 
-| Aspect | MoE | Single Dense |
-|--------|-----|-------------|
-| Active Parameters | k/n% | 100% |
-| Compute | Low | High |
-| Quality | Higher | Baseline |
-| Implementation | Complex | Simple |
-| Load Balancing | Required | N/A |
+| Failure | Diagnostic | Mitigation |
+|---|---|---|
+| Relevant evidence falls outside prefix | Recall of gold evidence versus token position | Retrieve by query and preserve source offsets |
+| Retrieval returns duplicate chunks | Unique-source ratio and answer coverage | Add diversity constraints and deduplicate overlap |
+| Summary changes a critical qualifier | Claim-level comparison to source | Keep citations and test numerals, negation and exceptions |
 
-**Key Trade-offs**:
-- More experts (n): better quality, harder to balance
-- Higher k: more compute, better quality
-- Larger capacity_factor: more memory, fewer drops
+- Late evidence is truncated: recall falls with source position; reorder by priority or retrieve by query, then verify answer support.
+- Retrieval returns duplicates: unique-source ratio and coverage stay low; diversify results and deduplicate overlapping chunks.
+- Compression drops a qualifier: compare each claim with its cited source and test dates, negation and exceptions before using the summary.
 
-## Design Challenges
+## Interview Quick Reference
 
-1. **Load Imbalance**: Some experts overloaded, others empty. Fix: auxiliary loss L_aux = α·Σ f_i·P_i with α=0.01-0.001
-2. **Token Dropping**: Capacity exceeded, tokens dropped. Fix: increase capacity_factor to 1.25-2.0
-3. **Communication Overhead**: In distributed setting, all-gather of expert outputs. Fix: expert parallelism via careful sharding
+| Question | Expected answer / follow-up |
+|---|---|
+| Why not always use the largest context window? | Cost, latency, memory and attention quality; ask how you would measure lost-in-middle. |
+| When is summarization preferable to retrieval? | When broad evidence must be compacted and exact provenance is less central; follow up on factuality tests. |
+| What belongs in the context budget? | Instructions, conversation, evidence and reserved output; ask how dynamic output reservation changes admission. |
 
-## Interview Q&A
+## Related Concepts
 
-**Q1: Should I use RoPE or ALiBi for long context?**
-A: RoPE: better quality, needs fine-tuning for extension. ALiBi: no tuning, slightly lower quality. Use RoPE with position interpolation + fine-tuning for best quality.
-**Q2: How do I extend from 4K to 32K context?**
-A: RoPE: m' = m·(4096/32768). Fine-tune ≥200 steps on target length. YaRN improves this with blended scaling.
-**Q3: What's the lost-in-middle problem?**
-A: Models over-attend to start/end tokens, ignore middle. Fix: reorder context to put important info at edges, or use ALiBi for uniform decay.
-**Q4: Can you process 1M tokens efficiently?**
-A: Yes, with sliding window (4K-8K) + chunking. Stack overlapping chunks with KV cache sharing. Memory complexity drops to O(L·w).
+See [KV cache optimization](29-kv-cache-optimization.md), [sparse attention](30-sparse-attention.md), [notebook 27](../notebooks/27-long-context-management.ipynb), and [inference interview practice](../interview-prep/inference-systems.md#long-context-management).
 
-## Best Practices
+## References
 
-- **Auxiliary Loss**: Always use L_aux in training. Monitor f_i (expert routing fraction). If any expert < 5%, increase α or improve initialization
-- **Capacity Factor**: Use 1.0 during training (tight), 2.0 during inference (loose). Prevents drops under batch variation
-- **Expert Initialization**: Initialize gate W_g small (~0.1 std) so experts start equally likely. Large init causes early collapse
-- **Load Balancing**: Monitor expert utilization per batch. Ideal: uniform distribution. Use load_balance_loss_weight based on deviation
-- **Top-K Selection**: Start with Top-2 (safe), move to Top-1 if compute budget tight. Never use Top-1 without strong loss monitoring
-- **Inference Optimization**: Batch requests to fill expert capacity. Use dynamic batching to group by predicted expert
-- **Distributed Training**: Use expert parallelism (experts on different GPUs) for large models. Minimize all-gather communication
-
-## Common Pitfalls
-
-- **Position interpolation without fine-tuning**:  quality drops >4x. Always fine-tune minimum 200 steps.
-- **Sliding window only for nearby tokens**:  misses long-range dependencies. Always include global tokens.
-- **Lost-in-middle**:  content in middle gets ignored. Reorder prompts or use ALiBi-style decay.
-
-## Key Formula
-
-RoPE: q_rot[2i] = q[2i]·cos(m·θ_i) - q[2i+1]·sin(m·θ_i), θ_i = base^(-2i/d), base ∈ {10K, 500K}
-
-## Production Considerations
-
-- **Monitoring**: Track expert utilization, token drop rate, auxiliary loss weight, gate entropy
-- **Scaling**: MoE scales to 1T+ parameters. Distribution across devices critical
-- **Cost Tradeoff**: More experts = more memory (expert weights). 8 experts is sweet spot for 7B-70B range
-- **Inference Batching**: Important to batch to amortize expert activations. Single-sample inference underutilizes experts
-
----
-
-**Related Concepts**: 
-- Token Pruning (36): Remove unimportant tokens before MoE
-- Router Learning (39): Learn routing policies adaptively
-- Conditional Computation (53): Gate subnetworks dynamically
-
-**Notebook**: `modern-ai/notebooks/long-context-management.ipynb`
-**Implementation**: `modern-ai/implementations/long-context-management.py`
+[Lost in the Middle](https://arxiv.org/abs/2307.03172) and [LongBench](https://arxiv.org/abs/2308.14508).

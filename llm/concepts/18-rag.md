@@ -1,16 +1,19 @@
 # RAG (Retrieval-Augmented Generation)
 
-## Understanding RAG: Augmenting Generation with Retrieval
+LLMs hallucinate because they only know what's in their weights (frozen at training).
 
-Retrieval-Augmented Generation (RAG) addresses a fundamental limitation of fine-tuning: training encodes knowledge into parameters, which is memory-intensive, inflexible, and poor at handling updates or domain-specific facts. RAG instead retrieves relevant documents from an external corpus during inference and provides them to the model as context, allowing it to answer questions grounded in current, domain-specific information. This separation of knowledge storage from model parameters enables dynamic updates without retraining.
+## Prerequisites
 
-The RAG pipeline operates in three stages: (1) Retriever—given a query, retrieve the k most relevant documents from a knowledge base using semantic or lexical search, (2) Context Assembly—format retrieved documents as context for the language model, (3) Generator—have the model generate an answer grounded in retrieved context. This architecture is more memory-efficient than fine-tuning (external corpus stores knowledge, not model weights) and naturally supports knowledge updates (add new documents without retraining).
+Familiarity with prompt optimization. This note focuses on the LLM-specific mechanism and its engineering selection boundary.
 
-RAG excels in scenarios where knowledge must be current, domain-specific, or rapidly updating: financial analysis (latest earnings reports), legal research (current case law), technical support (latest product documentation), or medical diagnosis (latest clinical guidelines). Fine-tuning on this data would require retraining frequently; RAG simply updates the document corpus. Additionally, retrieved documents provide transparency—users can see the source of answers, building trust in the system.
+## Learning Outcomes
 
-The practical challenge in RAG is retrieval quality: if the retriever misses relevant documents, generation suffers. Modern retrieval uses dense embedding models (BERT, sentence-transformers) rather than keyword search, achieving better semantic matching. The retriever and generator can be fine-tuned jointly through techniques like ColBERT or DPR (Dense Passage Retrieval), and the architecture naturally supports retrieval-augmented fine-tuning, where retrieved examples improve domain adaptation. In production, RAG systems achieve 15-30% accuracy improvements over fine-tuning alone on knowledge-heavy tasks.
+- Explain the mechanism and assumptions behind rag (retrieval-augmented generation).
+- Compare its main alternative using task quality and one operational cost.
+- Diagnose a failure using a metric or example tied to rag (retrieval-augmented generation).
 
 ## Core Intuition
+
 LLMs hallucinate because they only know what's in their weights (frozen at training). RAG is like giving them a reference library: retrieve relevant passages first, then generate. Cheap, effective, updatable without retraining.
 
 ## How It Works
@@ -65,7 +68,7 @@ graph LR
     style F fill:#e8f5e9
 ```
 
-## Key Properties / Trade-offs
+## Trade-offs
 
 | Aspect | Naive Generation | RAG | Fine-Tuning |
 |--------|------------------|-----|------------|
@@ -86,17 +89,7 @@ graph LR
 - Dense (embeddings): slower, semantic match, robust
 - Hybrid: combine both, best results
 
-## Common Mistakes / Gotchas
-
-- **Low retrieval quality:** Embedding model mismatch (query ≠ document domain), bad chunk boundaries, insufficient k
-- **Context length:** Retrieved text + query + generation can exceed model's context window. Manage carefully.
-- **Hallucinating while citing:** LLM may cite retrieved docs while generating false info. Add grounding metrics.
-- **Retrieval latency:** Dense embeddings + ANN search can be slow. Optimize with approximate methods.
-- **Chunk boundary artifacts:** Cutting mid-sentence loses context. Use overlap or intelligent segmentation.
-- **No re-ranking:** Raw retrieval scores may rank documents poorly. Add re-ranker (cross-encoder) to reorder top-k.
-- **Forgetting to update docs:** If docs change but embeddings don't, stale information. Version and re-embed.
-
-## Code Example
+## Implementation
 
 ```python
 from sentence_transformers import SentenceTransformer
@@ -141,7 +134,17 @@ print(f"\nPrompt to LLM:\n{prompt}")
 # "Paris is the capital of France."
 ```
 
-## Interview Quick-Reference
+## Failure Modes
+
+- **Low retrieval quality:** Embedding model mismatch (query ≠ document domain), bad chunk boundaries, insufficient k
+- **Context length:** Retrieved text + query + generation can exceed model's context window. Manage carefully.
+- **Hallucinating while citing:** LLM may cite retrieved docs while generating false info. Add grounding metrics.
+- **Retrieval latency:** Dense embeddings + ANN search can be slow. Optimize with approximate methods.
+- **Chunk boundary artifacts:** Cutting mid-sentence loses context. Use overlap or intelligent segmentation.
+- **No re-ranking:** Raw retrieval scores may rank documents poorly. Add re-ranker (cross-encoder) to reorder top-k.
+- **Forgetting to update docs:** If docs change but embeddings don't, stale information. Version and re-embed.
+
+## Interview Quick Reference
 
 | Question | What to say |
 |---|---|
@@ -152,27 +155,16 @@ print(f"\nPrompt to LLM:\n{prompt}")
 | "Retrieval quality low?" | Check embedding model fit to domain, chunk segmentation, k value. Try dense + BM25 hybrid. |
 | "How to mitigate hallucination?" | Enforce citations to retrieved text, use grounding metrics, add re-ranker. |
 
-## Real-World Examples
 
-### Enterprise RAG for Customer Support
-KB: 50K support docs, product specs, FAQs. Query: 'How do I reset my password?' Retrieval: embed query, find top-5 docs (including password reset guides). Generate: 'Go to Settings > Security > Reset Password'. Users: 200 concurrent, average latency 1.5s. Accuracy (fact-grounding): 94%. Reduced support tickets by 35%.
 
-### Medical RAG for Diagnosis Support
-KB: medical journals, clinical guidelines (50K papers). Doctor input: patient symptoms. RAG retrieves relevant studies, differential diagnoses. LLM generates: 'Based on literature, consider these diagnoses: ...' Not used for final diagnosis (regulatory), but as decision support. Improves consistency, suggests relevant literature.
+**Design follow-up:** How would you monitor this choice in production and decide when to use an alternative?
+## Related Concepts
 
-### Financial RAG for Research
-KB: earnings calls (1K companies, 20 years). Query: 'What's Apple's strategy in India?' RAG retrieves relevant earnings call excerpts. LLM synthesizes: '2018: expand retail. 2022: invest in manufacturing. 2024: local partnerships.' All statements backed by documents. Saves analysts hours of manual searching.
-
-## Real-World Examples
-
-### Enterprise RAG for Customer Support
-KB: 50K support docs, product specs, FAQs. Query: 'How do I reset my password?' Retrieval: embed query, find top-5 docs (including password reset guides). Generate: 'Go to Settings > Security > Reset Password'. Users: 200 concurrent, average latency 1.5s. Accuracy (fact-grounding): 94%. Reduced support tickets by 35%.
-
-### Medical RAG for Diagnosis Support
-KB: medical journals, clinical guidelines (50K papers). Doctor input: patient symptoms. RAG retrieves relevant studies, differential diagnoses. LLM generates: 'Based on literature, consider these diagnoses: ...' Not used for final diagnosis (regulatory), but as decision support. Improves consistency, suggests relevant literature.
-
-### Financial RAG for Research
-KB: earnings calls (1K companies, 20 years). Query: 'What's Apple's strategy in India?' RAG retrieves relevant earnings call excerpts. LLM synthesizes: '2018: expand retail. 2022: invest in manufacturing. 2024: local partnerships.' All statements backed by documents. Saves analysts hours of manual searching.
+- [Embeddings](02-embeddings.md) — how documents are encoded for retrieval
+- [Semantic Search](21-semantic-search.md) — the retrieval component of RAG
+- [Vector Databases](20-vector-databases.md) — where embeddings are stored and searched
+- [Prompting](12-prompting.md) — structuring the prompt with retrieved context
+- [Context Window](25-context-window.md) — managing size of retrieved context + query
 
 ## Real-World Examples
 
@@ -229,7 +221,29 @@ KB: medical journals, clinical guidelines (50K papers). Doctor input: patient sy
 ### Financial RAG for Research
 KB: earnings calls (1K companies, 20 years). Query: 'What's Apple's strategy in India?' RAG retrieves relevant earnings call excerpts. LLM synthesizes: '2018: expand retail. 2022: invest in manufacturing. 2024: local partnerships.' All statements backed by documents. Saves analysts hours of manual searching.
 
-## Interview Q&A
+## Real-World Examples
+
+### Enterprise RAG for Customer Support
+KB: 50K support docs, product specs, FAQs. Query: 'How do I reset my password?' Retrieval: embed query, find top-5 docs (including password reset guides). Generate: 'Go to Settings > Security > Reset Password'. Users: 200 concurrent, average latency 1.5s. Accuracy (fact-grounding): 94%. Reduced support tickets by 35%.
+
+### Medical RAG for Diagnosis Support
+KB: medical journals, clinical guidelines (50K papers). Doctor input: patient symptoms. RAG retrieves relevant studies, differential diagnoses. LLM generates: 'Based on literature, consider these diagnoses: ...' Not used for final diagnosis (regulatory), but as decision support. Improves consistency, suggests relevant literature.
+
+### Financial RAG for Research
+KB: earnings calls (1K companies, 20 years). Query: 'What's Apple's strategy in India?' RAG retrieves relevant earnings call excerpts. LLM synthesizes: '2018: expand retail. 2022: invest in manufacturing. 2024: local partnerships.' All statements backed by documents. Saves analysts hours of manual searching.
+
+## Real-World Examples
+
+### Enterprise RAG for Customer Support
+KB: 50K support docs, product specs, FAQs. Query: 'How do I reset my password?' Retrieval: embed query, find top-5 docs (including password reset guides). Generate: 'Go to Settings > Security > Reset Password'. Users: 200 concurrent, average latency 1.5s. Accuracy (fact-grounding): 94%. Reduced support tickets by 35%.
+
+### Medical RAG for Diagnosis Support
+KB: medical journals, clinical guidelines (50K papers). Doctor input: patient symptoms. RAG retrieves relevant studies, differential diagnoses. LLM generates: 'Based on literature, consider these diagnoses: ...' Not used for final diagnosis (regulatory), but as decision support. Improves consistency, suggests relevant literature.
+
+### Financial RAG for Research
+KB: earnings calls (1K companies, 20 years). Query: 'What's Apple's strategy in India?' RAG retrieves relevant earnings call excerpts. LLM synthesizes: '2018: expand retail. 2022: invest in manufacturing. 2024: local partnerships.' All statements backed by documents. Saves analysts hours of manual searching.
+
+## Topic-specific notes
 
 **Q: When should you use RAG vs. fine-tuning for injecting knowledge into an LLM?**
 A: RAG when: knowledge changes frequently (news, company data), you need source attribution, the knowledge base is large (millions of documents), or you need to control which knowledge the model uses. Fine-tuning when: knowledge is static and stable, you need consistent behavior across many calls, knowledge represents reasoning patterns or skills (not just facts), or you need lower inference latency (no retrieval step). Hybrid approaches work well: fine-tune for behavior/style, use RAG for current factual knowledge.
@@ -249,15 +263,8 @@ A: Retrieve more chunks (top-10 vs top-5). Use re-ranking to select the best com
 **Q: What metadata should you store alongside document embeddings in a vector database?**
 A: At minimum: source URL or file path, document title, creation/update timestamp, chunk position (for context expansion), and document type (used for filtering). For production: access control labels (user permissions), language, confidence/quality score of source, section headers (for context). Metadata enables filtered retrieval ("only retrieve from documents updated in last 30 days") which can significantly improve precision for time-sensitive queries.
 
-
-## Related Topics
-- [Embeddings](02-embeddings.md) — how documents are encoded for retrieval
-- [Semantic Search](21-semantic-search.md) — the retrieval component of RAG
-- [Vector Databases](20-vector-databases.md) — where embeddings are stored and searched
-- [Prompting](12-prompting.md) — structuring the prompt with retrieved context
-- [Context Window](25-context-window.md) — managing size of retrieved context + query
-
 ## Resources
+
 - [RAG Paper: Retrieval-Augmented Generation for Knowledge-Intensive NLP Tasks](https://arxiv.org/abs/2005.11401)
 - [LangChain RAG Tutorial](https://python.langchain.com/docs/use_cases/question_answering/)
 - [Pinecone: RAG Explained](https://www.pinecone.io/learn/retrieval-augmented-generation/)
@@ -292,6 +299,7 @@ graph TD
 
 **Q: How do you handle large knowledge bases?**
 *A: Partitioning: shard KB across multiple vector stores. Hierarchical retrieval: first retrieve relevant shard, then search within shard. HyDE (Hypothetical Document Embeddings): generate hypothetical doc, use for retrieval. Results: <1s query latency on 100M docs.*
+
 ## Real-World Applications
 
 ### OpenAI: ChatGPT plugins and browsing
@@ -320,4 +328,3 @@ Retrieves from FAQs and product documentation to answer customer questions accur
 ## See Also
 
 - [Papers: Retrieval-Augmented Generation](../../papers/retrieval/concepts/01-rag.md) — Original paper with comprehensive experiments and implementation details
-

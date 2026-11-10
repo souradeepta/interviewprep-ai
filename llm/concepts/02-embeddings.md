@@ -1,52 +1,19 @@
 # Embeddings
 
-## Understanding Embeddings
+Words are just labels—meaningless.
 
-Embeddings is a foundational concept in large language model development that addresses critical challenges in model architecture, training efficiency, or inference performance. Understanding this concept is essential for anyone working with modern language models, whether in research, fine-tuning, or production deployment.
+## Prerequisites
 
-The core innovation underlying Embeddings lies in rethinking standard approaches to achieve better efficiency or effectiveness. Rather than accepting conventional trade-offs, this technique exploits mathematical or architectural insights to push the frontier of what's possible with given computational constraints.
+Familiarity with tokenization. This note focuses on the LLM-specific mechanism and its engineering selection boundary.
 
-In practical applications, Embeddings enables capabilities that would otherwise be infeasible: reducing computational requirements, improving model quality, enabling faster iteration, or supporting new use cases. The real-world impact has made Embeddings widely adopted across industry applications, from consumer products to enterprise systems.
+## Learning Outcomes
 
-Implementing Embeddings requires understanding both its theoretical foundations and practical considerations. The following sections provide detailed explanations of how Embeddings works, when to use it, common implementation patterns, and lessons learned from production deployments. By mastering these concepts, practitioners can make informed decisions about when and how to apply Embeddings to their specific challenges.
+- Explain the mechanism and assumptions behind embeddings.
+- Compare its main alternative using task quality and one operational cost.
+- Diagnose a failure using a metric or example tied to embeddings.
 
-## Comprehensive Embedding Systems
-
-Embeddings are continuous vector representations of text that capture semantic meaning in a high-dimensional space. Unlike one-hot encoding (which is sparse and doesn't capture meaning), embeddings are dense vectors where similarity in vector space corresponds to semantic similarity.
-
-### How Embeddings Capture Meaning
-
-Modern embeddings are learned through contrastive learning objectives:
-1. **Positive pairs**: Similar sentences → similar embeddings (high cosine similarity ~0.8-0.95)
-2. **Negative pairs**: Dissimilar sentences → dissimilar embeddings (low cosine similarity ~0.1-0.3)
-3. **Loss function**: Minimize distance between positive pairs, maximize distance between negative pairs
-
-This forces the model to learn a space where:
-- "good customer service" and "excellent support" are close (synonymous)
-- "good customer service" and "terrible experience" are far apart (opposite meaning)
-- "good customer service" and "weather today" are distant (unrelated)
-
-### Embedding Models Landscape
-
-The choice of embedding model significantly impacts downstream task performance. Different models are optimized for different properties.## Embedding Models Comparison
-
-| Model | Dimension | Params | Speed | Quality | Use Case | Training Data |
-|-------|-----------|--------|-------|---------|----------|---------------|
-| **all-MiniLM-L6-v2** | 384 | 22M | ⚡⚡⚡ Fast | ⭐⭐⭐ Good | General, edge devices | MS MARCO, NLI |
-| **all-mpnet-base-v2** | 768 | 109M | ⚡⚡ Medium | ⭐⭐⭐⭐ Very Good | Production systems | 215M sentence pairs |
-| **bge-large-en-v1.5** | 1024 | 335M | ⚡ Slow | ⭐⭐⭐⭐⭐ Excellent | High-accuracy needs | Massive web corpus |
-| **instructor-xl** | 768 | 335M | ⚡ Slow | ⭐⭐⭐⭐⭐ Excellent | Domain-specific | Instruction-tuned |
-| **text-embedding-3-small** | 512 | Proprietary | Medium | ⭐⭐⭐⭐ Very Good | OpenAI API users | OpenAI training |
-| **text-embedding-3-large** | 3072 | Proprietary | ⚡ Slow | ⭐⭐⭐⭐⭐ Excellent | Maximum quality | OpenAI training |
-| **multilingual-e5-base** | 768 | 109M | ⚡⚡ Medium | ⭐⭐⭐⭐ Very Good | 100+ languages | Translated pairs |
-| **jina-embeddings-v2** | 8192 | Proprietary | ⚡ Slow | ⭐⭐⭐⭐⭐ Excellent | Long context (8K) | Long-document data |
-
-**Selection Guidelines:**
-- **Latency-critical (<100ms)**: Use all-MiniLM (384-dim, 22M params)
-- **Accuracy-critical**: Use bge-large or instructor-xl (despite slower speed)
-- **Multilingual**: Use multilingual-e5 (supported language count crucial)
-- **Long documents (>512 tokens)**: Use jina-embeddings-v2 (8K context)
 ## Core Intuition
+
 Words are just labels—meaningless. Embeddings translate them into geometry. Two words mean similar things if their vectors are near each other (low distance). The embedding space captures semantic and syntactic structure learned from data.
 
 ## How It Works
@@ -91,7 +58,7 @@ graph LR
     style E fill:#e8f5e9
 ```
 
-## Key Properties / Trade-offs
+## Trade-offs
 
 | Property | Static | Contextual | Task-Specific |
 |----------|--------|-----------|---------------|
@@ -107,16 +74,7 @@ graph LR
 - 768D (BERT-base): rich but slower, overkill for some tasks
 - 1536D+ (large models): highest quality but memory/latency expensive
 
-## Common Mistakes / Gotchas
-
-- **Assuming embeddings are "meaningful":** They're learned, not interpretable. Don't try to understand dimensions individually.
-- **Not normalizing for cosine similarity:** Magnitudes can vary; always normalize or use cosine directly.
-- **Reusing embeddings across domains:** "COVID" embeddings from news ≠ "COVID" in medical text. Fine-tune or retrain.
-- **Averaging subword tokens:** "unbelievable" tokenizes as ["un", "believe", "able"]. Averaging produces noise; use CLS token or fine-tune pooling.
-- **Ignoring temporal drift:** Word meanings change (e.g., "tweet"). Embeddings trained on old data diverge from modern usage.
-- **Using L2 distance instead of cosine:** Both work but cosine is scale-invariant; L2 is direction + magnitude.
-
-## Code Example
+## Implementation
 
 ```python
 import numpy as np
@@ -155,7 +113,16 @@ print(sims)
 # Sentence 1 & 2 both have "bank" but low similarity (different context)
 ```
 
-## Interview Quick-Reference
+## Failure Modes
+
+- **Assuming embeddings are "meaningful":** They're learned, not interpretable. Don't try to understand dimensions individually.
+- **Not normalizing for cosine similarity:** Magnitudes can vary; always normalize or use cosine directly.
+- **Reusing embeddings across domains:** "COVID" embeddings from news ≠ "COVID" in medical text. Fine-tune or retrain.
+- **Averaging subword tokens:** "unbelievable" tokenizes as ["un", "believe", "able"]. Averaging produces noise; use CLS token or fine-tune pooling.
+- **Ignoring temporal drift:** Word meanings change (e.g., "tweet"). Embeddings trained on old data diverge from modern usage.
+- **Using L2 distance instead of cosine:** Both work but cosine is scale-invariant; L2 is direction + magnitude.
+
+## Interview Quick Reference
 
 | Question | What to say |
 |---|---|
@@ -166,27 +133,16 @@ print(sims)
 | "Dimension choice?" | 300D (balanced), 768D (high quality, slower), 1536D+ (state-of-the-art, expensive). |
 | "Embedding drift?" | Word meanings shift over time. Retrain periodically or use recent data. |
 
-## Real-World Examples
 
-### Semantic Search for Documentation
-Company docs: 50K pages. Lexical search (Elasticsearch): 'GPU memory optimization' → relevant pages ranked #4-10. Embedding search: 'How to optimize GPU memory?' → relevant pages ranked #1-3. Implementation: embed all docs once, vector DB query. Latency: <50ms. User satisfaction: 72% → 91%.
 
-### Duplicate Detection in E-Commerce
-Problem: same product listed 5x with different descriptions. Lexical comparison: false negatives (different wording). Embedding cosine sim > 0.85: catches 95% duplicates. Pipeline: embed product descriptions, cluster with threshold. Saves manual curation hours.
+**Design follow-up:** How would you monitor this choice in production and decide when to use an alternative?
+## Related Concepts
 
-### Job Matching in Recruitment
-Job postings: 1M. Candidates: 500K. Lexical keyword matching: low coverage. Embedding-based: candidate skills → embed → search job postings → top-k matches. E.g., 'Python developer' matches 'Software engineer (Python)' and 'Backend engineer (preferred: Python)'. Better ranking of opportunities.
-
-## Real-World Examples
-
-### Semantic Search for Documentation
-Company docs: 50K pages. Lexical search (Elasticsearch): 'GPU memory optimization' → relevant pages ranked #4-10. Embedding search: 'How to optimize GPU memory?' → relevant pages ranked #1-3. Implementation: embed all docs once, vector DB query. Latency: <50ms. User satisfaction: 72% → 91%.
-
-### Duplicate Detection in E-Commerce
-Problem: same product listed 5x with different descriptions. Lexical comparison: false negatives (different wording). Embedding cosine sim > 0.85: catches 95% duplicates. Pipeline: embed product descriptions, cluster with threshold. Saves manual curation hours.
-
-### Job Matching in Recruitment
-Job postings: 1M. Candidates: 500K. Lexical keyword matching: low coverage. Embedding-based: candidate skills → embed → search job postings → top-k matches. E.g., 'Python developer' matches 'Software engineer (Python)' and 'Backend engineer (preferred: Python)'. Better ranking of opportunities.
+- [Tokenization](01-tokenization.md) — tokens are what get embedded
+- [Semantic Search](21-semantic-search.md) — embeddings enable fast similarity search
+- [RAG](18-rag.md) — embeddings for retrieval in augmented generation
+- [Vector Databases](20-vector-databases.md) — storing and indexing embeddings at scale
+- [Transfer Learning](../../ml/concepts/transfer-learning.md) — using pre-trained embeddings
 
 ## Real-World Examples
 
@@ -243,7 +199,29 @@ Problem: same product listed 5x with different descriptions. Lexical comparison:
 ### Job Matching in Recruitment
 Job postings: 1M. Candidates: 500K. Lexical keyword matching: low coverage. Embedding-based: candidate skills → embed → search job postings → top-k matches. E.g., 'Python developer' matches 'Software engineer (Python)' and 'Backend engineer (preferred: Python)'. Better ranking of opportunities.
 
-## Interview Q&A
+## Real-World Examples
+
+### Semantic Search for Documentation
+Company docs: 50K pages. Lexical search (Elasticsearch): 'GPU memory optimization' → relevant pages ranked #4-10. Embedding search: 'How to optimize GPU memory?' → relevant pages ranked #1-3. Implementation: embed all docs once, vector DB query. Latency: <50ms. User satisfaction: 72% → 91%.
+
+### Duplicate Detection in E-Commerce
+Problem: same product listed 5x with different descriptions. Lexical comparison: false negatives (different wording). Embedding cosine sim > 0.85: catches 95% duplicates. Pipeline: embed product descriptions, cluster with threshold. Saves manual curation hours.
+
+### Job Matching in Recruitment
+Job postings: 1M. Candidates: 500K. Lexical keyword matching: low coverage. Embedding-based: candidate skills → embed → search job postings → top-k matches. E.g., 'Python developer' matches 'Software engineer (Python)' and 'Backend engineer (preferred: Python)'. Better ranking of opportunities.
+
+## Real-World Examples
+
+### Semantic Search for Documentation
+Company docs: 50K pages. Lexical search (Elasticsearch): 'GPU memory optimization' → relevant pages ranked #4-10. Embedding search: 'How to optimize GPU memory?' → relevant pages ranked #1-3. Implementation: embed all docs once, vector DB query. Latency: <50ms. User satisfaction: 72% → 91%.
+
+### Duplicate Detection in E-Commerce
+Problem: same product listed 5x with different descriptions. Lexical comparison: false negatives (different wording). Embedding cosine sim > 0.85: catches 95% duplicates. Pipeline: embed product descriptions, cluster with threshold. Saves manual curation hours.
+
+### Job Matching in Recruitment
+Job postings: 1M. Candidates: 500K. Lexical keyword matching: low coverage. Embedding-based: candidate skills → embed → search job postings → top-k matches. E.g., 'Python developer' matches 'Software engineer (Python)' and 'Backend engineer (preferred: Python)'. Better ranking of opportunities.
+
+## Topic-specific notes
 
 **Q: When should you use a sentence embedding model vs computing embeddings from a base LLM?**
 A: Sentence embedding models (sentence-transformers) are fine-tuned with contrastive losses specifically to make semantically similar texts cluster together. Base LLM embeddings from the last hidden state are often poor for retrieval because they're optimized for next-token prediction, not similarity. Use sentence-transformers for RAG/search; use base LLM embeddings only if you're fine-tuning on a downstream task.
@@ -263,15 +241,8 @@ A: Larger models (768+ dim, 300M+ params) have higher quality but slower inferen
 **Q: How does chunking strategy affect retrieval quality in RAG?**
 A: Chunk size creates a precision-recall trade-off. Small chunks (128 tokens) give precise retrieval but lose context. Large chunks (512+ tokens) preserve context but dilute relevance scores. Overlapping chunks (50% overlap) help with boundary sentences. Best practice: chunk at natural boundaries (paragraphs, sections), use hierarchical retrieval (retrieve parent chunk after matching child chunk).
 
-
-## Related Topics
-- [Tokenization](01-tokenization.md) — tokens are what get embedded
-- [Semantic Search](21-semantic-search.md) — embeddings enable fast similarity search
-- [RAG](18-rag.md) — embeddings for retrieval in augmented generation
-- [Vector Databases](20-vector-databases.md) — storing and indexing embeddings at scale
-- [Transfer Learning](../../ml/concepts/transfer-learning.md) — using pre-trained embeddings
-
 ## Resources
+
 - [Word2Vec: Efficient Estimation of Word Representations in Vector Space](https://arxiv.org/abs/1301.3781)
 - [BERT: Pre-training of Deep Bidirectional Transformers](https://arxiv.org/abs/1810.04805)
 - [Sentence-BERT: Sentence Embeddings using Siamese BERT-Networks](https://arxiv.org/abs/1908.10084)
@@ -305,6 +276,7 @@ graph TD
 
 **Q: How do you evaluate embedding quality?**
 *A: Metrics: mean average precision (MAP), normalized discounted cumulative gain (NDCG), MRR. Test: does top-k nearest neighbor make sense? Do similar documents cluster? Manual inspection essential. MTEB benchmark for standardized eval.*
+
 ## Real-World Applications
 
 ### Pinecone: Vector search infrastructure
@@ -329,4 +301,3 @@ Generates embeddings for songs and user preferences. Uses cosine similarity to r
 - **Not normalizing embeddings**: Not normalizing embeddings: breaks cosine similarity assumptions
 - **Using too-large models for simple tasks**: Using too-large models for simple tasks: waste of compute; smaller models often sufficient
 - **Outdated embedding models**: Outdated embedding models: new models (Sentence-BERT v2) have much better quality
-

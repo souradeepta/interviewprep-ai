@@ -1,0 +1,3472 @@
+{
+  "schema_version": 1,
+  "title": "InterviewPrep AI curriculum audit manifest",
+  "description": "Audited inventory of instructional tracks governed by the curriculum content contract.",
+  "entry_lessons": [
+    "ml/supervised-learning",
+    "ml/probability-statistics",
+    "mlops/monitoring-alert-design",
+    "llm/tokenization"
+  ],
+  "lessons": [
+    {
+      "id": "ml/activation-functions",
+      "track": "ml",
+      "level": "foundation",
+      "concept": "ml/concepts/activation-functions.md",
+      "notebook": "ml/notebooks/01-activation-functions.ipynb",
+      "implementation": null,
+      "prerequisites": [
+        "ml/supervised-learning"
+      ],
+      "outcomes": [
+        "Explain activation-function behavior and its role in neural networks.",
+        "Choose an activation for a stated modeling constraint."
+      ],
+      "practice": [
+        "ml/interview-prep/ml-theory-questions.md"
+      ],
+      "estimated_minutes": 60,
+      "quality_status": "required"
+    },
+    {
+      "id": "ml/attention-mechanism",
+      "track": "ml",
+      "level": "intermediate",
+      "concept": "ml/concepts/attention-mechanism.md",
+      "notebook": "ml/notebooks/02-attention-mechanism.ipynb",
+      "implementation": null,
+      "prerequisites": [
+        "ml/neural-networks"
+      ],
+      "outcomes": [
+        "Explain how attention forms a weighted context.",
+        "Identify the compute and memory cost of attention."
+      ],
+      "practice": [
+        "ml/interview-prep/ml-theory-questions.md"
+      ],
+      "estimated_minutes": 60,
+      "quality_status": "required"
+    },
+    {
+      "id": "ml/batch-normalization",
+      "track": "ml",
+      "level": "intermediate",
+      "concept": "ml/concepts/batch-normalization.md",
+      "notebook": "ml/notebooks/03-batch-normalization.ipynb",
+      "implementation": null,
+      "prerequisites": [
+        "ml/neural-networks"
+      ],
+      "outcomes": [
+        "Explain training and inference statistics in batch normalization.",
+        "Recognize when batch normalization is unsuitable."
+      ],
+      "practice": [
+        "ml/interview-prep/ml-theory-questions.md"
+      ],
+      "estimated_minutes": 60,
+      "quality_status": "required"
+    },
+    {
+      "id": "ml/class-imbalance",
+      "track": "ml",
+      "level": "foundation",
+      "concept": "ml/concepts/class-imbalance.md",
+      "notebook": "ml/notebooks/04-class-imbalance.ipynb",
+      "implementation": null,
+      "prerequisites": [
+        "ml/evaluation-metrics"
+      ],
+      "outcomes": [
+        "Explain why accuracy can conceal minority-class failure.",
+        "Select a mitigation and metric for an imbalanced task."
+      ],
+      "practice": [
+        "ml/interview-prep/ml-theory-questions.md"
+      ],
+      "estimated_minutes": 60,
+      "quality_status": "required"
+    },
+    {
+      "id": "ml/cnns",
+      "track": "ml",
+      "level": "intermediate",
+      "concept": "ml/concepts/cnns.md",
+      "notebook": "ml/notebooks/05-cnns.ipynb",
+      "implementation": null,
+      "prerequisites": [
+        "ml/neural-networks"
+      ],
+      "outcomes": [
+        "Explain local receptive fields and parameter sharing.",
+        "Estimate convolution output shape and cost."
+      ],
+      "practice": [
+        "ml/interview-prep/ml-theory-questions.md"
+      ],
+      "estimated_minutes": 60,
+      "quality_status": "required"
+    },
+    {
+      "id": "ml/cross-validation-strategies",
+      "track": "ml",
+      "level": "foundation",
+      "concept": "ml/concepts/cross-validation-strategies.md",
+      "notebook": "ml/notebooks/06-cross-validation.ipynb",
+      "implementation": null,
+      "prerequisites": [
+        "ml/evaluation-metrics"
+      ],
+      "outcomes": [
+        "Choose a validation split that matches the data-generating process.",
+        "Explain leakage risks in cross-validation."
+      ],
+      "practice": [
+        "ml/interview-prep/ml-theory-questions.md"
+      ],
+      "estimated_minutes": 60,
+      "quality_status": "required"
+    },
+    {
+      "id": "ml/data-leakage",
+      "track": "ml",
+      "level": "foundation",
+      "concept": "ml/concepts/data-leakage.md",
+      "notebook": "ml/notebooks/07-data-leakage.ipynb",
+      "implementation": null,
+      "prerequisites": [
+        "ml/supervised-learning"
+      ],
+      "outcomes": [
+        "Distinguish training-only information from leakage.",
+        "Design a split and pipeline that prevent leakage."
+      ],
+      "practice": [
+        "ml/interview-prep/ml-theory-questions.md"
+      ],
+      "estimated_minutes": 60,
+      "quality_status": "required"
+    },
+    {
+      "id": "ml/distributed-training",
+      "track": "ml",
+      "level": "advanced",
+      "concept": "ml/concepts/distributed-training.md",
+      "notebook": "ml/notebooks/08-distributed-training.ipynb",
+      "implementation": null,
+      "prerequisites": [
+        "ml/neural-networks"
+      ],
+      "outcomes": [
+        "Compare data and model parallelism.",
+        "Diagnose communication and scaling limits."
+      ],
+      "practice": [
+        "ml/interview-prep/ml-theory-questions.md"
+      ],
+      "estimated_minutes": 75,
+      "quality_status": "required"
+    },
+    {
+      "id": "ml/domain-adaptation",
+      "track": "ml",
+      "level": "advanced",
+      "concept": "ml/concepts/domain-adaptation.md",
+      "notebook": "ml/notebooks/09-domain-adaptation.ipynb",
+      "implementation": null,
+      "prerequisites": [
+        "ml/transfer-learning"
+      ],
+      "outcomes": [
+        "Describe covariate and label shift assumptions.",
+        "Choose an adaptation strategy and validation plan."
+      ],
+      "practice": [
+        "ml/interview-prep/ml-theory-questions.md"
+      ],
+      "estimated_minutes": 75,
+      "quality_status": "required"
+    },
+    {
+      "id": "ml/dropout",
+      "track": "ml",
+      "level": "intermediate",
+      "concept": "ml/concepts/dropout.md",
+      "notebook": "ml/notebooks/10-dropout.ipynb",
+      "implementation": null,
+      "prerequisites": [
+        "ml/neural-networks"
+      ],
+      "outcomes": [
+        "Explain dropout as stochastic regularization.",
+        "Apply train and inference behavior correctly."
+      ],
+      "practice": [
+        "ml/interview-prep/ml-theory-questions.md"
+      ],
+      "estimated_minutes": 60,
+      "quality_status": "required"
+    },
+    {
+      "id": "ml/early-stopping",
+      "track": "ml",
+      "level": "foundation",
+      "concept": "ml/concepts/early-stopping.md",
+      "notebook": "ml/notebooks/11-early-stopping.ipynb",
+      "implementation": null,
+      "prerequisites": [
+        "ml/overfitting-underfitting"
+      ],
+      "outcomes": [
+        "Interpret validation curves for stopping decisions.",
+        "Avoid selecting a stopping point on test data."
+      ],
+      "practice": [
+        "ml/interview-prep/ml-theory-questions.md"
+      ],
+      "estimated_minutes": 45,
+      "quality_status": "required"
+    },
+    {
+      "id": "ml/ensemble-methods",
+      "track": "ml",
+      "level": "intermediate",
+      "concept": "ml/concepts/ensemble-methods.md",
+      "notebook": "ml/notebooks/12-ensemble-methods.ipynb",
+      "implementation": null,
+      "prerequisites": [
+        "ml/evaluation-metrics"
+      ],
+      "outcomes": [
+        "Explain how diversity affects ensemble gains.",
+        "Choose between bagging, boosting, and stacking."
+      ],
+      "practice": [
+        "ml/interview-prep/ml-theory-questions.md"
+      ],
+      "estimated_minutes": 60,
+      "quality_status": "required"
+    },
+    {
+      "id": "ml/evaluation-metrics",
+      "track": "ml",
+      "level": "foundation",
+      "concept": "ml/concepts/evaluation-metrics.md",
+      "notebook": "ml/notebooks/13-evaluation-metrics.ipynb",
+      "implementation": null,
+      "prerequisites": [
+        "ml/supervised-learning"
+      ],
+      "outcomes": [
+        "Match metrics to costs and class balance.",
+        "Explain threshold-dependent and threshold-free metrics."
+      ],
+      "practice": [
+        "ml/interview-prep/ml-theory-questions.md"
+      ],
+      "estimated_minutes": 60,
+      "quality_status": "required"
+    },
+    {
+      "id": "ml/feature-engineering",
+      "track": "ml",
+      "level": "foundation",
+      "concept": "ml/concepts/feature-engineering.md",
+      "notebook": "ml/notebooks/14-feature-engineering.ipynb",
+      "implementation": null,
+      "prerequisites": [
+        "ml/supervised-learning"
+      ],
+      "outcomes": [
+        "Build features without crossing split boundaries.",
+        "Evaluate representation choices against model and data constraints."
+      ],
+      "practice": [
+        "ml/interview-prep/ml-theory-questions.md"
+      ],
+      "estimated_minutes": 60,
+      "quality_status": "required"
+    },
+    {
+      "id": "ml/gradient-accumulation",
+      "track": "ml",
+      "level": "advanced",
+      "concept": "ml/concepts/gradient-accumulation.md",
+      "notebook": "ml/notebooks/15-gradient-accumulation.ipynb",
+      "implementation": null,
+      "prerequisites": [
+        "ml/neural-networks"
+      ],
+      "outcomes": [
+        "Relate accumulated gradients to a larger effective batch.",
+        "Identify optimizer and normalization caveats."
+      ],
+      "practice": [
+        "ml/interview-prep/ml-theory-questions.md"
+      ],
+      "estimated_minutes": 60,
+      "quality_status": "required"
+    },
+    {
+      "id": "ml/hyperparameter-tuning",
+      "track": "ml",
+      "level": "intermediate",
+      "concept": "ml/concepts/hyperparameter-tuning.md",
+      "notebook": "ml/notebooks/16-hyperparameter-tuning.ipynb",
+      "implementation": null,
+      "prerequisites": [
+        "ml/evaluation-metrics"
+      ],
+      "outcomes": [
+        "Compare grid, random, and adaptive search.",
+        "Budget tuning while avoiding validation overfit."
+      ],
+      "practice": [
+        "ml/interview-prep/ml-theory-questions.md"
+      ],
+      "estimated_minutes": 60,
+      "quality_status": "required"
+    },
+    {
+      "id": "ml/knowledge-distillation",
+      "track": "ml",
+      "level": "advanced",
+      "concept": "ml/concepts/knowledge-distillation.md",
+      "notebook": "ml/notebooks/17-knowledge-distillation.ipynb",
+      "implementation": null,
+      "prerequisites": [
+        "ml/neural-networks"
+      ],
+      "outcomes": [
+        "Explain soft-target distillation and temperature.",
+        "Choose teacher and student evaluation criteria."
+      ],
+      "practice": [
+        "ml/interview-prep/ml-theory-questions.md"
+      ],
+      "estimated_minutes": 60,
+      "quality_status": "required"
+    },
+    {
+      "id": "ml/layer-normalization",
+      "track": "ml",
+      "level": "intermediate",
+      "concept": "ml/concepts/layer-normalization.md",
+      "notebook": "ml/notebooks/18-layer-normalization.ipynb",
+      "implementation": null,
+      "prerequisites": [
+        "ml/neural-networks"
+      ],
+      "outcomes": [
+        "Compare normalization axes and batch dependence.",
+        "Choose normalization for sequence and small-batch settings."
+      ],
+      "practice": [
+        "ml/interview-prep/ml-theory-questions.md"
+      ],
+      "estimated_minutes": 60,
+      "quality_status": "required"
+    },
+    {
+      "id": "ml/learning-rate-schedules",
+      "track": "ml",
+      "level": "intermediate",
+      "concept": "ml/concepts/learning-rate-schedules.md",
+      "notebook": "ml/notebooks/19-learning-rate-schedules.ipynb",
+      "implementation": null,
+      "prerequisites": [
+        "ml/optimization"
+      ],
+      "outcomes": [
+        "Explain common learning-rate schedules.",
+        "Select a schedule and stopping criterion for a training budget."
+      ],
+      "practice": [
+        "ml/interview-prep/ml-theory-questions.md"
+      ],
+      "estimated_minutes": 60,
+      "quality_status": "required"
+    },
+    {
+      "id": "ml/loss-functions",
+      "track": "ml",
+      "level": "foundation",
+      "concept": "ml/concepts/loss-functions.md",
+      "notebook": "ml/notebooks/20-loss-functions.ipynb",
+      "implementation": null,
+      "prerequisites": [
+        "ml/supervised-learning"
+      ],
+      "outcomes": [
+        "Relate an objective to the prediction task.",
+        "Identify objective mismatch and robustness issues."
+      ],
+      "practice": [
+        "ml/interview-prep/ml-theory-questions.md"
+      ],
+      "estimated_minutes": 60,
+      "quality_status": "required"
+    },
+    {
+      "id": "ml/meta-learning",
+      "track": "ml",
+      "level": "advanced",
+      "concept": "ml/concepts/meta-learning.md",
+      "notebook": "ml/notebooks/21-meta-learning.ipynb",
+      "implementation": null,
+      "prerequisites": [
+        "ml/optimization"
+      ],
+      "outcomes": [
+        "Explain learning-to-learn and few-shot adaptation.",
+        "Distinguish task distribution assumptions from ordinary generalization."
+      ],
+      "practice": [
+        "ml/interview-prep/ml-theory-questions.md"
+      ],
+      "estimated_minutes": 75,
+      "quality_status": "required"
+    },
+    {
+      "id": "ml/mixed-precision-training",
+      "track": "ml",
+      "level": "advanced",
+      "concept": "ml/concepts/mixed-precision-training.md",
+      "notebook": "ml/notebooks/22-mixed-precision.ipynb",
+      "implementation": null,
+      "prerequisites": [
+        "ml/neural-networks"
+      ],
+      "outcomes": [
+        "Explain precision, range, and loss scaling trade-offs.",
+        "Recognize numerical overflow and underflow symptoms."
+      ],
+      "practice": [
+        "ml/interview-prep/ml-theory-questions.md"
+      ],
+      "estimated_minutes": 60,
+      "quality_status": "required"
+    },
+    {
+      "id": "ml/model-compression",
+      "track": "ml",
+      "level": "advanced",
+      "concept": "ml/concepts/model-compression.md",
+      "notebook": "ml/notebooks/23-model-compression.ipynb",
+      "implementation": null,
+      "prerequisites": [
+        "ml/neural-networks"
+      ],
+      "outcomes": [
+        "Compare compression methods by resource and quality impact.",
+        "Choose a deployment-aware evaluation metric."
+      ],
+      "practice": [
+        "ml/interview-prep/ml-theory-questions.md"
+      ],
+      "estimated_minutes": 60,
+      "quality_status": "required"
+    },
+    {
+      "id": "ml/model-selection",
+      "track": "ml",
+      "level": "foundation",
+      "concept": "ml/concepts/model-selection.md",
+      "notebook": "ml/notebooks/24-model-selection.ipynb",
+      "implementation": null,
+      "prerequisites": [
+        "ml/evaluation-metrics"
+      ],
+      "outcomes": [
+        "Select a model using validation evidence and constraints.",
+        "Explain selection bias from repeated experimentation."
+      ],
+      "practice": [
+        "ml/interview-prep/ml-theory-questions.md"
+      ],
+      "estimated_minutes": 60,
+      "quality_status": "required"
+    },
+    {
+      "id": "ml/momentum-and-acceleration",
+      "track": "ml",
+      "level": "intermediate",
+      "concept": "ml/concepts/momentum-and-acceleration.md",
+      "notebook": "ml/notebooks/25-momentum.ipynb",
+      "implementation": null,
+      "prerequisites": [
+        "ml/optimization"
+      ],
+      "outcomes": [
+        "Explain momentum updates and their smoothing effect.",
+        "Diagnose overshoot and unstable optimization."
+      ],
+      "practice": [
+        "ml/interview-prep/ml-theory-questions.md"
+      ],
+      "estimated_minutes": 60,
+      "quality_status": "required"
+    },
+    {
+      "id": "ml/naive-bayes",
+      "track": "ml",
+      "level": "foundation",
+      "concept": "ml/concepts/naive-bayes.md",
+      "notebook": "ml/notebooks/26-naive-bayes.ipynb",
+      "implementation": null,
+      "prerequisites": [
+        "ml/probability-statistics"
+      ],
+      "outcomes": [
+        "Derive a Naive Bayes decision from Bayes rule.",
+        "Explain the conditional-independence assumption and its practical limits."
+      ],
+      "practice": [
+        "ml/interview-prep/ml-theory-questions.md"
+      ],
+      "estimated_minutes": 60,
+      "quality_status": "required"
+    },
+    {
+      "id": "ml/neural-networks",
+      "track": "ml",
+      "level": "intermediate",
+      "concept": "ml/concepts/neural-networks.md",
+      "notebook": "ml/notebooks/27-neural-networks.ipynb",
+      "implementation": null,
+      "prerequisites": [
+        "ml/optimization"
+      ],
+      "outcomes": [
+        "Describe a feed-forward network as composed functions.",
+        "Relate capacity, data, and regularization choices."
+      ],
+      "practice": [
+        "ml/interview-prep/ml-theory-questions.md"
+      ],
+      "estimated_minutes": 75,
+      "quality_status": "required"
+    },
+    {
+      "id": "ml/optimization",
+      "track": "ml",
+      "level": "foundation",
+      "concept": "ml/concepts/optimization.md",
+      "notebook": "ml/notebooks/28-optimization.ipynb",
+      "implementation": null,
+      "prerequisites": [
+        "ml/supervised-learning"
+      ],
+      "outcomes": [
+        "Explain gradient-based objective minimization.",
+        "Diagnose learning-rate and conditioning problems."
+      ],
+      "practice": [
+        "ml/interview-prep/ml-theory-questions.md"
+      ],
+      "estimated_minutes": 75,
+      "quality_status": "required"
+    },
+    {
+      "id": "ml/overfitting-underfitting",
+      "track": "ml",
+      "level": "foundation",
+      "concept": "ml/concepts/overfitting-underfitting.md",
+      "notebook": "ml/notebooks/29-overfitting.ipynb",
+      "implementation": null,
+      "prerequisites": [
+        "ml/supervised-learning"
+      ],
+      "outcomes": [
+        "Interpret train-validation gaps as evidence about generalization.",
+        "Choose a mitigation that addresses the observed failure."
+      ],
+      "practice": [
+        "ml/interview-prep/ml-theory-questions.md"
+      ],
+      "estimated_minutes": 60,
+      "quality_status": "required"
+    },
+    {
+      "id": "ml/probability-statistics",
+      "track": "ml",
+      "level": "foundation",
+      "concept": "ml/concepts/probability-statistics.md",
+      "notebook": "ml/notebooks/30-probability-statistics.ipynb",
+      "implementation": null,
+      "prerequisites": [],
+      "outcomes": [
+        "Use conditional probability to reason about model predictions.",
+        "Explain sampling uncertainty in evaluation results."
+      ],
+      "practice": [
+        "ml/interview-prep/ml-theory-questions.md"
+      ],
+      "estimated_minutes": 75,
+      "quality_status": "required"
+    },
+    {
+      "id": "ml/pruning",
+      "track": "ml",
+      "level": "advanced",
+      "concept": "ml/concepts/pruning.md",
+      "notebook": "ml/notebooks/31-pruning.ipynb",
+      "implementation": null,
+      "prerequisites": [
+        "ml/model-compression"
+      ],
+      "outcomes": [
+        "Compare structured and unstructured pruning.",
+        "Evaluate sparsity against actual deployment support."
+      ],
+      "practice": [
+        "ml/interview-prep/ml-theory-questions.md"
+      ],
+      "estimated_minutes": 60,
+      "quality_status": "required"
+    },
+    {
+      "id": "ml/quantization",
+      "track": "ml",
+      "level": "advanced",
+      "concept": "ml/concepts/quantization.md",
+      "notebook": "ml/notebooks/32-quantization.ipynb",
+      "implementation": null,
+      "prerequisites": [
+        "ml/model-compression"
+      ],
+      "outcomes": [
+        "Explain quantization scales and calibration data.",
+        "Measure accuracy and resource changes after quantization."
+      ],
+      "practice": [
+        "ml/interview-prep/ml-theory-questions.md"
+      ],
+      "estimated_minutes": 60,
+      "quality_status": "required"
+    },
+    {
+      "id": "ml/regularization",
+      "track": "ml",
+      "level": "foundation",
+      "concept": "ml/concepts/regularization.md",
+      "notebook": "ml/notebooks/33-regularization.ipynb",
+      "implementation": null,
+      "prerequisites": [
+        "ml/overfitting-underfitting"
+      ],
+      "outcomes": [
+        "Explain how a penalty changes the fitting objective.",
+        "Choose a regularizer based on the expected failure mode."
+      ],
+      "practice": [
+        "ml/interview-prep/ml-theory-questions.md"
+      ],
+      "estimated_minutes": 60,
+      "quality_status": "required"
+    },
+    {
+      "id": "ml/rnns-lstms",
+      "track": "ml",
+      "level": "intermediate",
+      "concept": "ml/concepts/rnns-lstms.md",
+      "notebook": "ml/notebooks/34-rnns-lstms.ipynb",
+      "implementation": null,
+      "prerequisites": [
+        "ml/neural-networks"
+      ],
+      "outcomes": [
+        "Explain recurrent state and gated updates.",
+        "Compare sequential recurrence with parallel sequence models."
+      ],
+      "practice": [
+        "ml/interview-prep/ml-theory-questions.md"
+      ],
+      "estimated_minutes": 60,
+      "quality_status": "required"
+    },
+    {
+      "id": "ml/supervised-learning",
+      "track": "ml",
+      "level": "foundation",
+      "concept": "ml/concepts/supervised-learning.md",
+      "notebook": "ml/notebooks/35-supervised-learning.ipynb",
+      "implementation": null,
+      "prerequisites": [],
+      "outcomes": [
+        "Distinguish supervised prediction tasks by target type.",
+        "Describe a valid train-validation-test workflow."
+      ],
+      "practice": [
+        "ml/interview-prep/ml-theory-questions.md"
+      ],
+      "estimated_minutes": 60,
+      "quality_status": "required"
+    },
+    {
+      "id": "ml/support-vector-machines",
+      "track": "ml",
+      "level": "intermediate",
+      "concept": "ml/concepts/support-vector-machines.md",
+      "notebook": "ml/notebooks/36-support-vector-machines.ipynb",
+      "implementation": null,
+      "prerequisites": [
+        "ml/optimization"
+      ],
+      "outcomes": [
+        "Explain margins and support vectors.",
+        "Choose a kernel model with awareness of scaling and dataset size."
+      ],
+      "practice": [
+        "ml/interview-prep/ml-theory-questions.md"
+      ],
+      "estimated_minutes": 60,
+      "quality_status": "required"
+    },
+    {
+      "id": "ml/transfer-learning",
+      "track": "ml",
+      "level": "intermediate",
+      "concept": "ml/concepts/transfer-learning.md",
+      "notebook": "ml/notebooks/37-transfer-learning.ipynb",
+      "implementation": null,
+      "prerequisites": [
+        "ml/neural-networks"
+      ],
+      "outcomes": [
+        "Compare feature extraction and fine-tuning.",
+        "Detect negative transfer and domain mismatch."
+      ],
+      "practice": [
+        "ml/interview-prep/ml-theory-questions.md"
+      ],
+      "estimated_minutes": 60,
+      "quality_status": "required"
+    },
+    {
+      "id": "ml/transformers",
+      "track": "ml",
+      "level": "advanced",
+      "concept": "ml/concepts/transformers.md",
+      "notebook": "ml/notebooks/38-transformers.ipynb",
+      "implementation": null,
+      "prerequisites": [
+        "ml/attention-mechanism"
+      ],
+      "outcomes": [
+        "Describe transformer blocks and positional information.",
+        "Reason about attention cost and sequence-length limits."
+      ],
+      "practice": [
+        "ml/interview-prep/ml-theory-questions.md"
+      ],
+      "estimated_minutes": 75,
+      "quality_status": "required"
+    },
+    {
+      "id": "ml/unsupervised-learning",
+      "track": "ml",
+      "level": "foundation",
+      "concept": "ml/concepts/unsupervised-learning.md",
+      "notebook": "ml/notebooks/39-unsupervised-learning.ipynb",
+      "implementation": null,
+      "prerequisites": [
+        "ml/probability-statistics"
+      ],
+      "outcomes": [
+        "Distinguish clustering, density, and representation objectives.",
+        "Evaluate unsupervised results without assuming labels."
+      ],
+      "practice": [
+        "ml/interview-prep/ml-theory-questions.md"
+      ],
+      "estimated_minutes": 60,
+      "quality_status": "required"
+    },
+    {
+      "id": "ml/weight-initialization",
+      "track": "ml",
+      "level": "intermediate",
+      "concept": "ml/concepts/weight-initialization.md",
+      "notebook": "ml/notebooks/40-weight-initialization.ipynb",
+      "implementation": null,
+      "prerequisites": [
+        "ml/neural-networks"
+      ],
+      "outcomes": [
+        "Explain signal propagation at initialization.",
+        "Choose initialization based on activation and layer dimensions."
+      ],
+      "practice": [
+        "ml/interview-prep/ml-theory-questions.md"
+      ],
+      "estimated_minutes": 60,
+      "quality_status": "required"
+    },
+    {
+      "id": "stats/bootstrap-resampling",
+      "track": "stats",
+      "level": "intermediate",
+      "concept": "stats/concepts/16-bootstrap-resampling.md",
+      "notebook": "stats/notebooks/16-bootstrap-resampling.ipynb",
+      "implementation": null,
+      "prerequisites": [
+        "ml/probability-statistics"
+      ],
+      "outcomes": [
+        "Construct a bootstrap interval using the correct resampling unit.",
+        "Identify sample and dependence conditions where bootstrap inference is unreliable."
+      ],
+      "practice": [
+        "stats/interview-prep/statistics-interview-questions.md#6-select-a-bootstrap-procedure"
+      ],
+      "estimated_minutes": 35,
+      "quality_status": "required"
+    },
+    {
+      "id": "stats/permutation-tests-randomization-inference",
+      "track": "stats",
+      "level": "intermediate",
+      "concept": "stats/concepts/17-permutation-tests-randomization-inference.md",
+      "notebook": "stats/notebooks/17-permutation-tests-randomization-inference.ipynb",
+      "implementation": null,
+      "prerequisites": [
+        "stats/bootstrap-resampling"
+      ],
+      "outcomes": [
+        "Construct randomization distributions under a stated null.",
+        "Preserve the experiment assignment structure in permutations."
+      ],
+      "practice": [
+        "stats/interview-prep/statistics-interview-questions.md#10-diagnose-confounding-in-an-observational-launch"
+      ],
+      "estimated_minutes": 35,
+      "quality_status": "required"
+    },
+    {
+      "id": "stats/multiple-testing-fdr",
+      "track": "stats",
+      "level": "advanced",
+      "concept": "stats/concepts/18-multiple-testing-fdr.md",
+      "notebook": "stats/notebooks/18-multiple-testing-fdr.ipynb",
+      "implementation": null,
+      "prerequisites": [
+        "stats/permutation-tests-randomization-inference"
+      ],
+      "outcomes": [
+        "Define a family of tests and select an error criterion.",
+        "Apply FDR control and explain its dependence assumptions."
+      ],
+      "practice": [
+        "stats/interview-prep/statistics-interview-questions.md#13-handle-multiple-metric-tests"
+      ],
+      "estimated_minutes": 35,
+      "quality_status": "required"
+    },
+    {
+      "id": "stats/missing-data-imputation-assumptions",
+      "track": "stats",
+      "level": "advanced",
+      "concept": "stats/concepts/19-missing-data-imputation-assumptions.md",
+      "notebook": "stats/notebooks/19-missing-data-imputation-assumptions.ipynb",
+      "implementation": null,
+      "prerequisites": [
+        "stats/bootstrap-resampling"
+      ],
+      "outcomes": [
+        "Distinguish MCAR, MAR, and MNAR assumptions.",
+        "Choose and diagnose an estimator for missing outcomes under explicit assumptions."
+      ],
+      "practice": [
+        "stats/interview-prep/statistics-interview-questions.md#15-diagnose-informative-missingness"
+      ],
+      "estimated_minutes": 40,
+      "quality_status": "required"
+    },
+    {
+      "id": "stats/regression-diagnostics-robust-standard-errors",
+      "track": "stats",
+      "level": "advanced",
+      "concept": "stats/concepts/20-regression-diagnostics-robust-standard-errors.md",
+      "notebook": "stats/notebooks/20-regression-diagnostics-robust-standard-errors.ipynb",
+      "implementation": null,
+      "prerequisites": [
+        "stats/missing-data-imputation-assumptions",
+        "ml/evaluation-metrics"
+      ],
+      "outcomes": [
+        "Diagnose residual patterns, heteroskedasticity, and influence.",
+        "Choose uncertainty estimates that reflect the sampling dependence structure."
+      ],
+      "practice": [
+        "stats/interview-prep/statistics-interview-questions.md#19-choose-robust-standard-errors"
+      ],
+      "estimated_minutes": 40,
+      "quality_status": "required"
+    },
+    {
+      "id": "stats/sequential-experimentation-peeking-control",
+      "track": "stats",
+      "level": "advanced",
+      "concept": "stats/concepts/21-sequential-experimentation-peeking-control.md",
+      "notebook": "stats/notebooks/21-sequential-experimentation-peeking-control.ipynb",
+      "implementation": null,
+      "prerequisites": [
+        "stats/multiple-testing-fdr"
+      ],
+      "outcomes": [
+        "Explain how unadjusted repeated looks inflate false-positive probability.",
+        "Specify a valid stopping and error-control plan for sequential experimentation."
+      ],
+      "practice": [
+        "stats/interview-prep/statistics-interview-questions.md#12-review-a-peeking-experiment"
+      ],
+      "estimated_minutes": 40,
+      "quality_status": "required"
+    },
+    {
+      "id": "modern-ai/mixture-of-experts",
+      "track": "modern-ai",
+      "level": "advanced",
+      "concept": "modern-ai/concepts/26-mixture-of-experts.md",
+      "notebook": "modern-ai/notebooks/26-mixture-of-experts.ipynb",
+      "implementation": "modern-ai/implementations/26-mixture-of-experts.py",
+      "prerequisites": [
+        "ml/transformers"
+      ],
+      "outcomes": [
+        "Explain top-k routing, capacity and overflow.",
+        "Diagnose load imbalance from assignment and gate statistics."
+      ],
+      "practice": [
+        "modern-ai/interview-prep/inference-systems.md#mixture-of-experts"
+      ],
+      "estimated_minutes": 45,
+      "quality_status": "required"
+    },
+    {
+      "id": "modern-ai/long-context-management",
+      "track": "modern-ai",
+      "level": "advanced",
+      "concept": "modern-ai/concepts/27-long-context-management.md",
+      "notebook": "modern-ai/notebooks/27-long-context-management.ipynb",
+      "implementation": "modern-ai/implementations/27-long-context-management.py",
+      "prerequisites": [
+        "ml/transformers",
+        "ml/evaluation-metrics"
+      ],
+      "outcomes": [
+        "Compare context allocation strategies under a token budget.",
+        "Evaluate evidence coverage and answer support across context positions."
+      ],
+      "practice": [
+        "modern-ai/interview-prep/inference-systems.md#long-context-management"
+      ],
+      "estimated_minutes": 45,
+      "quality_status": "required"
+    },
+    {
+      "id": "modern-ai/speculative-decoding",
+      "track": "modern-ai",
+      "level": "advanced",
+      "concept": "modern-ai/concepts/28-speculative-decoding.md",
+      "notebook": "modern-ai/notebooks/28-speculative-decoding.ipynb",
+      "implementation": "modern-ai/implementations/28-speculative-decoding.py",
+      "prerequisites": [
+        "ml/transformers",
+        "modern-ai/kv-cache-optimization"
+      ],
+      "outcomes": [
+        "Account for speculative acceptance and rejection.",
+        "Estimate break-even behavior without confusing formulas with measured speed."
+      ],
+      "practice": [
+        "modern-ai/interview-prep/inference-systems.md#speculative-decoding"
+      ],
+      "estimated_minutes": 50,
+      "quality_status": "required"
+    },
+    {
+      "id": "modern-ai/kv-cache-optimization",
+      "track": "modern-ai",
+      "level": "advanced",
+      "concept": "modern-ai/concepts/29-kv-cache-optimization.md",
+      "notebook": "modern-ai/notebooks/29-kv-cache-optimization.ipynb",
+      "implementation": "modern-ai/implementations/29-kv-cache-optimization.py",
+      "prerequisites": [
+        "ml/transformers",
+        "modern-ai/long-context-management"
+      ],
+      "outcomes": [
+        "Calculate KV cache memory from model and sequence dimensions.",
+        "Explain safe prefix reuse and eviction behavior."
+      ],
+      "practice": [
+        "modern-ai/interview-prep/inference-systems.md#kv-cache-optimization"
+      ],
+      "estimated_minutes": 50,
+      "quality_status": "required"
+    },
+    {
+      "id": "modern-ai/sparse-attention",
+      "track": "modern-ai",
+      "level": "advanced",
+      "concept": "modern-ai/concepts/30-sparse-attention.md",
+      "notebook": "modern-ai/notebooks/30-sparse-attention.ipynb",
+      "implementation": "modern-ai/implementations/30-sparse-attention.py",
+      "prerequisites": [
+        "ml/attention-mechanism",
+        "modern-ai/long-context-management"
+      ],
+      "outcomes": [
+        "Construct and validate causal sparse masks.",
+        "Choose a pattern based on reachability and kernel support."
+      ],
+      "practice": [
+        "modern-ai/interview-prep/inference-systems.md#sparse-attention"
+      ],
+      "estimated_minutes": 45,
+      "quality_status": "required"
+    },
+    {
+      "id": "modern-ai/quantization-distillation",
+      "track": "modern-ai",
+      "level": "advanced",
+      "concept": "modern-ai/concepts/31-quantization-aware-distillation.md",
+      "notebook": "modern-ai/notebooks/31-quantization-aware-distillation.ipynb",
+      "implementation": "modern-ai/implementations/31-quantization-aware-distillation.py",
+      "prerequisites": [
+        "ml/model-compression",
+        "ml/evaluation-metrics"
+      ],
+      "outcomes": [
+        "Separate quantization and student approximation error.",
+        "Compare quality, storage and measured target-runtime behavior."
+      ],
+      "practice": [
+        "modern-ai/interview-prep/inference-systems.md#quantization-and-distillation"
+      ],
+      "estimated_minutes": 50,
+      "quality_status": "required"
+    },
+    {
+      "id": "modern-ai/multimodal-fusion",
+      "track": "modern-ai",
+      "level": "advanced",
+      "concept": "modern-ai/concepts/32-multimodal-reasoning.md",
+      "notebook": "modern-ai/notebooks/32-multimodal-reasoning.ipynb",
+      "implementation": "modern-ai/implementations/32-multimodal-reasoning.py",
+      "prerequisites": [
+        "ml/neural-networks",
+        "ml/evaluation-metrics"
+      ],
+      "outcomes": [
+        "Implement late fusion with explicit missing-modality behavior.",
+        "Evaluate calibration and disagreement across modality subsets."
+      ],
+      "practice": [
+        "modern-ai/interview-prep/inference-systems.md#multimodal-fusion"
+      ],
+      "estimated_minutes": 45,
+      "quality_status": "required"
+    },
+    {
+      "id": "modern-ai/prefill-decode-scheduling",
+      "track": "modern-ai",
+      "level": "advanced",
+      "concept": "modern-ai/concepts/33-prefill-decode-disaggregation.md",
+      "notebook": "modern-ai/notebooks/33-prefill-decode-disaggregation.ipynb",
+      "implementation": "modern-ai/implementations/33-prefill-decode-disaggregation.py",
+      "prerequisites": [
+        "modern-ai/kv-cache-optimization",
+        "ml/evaluation-metrics"
+      ],
+      "outcomes": [
+        "Distinguish TTFT, decode time and queue delay.",
+        "Compare scheduling designs with tail latency and transfer cost."
+      ],
+      "practice": [
+        "modern-ai/interview-prep/inference-systems.md#prefill-and-decode-scheduling"
+      ],
+      "estimated_minutes": 50,
+      "quality_status": "required"
+    },
+    {
+      "id": "modern-ai/post-training-specialization",
+      "track": "modern-ai",
+      "level": "advanced",
+      "concept": "modern-ai/concepts/34-post-training-specialization.md",
+      "notebook": "modern-ai/notebooks/34-post-training-specialization.ipynb",
+      "implementation": "modern-ai/implementations/34-post-training-specialization.py",
+      "prerequisites": [
+        "ml/knowledge-distillation",
+        "ml/evaluation-metrics"
+      ],
+      "outcomes": [
+        "Classify behavior and knowledge gaps before selecting adaptation.",
+        "Compare prompt, retrieval, adapter and full tuning with held-out evaluation."
+      ],
+      "practice": [
+        "modern-ai/interview-prep/inference-systems.md#post-training-specialization"
+      ],
+      "estimated_minutes": 50,
+      "quality_status": "required"
+    },
+    {
+      "id": "modern-ai/decode-length-prediction",
+      "track": "modern-ai",
+      "level": "advanced",
+      "concept": "modern-ai/concepts/35-decode-length-prediction.md",
+      "notebook": "modern-ai/notebooks/35-decode-length-prediction.ipynb",
+      "implementation": "modern-ai/implementations/35-decode-length-prediction.py",
+      "prerequisites": [
+        "modern-ai/kv-cache-optimization",
+        "ml/evaluation-metrics"
+      ],
+      "outcomes": [
+        "Calibrate output-length predictions and quantify underprediction.",
+        "Choose tail-aware reservations and validate their scheduler impact."
+      ],
+      "practice": [
+        "modern-ai/interview-prep/inference-systems.md#decode-length-prediction"
+      ],
+      "estimated_minutes": 45,
+      "quality_status": "required"
+    },
+    {
+      "id": "mlops/monitoring-alert-design",
+      "track": "mlops",
+      "level": "intermediate",
+      "concept": "mlops/concepts/17-monitoring-alert-design.md",
+      "notebook": "mlops/notebooks/17-monitoring-alert-design.ipynb",
+      "implementation": "mlops/implementations/17-monitoring-alert-design.py",
+      "prerequisites": [],
+      "outcomes": [
+        "Define service, data and delayed quality indicators with owners and response actions.",
+        "Compute windowed rates and suppress alerts with insufficient evidence."
+      ],
+      "practice": [
+        "mlops/interview-prep/mlops-interview-questions.md"
+      ],
+      "estimated_minutes": 90,
+      "quality_status": "required"
+    },
+    {
+      "id": "mlops/drift-detection",
+      "track": "mlops",
+      "level": "intermediate",
+      "concept": "mlops/concepts/18-drift-detection.md",
+      "notebook": "mlops/notebooks/18-drift-detection.ipynb",
+      "implementation": "mlops/implementations/18-drift-detection.py",
+      "prerequisites": [
+        "mlops/monitoring-alert-design"
+      ],
+      "outcomes": [
+        "Distinguish feature distribution shifts from changes in labeled outcomes.",
+        "Choose a drift statistic, threshold and validation response for a production signal."
+      ],
+      "practice": [
+        "mlops/interview-prep/mlops-interview-questions.md"
+      ],
+      "estimated_minutes": 90,
+      "quality_status": "required"
+    },
+    {
+      "id": "mlops/pipeline-orchestration-backfills",
+      "track": "mlops",
+      "level": "intermediate",
+      "concept": "mlops/concepts/19-pipeline-orchestration-backfills.md",
+      "notebook": "mlops/notebooks/19-pipeline-orchestration-backfills.ipynb",
+      "implementation": "mlops/implementations/19-pipeline-orchestration.py",
+      "prerequisites": [
+        "mlops/monitoring-alert-design"
+      ],
+      "outcomes": [
+        "Order dependent pipeline tasks and resume completed work safely.",
+        "Bound a backfill by partitions and explain idempotency and retry requirements."
+      ],
+      "practice": [
+        "mlops/interview-prep/mlops-interview-questions.md"
+      ],
+      "estimated_minutes": 90,
+      "quality_status": "required"
+    },
+    {
+      "id": "mlops/feature-parity",
+      "track": "mlops",
+      "level": "intermediate",
+      "concept": "mlops/concepts/20-feature-parity.md",
+      "notebook": "mlops/notebooks/20-feature-parity.ipynb",
+      "implementation": "mlops/implementations/20-feature-parity.py",
+      "prerequisites": [
+        "mlops/pipeline-orchestration-backfills"
+      ],
+      "outcomes": [
+        "Compare offline and online feature values and freshness.",
+        "Diagnose parity failures using event time, observed time and mismatch rates."
+      ],
+      "practice": [
+        "mlops/interview-prep/mlops-interview-questions.md"
+      ],
+      "estimated_minutes": 90,
+      "quality_status": "required"
+    },
+    {
+      "id": "mlops/incident-response-rollback",
+      "track": "mlops",
+      "level": "intermediate",
+      "concept": "mlops/concepts/21-incident-response-rollback.md",
+      "notebook": "mlops/notebooks/21-incident-response-rollback.ipynb",
+      "implementation": "mlops/implementations/21-incident-response-rollback.py",
+      "prerequisites": [
+        "mlops/monitoring-alert-design"
+      ],
+      "outcomes": [
+        "Set rollback triggers using service health and sufficiently mature quality labels.",
+        "Coordinate incident containment, evidence capture and safe recovery."
+      ],
+      "practice": [
+        "mlops/interview-prep/mlops-interview-questions.md"
+      ],
+      "estimated_minutes": 90,
+      "quality_status": "required"
+    },
+    {
+      "id": "mlops/governance-lineage-auditability",
+      "track": "mlops",
+      "level": "intermediate",
+      "concept": "mlops/concepts/22-governance-lineage-auditability.md",
+      "notebook": "mlops/notebooks/22-governance-lineage-auditability.ipynb",
+      "implementation": "mlops/implementations/22-governance-lineage.py",
+      "prerequisites": [
+        "mlops/pipeline-orchestration-backfills"
+      ],
+      "outcomes": [
+        "Validate required lineage fields for a reproducible model release.",
+        "Create stable fingerprints and explain audit evidence limits."
+      ],
+      "practice": [
+        "mlops/interview-prep/mlops-interview-questions.md"
+      ],
+      "estimated_minutes": 90,
+      "quality_status": "required"
+    },
+    {
+      "id": "mlops/security-privacy-controls",
+      "track": "mlops",
+      "level": "advanced",
+      "concept": "mlops/concepts/23-security-privacy-controls.md",
+      "notebook": "mlops/notebooks/23-security-privacy-controls.ipynb",
+      "implementation": "mlops/implementations/23-security-privacy-controls.py",
+      "prerequisites": [
+        "mlops/governance-lineage-auditability"
+      ],
+      "outcomes": [
+        "Apply least-privilege authorization and redact sensitive fields.",
+        "Choose retention actions that respect policy and legal holds."
+      ],
+      "practice": [
+        "mlops/interview-prep/mlops-interview-questions.md"
+      ],
+      "estimated_minutes": 90,
+      "quality_status": "required"
+    },
+    {
+      "id": "mlops/cost-capacity-reliability",
+      "track": "mlops",
+      "level": "advanced",
+      "concept": "mlops/concepts/24-cost-capacity-reliability.md",
+      "notebook": "mlops/notebooks/24-cost-capacity-reliability.ipynb",
+      "implementation": "mlops/implementations/24-cost-capacity-reliability.py",
+      "prerequisites": [
+        "mlops/pipeline-orchestration-backfills"
+      ],
+      "outcomes": [
+        "Estimate monthly serving cost and capacity with explicit headroom.",
+        "Choose a budget response while preserving reliability objectives."
+      ],
+      "practice": [
+        "mlops/interview-prep/mlops-interview-questions.md"
+      ],
+      "estimated_minutes": 90,
+      "quality_status": "required"
+    },
+    {
+      "id": "llm/tokenization",
+      "track": "llm",
+      "level": "foundation",
+      "concept": "llm/concepts/01-tokenization.md",
+      "notebook": "llm/notebooks/01-tokenization.ipynb",
+      "implementation": "llm/implementations/01-tokenization.py",
+      "prerequisites": [
+        "ml/probability-statistics"
+      ],
+      "outcomes": [
+        "Explain the core mechanism and assumptions behind Tokenization.",
+        "Choose and evaluate an appropriate use of Tokenization under stated constraints."
+      ],
+      "practice": [
+        "llm/interview-prep/curriculum-practice.md#tokenization"
+      ],
+      "estimated_minutes": 60,
+      "quality_status": "required"
+    },
+    {
+      "id": "llm/embeddings",
+      "track": "llm",
+      "level": "foundation",
+      "concept": "llm/concepts/02-embeddings.md",
+      "notebook": "llm/notebooks/02-embeddings.ipynb",
+      "implementation": "llm/implementations/02-embeddings.py",
+      "prerequisites": [
+        "llm/tokenization"
+      ],
+      "outcomes": [
+        "Explain the core mechanism and assumptions behind Embeddings.",
+        "Choose and evaluate an appropriate use of Embeddings under stated constraints."
+      ],
+      "practice": [
+        "llm/interview-prep/curriculum-practice.md#embeddings"
+      ],
+      "estimated_minutes": 60,
+      "quality_status": "required"
+    },
+    {
+      "id": "llm/pretraining",
+      "track": "llm",
+      "level": "foundation",
+      "concept": "llm/concepts/03-pretraining.md",
+      "notebook": "llm/notebooks/03-pretraining.ipynb",
+      "implementation": "llm/implementations/03-pretraining.py",
+      "prerequisites": [
+        "llm/embeddings"
+      ],
+      "outcomes": [
+        "Explain the core mechanism and assumptions behind Pretraining.",
+        "Choose and evaluate an appropriate use of Pretraining under stated constraints."
+      ],
+      "practice": [
+        "llm/interview-prep/curriculum-practice.md#pretraining"
+      ],
+      "estimated_minutes": 60,
+      "quality_status": "required"
+    },
+    {
+      "id": "llm/finetuning",
+      "track": "llm",
+      "level": "foundation",
+      "concept": "llm/concepts/04-finetuning.md",
+      "notebook": "llm/notebooks/04-finetuning.ipynb",
+      "implementation": "llm/implementations/04-finetuning.py",
+      "prerequisites": [
+        "llm/pretraining"
+      ],
+      "outcomes": [
+        "Explain the core mechanism and assumptions behind Fine-tuning.",
+        "Choose and evaluate an appropriate use of Fine-tuning under stated constraints."
+      ],
+      "practice": [
+        "llm/interview-prep/curriculum-practice.md#fine-tuning"
+      ],
+      "estimated_minutes": 60,
+      "quality_status": "required"
+    },
+    {
+      "id": "llm/instruction-tuning",
+      "track": "llm",
+      "level": "foundation",
+      "concept": "llm/concepts/05-instruction-tuning.md",
+      "notebook": "llm/notebooks/05-instruction-tuning.ipynb",
+      "implementation": "llm/implementations/05-instruction-tuning.py",
+      "prerequisites": [
+        "llm/finetuning"
+      ],
+      "outcomes": [
+        "Explain the core mechanism and assumptions behind Instruction Tuning.",
+        "Choose and evaluate an appropriate use of Instruction Tuning under stated constraints."
+      ],
+      "practice": [
+        "llm/interview-prep/curriculum-practice.md#instruction-tuning"
+      ],
+      "estimated_minutes": 60,
+      "quality_status": "required"
+    },
+    {
+      "id": "llm/rlhf",
+      "track": "llm",
+      "level": "foundation",
+      "concept": "llm/concepts/06-rlhf.md",
+      "notebook": "llm/notebooks/06-rlhf.ipynb",
+      "implementation": "llm/implementations/06-rlhf.py",
+      "prerequisites": [
+        "llm/instruction-tuning"
+      ],
+      "outcomes": [
+        "Explain the core mechanism and assumptions behind RLHF (Reinforcement Learning from Human Feedback).",
+        "Choose and evaluate an appropriate use of RLHF (Reinforcement Learning from Human Feedback) under stated constraints."
+      ],
+      "practice": [
+        "llm/interview-prep/curriculum-practice.md#rlhf-reinforcement-learning-from-human-feedback"
+      ],
+      "estimated_minutes": 60,
+      "quality_status": "required"
+    },
+    {
+      "id": "llm/dpo",
+      "track": "llm",
+      "level": "foundation",
+      "concept": "llm/concepts/07-dpo.md",
+      "notebook": "llm/notebooks/07-dpo.ipynb",
+      "implementation": "llm/implementations/07-dpo.py",
+      "prerequisites": [
+        "llm/rlhf"
+      ],
+      "outcomes": [
+        "Explain the core mechanism and assumptions behind DPO (Direct Preference Optimization).",
+        "Choose and evaluate an appropriate use of DPO (Direct Preference Optimization) under stated constraints."
+      ],
+      "practice": [
+        "llm/interview-prep/curriculum-practice.md#dpo-direct-preference-optimization"
+      ],
+      "estimated_minutes": 60,
+      "quality_status": "required"
+    },
+    {
+      "id": "llm/lora",
+      "track": "llm",
+      "level": "foundation",
+      "concept": "llm/concepts/08-lora.md",
+      "notebook": "llm/notebooks/08-lora.ipynb",
+      "implementation": "llm/implementations/08-lora.py",
+      "prerequisites": [
+        "llm/dpo"
+      ],
+      "outcomes": [
+        "Explain the core mechanism and assumptions behind LoRA (Low-Rank Adaptation).",
+        "Choose and evaluate an appropriate use of LoRA (Low-Rank Adaptation) under stated constraints."
+      ],
+      "practice": [
+        "llm/interview-prep/curriculum-practice.md#lora-low-rank-adaptation"
+      ],
+      "estimated_minutes": 60,
+      "quality_status": "required"
+    },
+    {
+      "id": "llm/adapters",
+      "track": "llm",
+      "level": "foundation",
+      "concept": "llm/concepts/09-adapters.md",
+      "notebook": "llm/notebooks/09-adapters.ipynb",
+      "implementation": "llm/implementations/09-adapters.py",
+      "prerequisites": [
+        "llm/lora"
+      ],
+      "outcomes": [
+        "Explain the core mechanism and assumptions behind Adapters.",
+        "Choose and evaluate an appropriate use of Adapters under stated constraints."
+      ],
+      "practice": [
+        "llm/interview-prep/curriculum-practice.md#adapters"
+      ],
+      "estimated_minutes": 60,
+      "quality_status": "required"
+    },
+    {
+      "id": "llm/prefix-tuning",
+      "track": "llm",
+      "level": "foundation",
+      "concept": "llm/concepts/10-prefix-tuning.md",
+      "notebook": "llm/notebooks/10-prefix-tuning.ipynb",
+      "implementation": "llm/implementations/10-prefix-tuning.py",
+      "prerequisites": [
+        "llm/adapters"
+      ],
+      "outcomes": [
+        "Explain the core mechanism and assumptions behind Prefix Tuning.",
+        "Choose and evaluate an appropriate use of Prefix Tuning under stated constraints."
+      ],
+      "practice": [
+        "llm/interview-prep/curriculum-practice.md#prefix-tuning"
+      ],
+      "estimated_minutes": 60,
+      "quality_status": "required"
+    },
+    {
+      "id": "llm/parameter-efficient-finetuning",
+      "track": "llm",
+      "level": "foundation",
+      "concept": "llm/concepts/11-parameter-efficient-finetuning.md",
+      "notebook": "llm/notebooks/11-parameter-efficient-finetuning.ipynb",
+      "implementation": "llm/implementations/11-parameter-efficient-finetuning.py",
+      "prerequisites": [
+        "llm/prefix-tuning"
+      ],
+      "outcomes": [
+        "Explain the core mechanism and assumptions behind Parameter-Efficient Fine-Tuning (PEFT).",
+        "Choose and evaluate an appropriate use of Parameter-Efficient Fine-Tuning (PEFT) under stated constraints."
+      ],
+      "practice": [
+        "llm/interview-prep/curriculum-practice.md#parameter-efficient-fine-tuning-peft"
+      ],
+      "estimated_minutes": 60,
+      "quality_status": "required"
+    },
+    {
+      "id": "llm/prompting",
+      "track": "llm",
+      "level": "foundation",
+      "concept": "llm/concepts/12-prompting.md",
+      "notebook": "llm/notebooks/12-prompting.ipynb",
+      "implementation": "llm/implementations/12-prompting.py",
+      "prerequisites": [
+        "llm/parameter-efficient-finetuning"
+      ],
+      "outcomes": [
+        "Explain the core mechanism and assumptions behind Prompting.",
+        "Choose and evaluate an appropriate use of Prompting under stated constraints."
+      ],
+      "practice": [
+        "llm/interview-prep/curriculum-practice.md#prompting"
+      ],
+      "estimated_minutes": 60,
+      "quality_status": "required"
+    },
+    {
+      "id": "llm/few-shot-learning",
+      "track": "llm",
+      "level": "intermediate",
+      "concept": "llm/concepts/13-few-shot-learning.md",
+      "notebook": "llm/notebooks/13-few-shot-learning.ipynb",
+      "implementation": "llm/implementations/13-few-shot-learning.py",
+      "prerequisites": [
+        "llm/prompting"
+      ],
+      "outcomes": [
+        "Explain the core mechanism and assumptions behind Few-Shot Learning.",
+        "Choose and evaluate an appropriate use of Few-Shot Learning under stated constraints."
+      ],
+      "practice": [
+        "llm/interview-prep/curriculum-practice.md#few-shot-learning"
+      ],
+      "estimated_minutes": 60,
+      "quality_status": "required"
+    },
+    {
+      "id": "llm/zero-shot-learning",
+      "track": "llm",
+      "level": "intermediate",
+      "concept": "llm/concepts/14-zero-shot-learning.md",
+      "notebook": "llm/notebooks/14-zero-shot-learning.ipynb",
+      "implementation": "llm/implementations/14-zero-shot-learning.py",
+      "prerequisites": [
+        "llm/few-shot-learning"
+      ],
+      "outcomes": [
+        "Explain the core mechanism and assumptions behind Zero-Shot Learning.",
+        "Choose and evaluate an appropriate use of Zero-Shot Learning under stated constraints."
+      ],
+      "practice": [
+        "llm/interview-prep/curriculum-practice.md#zero-shot-learning"
+      ],
+      "estimated_minutes": 60,
+      "quality_status": "required"
+    },
+    {
+      "id": "llm/in-context-learning",
+      "track": "llm",
+      "level": "intermediate",
+      "concept": "llm/concepts/15-in-context-learning.md",
+      "notebook": "llm/notebooks/15-in-context-learning.ipynb",
+      "implementation": "llm/implementations/15-in-context-learning.py",
+      "prerequisites": [
+        "llm/zero-shot-learning"
+      ],
+      "outcomes": [
+        "Explain the core mechanism and assumptions behind In-Context Learning.",
+        "Choose and evaluate an appropriate use of In-Context Learning under stated constraints."
+      ],
+      "practice": [
+        "llm/interview-prep/curriculum-practice.md#in-context-learning"
+      ],
+      "estimated_minutes": 60,
+      "quality_status": "required"
+    },
+    {
+      "id": "llm/chain-of-thought",
+      "track": "llm",
+      "level": "intermediate",
+      "concept": "llm/concepts/16-chain-of-thought.md",
+      "notebook": "llm/notebooks/16-chain-of-thought.ipynb",
+      "implementation": "llm/implementations/16-chain-of-thought.py",
+      "prerequisites": [
+        "llm/in-context-learning"
+      ],
+      "outcomes": [
+        "Explain the core mechanism and assumptions behind Chain-of-Thought (CoT).",
+        "Choose and evaluate an appropriate use of Chain-of-Thought (CoT) under stated constraints."
+      ],
+      "practice": [
+        "llm/interview-prep/curriculum-practice.md#chain-of-thought-cot"
+      ],
+      "estimated_minutes": 60,
+      "quality_status": "required"
+    },
+    {
+      "id": "llm/prompt-optimization",
+      "track": "llm",
+      "level": "intermediate",
+      "concept": "llm/concepts/17-prompt-optimization.md",
+      "notebook": "llm/notebooks/17-prompt-optimization.ipynb",
+      "implementation": "llm/implementations/17-prompt-optimization.py",
+      "prerequisites": [
+        "llm/chain-of-thought"
+      ],
+      "outcomes": [
+        "Explain the core mechanism and assumptions behind Prompt Optimization.",
+        "Choose and evaluate an appropriate use of Prompt Optimization under stated constraints."
+      ],
+      "practice": [
+        "llm/interview-prep/curriculum-practice.md#prompt-optimization"
+      ],
+      "estimated_minutes": 60,
+      "quality_status": "required"
+    },
+    {
+      "id": "llm/rag",
+      "track": "llm",
+      "level": "intermediate",
+      "concept": "llm/concepts/18-rag.md",
+      "notebook": "llm/notebooks/18-rag.ipynb",
+      "implementation": "llm/implementations/18-rag.py",
+      "prerequisites": [
+        "llm/prompt-optimization"
+      ],
+      "outcomes": [
+        "Explain the core mechanism and assumptions behind RAG (Retrieval-Augmented Generation).",
+        "Choose and evaluate an appropriate use of RAG (Retrieval-Augmented Generation) under stated constraints."
+      ],
+      "practice": [
+        "llm/interview-prep/curriculum-practice.md#rag-retrieval-augmented-generation"
+      ],
+      "estimated_minutes": 60,
+      "quality_status": "required"
+    },
+    {
+      "id": "llm/retrieval-augmented-generation",
+      "track": "llm",
+      "level": "intermediate",
+      "concept": "llm/concepts/19-retrieval-augmented-generation.md",
+      "notebook": "llm/notebooks/19-retrieval-augmented-generation.ipynb",
+      "implementation": "llm/implementations/19-retrieval-augmented-generation.py",
+      "prerequisites": [
+        "llm/rag"
+      ],
+      "outcomes": [
+        "Explain the core mechanism and assumptions behind Retrieval-Augmented Generation (RAG).",
+        "Choose and evaluate an appropriate use of Retrieval-Augmented Generation (RAG) under stated constraints."
+      ],
+      "practice": [
+        "llm/interview-prep/curriculum-practice.md#retrieval-augmented-generation-rag"
+      ],
+      "estimated_minutes": 60,
+      "quality_status": "required"
+    },
+    {
+      "id": "llm/vector-databases",
+      "track": "llm",
+      "level": "intermediate",
+      "concept": "llm/concepts/20-vector-databases.md",
+      "notebook": "llm/notebooks/20-vector-databases.ipynb",
+      "implementation": "llm/implementations/20-vector-databases.py",
+      "prerequisites": [
+        "llm/retrieval-augmented-generation"
+      ],
+      "outcomes": [
+        "Explain the core mechanism and assumptions behind Vector Databases.",
+        "Choose and evaluate an appropriate use of Vector Databases under stated constraints."
+      ],
+      "practice": [
+        "llm/interview-prep/curriculum-practice.md#vector-databases"
+      ],
+      "estimated_minutes": 60,
+      "quality_status": "required"
+    },
+    {
+      "id": "llm/semantic-search",
+      "track": "llm",
+      "level": "intermediate",
+      "concept": "llm/concepts/21-semantic-search.md",
+      "notebook": "llm/notebooks/21-semantic-search.ipynb",
+      "implementation": "llm/implementations/21-semantic-search.py",
+      "prerequisites": [
+        "llm/vector-databases"
+      ],
+      "outcomes": [
+        "Explain the core mechanism and assumptions behind Semantic Search.",
+        "Choose and evaluate an appropriate use of Semantic Search under stated constraints."
+      ],
+      "practice": [
+        "llm/interview-prep/curriculum-practice.md#semantic-search"
+      ],
+      "estimated_minutes": 60,
+      "quality_status": "required"
+    },
+    {
+      "id": "llm/semantic-caching",
+      "track": "llm",
+      "level": "intermediate",
+      "concept": "llm/concepts/22-semantic-caching.md",
+      "notebook": "llm/notebooks/22-semantic-caching.ipynb",
+      "implementation": "llm/implementations/22-semantic-caching.py",
+      "prerequisites": [
+        "llm/semantic-search"
+      ],
+      "outcomes": [
+        "Explain the core mechanism and assumptions behind Semantic Caching.",
+        "Choose and evaluate an appropriate use of Semantic Caching under stated constraints."
+      ],
+      "practice": [
+        "llm/interview-prep/curriculum-practice.md#semantic-caching"
+      ],
+      "estimated_minutes": 60,
+      "quality_status": "required"
+    },
+    {
+      "id": "llm/kv-cache",
+      "track": "llm",
+      "level": "intermediate",
+      "concept": "llm/concepts/23-kv-cache.md",
+      "notebook": "llm/notebooks/23-kv-cache.ipynb",
+      "implementation": "llm/implementations/23-kv-cache.py",
+      "prerequisites": [
+        "llm/semantic-caching"
+      ],
+      "outcomes": [
+        "Explain the core mechanism and assumptions behind KV Cache.",
+        "Choose and evaluate an appropriate use of KV Cache under stated constraints."
+      ],
+      "practice": [
+        "llm/interview-prep/curriculum-practice.md#kv-cache"
+      ],
+      "estimated_minutes": 60,
+      "quality_status": "required"
+    },
+    {
+      "id": "llm/attention-optimization",
+      "track": "llm",
+      "level": "intermediate",
+      "concept": "llm/concepts/24-attention-optimization.md",
+      "notebook": "llm/notebooks/24-attention-optimization.ipynb",
+      "implementation": "llm/implementations/24-attention-optimization.py",
+      "prerequisites": [
+        "llm/kv-cache"
+      ],
+      "outcomes": [
+        "Explain the core mechanism and assumptions behind Attention Optimization.",
+        "Choose and evaluate an appropriate use of Attention Optimization under stated constraints."
+      ],
+      "practice": [
+        "llm/interview-prep/curriculum-practice.md#attention-optimization"
+      ],
+      "estimated_minutes": 60,
+      "quality_status": "required"
+    },
+    {
+      "id": "llm/context-window",
+      "track": "llm",
+      "level": "intermediate",
+      "concept": "llm/concepts/25-context-window.md",
+      "notebook": "llm/notebooks/25-context-window.ipynb",
+      "implementation": "llm/implementations/25-context-window.py",
+      "prerequisites": [
+        "llm/attention-optimization"
+      ],
+      "outcomes": [
+        "Explain the core mechanism and assumptions behind Context Window.",
+        "Choose and evaluate an appropriate use of Context Window under stated constraints."
+      ],
+      "practice": [
+        "llm/interview-prep/curriculum-practice.md#context-window"
+      ],
+      "estimated_minutes": 60,
+      "quality_status": "required"
+    },
+    {
+      "id": "llm/continuous-batching",
+      "track": "llm",
+      "level": "intermediate",
+      "concept": "llm/concepts/26-continuous-batching.md",
+      "notebook": "llm/notebooks/26-continuous-batching.ipynb",
+      "implementation": "llm/implementations/26-continuous-batching.py",
+      "prerequisites": [
+        "llm/context-window"
+      ],
+      "outcomes": [
+        "Explain the core mechanism and assumptions behind Continuous Batching.",
+        "Choose and evaluate an appropriate use of Continuous Batching under stated constraints."
+      ],
+      "practice": [
+        "llm/interview-prep/curriculum-practice.md#continuous-batching"
+      ],
+      "estimated_minutes": 60,
+      "quality_status": "required"
+    },
+    {
+      "id": "llm/speculative-decoding",
+      "track": "llm",
+      "level": "intermediate",
+      "concept": "llm/concepts/27-speculative-decoding.md",
+      "notebook": "llm/notebooks/27-speculative-decoding.ipynb",
+      "implementation": "llm/implementations/27-speculative-decoding.py",
+      "prerequisites": [
+        "llm/continuous-batching"
+      ],
+      "outcomes": [
+        "Explain the core mechanism and assumptions behind Speculative Decoding.",
+        "Choose and evaluate an appropriate use of Speculative Decoding under stated constraints."
+      ],
+      "practice": [
+        "llm/interview-prep/curriculum-practice.md#speculative-decoding"
+      ],
+      "estimated_minutes": 60,
+      "quality_status": "required"
+    },
+    {
+      "id": "llm/inference-optimization",
+      "track": "llm",
+      "level": "intermediate",
+      "concept": "llm/concepts/28-inference-optimization.md",
+      "notebook": "llm/notebooks/28-inference-optimization.ipynb",
+      "implementation": "llm/implementations/28-inference-optimization.py",
+      "prerequisites": [
+        "llm/speculative-decoding"
+      ],
+      "outcomes": [
+        "Explain the core mechanism and assumptions behind Inference Optimization.",
+        "Choose and evaluate an appropriate use of Inference Optimization under stated constraints."
+      ],
+      "practice": [
+        "llm/interview-prep/curriculum-practice.md#inference-optimization"
+      ],
+      "estimated_minutes": 60,
+      "quality_status": "required"
+    },
+    {
+      "id": "llm/token-optimization",
+      "track": "llm",
+      "level": "intermediate",
+      "concept": "llm/concepts/29-token-optimization.md",
+      "notebook": "llm/notebooks/29-token-optimization.ipynb",
+      "implementation": "llm/implementations/29-token-optimization.py",
+      "prerequisites": [
+        "llm/inference-optimization"
+      ],
+      "outcomes": [
+        "Explain the core mechanism and assumptions behind Token Optimization.",
+        "Choose and evaluate an appropriate use of Token Optimization under stated constraints."
+      ],
+      "practice": [
+        "llm/interview-prep/curriculum-practice.md#token-optimization"
+      ],
+      "estimated_minutes": 60,
+      "quality_status": "required"
+    },
+    {
+      "id": "llm/quantization",
+      "track": "llm",
+      "level": "intermediate",
+      "concept": "llm/concepts/30-quantization.md",
+      "notebook": "llm/notebooks/30-quantization.ipynb",
+      "implementation": "llm/implementations/30-quantization.py",
+      "prerequisites": [
+        "llm/token-optimization"
+      ],
+      "outcomes": [
+        "Explain the core mechanism and assumptions behind Quantization (for LLMs).",
+        "Choose and evaluate an appropriate use of Quantization (for LLMs) under stated constraints."
+      ],
+      "practice": [
+        "llm/interview-prep/curriculum-practice.md#quantization-for-llms"
+      ],
+      "estimated_minutes": 60,
+      "quality_status": "required"
+    },
+    {
+      "id": "llm/multimodal",
+      "track": "llm",
+      "level": "intermediate",
+      "concept": "llm/concepts/31-multimodal.md",
+      "notebook": "llm/notebooks/31-multimodal.ipynb",
+      "implementation": "llm/implementations/31-multimodal.py",
+      "prerequisites": [
+        "llm/quantization"
+      ],
+      "outcomes": [
+        "Explain the core mechanism and assumptions behind Multimodal.",
+        "Choose and evaluate an appropriate use of Multimodal under stated constraints."
+      ],
+      "practice": [
+        "llm/interview-prep/curriculum-practice.md#multimodal"
+      ],
+      "estimated_minutes": 60,
+      "quality_status": "required"
+    },
+    {
+      "id": "llm/evaluation",
+      "track": "llm",
+      "level": "intermediate",
+      "concept": "llm/concepts/32-evaluation.md",
+      "notebook": "llm/notebooks/32-evaluation.ipynb",
+      "implementation": "llm/implementations/32-evaluation.py",
+      "prerequisites": [
+        "llm/multimodal"
+      ],
+      "outcomes": [
+        "Explain the core mechanism and assumptions behind Evaluation (for LLMs).",
+        "Choose and evaluate an appropriate use of Evaluation (for LLMs) under stated constraints."
+      ],
+      "practice": [
+        "llm/interview-prep/curriculum-practice.md#evaluation-for-llms"
+      ],
+      "estimated_minutes": 60,
+      "quality_status": "required"
+    },
+    {
+      "id": "llm/vision-transformers",
+      "track": "llm",
+      "level": "intermediate",
+      "concept": "llm/concepts/33-vision-transformers.md",
+      "notebook": "llm/notebooks/33-vision-transformers.ipynb",
+      "implementation": "llm/implementations/33-vision-transformers.py",
+      "prerequisites": [
+        "llm/evaluation"
+      ],
+      "outcomes": [
+        "Explain the core mechanism and assumptions behind Vision Transformers (ViT).",
+        "Choose and evaluate an appropriate use of Vision Transformers (ViT) under stated constraints."
+      ],
+      "practice": [
+        "llm/interview-prep/curriculum-practice.md#vision-transformers-vit"
+      ],
+      "estimated_minutes": 60,
+      "quality_status": "required"
+    },
+    {
+      "id": "llm/multimodal-fusion",
+      "track": "llm",
+      "level": "intermediate",
+      "concept": "llm/concepts/34-multimodal-fusion.md",
+      "notebook": "llm/notebooks/34-multimodal-fusion.ipynb",
+      "implementation": "llm/implementations/34-multimodal-fusion.py",
+      "prerequisites": [
+        "llm/vision-transformers"
+      ],
+      "outcomes": [
+        "Explain the core mechanism and assumptions behind Multimodal Fusion.",
+        "Choose and evaluate an appropriate use of Multimodal Fusion under stated constraints."
+      ],
+      "practice": [
+        "llm/interview-prep/curriculum-practice.md#multimodal-fusion"
+      ],
+      "estimated_minutes": 60,
+      "quality_status": "required"
+    },
+    {
+      "id": "llm/model-interpretability",
+      "track": "llm",
+      "level": "intermediate",
+      "concept": "llm/concepts/35-model-interpretability.md",
+      "notebook": "llm/notebooks/35-model-interpretability.ipynb",
+      "implementation": "llm/implementations/35-model-interpretability.py",
+      "prerequisites": [
+        "llm/multimodal-fusion"
+      ],
+      "outcomes": [
+        "Explain the core mechanism and assumptions behind Model Interpretability.",
+        "Choose and evaluate an appropriate use of Model Interpretability under stated constraints."
+      ],
+      "practice": [
+        "llm/interview-prep/curriculum-practice.md#model-interpretability"
+      ],
+      "estimated_minutes": 60,
+      "quality_status": "required"
+    },
+    {
+      "id": "llm/adversarial-robustness",
+      "track": "llm",
+      "level": "intermediate",
+      "concept": "llm/concepts/36-adversarial-robustness.md",
+      "notebook": "llm/notebooks/36-adversarial-robustness.ipynb",
+      "implementation": "llm/implementations/36-adversarial-robustness.py",
+      "prerequisites": [
+        "llm/model-interpretability"
+      ],
+      "outcomes": [
+        "Explain the core mechanism and assumptions behind Adversarial Robustness.",
+        "Choose and evaluate an appropriate use of Adversarial Robustness under stated constraints."
+      ],
+      "practice": [
+        "llm/interview-prep/curriculum-practice.md#adversarial-robustness"
+      ],
+      "estimated_minutes": 60,
+      "quality_status": "required"
+    },
+    {
+      "id": "llm/knowledge-distillation",
+      "track": "llm",
+      "level": "advanced",
+      "concept": "llm/concepts/37-knowledge-distillation.md",
+      "notebook": "llm/notebooks/37-knowledge-distillation.ipynb",
+      "implementation": "llm/implementations/37-knowledge-distillation.py",
+      "prerequisites": [
+        "llm/adversarial-robustness"
+      ],
+      "outcomes": [
+        "Explain the core mechanism and assumptions behind Knowledge Distillation.",
+        "Choose and evaluate an appropriate use of Knowledge Distillation under stated constraints."
+      ],
+      "practice": [
+        "llm/interview-prep/curriculum-practice.md#knowledge-distillation"
+      ],
+      "estimated_minutes": 60,
+      "quality_status": "required"
+    },
+    {
+      "id": "llm/neural-architecture-search",
+      "track": "llm",
+      "level": "advanced",
+      "concept": "llm/concepts/38-neural-architecture-search.md",
+      "notebook": "llm/notebooks/38-neural-architecture-search.ipynb",
+      "implementation": "llm/implementations/38-neural-architecture-search.py",
+      "prerequisites": [
+        "llm/knowledge-distillation"
+      ],
+      "outcomes": [
+        "Explain the core mechanism and assumptions behind Neural Architecture Search.",
+        "Choose and evaluate an appropriate use of Neural Architecture Search under stated constraints."
+      ],
+      "practice": [
+        "llm/interview-prep/curriculum-practice.md#neural-architecture-search"
+      ],
+      "estimated_minutes": 60,
+      "quality_status": "required"
+    },
+    {
+      "id": "llm/long-context-handling",
+      "track": "llm",
+      "level": "advanced",
+      "concept": "llm/concepts/39-long-context-handling.md",
+      "notebook": "llm/notebooks/39-long-context-handling.ipynb",
+      "implementation": "llm/implementations/39-long-context-handling.py",
+      "prerequisites": [
+        "llm/neural-architecture-search"
+      ],
+      "outcomes": [
+        "Explain the core mechanism and assumptions behind Long-Context Handling.",
+        "Choose and evaluate an appropriate use of Long-Context Handling under stated constraints."
+      ],
+      "practice": [
+        "llm/interview-prep/curriculum-practice.md#long-context-handling"
+      ],
+      "estimated_minutes": 60,
+      "quality_status": "required"
+    },
+    {
+      "id": "llm/retrieval-systems",
+      "track": "llm",
+      "level": "advanced",
+      "concept": "llm/concepts/40-retrieval-systems.md",
+      "notebook": "llm/notebooks/40-retrieval-systems.ipynb",
+      "implementation": "llm/implementations/40-retrieval-systems.py",
+      "prerequisites": [
+        "llm/long-context-handling"
+      ],
+      "outcomes": [
+        "Explain the core mechanism and assumptions behind Retrieval Systems.",
+        "Choose and evaluate an appropriate use of Retrieval Systems under stated constraints."
+      ],
+      "practice": [
+        "llm/interview-prep/curriculum-practice.md#retrieval-systems"
+      ],
+      "estimated_minutes": 60,
+      "quality_status": "required"
+    },
+    {
+      "id": "llm/prompt-injection-security",
+      "track": "llm",
+      "level": "advanced",
+      "concept": "llm/concepts/41-prompt-injection-security.md",
+      "notebook": "llm/notebooks/41-prompt-injection-security.ipynb",
+      "implementation": "llm/implementations/41-prompt-injection-security.py",
+      "prerequisites": [
+        "llm/retrieval-systems"
+      ],
+      "outcomes": [
+        "Explain the core mechanism and assumptions behind Prompt Injection Security.",
+        "Choose and evaluate an appropriate use of Prompt Injection Security under stated constraints."
+      ],
+      "practice": [
+        "llm/interview-prep/curriculum-practice.md#prompt-injection-security"
+      ],
+      "estimated_minutes": 60,
+      "quality_status": "required"
+    },
+    {
+      "id": "llm/model-editing",
+      "track": "llm",
+      "level": "advanced",
+      "concept": "llm/concepts/42-model-editing.md",
+      "notebook": "llm/notebooks/42-model-editing.ipynb",
+      "implementation": "llm/implementations/42-model-editing.py",
+      "prerequisites": [
+        "llm/prompt-injection-security"
+      ],
+      "outcomes": [
+        "Explain the core mechanism and assumptions behind Model Editing.",
+        "Choose and evaluate an appropriate use of Model Editing under stated constraints."
+      ],
+      "practice": [
+        "llm/interview-prep/curriculum-practice.md#model-editing"
+      ],
+      "estimated_minutes": 60,
+      "quality_status": "required"
+    },
+    {
+      "id": "llm/mixture-of-experts",
+      "track": "llm",
+      "level": "advanced",
+      "concept": "llm/concepts/43-mixture-of-experts.md",
+      "notebook": "llm/notebooks/43-mixture-of-experts.ipynb",
+      "implementation": "llm/implementations/43-mixture-of-experts.py",
+      "prerequisites": [
+        "llm/model-editing"
+      ],
+      "outcomes": [
+        "Explain the core mechanism and assumptions behind Mixture of Experts (MoE).",
+        "Choose and evaluate an appropriate use of Mixture of Experts (MoE) under stated constraints."
+      ],
+      "practice": [
+        "llm/interview-prep/curriculum-practice.md#mixture-of-experts-moe"
+      ],
+      "estimated_minutes": 60,
+      "quality_status": "required"
+    },
+    {
+      "id": "llm/efficient-attention",
+      "track": "llm",
+      "level": "advanced",
+      "concept": "llm/concepts/44-efficient-attention.md",
+      "notebook": "llm/notebooks/44-efficient-attention.ipynb",
+      "implementation": "llm/implementations/44-efficient-attention.py",
+      "prerequisites": [
+        "llm/mixture-of-experts"
+      ],
+      "outcomes": [
+        "Explain the core mechanism and assumptions behind Efficient Attention.",
+        "Choose and evaluate an appropriate use of Efficient Attention under stated constraints."
+      ],
+      "practice": [
+        "llm/interview-prep/curriculum-practice.md#efficient-attention"
+      ],
+      "estimated_minutes": 60,
+      "quality_status": "required"
+    },
+    {
+      "id": "agentic-ai/what-is-an-agent",
+      "track": "agentic-ai",
+      "level": "foundation",
+      "concept": "agentic-ai/concepts/01-what-is-an-agent.md",
+      "notebook": "agentic-ai/notebooks/01-what-is-an-agent.ipynb",
+      "implementation": "agentic-ai/implementations/01-what-is-an-agent.py",
+      "prerequisites": [
+        "llm/tokenization"
+      ],
+      "outcomes": [
+        "Explain the core mechanism and assumptions behind What Is an Agent?.",
+        "Choose and evaluate an appropriate use of What Is an Agent? under stated constraints."
+      ],
+      "practice": [
+        "agentic-ai/interview-prep/curriculum-practice.md#what-is-an-agent"
+      ],
+      "estimated_minutes": 60,
+      "quality_status": "required"
+    },
+    {
+      "id": "agentic-ai/agent-loops",
+      "track": "agentic-ai",
+      "level": "foundation",
+      "concept": "agentic-ai/concepts/02-agent-loops.md",
+      "notebook": "agentic-ai/notebooks/02-agent-loops.ipynb",
+      "implementation": "agentic-ai/implementations/02-agent-loops.py",
+      "prerequisites": [
+        "agentic-ai/what-is-an-agent"
+      ],
+      "outcomes": [
+        "Explain the core mechanism and assumptions behind Agent Loops.",
+        "Choose and evaluate an appropriate use of Agent Loops under stated constraints."
+      ],
+      "practice": [
+        "agentic-ai/interview-prep/curriculum-practice.md#agent-loops"
+      ],
+      "estimated_minutes": 60,
+      "quality_status": "required"
+    },
+    {
+      "id": "agentic-ai/tool-use",
+      "track": "agentic-ai",
+      "level": "foundation",
+      "concept": "agentic-ai/concepts/03-tool-use.md",
+      "notebook": "agentic-ai/notebooks/03-tool-use.ipynb",
+      "implementation": "agentic-ai/implementations/03-tool-use.py",
+      "prerequisites": [
+        "agentic-ai/agent-loops"
+      ],
+      "outcomes": [
+        "Explain the core mechanism and assumptions behind Tool Use.",
+        "Choose and evaluate an appropriate use of Tool Use under stated constraints."
+      ],
+      "practice": [
+        "agentic-ai/interview-prep/curriculum-practice.md#tool-use"
+      ],
+      "estimated_minutes": 60,
+      "quality_status": "required"
+    },
+    {
+      "id": "agentic-ai/tool-calling",
+      "track": "agentic-ai",
+      "level": "foundation",
+      "concept": "agentic-ai/concepts/04-tool-calling.md",
+      "notebook": "agentic-ai/notebooks/04-tool-calling.ipynb",
+      "implementation": "agentic-ai/implementations/04-tool-calling.py",
+      "prerequisites": [
+        "agentic-ai/tool-use"
+      ],
+      "outcomes": [
+        "Explain the core mechanism and assumptions behind Tool Calling.",
+        "Choose and evaluate an appropriate use of Tool Calling under stated constraints."
+      ],
+      "practice": [
+        "agentic-ai/interview-prep/curriculum-practice.md#tool-calling"
+      ],
+      "estimated_minutes": 60,
+      "quality_status": "required"
+    },
+    {
+      "id": "agentic-ai/function-calling",
+      "track": "agentic-ai",
+      "level": "foundation",
+      "concept": "agentic-ai/concepts/05-function-calling.md",
+      "notebook": "agentic-ai/notebooks/05-function-calling.ipynb",
+      "implementation": "agentic-ai/implementations/05-function-calling.py",
+      "prerequisites": [
+        "agentic-ai/tool-calling"
+      ],
+      "outcomes": [
+        "Explain the core mechanism and assumptions behind Function Calling.",
+        "Choose and evaluate an appropriate use of Function Calling under stated constraints."
+      ],
+      "practice": [
+        "agentic-ai/interview-prep/curriculum-practice.md#function-calling"
+      ],
+      "estimated_minutes": 60,
+      "quality_status": "required"
+    },
+    {
+      "id": "agentic-ai/structured-output",
+      "track": "agentic-ai",
+      "level": "foundation",
+      "concept": "agentic-ai/concepts/06-structured-output.md",
+      "notebook": "agentic-ai/notebooks/06-structured-output.ipynb",
+      "implementation": "agentic-ai/implementations/06-structured-output.py",
+      "prerequisites": [
+        "agentic-ai/function-calling"
+      ],
+      "outcomes": [
+        "Explain the core mechanism and assumptions behind Structured Output.",
+        "Choose and evaluate an appropriate use of Structured Output under stated constraints."
+      ],
+      "practice": [
+        "agentic-ai/interview-prep/curriculum-practice.md#structured-output"
+      ],
+      "estimated_minutes": 60,
+      "quality_status": "required"
+    },
+    {
+      "id": "agentic-ai/planning-reasoning",
+      "track": "agentic-ai",
+      "level": "foundation",
+      "concept": "agentic-ai/concepts/07-planning-reasoning.md",
+      "notebook": "agentic-ai/notebooks/07-planning-reasoning.ipynb",
+      "implementation": "agentic-ai/implementations/07-planning-reasoning.py",
+      "prerequisites": [
+        "agentic-ai/structured-output"
+      ],
+      "outcomes": [
+        "Explain the core mechanism and assumptions behind Planning Agents.",
+        "Choose and evaluate an appropriate use of Planning Agents under stated constraints."
+      ],
+      "practice": [
+        "agentic-ai/interview-prep/curriculum-practice.md#planning-agents"
+      ],
+      "estimated_minutes": 60,
+      "quality_status": "required"
+    },
+    {
+      "id": "agentic-ai/react-reasoning-acting",
+      "track": "agentic-ai",
+      "level": "foundation",
+      "concept": "agentic-ai/concepts/08-react-reasoning-acting.md",
+      "notebook": "agentic-ai/notebooks/08-react-reasoning-acting.ipynb",
+      "implementation": "agentic-ai/implementations/08-react-reasoning-acting.py",
+      "prerequisites": [
+        "agentic-ai/planning-reasoning"
+      ],
+      "outcomes": [
+        "Explain the core mechanism and assumptions behind ReAct: Reasoning + Acting.",
+        "Choose and evaluate an appropriate use of ReAct: Reasoning + Acting under stated constraints."
+      ],
+      "practice": [
+        "agentic-ai/interview-prep/curriculum-practice.md#react-reasoning-acting"
+      ],
+      "estimated_minutes": 60,
+      "quality_status": "required"
+    },
+    {
+      "id": "agentic-ai/tree-of-thought",
+      "track": "agentic-ai",
+      "level": "foundation",
+      "concept": "agentic-ai/concepts/09-tree-of-thought.md",
+      "notebook": "agentic-ai/notebooks/09-tree-of-thought.ipynb",
+      "implementation": "agentic-ai/implementations/09-tree-of-thought.py",
+      "prerequisites": [
+        "agentic-ai/react-reasoning-acting"
+      ],
+      "outcomes": [
+        "Explain the core mechanism and assumptions behind Tree of Thought Reasoning.",
+        "Choose and evaluate an appropriate use of Tree of Thought Reasoning under stated constraints."
+      ],
+      "practice": [
+        "agentic-ai/interview-prep/curriculum-practice.md#tree-of-thought-reasoning"
+      ],
+      "estimated_minutes": 60,
+      "quality_status": "required"
+    },
+    {
+      "id": "agentic-ai/mcts-for-agents",
+      "track": "agentic-ai",
+      "level": "foundation",
+      "concept": "agentic-ai/concepts/10-mcts-for-agents.md",
+      "notebook": "agentic-ai/notebooks/10-mcts-for-agents.ipynb",
+      "implementation": "agentic-ai/implementations/10-mcts-for-agents.py",
+      "prerequisites": [
+        "agentic-ai/tree-of-thought"
+      ],
+      "outcomes": [
+        "Explain the core mechanism and assumptions behind Monte Carlo Tree Search for Agents.",
+        "Choose and evaluate an appropriate use of Monte Carlo Tree Search for Agents under stated constraints."
+      ],
+      "practice": [
+        "agentic-ai/interview-prep/curriculum-practice.md#monte-carlo-tree-search-for-agents"
+      ],
+      "estimated_minutes": 60,
+      "quality_status": "required"
+    },
+    {
+      "id": "agentic-ai/memory-types",
+      "track": "agentic-ai",
+      "level": "foundation",
+      "concept": "agentic-ai/concepts/11-memory-types.md",
+      "notebook": "agentic-ai/notebooks/11-memory-types.ipynb",
+      "implementation": "agentic-ai/implementations/11-memory-types.py",
+      "prerequisites": [
+        "agentic-ai/mcts-for-agents"
+      ],
+      "outcomes": [
+        "Explain the core mechanism and assumptions behind Memory Types.",
+        "Choose and evaluate an appropriate use of Memory Types under stated constraints."
+      ],
+      "practice": [
+        "agentic-ai/interview-prep/curriculum-practice.md#memory-types"
+      ],
+      "estimated_minutes": 60,
+      "quality_status": "required"
+    },
+    {
+      "id": "agentic-ai/agent-memory-management",
+      "track": "agentic-ai",
+      "level": "foundation",
+      "concept": "agentic-ai/concepts/12-agent-memory-management.md",
+      "notebook": "agentic-ai/notebooks/12-agent-memory-management.ipynb",
+      "implementation": "agentic-ai/implementations/12-agent-memory-management.py",
+      "prerequisites": [
+        "agentic-ai/memory-types"
+      ],
+      "outcomes": [
+        "Explain the core mechanism and assumptions behind Agent Memory Management.",
+        "Choose and evaluate an appropriate use of Agent Memory Management under stated constraints."
+      ],
+      "practice": [
+        "agentic-ai/interview-prep/curriculum-practice.md#agent-memory-management"
+      ],
+      "estimated_minutes": 60,
+      "quality_status": "required"
+    },
+    {
+      "id": "agentic-ai/agent-communication",
+      "track": "agentic-ai",
+      "level": "intermediate",
+      "concept": "agentic-ai/concepts/13-agent-communication.md",
+      "notebook": "agentic-ai/notebooks/13-agent-communication.ipynb",
+      "implementation": "agentic-ai/implementations/13-agent-communication.py",
+      "prerequisites": [
+        "agentic-ai/agent-memory-management"
+      ],
+      "outcomes": [
+        "Explain the core mechanism and assumptions behind Agent Communication.",
+        "Choose and evaluate an appropriate use of Agent Communication under stated constraints."
+      ],
+      "practice": [
+        "agentic-ai/interview-prep/curriculum-practice.md#agent-communication"
+      ],
+      "estimated_minutes": 60,
+      "quality_status": "required"
+    },
+    {
+      "id": "agentic-ai/multi-agent-systems",
+      "track": "agentic-ai",
+      "level": "intermediate",
+      "concept": "agentic-ai/concepts/14-multi-agent-systems.md",
+      "notebook": "agentic-ai/notebooks/14-multi-agent-systems.ipynb",
+      "implementation": "agentic-ai/implementations/14-multi-agent-systems.py",
+      "prerequisites": [
+        "agentic-ai/agent-communication"
+      ],
+      "outcomes": [
+        "Explain the core mechanism and assumptions behind Multi-Agent Systems.",
+        "Choose and evaluate an appropriate use of Multi-Agent Systems under stated constraints."
+      ],
+      "practice": [
+        "agentic-ai/interview-prep/curriculum-practice.md#multi-agent-systems"
+      ],
+      "estimated_minutes": 60,
+      "quality_status": "required"
+    },
+    {
+      "id": "agentic-ai/hierarchical-agents",
+      "track": "agentic-ai",
+      "level": "intermediate",
+      "concept": "agentic-ai/concepts/15-hierarchical-agents.md",
+      "notebook": "agentic-ai/notebooks/15-hierarchical-agents.ipynb",
+      "implementation": "agentic-ai/implementations/15-hierarchical-agents.py",
+      "prerequisites": [
+        "agentic-ai/multi-agent-systems"
+      ],
+      "outcomes": [
+        "Explain the core mechanism and assumptions behind Hierarchical Agents.",
+        "Choose and evaluate an appropriate use of Hierarchical Agents under stated constraints."
+      ],
+      "practice": [
+        "agentic-ai/interview-prep/curriculum-practice.md#hierarchical-agents"
+      ],
+      "estimated_minutes": 60,
+      "quality_status": "required"
+    },
+    {
+      "id": "agentic-ai/cooperative-agents",
+      "track": "agentic-ai",
+      "level": "intermediate",
+      "concept": "agentic-ai/concepts/16-cooperative-agents.md",
+      "notebook": "agentic-ai/notebooks/16-cooperative-agents.ipynb",
+      "implementation": "agentic-ai/implementations/16-cooperative-agents.py",
+      "prerequisites": [
+        "agentic-ai/hierarchical-agents"
+      ],
+      "outcomes": [
+        "Explain the core mechanism and assumptions behind Cooperative Agents.",
+        "Choose and evaluate an appropriate use of Cooperative Agents under stated constraints."
+      ],
+      "practice": [
+        "agentic-ai/interview-prep/curriculum-practice.md#cooperative-agents"
+      ],
+      "estimated_minutes": 60,
+      "quality_status": "required"
+    },
+    {
+      "id": "agentic-ai/competitive-agents",
+      "track": "agentic-ai",
+      "level": "intermediate",
+      "concept": "agentic-ai/concepts/17-competitive-agents.md",
+      "notebook": "agentic-ai/notebooks/17-competitive-agents.ipynb",
+      "implementation": "agentic-ai/implementations/17-competitive-agents.py",
+      "prerequisites": [
+        "agentic-ai/cooperative-agents"
+      ],
+      "outcomes": [
+        "Explain the core mechanism and assumptions behind Competitive Agents.",
+        "Choose and evaluate an appropriate use of Competitive Agents under stated constraints."
+      ],
+      "practice": [
+        "agentic-ai/interview-prep/curriculum-practice.md#competitive-agents"
+      ],
+      "estimated_minutes": 60,
+      "quality_status": "required"
+    },
+    {
+      "id": "agentic-ai/autonomous-agents",
+      "track": "agentic-ai",
+      "level": "intermediate",
+      "concept": "agentic-ai/concepts/18-autonomous-agents.md",
+      "notebook": "agentic-ai/notebooks/18-autonomous-agents.ipynb",
+      "implementation": "agentic-ai/implementations/18-autonomous-agents.py",
+      "prerequisites": [
+        "agentic-ai/competitive-agents"
+      ],
+      "outcomes": [
+        "Explain the core mechanism and assumptions behind Autonomous Agents.",
+        "Choose and evaluate an appropriate use of Autonomous Agents under stated constraints."
+      ],
+      "practice": [
+        "agentic-ai/interview-prep/curriculum-practice.md#autonomous-agents"
+      ],
+      "estimated_minutes": 60,
+      "quality_status": "required"
+    },
+    {
+      "id": "agentic-ai/context-window-management",
+      "track": "agentic-ai",
+      "level": "intermediate",
+      "concept": "agentic-ai/concepts/19-context-window-management.md",
+      "notebook": "agentic-ai/notebooks/19-context-window-management.ipynb",
+      "implementation": "agentic-ai/implementations/19-context-window-management.py",
+      "prerequisites": [
+        "agentic-ai/autonomous-agents"
+      ],
+      "outcomes": [
+        "Explain the core mechanism and assumptions behind Context Window Management in Agents.",
+        "Choose and evaluate an appropriate use of Context Window Management in Agents under stated constraints."
+      ],
+      "practice": [
+        "agentic-ai/interview-prep/curriculum-practice.md#context-window-management-in-agents"
+      ],
+      "estimated_minutes": 60,
+      "quality_status": "required"
+    },
+    {
+      "id": "agentic-ai/agent-routing",
+      "track": "agentic-ai",
+      "level": "intermediate",
+      "concept": "agentic-ai/concepts/20-agent-routing.md",
+      "notebook": "agentic-ai/notebooks/20-agent-routing.ipynb",
+      "implementation": "agentic-ai/implementations/20-agent-routing.py",
+      "prerequisites": [
+        "agentic-ai/context-window-management"
+      ],
+      "outcomes": [
+        "Explain the core mechanism and assumptions behind Agent Routing.",
+        "Choose and evaluate an appropriate use of Agent Routing under stated constraints."
+      ],
+      "practice": [
+        "agentic-ai/interview-prep/curriculum-practice.md#agent-routing"
+      ],
+      "estimated_minutes": 60,
+      "quality_status": "required"
+    },
+    {
+      "id": "agentic-ai/agent-persistence",
+      "track": "agentic-ai",
+      "level": "intermediate",
+      "concept": "agentic-ai/concepts/21-agent-persistence.md",
+      "notebook": "agentic-ai/notebooks/21-agent-persistence.ipynb",
+      "implementation": "agentic-ai/implementations/21-agent-persistence.py",
+      "prerequisites": [
+        "agentic-ai/agent-routing"
+      ],
+      "outcomes": [
+        "Explain the core mechanism and assumptions behind Agent Persistence.",
+        "Choose and evaluate an appropriate use of Agent Persistence under stated constraints."
+      ],
+      "practice": [
+        "agentic-ai/interview-prep/curriculum-practice.md#agent-persistence"
+      ],
+      "estimated_minutes": 60,
+      "quality_status": "required"
+    },
+    {
+      "id": "agentic-ai/skill-composition",
+      "track": "agentic-ai",
+      "level": "intermediate",
+      "concept": "agentic-ai/concepts/22-skill-composition.md",
+      "notebook": "agentic-ai/notebooks/22-skill-composition.ipynb",
+      "implementation": "agentic-ai/implementations/22-skill-composition.py",
+      "prerequisites": [
+        "agentic-ai/agent-persistence"
+      ],
+      "outcomes": [
+        "Explain the core mechanism and assumptions behind Skill Composition.",
+        "Choose and evaluate an appropriate use of Skill Composition under stated constraints."
+      ],
+      "practice": [
+        "agentic-ai/interview-prep/curriculum-practice.md#skill-composition"
+      ],
+      "estimated_minutes": 60,
+      "quality_status": "required"
+    },
+    {
+      "id": "agentic-ai/knowledge-graphs",
+      "track": "agentic-ai",
+      "level": "intermediate",
+      "concept": "agentic-ai/concepts/23-knowledge-graphs.md",
+      "notebook": "agentic-ai/notebooks/23-knowledge-graphs.ipynb",
+      "implementation": "agentic-ai/implementations/23-knowledge-graphs.py",
+      "prerequisites": [
+        "agentic-ai/skill-composition"
+      ],
+      "outcomes": [
+        "Explain the core mechanism and assumptions behind Knowledge Graphs.",
+        "Choose and evaluate an appropriate use of Knowledge Graphs under stated constraints."
+      ],
+      "practice": [
+        "agentic-ai/interview-prep/curriculum-practice.md#knowledge-graphs"
+      ],
+      "estimated_minutes": 60,
+      "quality_status": "required"
+    },
+    {
+      "id": "agentic-ai/reflection-and-self-improvement",
+      "track": "agentic-ai",
+      "level": "intermediate",
+      "concept": "agentic-ai/concepts/24-reflection-and-self-improvement.md",
+      "notebook": "agentic-ai/notebooks/24-reflection-and-self-improvement.ipynb",
+      "implementation": "agentic-ai/implementations/24-reflection-and-self-improvement.py",
+      "prerequisites": [
+        "agentic-ai/knowledge-graphs"
+      ],
+      "outcomes": [
+        "Explain the core mechanism and assumptions behind Reflection and Self-Improvement.",
+        "Choose and evaluate an appropriate use of Reflection and Self-Improvement under stated constraints."
+      ],
+      "practice": [
+        "agentic-ai/interview-prep/curriculum-practice.md#reflection-and-self-improvement"
+      ],
+      "estimated_minutes": 60,
+      "quality_status": "required"
+    },
+    {
+      "id": "agentic-ai/retrieval-augmented-generation",
+      "track": "agentic-ai",
+      "level": "intermediate",
+      "concept": "agentic-ai/concepts/25-retrieval-augmented-generation.md",
+      "notebook": "agentic-ai/notebooks/25-retrieval-augmented-generation.ipynb",
+      "implementation": "agentic-ai/implementations/25-retrieval-augmented-generation.py",
+      "prerequisites": [
+        "agentic-ai/reflection-and-self-improvement"
+      ],
+      "outcomes": [
+        "Explain the core mechanism and assumptions behind Retrieval-Augmented Generation.",
+        "Choose and evaluate an appropriate use of Retrieval-Augmented Generation under stated constraints."
+      ],
+      "practice": [
+        "agentic-ai/interview-prep/curriculum-practice.md#retrieval-augmented-generation"
+      ],
+      "estimated_minutes": 60,
+      "quality_status": "required"
+    },
+    {
+      "id": "agentic-ai/error-recovery",
+      "track": "agentic-ai",
+      "level": "intermediate",
+      "concept": "agentic-ai/concepts/26-error-recovery.md",
+      "notebook": "agentic-ai/notebooks/26-error-recovery.ipynb",
+      "implementation": "agentic-ai/implementations/26-error-recovery.py",
+      "prerequisites": [
+        "agentic-ai/retrieval-augmented-generation"
+      ],
+      "outcomes": [
+        "Explain the core mechanism and assumptions behind Error Recovery in Agents.",
+        "Choose and evaluate an appropriate use of Error Recovery in Agents under stated constraints."
+      ],
+      "practice": [
+        "agentic-ai/interview-prep/curriculum-practice.md#error-recovery-in-agents"
+      ],
+      "estimated_minutes": 60,
+      "quality_status": "required"
+    },
+    {
+      "id": "agentic-ai/agent-debugging",
+      "track": "agentic-ai",
+      "level": "intermediate",
+      "concept": "agentic-ai/concepts/27-agent-debugging.md",
+      "notebook": "agentic-ai/notebooks/27-agent-debugging.ipynb",
+      "implementation": "agentic-ai/implementations/27-agent-debugging.py",
+      "prerequisites": [
+        "agentic-ai/error-recovery"
+      ],
+      "outcomes": [
+        "Explain the core mechanism and assumptions behind Agent Debugging.",
+        "Choose and evaluate an appropriate use of Agent Debugging under stated constraints."
+      ],
+      "practice": [
+        "agentic-ai/interview-prep/curriculum-practice.md#agent-debugging"
+      ],
+      "estimated_minutes": 60,
+      "quality_status": "required"
+    },
+    {
+      "id": "agentic-ai/agent-testing",
+      "track": "agentic-ai",
+      "level": "intermediate",
+      "concept": "agentic-ai/concepts/28-agent-testing.md",
+      "notebook": "agentic-ai/notebooks/28-agent-testing.ipynb",
+      "implementation": "agentic-ai/implementations/28-agent-testing.py",
+      "prerequisites": [
+        "agentic-ai/agent-debugging"
+      ],
+      "outcomes": [
+        "Explain the core mechanism and assumptions behind Agent Testing.",
+        "Choose and evaluate an appropriate use of Agent Testing under stated constraints."
+      ],
+      "practice": [
+        "agentic-ai/interview-prep/curriculum-practice.md#agent-testing"
+      ],
+      "estimated_minutes": 60,
+      "quality_status": "required"
+    },
+    {
+      "id": "agentic-ai/agent-evals",
+      "track": "agentic-ai",
+      "level": "intermediate",
+      "concept": "agentic-ai/concepts/29-agent-evals.md",
+      "notebook": "agentic-ai/notebooks/29-agent-evals.ipynb",
+      "implementation": "agentic-ai/implementations/29-agent-evals.py",
+      "prerequisites": [
+        "agentic-ai/agent-testing"
+      ],
+      "outcomes": [
+        "Explain the core mechanism and assumptions behind Agent Evals.",
+        "Choose and evaluate an appropriate use of Agent Evals under stated constraints."
+      ],
+      "practice": [
+        "agentic-ai/interview-prep/curriculum-practice.md#agent-evals"
+      ],
+      "estimated_minutes": 60,
+      "quality_status": "required"
+    },
+    {
+      "id": "agentic-ai/agent-monitoring",
+      "track": "agentic-ai",
+      "level": "intermediate",
+      "concept": "agentic-ai/concepts/30-agent-monitoring.md",
+      "notebook": "agentic-ai/notebooks/30-agent-monitoring.ipynb",
+      "implementation": "agentic-ai/implementations/30-agent-monitoring.py",
+      "prerequisites": [
+        "agentic-ai/agent-evals"
+      ],
+      "outcomes": [
+        "Explain the core mechanism and assumptions behind Agent Monitoring.",
+        "Choose and evaluate an appropriate use of Agent Monitoring under stated constraints."
+      ],
+      "practice": [
+        "agentic-ai/interview-prep/curriculum-practice.md#agent-monitoring"
+      ],
+      "estimated_minutes": 60,
+      "quality_status": "required"
+    },
+    {
+      "id": "agentic-ai/observability-for-agents",
+      "track": "agentic-ai",
+      "level": "intermediate",
+      "concept": "agentic-ai/concepts/31-observability-for-agents.md",
+      "notebook": "agentic-ai/notebooks/31-observability-for-agents.ipynb",
+      "implementation": "agentic-ai/implementations/31-observability-for-agents.py",
+      "prerequisites": [
+        "agentic-ai/agent-monitoring"
+      ],
+      "outcomes": [
+        "Explain the core mechanism and assumptions behind Observability for Agents.",
+        "Choose and evaluate an appropriate use of Observability for Agents under stated constraints."
+      ],
+      "practice": [
+        "agentic-ai/interview-prep/curriculum-practice.md#observability-for-agents"
+      ],
+      "estimated_minutes": 60,
+      "quality_status": "required"
+    },
+    {
+      "id": "agentic-ai/tracing-agents",
+      "track": "agentic-ai",
+      "level": "intermediate",
+      "concept": "agentic-ai/concepts/32-tracing-agents.md",
+      "notebook": "agentic-ai/notebooks/32-tracing-agents.ipynb",
+      "implementation": "agentic-ai/implementations/32-tracing-agents.py",
+      "prerequisites": [
+        "agentic-ai/observability-for-agents"
+      ],
+      "outcomes": [
+        "Explain the core mechanism and assumptions behind Distributed Tracing for Agents.",
+        "Choose and evaluate an appropriate use of Distributed Tracing for Agents under stated constraints."
+      ],
+      "practice": [
+        "agentic-ai/interview-prep/curriculum-practice.md#distributed-tracing-for-agents"
+      ],
+      "estimated_minutes": 60,
+      "quality_status": "required"
+    },
+    {
+      "id": "agentic-ai/latency-optimization-agents",
+      "track": "agentic-ai",
+      "level": "intermediate",
+      "concept": "agentic-ai/concepts/33-latency-optimization-agents.md",
+      "notebook": "agentic-ai/notebooks/33-latency-optimization-agents.ipynb",
+      "implementation": "agentic-ai/implementations/33-latency-optimization-agents.py",
+      "prerequisites": [
+        "agentic-ai/tracing-agents"
+      ],
+      "outcomes": [
+        "Explain the core mechanism and assumptions behind Latency Optimization in Agents.",
+        "Choose and evaluate an appropriate use of Latency Optimization in Agents under stated constraints."
+      ],
+      "practice": [
+        "agentic-ai/interview-prep/curriculum-practice.md#latency-optimization-in-agents"
+      ],
+      "estimated_minutes": 60,
+      "quality_status": "required"
+    },
+    {
+      "id": "agentic-ai/agent-cost-optimization",
+      "track": "agentic-ai",
+      "level": "intermediate",
+      "concept": "agentic-ai/concepts/34-agent-cost-optimization.md",
+      "notebook": "agentic-ai/notebooks/34-agent-cost-optimization.ipynb",
+      "implementation": "agentic-ai/implementations/34-agent-cost-optimization.py",
+      "prerequisites": [
+        "agentic-ai/latency-optimization-agents"
+      ],
+      "outcomes": [
+        "Explain the core mechanism and assumptions behind Agent Cost Optimization.",
+        "Choose and evaluate an appropriate use of Agent Cost Optimization under stated constraints."
+      ],
+      "practice": [
+        "agentic-ai/interview-prep/curriculum-practice.md#agent-cost-optimization"
+      ],
+      "estimated_minutes": 60,
+      "quality_status": "required"
+    },
+    {
+      "id": "agentic-ai/agent-prompt-engineering",
+      "track": "agentic-ai",
+      "level": "intermediate",
+      "concept": "agentic-ai/concepts/35-agent-prompt-engineering.md",
+      "notebook": "agentic-ai/notebooks/35-agent-prompt-engineering.ipynb",
+      "implementation": "agentic-ai/implementations/35-agent-prompt-engineering.py",
+      "prerequisites": [
+        "agentic-ai/agent-cost-optimization"
+      ],
+      "outcomes": [
+        "Explain the core mechanism and assumptions behind Agent Prompt Engineering.",
+        "Choose and evaluate an appropriate use of Agent Prompt Engineering under stated constraints."
+      ],
+      "practice": [
+        "agentic-ai/interview-prep/curriculum-practice.md#agent-prompt-engineering"
+      ],
+      "estimated_minutes": 60,
+      "quality_status": "required"
+    },
+    {
+      "id": "agentic-ai/safety-alignment",
+      "track": "agentic-ai",
+      "level": "intermediate",
+      "concept": "agentic-ai/concepts/36-safety-alignment.md",
+      "notebook": "agentic-ai/notebooks/36-safety-alignment.ipynb",
+      "implementation": "agentic-ai/implementations/36-safety-alignment.py",
+      "prerequisites": [
+        "agentic-ai/agent-prompt-engineering"
+      ],
+      "outcomes": [
+        "Explain the core mechanism and assumptions behind Safety Alignment.",
+        "Choose and evaluate an appropriate use of Safety Alignment under stated constraints."
+      ],
+      "practice": [
+        "agentic-ai/interview-prep/curriculum-practice.md#safety-alignment"
+      ],
+      "estimated_minutes": 60,
+      "quality_status": "required"
+    },
+    {
+      "id": "agentic-ai/human-agent-collaboration",
+      "track": "agentic-ai",
+      "level": "advanced",
+      "concept": "agentic-ai/concepts/37-human-agent-collaboration.md",
+      "notebook": "agentic-ai/notebooks/37-human-agent-collaboration.ipynb",
+      "implementation": "agentic-ai/implementations/37-human-agent-collaboration.py",
+      "prerequisites": [
+        "agentic-ai/safety-alignment"
+      ],
+      "outcomes": [
+        "Explain the core mechanism and assumptions behind Human-Agent Collaboration.",
+        "Choose and evaluate an appropriate use of Human-Agent Collaboration under stated constraints."
+      ],
+      "practice": [
+        "agentic-ai/interview-prep/curriculum-practice.md#human-agent-collaboration"
+      ],
+      "estimated_minutes": 60,
+      "quality_status": "required"
+    },
+    {
+      "id": "agentic-ai/coding-agents",
+      "track": "agentic-ai",
+      "level": "advanced",
+      "concept": "agentic-ai/concepts/38-coding-agents.md",
+      "notebook": "agentic-ai/notebooks/38-coding-agents.ipynb",
+      "implementation": "agentic-ai/implementations/38-coding-agents.py",
+      "prerequisites": [
+        "agentic-ai/human-agent-collaboration"
+      ],
+      "outcomes": [
+        "Explain the core mechanism and assumptions behind Coding Agents.",
+        "Choose and evaluate an appropriate use of Coding Agents under stated constraints."
+      ],
+      "practice": [
+        "agentic-ai/interview-prep/curriculum-practice.md#coding-agents"
+      ],
+      "estimated_minutes": 60,
+      "quality_status": "required"
+    },
+    {
+      "id": "agentic-ai/code-analysis-agents",
+      "track": "agentic-ai",
+      "level": "advanced",
+      "concept": "agentic-ai/concepts/39-code-analysis-agents.md",
+      "notebook": "agentic-ai/notebooks/39-code-analysis-agents.ipynb",
+      "implementation": "agentic-ai/implementations/39-code-analysis-agents.py",
+      "prerequisites": [
+        "agentic-ai/coding-agents"
+      ],
+      "outcomes": [
+        "Explain the core mechanism and assumptions behind Code Analysis Agents.",
+        "Choose and evaluate an appropriate use of Code Analysis Agents under stated constraints."
+      ],
+      "practice": [
+        "agentic-ai/interview-prep/curriculum-practice.md#code-analysis-agents"
+      ],
+      "estimated_minutes": 60,
+      "quality_status": "required"
+    },
+    {
+      "id": "agentic-ai/customer-service-agents",
+      "track": "agentic-ai",
+      "level": "advanced",
+      "concept": "agentic-ai/concepts/40-customer-service-agents.md",
+      "notebook": "agentic-ai/notebooks/40-customer-service-agents.ipynb",
+      "implementation": "agentic-ai/implementations/40-customer-service-agents.py",
+      "prerequisites": [
+        "agentic-ai/code-analysis-agents"
+      ],
+      "outcomes": [
+        "Explain the core mechanism and assumptions behind Customer Service Agents.",
+        "Choose and evaluate an appropriate use of Customer Service Agents under stated constraints."
+      ],
+      "practice": [
+        "agentic-ai/interview-prep/curriculum-practice.md#customer-service-agents"
+      ],
+      "estimated_minutes": 60,
+      "quality_status": "required"
+    },
+    {
+      "id": "agentic-ai/medical-agents",
+      "track": "agentic-ai",
+      "level": "advanced",
+      "concept": "agentic-ai/concepts/41-medical-agents.md",
+      "notebook": "agentic-ai/notebooks/41-medical-agents.ipynb",
+      "implementation": "agentic-ai/implementations/41-medical-agents.py",
+      "prerequisites": [
+        "agentic-ai/customer-service-agents"
+      ],
+      "outcomes": [
+        "Explain the core mechanism and assumptions behind Medical Agents.",
+        "Choose and evaluate an appropriate use of Medical Agents under stated constraints."
+      ],
+      "practice": [
+        "agentic-ai/interview-prep/curriculum-practice.md#medical-agents"
+      ],
+      "estimated_minutes": 60,
+      "quality_status": "required"
+    },
+    {
+      "id": "agentic-ai/legal-document-agents",
+      "track": "agentic-ai",
+      "level": "advanced",
+      "concept": "agentic-ai/concepts/42-legal-document-agents.md",
+      "notebook": "agentic-ai/notebooks/42-legal-document-agents.ipynb",
+      "implementation": "agentic-ai/implementations/42-legal-document-agents.py",
+      "prerequisites": [
+        "agentic-ai/medical-agents"
+      ],
+      "outcomes": [
+        "Explain the core mechanism and assumptions behind Legal Document Agents.",
+        "Choose and evaluate an appropriate use of Legal Document Agents under stated constraints."
+      ],
+      "practice": [
+        "agentic-ai/interview-prep/curriculum-practice.md#legal-document-agents"
+      ],
+      "estimated_minutes": 60,
+      "quality_status": "required"
+    },
+    {
+      "id": "agentic-ai/finance-agents",
+      "track": "agentic-ai",
+      "level": "advanced",
+      "concept": "agentic-ai/concepts/43-finance-agents.md",
+      "notebook": "agentic-ai/notebooks/43-finance-agents.ipynb",
+      "implementation": "agentic-ai/implementations/43-finance-agents.py",
+      "prerequisites": [
+        "agentic-ai/legal-document-agents"
+      ],
+      "outcomes": [
+        "Explain the core mechanism and assumptions behind Finance Agents.",
+        "Choose and evaluate an appropriate use of Finance Agents under stated constraints."
+      ],
+      "practice": [
+        "agentic-ai/interview-prep/curriculum-practice.md#finance-agents"
+      ],
+      "estimated_minutes": 60,
+      "quality_status": "required"
+    },
+    {
+      "id": "agentic-ai/logistics-agents",
+      "track": "agentic-ai",
+      "level": "advanced",
+      "concept": "agentic-ai/concepts/44-logistics-agents.md",
+      "notebook": "agentic-ai/notebooks/44-logistics-agents.ipynb",
+      "implementation": "agentic-ai/implementations/44-logistics-agents.py",
+      "prerequisites": [
+        "agentic-ai/finance-agents"
+      ],
+      "outcomes": [
+        "Explain the core mechanism and assumptions behind Logistics Agents.",
+        "Choose and evaluate an appropriate use of Logistics Agents under stated constraints."
+      ],
+      "practice": [
+        "agentic-ai/interview-prep/curriculum-practice.md#logistics-agents"
+      ],
+      "estimated_minutes": 60,
+      "quality_status": "required"
+    },
+    {
+      "id": "agentic-ai/data-analysis-agents",
+      "track": "agentic-ai",
+      "level": "advanced",
+      "concept": "agentic-ai/concepts/45-data-analysis-agents.md",
+      "notebook": "agentic-ai/notebooks/45-data-analysis-agents.ipynb",
+      "implementation": "agentic-ai/implementations/45-data-analysis-agents.py",
+      "prerequisites": [
+        "agentic-ai/logistics-agents"
+      ],
+      "outcomes": [
+        "Explain the core mechanism and assumptions behind Data Analysis Agents.",
+        "Choose and evaluate an appropriate use of Data Analysis Agents under stated constraints."
+      ],
+      "practice": [
+        "agentic-ai/interview-prep/curriculum-practice.md#data-analysis-agents"
+      ],
+      "estimated_minutes": 60,
+      "quality_status": "required"
+    },
+    {
+      "id": "agentic-ai/research-agents",
+      "track": "agentic-ai",
+      "level": "advanced",
+      "concept": "agentic-ai/concepts/46-research-agents.md",
+      "notebook": "agentic-ai/notebooks/46-research-agents.ipynb",
+      "implementation": "agentic-ai/implementations/46-research-agents.py",
+      "prerequisites": [
+        "agentic-ai/data-analysis-agents"
+      ],
+      "outcomes": [
+        "Explain the core mechanism and assumptions behind Research Agents.",
+        "Choose and evaluate an appropriate use of Research Agents under stated constraints."
+      ],
+      "practice": [
+        "agentic-ai/interview-prep/curriculum-practice.md#research-agents"
+      ],
+      "estimated_minutes": 60,
+      "quality_status": "required"
+    },
+    {
+      "id": "agentic-ai/content-moderation-agents",
+      "track": "agentic-ai",
+      "level": "advanced",
+      "concept": "agentic-ai/concepts/47-content-moderation-agents.md",
+      "notebook": "agentic-ai/notebooks/47-content-moderation-agents.ipynb",
+      "implementation": "agentic-ai/implementations/47-content-moderation-agents.py",
+      "prerequisites": [
+        "agentic-ai/research-agents"
+      ],
+      "outcomes": [
+        "Explain the core mechanism and assumptions behind Content Moderation Agents.",
+        "Choose and evaluate an appropriate use of Content Moderation Agents under stated constraints."
+      ],
+      "practice": [
+        "agentic-ai/interview-prep/curriculum-practice.md#content-moderation-agents"
+      ],
+      "estimated_minutes": 60,
+      "quality_status": "required"
+    },
+    {
+      "id": "agentic-ai/recommendation-agents",
+      "track": "agentic-ai",
+      "level": "advanced",
+      "concept": "agentic-ai/concepts/48-recommendation-agents.md",
+      "notebook": "agentic-ai/notebooks/48-recommendation-agents.ipynb",
+      "implementation": "agentic-ai/implementations/48-recommendation-agents.py",
+      "prerequisites": [
+        "agentic-ai/content-moderation-agents"
+      ],
+      "outcomes": [
+        "Explain the core mechanism and assumptions behind Recommendation Agents.",
+        "Choose and evaluate an appropriate use of Recommendation Agents under stated constraints."
+      ],
+      "practice": [
+        "agentic-ai/interview-prep/curriculum-practice.md#recommendation-agents"
+      ],
+      "estimated_minutes": 60,
+      "quality_status": "required"
+    },
+    {
+      "id": "agentic-ai/multimodal-agents",
+      "track": "agentic-ai",
+      "level": "advanced",
+      "concept": "agentic-ai/concepts/49-multimodal-agents.md",
+      "notebook": "agentic-ai/notebooks/49-multimodal-agents.ipynb",
+      "implementation": "agentic-ai/implementations/49-multimodal-agents.py",
+      "prerequisites": [
+        "agentic-ai/recommendation-agents"
+      ],
+      "outcomes": [
+        "Explain the core mechanism and assumptions behind Multimodal Agents.",
+        "Choose and evaluate an appropriate use of Multimodal Agents under stated constraints."
+      ],
+      "practice": [
+        "agentic-ai/interview-prep/curriculum-practice.md#multimodal-agents"
+      ],
+      "estimated_minutes": 60,
+      "quality_status": "required"
+    },
+    {
+      "id": "agentic-ai/real-time-agents",
+      "track": "agentic-ai",
+      "level": "advanced",
+      "concept": "agentic-ai/concepts/50-real-time-agents.md",
+      "notebook": "agentic-ai/notebooks/50-real-time-agents.ipynb",
+      "implementation": "agentic-ai/implementations/50-real-time-agents.py",
+      "prerequisites": [
+        "agentic-ai/multimodal-agents"
+      ],
+      "outcomes": [
+        "Explain the core mechanism and assumptions behind Real-Time Agents.",
+        "Choose and evaluate an appropriate use of Real-Time Agents under stated constraints."
+      ],
+      "practice": [
+        "agentic-ai/interview-prep/curriculum-practice.md#real-time-agents"
+      ],
+      "estimated_minutes": 60,
+      "quality_status": "required"
+    },
+    {
+      "id": "agentic-ai/web-agents",
+      "track": "agentic-ai",
+      "level": "advanced",
+      "concept": "agentic-ai/concepts/51-web-agents.md",
+      "notebook": "agentic-ai/notebooks/51-web-agents.ipynb",
+      "implementation": "agentic-ai/implementations/51-web-agents.py",
+      "prerequisites": [
+        "agentic-ai/real-time-agents"
+      ],
+      "outcomes": [
+        "Explain the core mechanism and assumptions behind Web Agents.",
+        "Choose and evaluate an appropriate use of Web Agents under stated constraints."
+      ],
+      "practice": [
+        "agentic-ai/interview-prep/curriculum-practice.md#web-agents"
+      ],
+      "estimated_minutes": 60,
+      "quality_status": "required"
+    },
+    {
+      "id": "agentic-ai/simulation-for-agents",
+      "track": "agentic-ai",
+      "level": "advanced",
+      "concept": "agentic-ai/concepts/52-simulation-for-agents.md",
+      "notebook": "agentic-ai/notebooks/52-simulation-for-agents.ipynb",
+      "implementation": "agentic-ai/implementations/52-simulation-for-agents.py",
+      "prerequisites": [
+        "agentic-ai/web-agents"
+      ],
+      "outcomes": [
+        "Explain the core mechanism and assumptions behind Simulation for Agents.",
+        "Choose and evaluate an appropriate use of Simulation for Agents under stated constraints."
+      ],
+      "practice": [
+        "agentic-ai/interview-prep/curriculum-practice.md#simulation-for-agents"
+      ],
+      "estimated_minutes": 60,
+      "quality_status": "required"
+    },
+    {
+      "id": "agentic-ai/langchain-frameworks",
+      "track": "agentic-ai",
+      "level": "advanced",
+      "concept": "agentic-ai/concepts/53-langchain-frameworks.md",
+      "notebook": "agentic-ai/notebooks/53-langchain-frameworks.ipynb",
+      "implementation": "agentic-ai/implementations/53-langchain-frameworks.py",
+      "prerequisites": [
+        "agentic-ai/simulation-for-agents"
+      ],
+      "outcomes": [
+        "Explain the core mechanism and assumptions behind LangChain Frameworks.",
+        "Choose and evaluate an appropriate use of LangChain Frameworks under stated constraints."
+      ],
+      "practice": [
+        "agentic-ai/interview-prep/curriculum-practice.md#langchain-frameworks"
+      ],
+      "estimated_minutes": 60,
+      "quality_status": "required"
+    },
+    {
+      "id": "agentic-ai/autogen-orchestration",
+      "track": "agentic-ai",
+      "level": "advanced",
+      "concept": "agentic-ai/concepts/54-autogen-orchestration.md",
+      "notebook": "agentic-ai/notebooks/54-autogen-orchestration.ipynb",
+      "implementation": "agentic-ai/implementations/54-autogen-orchestration.py",
+      "prerequisites": [
+        "agentic-ai/langchain-frameworks"
+      ],
+      "outcomes": [
+        "Explain the core mechanism and assumptions behind AutoGen Orchestration.",
+        "Choose and evaluate an appropriate use of AutoGen Orchestration under stated constraints."
+      ],
+      "practice": [
+        "agentic-ai/interview-prep/curriculum-practice.md#autogen-orchestration"
+      ],
+      "estimated_minutes": 60,
+      "quality_status": "required"
+    },
+    {
+      "id": "agentic-ai/openai-assistants-api",
+      "track": "agentic-ai",
+      "level": "advanced",
+      "concept": "agentic-ai/concepts/55-openai-assistants-api.md",
+      "notebook": "agentic-ai/notebooks/55-openai-assistants-api.ipynb",
+      "implementation": "agentic-ai/implementations/55-openai-assistants-api.py",
+      "prerequisites": [
+        "agentic-ai/autogen-orchestration"
+      ],
+      "outcomes": [
+        "Explain the core mechanism and assumptions behind OpenAI Assistants API.",
+        "Choose and evaluate an appropriate use of OpenAI Assistants API under stated constraints."
+      ],
+      "practice": [
+        "agentic-ai/interview-prep/curriculum-practice.md#openai-assistants-api"
+      ],
+      "estimated_minutes": 60,
+      "quality_status": "required"
+    },
+    {
+      "id": "agentic-ai/agent-deployment-patterns",
+      "track": "agentic-ai",
+      "level": "advanced",
+      "concept": "agentic-ai/concepts/56-agent-deployment-patterns.md",
+      "notebook": "agentic-ai/notebooks/56-agent-deployment-patterns.ipynb",
+      "implementation": "agentic-ai/implementations/56-agent-deployment-patterns.py",
+      "prerequisites": [
+        "agentic-ai/openai-assistants-api"
+      ],
+      "outcomes": [
+        "Explain the core mechanism and assumptions behind Agent Deployment Patterns.",
+        "Choose and evaluate an appropriate use of Agent Deployment Patterns under stated constraints."
+      ],
+      "practice": [
+        "agentic-ai/interview-prep/curriculum-practice.md#agent-deployment-patterns"
+      ],
+      "estimated_minutes": 60,
+      "quality_status": "required"
+    },
+    {
+      "id": "agentic-ai/agent-state-management",
+      "track": "agentic-ai",
+      "level": "advanced",
+      "concept": "agentic-ai/concepts/57-agent-state-management.md",
+      "notebook": "agentic-ai/notebooks/57-agent-state-management.ipynb",
+      "implementation": "agentic-ai/implementations/57-agent-state-management.py",
+      "prerequisites": [
+        "agentic-ai/agent-deployment-patterns"
+      ],
+      "outcomes": [
+        "Explain the core mechanism and assumptions behind Agent State Management.",
+        "Choose and evaluate an appropriate use of Agent State Management under stated constraints."
+      ],
+      "practice": [
+        "agentic-ai/interview-prep/curriculum-practice.md#agent-state-management"
+      ],
+      "estimated_minutes": 60,
+      "quality_status": "required"
+    },
+    {
+      "id": "agentic-ai/advanced-reasoning-variants",
+      "track": "agentic-ai",
+      "level": "advanced",
+      "concept": "agentic-ai/concepts/58-advanced-reasoning-variants.md",
+      "notebook": "agentic-ai/notebooks/58-advanced-reasoning-variants.ipynb",
+      "implementation": "agentic-ai/implementations/58-advanced-reasoning-variants.py",
+      "prerequisites": [
+        "agentic-ai/agent-state-management"
+      ],
+      "outcomes": [
+        "Explain the core mechanism and assumptions behind Advanced Reasoning Variants.",
+        "Choose and evaluate an appropriate use of Advanced Reasoning Variants under stated constraints."
+      ],
+      "practice": [
+        "agentic-ai/interview-prep/curriculum-practice.md#advanced-reasoning-variants"
+      ],
+      "estimated_minutes": 60,
+      "quality_status": "required"
+    },
+    {
+      "id": "agentic-ai/agent-evaluation-metrics",
+      "track": "agentic-ai",
+      "level": "advanced",
+      "concept": "agentic-ai/concepts/59-agent-evaluation-metrics.md",
+      "notebook": "agentic-ai/notebooks/59-agent-evaluation-metrics.ipynb",
+      "implementation": "agentic-ai/implementations/59-agent-evaluation-metrics.py",
+      "prerequisites": [
+        "agentic-ai/advanced-reasoning-variants"
+      ],
+      "outcomes": [
+        "Explain the core mechanism and assumptions behind Agent Evaluation Metrics.",
+        "Choose and evaluate an appropriate use of Agent Evaluation Metrics under stated constraints."
+      ],
+      "practice": [
+        "agentic-ai/interview-prep/curriculum-practice.md#agent-evaluation-metrics"
+      ],
+      "estimated_minutes": 60,
+      "quality_status": "required"
+    },
+    {
+      "id": "agentic-ai/agent-security-sandboxing",
+      "track": "agentic-ai",
+      "level": "advanced",
+      "concept": "agentic-ai/concepts/60-agent-security-sandboxing.md",
+      "notebook": "agentic-ai/notebooks/60-agent-security-sandboxing.ipynb",
+      "implementation": "agentic-ai/implementations/60-agent-security-sandboxing.py",
+      "prerequisites": [
+        "agentic-ai/agent-evaluation-metrics"
+      ],
+      "outcomes": [
+        "Explain the core mechanism and assumptions behind Agent Security and Sandboxing.",
+        "Choose and evaluate an appropriate use of Agent Security and Sandboxing under stated constraints."
+      ],
+      "practice": [
+        "agentic-ai/interview-prep/curriculum-practice.md#agent-security-and-sandboxing"
+      ],
+      "estimated_minutes": 60,
+      "quality_status": "required"
+    },
+    {
+      "id": "agentic-ai/multi-turn-conversation",
+      "track": "agentic-ai",
+      "level": "advanced",
+      "concept": "agentic-ai/concepts/61-multi-turn-conversation.md",
+      "notebook": "agentic-ai/notebooks/61-multi-turn-conversation.ipynb",
+      "implementation": "agentic-ai/implementations/61-multi-turn-conversation.py",
+      "prerequisites": [
+        "agentic-ai/agent-security-sandboxing"
+      ],
+      "outcomes": [
+        "Explain the core mechanism and assumptions behind Multi-Turn Conversation Management.",
+        "Choose and evaluate an appropriate use of Multi-Turn Conversation Management under stated constraints."
+      ],
+      "practice": [
+        "agentic-ai/interview-prep/curriculum-practice.md#multi-turn-conversation-management"
+      ],
+      "estimated_minutes": 60,
+      "quality_status": "required"
+    },
+    {
+      "id": "agentic-ai/agent-cost-analysis",
+      "track": "agentic-ai",
+      "level": "advanced",
+      "concept": "agentic-ai/concepts/62-agent-cost-analysis.md",
+      "notebook": "agentic-ai/notebooks/62-agent-cost-analysis.ipynb",
+      "implementation": "agentic-ai/implementations/62-agent-cost-analysis.py",
+      "prerequisites": [
+        "agentic-ai/multi-turn-conversation"
+      ],
+      "outcomes": [
+        "Explain the core mechanism and assumptions behind Agent Cost Analysis.",
+        "Choose and evaluate an appropriate use of Agent Cost Analysis under stated constraints."
+      ],
+      "practice": [
+        "agentic-ai/interview-prep/curriculum-practice.md#agent-cost-analysis"
+      ],
+      "estimated_minutes": 60,
+      "quality_status": "required"
+    },
+    {
+      "id": "agentic-ai/agent-frameworks-comparison",
+      "track": "agentic-ai",
+      "level": "advanced",
+      "concept": "agentic-ai/concepts/63-agent-frameworks-comparison.md",
+      "notebook": "agentic-ai/notebooks/63-agent-frameworks-comparison.ipynb",
+      "implementation": "agentic-ai/implementations/63-agent-frameworks-comparison.py",
+      "prerequisites": [
+        "agentic-ai/agent-cost-analysis"
+      ],
+      "outcomes": [
+        "Explain the core mechanism and assumptions behind Agent Frameworks Comparison.",
+        "Choose and evaluate an appropriate use of Agent Frameworks Comparison under stated constraints."
+      ],
+      "practice": [
+        "agentic-ai/interview-prep/curriculum-practice.md#agent-frameworks-comparison"
+      ],
+      "estimated_minutes": 60,
+      "quality_status": "required"
+    },
+    {
+      "id": "agentic-ai/real-time-agent-systems",
+      "track": "agentic-ai",
+      "level": "advanced",
+      "concept": "agentic-ai/concepts/64-real-time-agent-systems.md",
+      "notebook": "agentic-ai/notebooks/64-real-time-agent-systems.ipynb",
+      "implementation": "agentic-ai/implementations/64-real-time-agent-systems.py",
+      "prerequisites": [
+        "agentic-ai/agent-frameworks-comparison"
+      ],
+      "outcomes": [
+        "Explain the core mechanism and assumptions behind Real-Time Agent Systems.",
+        "Choose and evaluate an appropriate use of Real-Time Agent Systems under stated constraints."
+      ],
+      "practice": [
+        "agentic-ai/interview-prep/curriculum-practice.md#real-time-agent-systems"
+      ],
+      "estimated_minutes": 60,
+      "quality_status": "required"
+    }
+  ],
+  "audit_policy": {
+    "quality_status_values": [
+      "baseline",
+      "required"
+    ],
+    "baseline": "Always validate schema, IDs, prerequisites, and referenced artifact existence. Defer content checks until the lesson has been remediated.",
+    "required": "Also enforce concept, notebook, practice/capstone, and local-link content contracts.",
+    "required_checks": [
+      "concept",
+      "notebook",
+      "practice",
+      "capstone",
+      "links"
+    ]
+  }
+}

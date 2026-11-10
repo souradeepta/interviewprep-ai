@@ -1,3 +1,11 @@
+## Role/Domain
+
+These questions target machine-learning engineer and applied-scientist interviews. For each prompt, state assumptions, define the decision being optimized, and connect the mathematical answer to validation and deployment constraints. Interviewers evaluate whether the candidate can choose a method from the data-generating process and explain how they would detect a bad choice.
+
+## Expected Answer
+
+A strong response gives a direct answer, names the assumptions and trade-offs, and proposes a concrete diagnostic or validation split. For coding prompts, include runnable tests and time and space complexity. For theory prompts, answer the question before extending to alternatives; label uncertainty and avoid claiming that one technique is universally best. The existing question banks below provide examples of reasoning, follow-ups, and common mistakes.
+
 # ML Theory Interview Questions
 
 ---

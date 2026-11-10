@@ -1,16 +1,19 @@
 # Continuous Batching
 
-## Understanding Continuous Batching
+Traditional batching: wait for 64 requests to arrive, then process together (all latency = slowest request).
 
-Continuous Batching is a foundational concept in large language model development that addresses critical challenges in model architecture, training efficiency, or inference performance. Understanding this concept is essential for anyone working with modern language models, whether in research, fine-tuning, or production deployment.
+## Prerequisites
 
-The core innovation underlying Continuous Batching lies in rethinking standard approaches to achieve better efficiency or effectiveness. Rather than accepting conventional trade-offs, this technique exploits mathematical or architectural insights to push the frontier of what's possible with given computational constraints.
+Familiarity with context window. This note focuses on the LLM-specific mechanism and its engineering selection boundary.
 
-In practical applications, Continuous Batching enables capabilities that would otherwise be infeasible: reducing computational requirements, improving model quality, enabling faster iteration, or supporting new use cases. The real-world impact has made Continuous Batching widely adopted across industry applications, from consumer products to enterprise systems.
+## Learning Outcomes
 
-Implementing Continuous Batching requires understanding both its theoretical foundations and practical considerations. The following sections provide detailed explanations of how Continuous Batching works, when to use it, common implementation patterns, and lessons learned from production deployments. By mastering these concepts, practitioners can make informed decisions about when and how to apply Continuous Batching to their specific challenges.
+- Explain the mechanism and assumptions behind continuous batching.
+- Compare its main alternative using task quality and one operational cost.
+- Diagnose a failure using a metric or example tied to continuous batching.
 
 ## Core Intuition
+
 Traditional batching: wait for 64 requests to arrive, then process together (all latency = slowest request). Continuous batching: start with 1 request, add 2 at 10ms, add 3 at 20ms... Each request processes as soon as it arrives, finished requests leave, new ones join. Result: early requests finish in 10-100ms instead of waiting 1000ms.
 
 ## How It Works
@@ -113,7 +116,7 @@ graph LR
     style E fill:#e8f5e9
 ```
 
-## Key Properties / Trade-offs
+## Trade-offs
 
 | Metric | Static | Continuous | Notes |
 |--------|--------|-----------|-------|
@@ -150,23 +153,7 @@ Req 100: 990ms → 1040ms (latency = 50ms)
 Average latency: ~50ms (consistent, 4x better)
 ```
 
-## Common Mistakes / Gotchas
-
-- **KV cache implementation:** naive approach (rebuild cache per iteration) is slow. Need efficient indexing (use libraries like vLLM). Custom KV cache usually broken.
-
-- **Memory fragmentation:** allocating/freeing request slots → fragmented memory. Solution: memory pool or pre-allocation.
-
-- **Not handling variable-length generations:** some requests stop at 10 tokens, others at 500. Don't assume fixed length. Track individually.
-
-- **Neglecting overhead:** scheduler loop, KV indexing add latency. Might not be faster than static if overhead > batching gain. Profile.
-
-- **Uneven token generation:** if some requests generate much longer than others, batch becomes unbalanced mid-way. Acceptable trade-off.
-
-- **Not batching inference together:** process each request separately → no batching benefit. Must batch the forward pass (vLLM does this).
-
-- **Ignoring request ordering:** continuous batching doesn't preserve request order. If FIFO critical, add reordering (costs latency).
-
-## Code Example
+## Implementation
 
 ```python
 from vllm import LLM, SamplingParams
@@ -269,7 +256,23 @@ class SimpleBatchScheduler:
             self.step()
 ```
 
-## Interview Quick-Reference
+## Failure Modes
+
+- **KV cache implementation:** naive approach (rebuild cache per iteration) is slow. Need efficient indexing (use libraries like vLLM). Custom KV cache usually broken.
+
+- **Memory fragmentation:** allocating/freeing request slots → fragmented memory. Solution: memory pool or pre-allocation.
+
+- **Not handling variable-length generations:** some requests stop at 10 tokens, others at 500. Don't assume fixed length. Track individually.
+
+- **Neglecting overhead:** scheduler loop, KV indexing add latency. Might not be faster than static if overhead > batching gain. Profile.
+
+- **Uneven token generation:** if some requests generate much longer than others, batch becomes unbalanced mid-way. Acceptable trade-off.
+
+- **Not batching inference together:** process each request separately → no batching benefit. Must batch the forward pass (vLLM does this).
+
+- **Ignoring request ordering:** continuous batching doesn't preserve request order. If FIFO critical, add reordering (costs latency).
+
+## Interview Quick Reference
 
 | Question | What to say |
 |---|---|
@@ -279,27 +282,15 @@ class SimpleBatchScheduler:
 | "Memory impact?" | Continuous uses less peak memory (smaller active batch). Fragmentation risk; use memory pool. |
 | "Overhead?" | Scheduler loop, index management add ~1-2ms. Batching gain (5-10x) usually dominates. Profile on your model/hardware. |
 
-## Real-World Examples
 
-### Static vs Continuous Batching Benchmark
-Model: Llama 2 7B, 1-10 req/sec. Static batch-32: p99 latency 32s. Continuous batch-32: p99 latency 0.5s. Throughput: same (100 tok/s). Cost: same. Winner: continuous for interactive, static for batch processing jobs.
 
-### vLLM in Production API
-Flask API: accept requests, queue via vLLM. 5 concurrent users: static batching would serve 1-2/sec total. vLLM: 20/sec. p99 latency: 2-5s (vs 30-60s static). Deployed at Anyscale: handles 1000s req/sec.
+**Design follow-up:** How would you monitor this choice in production and decide when to use an alternative?
+## Related Concepts
 
-### Timeout Tuning
-Timeout 1ms: latency under 10ms (good for interactive). Timeout 100ms: latency up to 100ms (better throughput). Data center: adapt based on load. High load: longer timeout (more batching). Low load: shorter timeout (lower latency).
-
-## Real-World Examples
-
-### Static vs Continuous Batching Benchmark
-Model: Llama 2 7B, 1-10 req/sec. Static batch-32: p99 latency 32s. Continuous batch-32: p99 latency 0.5s. Throughput: same (100 tok/s). Cost: same. Winner: continuous for interactive, static for batch processing jobs.
-
-### vLLM in Production API
-Flask API: accept requests, queue via vLLM. 5 concurrent users: static batching would serve 1-2/sec total. vLLM: 20/sec. p99 latency: 2-5s (vs 30-60s static). Deployed at Anyscale: handles 1000s req/sec.
-
-### Timeout Tuning
-Timeout 1ms: latency under 10ms (good for interactive). Timeout 100ms: latency up to 100ms (better throughput). Data center: adapt based on load. High load: longer timeout (more batching). Low load: shorter timeout (lower latency).
+- [[kv-cache]] — KV cache grows with request count
+- [[inference-optimization]] — part of broader serving optimization
+- [[model-serving]] — serving architecture context
+- [[request-batching]] — system-level batching patterns
 
 ## Real-World Examples
 
@@ -334,7 +325,29 @@ Flask API: accept requests, queue via vLLM. 5 concurrent users: static batching 
 ### Timeout Tuning
 Timeout 1ms: latency under 10ms (good for interactive). Timeout 100ms: latency up to 100ms (better throughput). Data center: adapt based on load. High load: longer timeout (more batching). Low load: shorter timeout (lower latency).
 
-## Interview Q&A
+## Real-World Examples
+
+### Static vs Continuous Batching Benchmark
+Model: Llama 2 7B, 1-10 req/sec. Static batch-32: p99 latency 32s. Continuous batch-32: p99 latency 0.5s. Throughput: same (100 tok/s). Cost: same. Winner: continuous for interactive, static for batch processing jobs.
+
+### vLLM in Production API
+Flask API: accept requests, queue via vLLM. 5 concurrent users: static batching would serve 1-2/sec total. vLLM: 20/sec. p99 latency: 2-5s (vs 30-60s static). Deployed at Anyscale: handles 1000s req/sec.
+
+### Timeout Tuning
+Timeout 1ms: latency under 10ms (good for interactive). Timeout 100ms: latency up to 100ms (better throughput). Data center: adapt based on load. High load: longer timeout (more batching). Low load: shorter timeout (lower latency).
+
+## Real-World Examples
+
+### Static vs Continuous Batching Benchmark
+Model: Llama 2 7B, 1-10 req/sec. Static batch-32: p99 latency 32s. Continuous batch-32: p99 latency 0.5s. Throughput: same (100 tok/s). Cost: same. Winner: continuous for interactive, static for batch processing jobs.
+
+### vLLM in Production API
+Flask API: accept requests, queue via vLLM. 5 concurrent users: static batching would serve 1-2/sec total. vLLM: 20/sec. p99 latency: 2-5s (vs 30-60s static). Deployed at Anyscale: handles 1000s req/sec.
+
+### Timeout Tuning
+Timeout 1ms: latency under 10ms (good for interactive). Timeout 100ms: latency up to 100ms (better throughput). Data center: adapt based on load. High load: longer timeout (more batching). Low load: shorter timeout (lower latency).
+
+## Topic-specific notes
 
 **Q: Why does naive static batching underperform for LLM serving and how does continuous batching fix it?**
 A: Static batching allocates a fixed batch at the start and waits for all sequences to complete before starting new ones. Because sequences have different lengths, GPU sits idle when shorter sequences finish but longer ones continue. Continuous batching (iteration-level scheduling) inserts new requests into the batch at every token generation step—as soon as a sequence completes, a new request takes its slot. This increases GPU utilization from 40-60% to 85-95%.
@@ -354,14 +367,8 @@ A: Assign priorities based on: request SLA (premium vs. free tier), queue age (p
 **Q: When should you scale horizontally (more GPUs) vs. optimize serving software?**
 A: Optimize software first: vLLM or TGI with PagedAttention + continuous batching can 2-4x throughput vs. naive serving. Model quantization (INT8/INT4) can further 2x throughput with acceptable quality loss. If after software optimization your P95 latency still exceeds SLA at peak traffic, scale horizontally. Monitor GPU utilization—if <70%, software optimization can help; if >90%, horizontal scaling is likely needed. Multi-GPU tensor parallelism helps latency; multi-GPU pipeline parallelism helps throughput.
 
-
-## Related Topics
-- [[kv-cache]] — KV cache grows with request count
-- [[inference-optimization]] — part of broader serving optimization
-- [[model-serving]] — serving architecture context
-- [[request-batching]] — system-level batching patterns
-
 ## Resources
+
 - [vLLM: Easy, Fast, and Cheap LLM Serving with PagedAttention](https://arxiv.org/abs/2309.06180)
 - [PagedAttention: Efficient Memory Management for LLM Serving](https://arxiv.org/abs/2309.06180#paged-attention)
 - [DeepSpeed Inference: A system for serving large models efficiently](https://arxiv.org/abs/2207.00032)

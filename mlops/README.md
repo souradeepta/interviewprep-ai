@@ -4,23 +4,21 @@ Comprehensive ML Ops learning materials for FAANG interview preparation and prac
 
 ## What's Inside
 
-- **16 Core ML Ops Concepts** — Data pipelines, feature stores, testing, evaluation, and deployment
-- **17 Jupyter Notebooks** — Production code examples with multi-tool approaches (including the concept map)
-- **62 Interview Questions** — Three banks covering concepts 1-16 and production decisions
+- **24 Core ML Ops Concepts** — Data pipelines, model development, deployment, monitoring, governance, security, and reliability
+- **25 Jupyter Notebooks** — One concept map and one notebook for each numbered concept
+- **62 Interview Questions** — Three banks covering the original concepts and production decisions
 - **2 Case Studies** — Full interview walkthroughs with strong/weak answer patterns
 - **Interview Prep Learning Paths** — 1-3 week focused learning for different roles
 
 ## Organization
 
-The numbered concept track contains 16 topics organized by ML lifecycle stage:
+The numbered concept track contains 24 topics organized by ML lifecycle stage:
 1. **Data & Feature Engineering** (1-4) — Pipelines, feature stores, validation, versioning
 2. **Model Development** (5-8) — Experiment tracking, versioning, reproducibility, optimization
 3. **Model Evaluation & Testing** (9-12) — Model testing, data testing, A/B testing, metrics
 4. **Deployment & Serving** (13-16) — Containerization, serving, registry, deployment strategies
 
-The interview banks and case studies extend beyond the numbered concept track
-with broader production decisions such as monitoring, governance, scaling, and
-incident response.
+5. **Production Operations** (17-24) — [Monitoring](concepts/17-monitoring-alert-design.md), [drift detection](concepts/18-drift-detection.md), [pipeline orchestration and backfills](concepts/19-pipeline-orchestration-backfills.md), [feature parity](concepts/20-feature-parity.md), [incident response](concepts/21-incident-response-rollback.md), [governance](concepts/22-governance-lineage-auditability.md), [security and privacy](concepts/23-security-privacy-controls.md), and [cost and reliability](concepts/24-cost-capacity-reliability.md).
 
 ## Quick Start
 
@@ -34,14 +32,16 @@ incident response.
 - Read: `concepts/01-data-pipelines.md`
 - Practice: `notebooks/01-data-pipelines.ipynb`
 - Interview prep: `interview-questions/questions.json` (filter by concept)
+- Structured practice: [MLOps Interview Questions](interview-prep/mlops-interview-questions.md)
 
 ## Repository Structure
 
 ```
 mlops/
-├── concepts/              # 16 markdown files with theory and interview prep
-├── notebooks/             # 17 Jupyter notebooks with production code examples
+├── concepts/              # 24 markdown files with theory and interview prep
+├── notebooks/             # 25 Jupyter notebooks with production code examples
 ├── interview-questions/   # FAANG interview questions organized by concept
+├── interview-prep/        # Scenario, debugging, and system-design question bank
 ├── case-studies/          # Full interview case studies with solutions
 ├── README.md              # This file
 ├── MLOPS_ROADMAP.md       # Learning paths for different roles

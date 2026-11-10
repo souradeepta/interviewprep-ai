@@ -19,6 +19,7 @@
 | 08 | [Information Retrieval](concepts/08-information-retrieval.md) | BM25, dense retrieval, re-ranking | [notebook](notebooks/08-information-retrieval.ipynb) |
 
 ## How NLP Connects to LLMs
+- **Interview practice:** [NLP interview question bank](interview-prep/nlp-interview-questions.md) — 15 prompts on tokenization, embeddings, retrieval, ranking, sequence labeling, multilingual quality, and LLM boundaries.
 - Text preprocessing (01) → tokenization in GPT/BERT
 - Word embeddings (02) → token embeddings in transformers
 - Attention (04) → the "Attention Is All You Need" breakthrough

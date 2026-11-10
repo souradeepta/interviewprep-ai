@@ -1,16 +1,19 @@
 # Instruction Tuning
 
-## Understanding Instruction Tuning
+Pre-trained LLMs generate text continuation (predict next token).
 
-Instruction Tuning is a foundational concept in large language model development that addresses critical challenges in model architecture, training efficiency, or inference performance. Understanding this concept is essential for anyone working with modern language models, whether in research, fine-tuning, or production deployment.
+## Prerequisites
 
-The core innovation underlying Instruction Tuning lies in rethinking standard approaches to achieve better efficiency or effectiveness. Rather than accepting conventional trade-offs, this technique exploits mathematical or architectural insights to push the frontier of what's possible with given computational constraints.
+Familiarity with finetuning. This note focuses on the LLM-specific mechanism and its engineering selection boundary.
 
-In practical applications, Instruction Tuning enables capabilities that would otherwise be infeasible: reducing computational requirements, improving model quality, enabling faster iteration, or supporting new use cases. The real-world impact has made Instruction Tuning widely adopted across industry applications, from consumer products to enterprise systems.
+## Learning Outcomes
 
-Implementing Instruction Tuning requires understanding both its theoretical foundations and practical considerations. The following sections provide detailed explanations of how Instruction Tuning works, when to use it, common implementation patterns, and lessons learned from production deployments. By mastering these concepts, practitioners can make informed decisions about when and how to apply Instruction Tuning to their specific challenges.
+- Explain the mechanism and assumptions behind instruction tuning.
+- Compare its main alternative using task quality and one operational cost.
+- Diagnose a failure using a metric or example tied to instruction tuning.
 
 ## Core Intuition
+
 Pre-trained LLMs generate text continuation (predict next token). Instruction tuning teaches them to be assistants: read instruction, generate helpful response. Models become more controllable, safer, more aligned with human expectations.
 
 ## How It Works
@@ -76,7 +79,7 @@ graph LR
     style E fill:#c8e6c9
 ```
 
-## Key Properties / Trade-offs
+## Trade-offs
 
 | Aspect | Pre-trained | Instruction-Tuned |
 |--------|---|---|
@@ -91,16 +94,7 @@ graph LR
 - 10k low-quality instructions: 75% performance
 - 10k high-quality instructions: 95% performance
 
-## Common Mistakes / Gotchas
-
-- **Low-quality responses:** Garbage in, garbage out. If training responses are bad, model learns bad behavior.
-- **Overfitting on instructions:** Model memorizes specific phrasing. Vary instruction phrasing to generalize.
-- **Forgetting pre-trained knowledge:** If tuning on narrow domain, model loses general knowledge. Mix in diverse tasks.
-- **No validation:** Train/test on same task types → false confidence. Test on unseen instructions.
-- **Imbalanced data:** If 80% summarization, 20% translation, model biased toward summarization. Balance task distribution.
-- **Long-term instruction sensitivity:** If all training examples start with "Classify:", model expects that format. Vary formats.
-
-## Code Example
+## Implementation
 
 ```python
 from transformers import AutoTokenizer, AutoModelForCausalLM, Trainer, TrainingArguments
@@ -161,7 +155,16 @@ trainer = Trainer(
 trainer.train()
 ```
 
-## Interview Quick-Reference
+## Failure Modes
+
+- **Low-quality responses:** Garbage in, garbage out. If training responses are bad, model learns bad behavior.
+- **Overfitting on instructions:** Model memorizes specific phrasing. Vary instruction phrasing to generalize.
+- **Forgetting pre-trained knowledge:** If tuning on narrow domain, model loses general knowledge. Mix in diverse tasks.
+- **No validation:** Train/test on same task types → false confidence. Test on unseen instructions.
+- **Imbalanced data:** If 80% summarization, 20% translation, model biased toward summarization. Balance task distribution.
+- **Long-term instruction sensitivity:** If all training examples start with "Classify:", model expects that format. Vary formats.
+
+## Interview Quick Reference
 
 | Question | What to say |
 |---|---|
@@ -171,16 +174,14 @@ trainer.train()
 | "Forgetting knowledge?" | Mix general + domain tasks. Don't tune exclusively on narrow domain. |
 | "Evaluation?" | Test on unseen instructions (not seen during training). Zero-shot generalization is key. |
 
-## Real-World Examples
 
-### Instruction-Tuning for Conversational AI
-Base LLM: general but doesn't follow instructions well. Instruction-tuning on 50K diverse instructions: ChatGPT-like behavior. Zero-shot on new tasks: 70% user satisfaction. Standard SFT: 40%.
 
-### Instruction-Tuning for Multilingual
-Base model: trained on 50+ languages. Instruction-tuning: same 50K instructions in each language. Results: instruction-following works in all languages (zero-shot). Enables multilingual assistant.
+**Design follow-up:** How would you monitor this choice in production and decide when to use an alternative?
+## Related Concepts
 
-### Light Instruction-Tuning for Domain
-Medical base model. Domain-specific instructions: 5K medical queries. Light tuning (1 epoch): instruction-following + medical knowledge combined. 90% accuracy on medical QA (vs 70% base).
+- [Fine-tuning](04-finetuning.md) — broader fine-tuning concept
+- [RLHF](06-rlhf.md) — further aligning with human preferences
+- [In-Context Learning](15-in-context-learning.md) — similar goal (instruction following) via prompting
 
 ## Real-World Examples
 
@@ -226,7 +227,18 @@ Base model: trained on 50+ languages. Instruction-tuning: same 50K instructions 
 ### Light Instruction-Tuning for Domain
 Medical base model. Domain-specific instructions: 5K medical queries. Light tuning (1 epoch): instruction-following + medical knowledge combined. 90% accuracy on medical QA (vs 70% base).
 
-## Interview Q&A
+## Real-World Examples
+
+### Instruction-Tuning for Conversational AI
+Base LLM: general but doesn't follow instructions well. Instruction-tuning on 50K diverse instructions: ChatGPT-like behavior. Zero-shot on new tasks: 70% user satisfaction. Standard SFT: 40%.
+
+### Instruction-Tuning for Multilingual
+Base model: trained on 50+ languages. Instruction-tuning: same 50K instructions in each language. Results: instruction-following works in all languages (zero-shot). Enables multilingual assistant.
+
+### Light Instruction-Tuning for Domain
+Medical base model. Domain-specific instructions: 5K medical queries. Light tuning (1 epoch): instruction-following + medical knowledge combined. 90% accuracy on medical QA (vs 70% base).
+
+## Topic-specific notes
 
 **Q: What makes instruction tuning data high quality vs low quality?**
 A: High quality: diverse task coverage, clear instructions, correct and detailed responses, natural variation in phrasing. Low quality: narrow task distribution (all the same type), short one-word answers, instructions that don't match the response, or machine-generated responses from weak models. The LIMA paper showed 1000 high-quality examples outperforms 50K lower-quality ones—quality of demonstrations matters more than scale.
@@ -246,13 +258,8 @@ A: The system prompt sets persistent context and persona that the model follows 
 **Q: How would you create instruction tuning data for a domain-specific use case with no existing labeled data?**
 A: Start with self-instruct: prompt GPT-4 to generate diverse instructions for your domain, filter for quality and novelty, generate responses. Use domain experts to write 50-100 seed examples that capture the desired style and depth, then expand with GPT-4. Validate a sample manually. For specialized domains (legal, medical), have subject-matter experts review generated responses before including them in training data.
 
-
-## Related Topics
-- [Fine-tuning](04-finetuning.md) — broader fine-tuning concept
-- [RLHF](06-rlhf.md) — further aligning with human preferences
-- [In-Context Learning](15-in-context-learning.md) — similar goal (instruction following) via prompting
-
 ## Resources
+
 - [Instruction Tuning with GPT-3.5](https://platform.openai.com/docs/guides/fine-tuning)
 - [The Flan Collection: Designing Data and Methods for Effective Instruction Tuning](https://arxiv.org/abs/2301.13688)
 - [Alpaca: A Strong, Replicable Instruction-Following Model](https://crfm.stanford.edu/2023/03/13/alpaca.html)

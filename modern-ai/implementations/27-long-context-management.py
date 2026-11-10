@@ -1,36 +1,14 @@
-"""
-Long Context Management
-
-Production-quality implementation of long context management.
-"""
-
-import numpy as np
-import torch
-import torch.nn as nn
-from typing import Dict, List, Tuple, Optional
-
-
-class LongContextManager(nn.Module):
-    """Production-grade implementation."""
-    
-    def __init__(self, hidden_dim: int = 64, device: Optional[torch.device] = None):
-        super().__init__()
-        self.hidden_dim = hidden_dim
-        self.device = device or torch.device('cuda' if torch.cuda.is_available() else 'cpu')
-        self.linear = nn.Linear(hidden_dim, hidden_dim)
-        self.norm = nn.LayerNorm(hidden_dim)
-    
-    def forward(self, x: torch.Tensor) -> torch.Tensor:
-        x = x.to(self.device)
-        x = self.linear(x)
-        x = self.norm(x)
-        return x
-
-
+"""Compare prompt truncation, retrieval, and extractive summarization."""
+def allocate(items, budget, strategy, query_terms=()):
+    if budget < 0: raise ValueError("budget must be nonnegative")
+    if strategy == "truncate": return items[:budget]
+    if strategy == "retrieve":
+        ranked=sorted(enumerate(items),key=lambda pair:(-sum(t in pair[1].lower().split() for t in query_terms),pair[0]))
+        return [x for _,x in ranked[:budget]]
+    if strategy == "summarize":
+        ranked=sorted(enumerate(items),key=lambda p:(-sum(t in p[1].lower().split() for t in query_terms),p[0]))
+        return [" ".join(x.split()[:max(1,budget)]) for _,x in ranked[:budget]]
+    raise ValueError("strategy must be truncate, retrieve, or summarize")
 if __name__ == "__main__":
-    device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
-    model = LongContextManager(hidden_dim=64, device=device)
-    x = torch.randn(4, 8, 64)
-    with torch.no_grad():
-        output = model(x)
-    print(f"Input: {x.shape} → Output: {output.shape}")
+    docs=["policy renews annually", "invoice due in thirty days", "support weekdays", "annual renewal can be cancelled"]
+    for s in ("truncate","retrieve","summarize"): print(s,allocate(docs,2,s,("annual","renewal")))

@@ -1,16 +1,19 @@
 # Fine-tuning
 
-## Understanding Finetuning
+Pre-training teaches general knowledge (language structure, facts).
 
-Finetuning is a foundational concept in large language model development that addresses critical challenges in model architecture, training efficiency, or inference performance. Understanding this concept is essential for anyone working with modern language models, whether in research, fine-tuning, or production deployment.
+## Prerequisites
 
-The core innovation underlying Finetuning lies in rethinking standard approaches to achieve better efficiency or effectiveness. Rather than accepting conventional trade-offs, this technique exploits mathematical or architectural insights to push the frontier of what's possible with given computational constraints.
+Familiarity with pretraining. This note focuses on the LLM-specific mechanism and its engineering selection boundary.
 
-In practical applications, Finetuning enables capabilities that would otherwise be infeasible: reducing computational requirements, improving model quality, enabling faster iteration, or supporting new use cases. The real-world impact has made Finetuning widely adopted across industry applications, from consumer products to enterprise systems.
+## Learning Outcomes
 
-Implementing Finetuning requires understanding both its theoretical foundations and practical considerations. The following sections provide detailed explanations of how Finetuning works, when to use it, common implementation patterns, and lessons learned from production deployments. By mastering these concepts, practitioners can make informed decisions about when and how to apply Finetuning to their specific challenges.
+- Explain the mechanism and assumptions behind fine-tuning.
+- Compare its main alternative using task quality and one operational cost.
+- Diagnose a failure using a metric or example tied to fine-tuning.
 
 ## Core Intuition
+
 Pre-training teaches general knowledge (language structure, facts). Fine-tuning teaches specific patterns (your domain, style, outputs). It's transfer learning: don't start from scratch, start from a good checkpoint.
 
 ## How It Works
@@ -61,7 +64,7 @@ graph TD
     style E fill:#fff3e0
 ```
 
-## Key Properties / Trade-offs
+## Trade-offs
 
 | Aspect | RAG | Fine-Tuning | Prompt Engineering |
 |--------|-----|------------|------------------|
@@ -82,18 +85,7 @@ graph TD
 - 5k-50k examples: sweet spot for good generalization
 - 100k+ examples: diminishing returns, long training
 
-## Common Mistakes / Gotchas
-
-- **Overfitting on small data:** With <1k examples, model memorizes. Use regularization (dropout, early stopping), data augmentation, or LoRA instead.
-- **Wrong learning rate:** Too high → divergence, too low → slow convergence. Start with 1e-5 for large models, tune from there.
-- **Including test set in training:** Data leakage. Always separate train/val/test before touching data.
-- **Not monitoring validation loss:** Train loss ≠ generalization. Watch val loss; stop when it plateaus.
-- **Fine-tuning on too few epochs:** Model converges quickly on task data. Monitor early stopping; don't just set fixed epochs.
-- **Catastrophic forgetting:** If fine-tuning on narrow task, may lose general knowledge. Mitigate with mixed task training or regularization.
-- **Not versioning model checkpoints:** Hard to revert if bad fine-tune. Save best checkpoint (best val loss).
-- **Ignoring class imbalance:** If dataset has 90% class A, model biased toward A. Use stratified sampling or weighted loss.
-
-## Code Example
+## Implementation
 
 ```python
 import torch
@@ -145,7 +137,18 @@ model.save_pretrained("./fine_tuned_model")
 reloaded = AutoModelForCausalLM.from_pretrained("./fine_tuned_model")
 ```
 
-## Interview Quick-Reference
+## Failure Modes
+
+- **Overfitting on small data:** With <1k examples, model memorizes. Use regularization (dropout, early stopping), data augmentation, or LoRA instead.
+- **Wrong learning rate:** Too high → divergence, too low → slow convergence. Start with 1e-5 for large models, tune from there.
+- **Including test set in training:** Data leakage. Always separate train/val/test before touching data.
+- **Not monitoring validation loss:** Train loss ≠ generalization. Watch val loss; stop when it plateaus.
+- **Fine-tuning on too few epochs:** Model converges quickly on task data. Monitor early stopping; don't just set fixed epochs.
+- **Catastrophic forgetting:** If fine-tuning on narrow task, may lose general knowledge. Mitigate with mixed task training or regularization.
+- **Not versioning model checkpoints:** Hard to revert if bad fine-tune. Save best checkpoint (best val loss).
+- **Ignoring class imbalance:** If dataset has 90% class A, model biased toward A. Use stratified sampling or weighted loss.
+
+## Interview Quick Reference
 
 | Question | What to say |
 |---|---|
@@ -156,27 +159,16 @@ reloaded = AutoModelForCausalLM.from_pretrained("./fine_tuned_model")
 | "Full vs LoRA?" | Full: all params updated, highest accuracy, expensive. LoRA: 1-5% params, cheaper, comparable accuracy. |
 | "Compute cost?" | LLaMA 7B: 1-2 days on A100 for 10k examples. Scales with model size and data. |
 
-## Real-World Examples
 
-### LoRA Fine-Tuning for Domain Adaptation
-General LLM → Legal domain. Fine-tune on 5K legal documents + contracts. LoRA rank-8: 2 hours training. Result: 42% → 68% accuracy on legal tasks. Cost: $100 (vs $10K full fine-tune). Deployed as legal assistant.
 
-### Full Fine-Tuning for Company Chat
-Goal: make model understand company context (products, policies, customers). Fine-tune on 100K internal documents. Full fine-tuning (smaller model, 3B). Result: 95% accuracy on internal queries. Deployment: on-premise (compliance).
+**Design follow-up:** How would you monitor this choice in production and decide when to use an alternative?
+## Related Concepts
 
-### Multi-Task Fine-Tuning
-One model for: classification, NER, summarization. Fine-tune on all three mixed. Shared representations improve transfer. Accuracy: 85% across all tasks (vs 88% individual models, but single model advantage).
-
-## Real-World Examples
-
-### LoRA Fine-Tuning for Domain Adaptation
-General LLM → Legal domain. Fine-tune on 5K legal documents + contracts. LoRA rank-8: 2 hours training. Result: 42% → 68% accuracy on legal tasks. Cost: $100 (vs $10K full fine-tune). Deployed as legal assistant.
-
-### Full Fine-Tuning for Company Chat
-Goal: make model understand company context (products, policies, customers). Fine-tune on 100K internal documents. Full fine-tuning (smaller model, 3B). Result: 95% accuracy on internal queries. Deployment: on-premise (compliance).
-
-### Multi-Task Fine-Tuning
-One model for: classification, NER, summarization. Fine-tune on all three mixed. Shared representations improve transfer. Accuracy: 85% across all tasks (vs 88% individual models, but single model advantage).
+- [LoRA](08-lora.md) — parameter-efficient fine-tuning (cheaper alternative)
+- [Parameter-Efficient Fine-tuning](11-parameter-efficient-finetuning.md) — broader PEFT methods
+- [Instruction Tuning](05-instruction-tuning.md) — fine-tuning on instruction-following
+- [RLHF](06-rlhf.md) — fine-tuning with human feedback
+- [Transfer Learning](../../ml/concepts/transfer-learning.md) — fine-tuning from scratch perspective
 
 ## Real-World Examples
 
@@ -211,7 +203,29 @@ Goal: make model understand company context (products, policies, customers). Fin
 ### Multi-Task Fine-Tuning
 One model for: classification, NER, summarization. Fine-tune on all three mixed. Shared representations improve transfer. Accuracy: 85% across all tasks (vs 88% individual models, but single model advantage).
 
-## Interview Q&A
+## Real-World Examples
+
+### LoRA Fine-Tuning for Domain Adaptation
+General LLM → Legal domain. Fine-tune on 5K legal documents + contracts. LoRA rank-8: 2 hours training. Result: 42% → 68% accuracy on legal tasks. Cost: $100 (vs $10K full fine-tune). Deployed as legal assistant.
+
+### Full Fine-Tuning for Company Chat
+Goal: make model understand company context (products, policies, customers). Fine-tune on 100K internal documents. Full fine-tuning (smaller model, 3B). Result: 95% accuracy on internal queries. Deployment: on-premise (compliance).
+
+### Multi-Task Fine-Tuning
+One model for: classification, NER, summarization. Fine-tune on all three mixed. Shared representations improve transfer. Accuracy: 85% across all tasks (vs 88% individual models, but single model advantage).
+
+## Real-World Examples
+
+### LoRA Fine-Tuning for Domain Adaptation
+General LLM → Legal domain. Fine-tune on 5K legal documents + contracts. LoRA rank-8: 2 hours training. Result: 42% → 68% accuracy on legal tasks. Cost: $100 (vs $10K full fine-tune). Deployed as legal assistant.
+
+### Full Fine-Tuning for Company Chat
+Goal: make model understand company context (products, policies, customers). Fine-tune on 100K internal documents. Full fine-tuning (smaller model, 3B). Result: 95% accuracy on internal queries. Deployment: on-premise (compliance).
+
+### Multi-Task Fine-Tuning
+One model for: classification, NER, summarization. Fine-tune on all three mixed. Shared representations improve transfer. Accuracy: 85% across all tasks (vs 88% individual models, but single model advantage).
+
+## Topic-specific notes
 
 **Q: When should you fine-tune vs use few-shot prompting?**
 A: Fine-tune when: you have 500+ labeled examples, consistent format/style requirements, latency constraints (shorter prompts), or need behavior that's hard to specify in a prompt. Use few-shot prompting when: you have few examples, the task changes frequently, or you need interpretability into what examples drive performance. Fine-tuning wins on consistency and cost at scale; prompting wins on flexibility and speed of iteration.
@@ -231,15 +245,8 @@ A: Always evaluate on a held-out test set that mirrors production distribution. 
 **Q: When is full fine-tuning worth the cost vs PEFT methods like LoRA?**
 A: Full fine-tuning is worth it when: the task requires changes to the model's core representations (not just surface behavior), you have large high-quality datasets (100K+ examples), or you'll serve many users sharing one fine-tuned model. PEFT/LoRA is sufficient for most production cases—it achieves 90-95% of full fine-tuning quality at 1-5% of the compute cost. Full fine-tuning rarely justifies cost unless you're training a foundation model.
 
-
-## Related Topics
-- [LoRA](08-lora.md) — parameter-efficient fine-tuning (cheaper alternative)
-- [Parameter-Efficient Fine-tuning](11-parameter-efficient-finetuning.md) — broader PEFT methods
-- [Instruction Tuning](05-instruction-tuning.md) — fine-tuning on instruction-following
-- [RLHF](06-rlhf.md) — fine-tuning with human feedback
-- [Transfer Learning](../../ml/concepts/transfer-learning.md) — fine-tuning from scratch perspective
-
 ## Resources
+
 - [HuggingFace Fine-tuning Guide](https://huggingface.co/docs/transformers/training)
 - [Fine-Tuning Language Models from Human Preferences](https://arxiv.org/abs/1909.08383)
 - [QLoRA: Efficient Finetuning of Quantized LLMs](https://arxiv.org/abs/2305.14314)

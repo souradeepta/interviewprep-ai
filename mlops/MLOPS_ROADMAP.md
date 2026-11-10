@@ -7,8 +7,8 @@ Choose your learning path based on your role and time availability.
 | Path | Duration | Focus | Best For |
 |------|----------|-------|----------|
 | **System Design** | 1-2 weeks | Concepts 13-24 | ML System Design interviews |
-| **Full Stack** | 2-3 weeks | Concepts 1-32 | Senior ML Engineer roles |
-| **Data Engineer** | 1-2 weeks | Concepts 1-4, 21-24 | Data Engineer roles |
+| **Full Stack** | 3-4 weeks | Concepts 1-24 | Senior ML Engineer roles |
+| **Data Engineer** | 1-2 weeks | Concepts 1-4, 19-20, 22-24 | Data Engineer roles |
 | **ML Engineer** | 1-2 weeks | Concepts 5-12, 13-16 | ML Engineer roles |
 | **Quick Prep** | 3-5 days | Concepts 13-20 | Urgent interview prep |
 
@@ -28,15 +28,15 @@ Choose your learning path based on your role and time availability.
 - Concept 16: Deployment Strategies (2h)
 - Concept 15: Model Registry & CI/CD (2h)
 
-**Week 2: Monitoring, Infrastructure & Integration**
-- Concept 21: Kubernetes Fundamentals (2h)
-- Concept 22: Workflow Orchestration (2h)
-- Concept 17: Model Monitoring & Health (2h)
-- Concept 18: Drift Detection (2h)
-- Concept 19: Logging & Observability (2h)
-- Concept 20: Alerting & Incident Management (2h)
-- Concept 23: Distributed Training (1h)
-- Concept 24: Resource Management (1h)
+**Week 2: Monitoring, Reliability & Governance**
+- Concept 17: Model Monitoring and Alert Design (2h)
+- Concept 18: Data and Concept Drift Detection (2h)
+- Concept 19: Pipeline Orchestration and Backfills (2h)
+- Concept 20: Online/Offline Feature Parity (2h)
+- Concept 21: ML Incident Response and Rollback (2h)
+- Concept 22: ML Governance, Lineage and Auditability (2h)
+- Concept 23: ML Security and Privacy Controls (2h)
+- Concept 24: Cost, Capacity and Reliability Planning (2h)
 
 ### Practice & Interview Prep
 
@@ -67,7 +67,7 @@ Choose your learning path based on your role and time availability.
 **Focus:** Complete ML Ops lifecycle from data to production  
 **Prerequisites:** Python, basic ML knowledge  
 
-### Study Order (2 hours per concept, 32 concepts total)
+### Study Order (2 hours per concept, 24 concepts total)
 
 **Week 1: Data & Feature Engineering**
 - Concept 01: Data Pipelines (2h)
@@ -89,31 +89,21 @@ Choose your learning path based on your role and time availability.
 - Concept 13: Containerization (2h)
 - Concept 14: Model Serving (2h)
 
-**Week 4: Production Systems**
+**Week 4: Production Reliability**
 - Concept 15: Model Registry & CI/CD (2h)
 - Concept 16: Deployment Strategies (2h)
-- Concept 17: Model Monitoring (2h)
-- Concept 18: Drift Detection (2h)
-- Concept 19: Logging & Observability (2h)
-- Concept 20: Alerting (2h)
+- Concept 17: Monitoring and Alert Design (2h)
+- Concept 18: Data and Concept Drift (2h)
+- Concept 21: Incident Response and Rollback (2h)
+- Concept 20: Online/Offline Feature Parity (2h)
 
-**Week 5: Infrastructure & Advanced**
-- Concept 21: Kubernetes (2h)
-- Concept 22: Orchestration (2h)
-- Concept 23: Distributed Training (2h)
-- Concept 24: Resource Management (2h)
-- Concept 25: Model Governance (2h)
-- Concept 26: Compliance & Fairness (2h)
+**Week 5: Governance and Scale (optional depth)**
+- Concept 19: Pipeline Orchestration and Backfills (2h)
+- Concept 22: Governance, Lineage and Auditability (2h)
+- Concept 23: Security and Privacy Controls (2h)
+- Concept 24: Cost, Capacity and Reliability Planning (2h)
 
-**Week 6: Governance & Advanced Topics**
-- Concept 27: Access Control & Security (2h)
-- Concept 28: Incident Management (2h)
-- Concept 29: Real-Time ML Systems (2h)
-- Concept 30: Federated Learning (2h)
-- Concept 31: ML System Design (2h)
-- Concept 32: Production Best Practices (2h)
-
-**Total Study Time:** 64 hours (2 hours per concept × 32)
+**Total Study Time:** 48 hours for concepts 1–24 at two hours each.
 
 ### Practice & Interview Prep
 
@@ -161,15 +151,12 @@ Choose your learning path based on your role and time availability.
 - Concept 03: Data Validation (2h)
 - Concept 04: Data Versioning (2h)
 
-**Week 2: Infrastructure**
-- Concept 21: Kubernetes Fundamentals (2h)
-- Concept 22: Workflow Orchestration (2h)
-- Concept 23: Distributed Training (2h)
-- Concept 24: Resource Management (2h)
-
-**Optional: Governance**
-- Concept 25: Model Governance (1h)
-- Concept 26: Compliance & Fairness (1h)
+**Week 2: Reliable Data and Operations**
+- Concept 19: Pipeline Orchestration and Backfills (2h)
+- Concept 20: Online/Offline Feature Parity (2h)
+- Concept 22: Governance, Lineage and Auditability (2h)
+- Concept 23: Security and Privacy Controls (2h)
+- Concept 24: Cost, Capacity and Reliability Planning (2h)
 
 ### Practice & Interview Prep
 
@@ -219,9 +206,10 @@ Choose your learning path based on your role and time availability.
 
 **Week 3: Serving & Monitoring**
 - Concept 14: Model Serving (2h)
-- Concept 17: Model Monitoring (2h)
-- Concept 18: Drift Detection (2h)
-- Concept 19: Logging (2h)
+- Concept 17: Monitoring and Alert Design (2h)
+- Concept 18: Data and Concept Drift (2h)
+- Concept 20: Online/Offline Feature Parity (2h)
+- Concept 21: Incident Response and Rollback (2h)
 
 ### Practice & Interview Prep
 
@@ -263,8 +251,8 @@ Choose your learning path based on your role and time availability.
 - Concept 16: Deployment Strategies (1h)
 
 **Priority 2 (Highly Important, 2-3 hours):**
-- Concept 21: Kubernetes (1h)
-- Concept 17: Model Monitoring (1h)
+- Concept 17: Monitoring and Alert Design (1h)
+- Concept 18: Drift Detection (1h)
 - Concept 01: Data Pipelines (1h)
 
 ### Practice (2-3 hours)

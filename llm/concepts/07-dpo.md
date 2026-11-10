@@ -1,16 +1,19 @@
 # DPO (Direct Preference Optimization)
 
-## Understanding Dpo
+RLHF trains two models (reward model + policy) using RL, which is complex and unstable.
 
-Dpo is a foundational concept in large language model development that addresses critical challenges in model architecture, training efficiency, or inference performance. Understanding this concept is essential for anyone working with modern language models, whether in research, fine-tuning, or production deployment.
+## Prerequisites
 
-The core innovation underlying Dpo lies in rethinking standard approaches to achieve better efficiency or effectiveness. Rather than accepting conventional trade-offs, this technique exploits mathematical or architectural insights to push the frontier of what's possible with given computational constraints.
+Familiarity with rlhf. This note focuses on the LLM-specific mechanism and its engineering selection boundary.
 
-In practical applications, Dpo enables capabilities that would otherwise be infeasible: reducing computational requirements, improving model quality, enabling faster iteration, or supporting new use cases. The real-world impact has made Dpo widely adopted across industry applications, from consumer products to enterprise systems.
+## Learning Outcomes
 
-Implementing Dpo requires understanding both its theoretical foundations and practical considerations. The following sections provide detailed explanations of how Dpo works, when to use it, common implementation patterns, and lessons learned from production deployments. By mastering these concepts, practitioners can make informed decisions about when and how to apply Dpo to their specific challenges.
+- Explain the mechanism and assumptions behind dpo (direct preference optimization).
+- Compare its main alternative using task quality and one operational cost.
+- Diagnose a failure using a metric or example tied to dpo (direct preference optimization).
 
 ## Core Intuition
+
 RLHF trains two models (reward model + policy) using RL, which is complex and unstable. DPO realizes you can extract preference signals directly via loss function: if humans prefer output A over B for prompt X, optimize LLM to assign higher likelihood to A. No separate reward model needed. Single stage fine-tuning.
 
 ## How It Works
@@ -86,7 +89,7 @@ graph TD
     style E fill:#c8e6c9
 ```
 
-## Key Properties / Trade-offs
+## Trade-offs
 
 | Method | Stages | Reward Model | Complexity | Speed | Quality | Stability |
 |--------|--------|--------------|-----------|-------|---------|-----------|
@@ -108,17 +111,7 @@ graph TD
 - β hyperparameter critical (affects preference strength)
 - Less tested at scale than RLHF
 
-## Common Mistakes / Gotchas
-
-- **Wrong temperature (β):** Too low β (< 0.1) → model ignores preferences. Too high β (> 1.0) → overfitting to preferences, language quality drops. Try β = 0.5 default.
-- **Bad SFT base:** DPO amplifies base model issues. If SFT is poor, DPO doesn't fix it. Start with good SFT.
-- **Preference data quality:** Noisy labels (arbitrary or inconsistent preferences) → model learns bad patterns. Collect carefully, check inter-annotator agreement.
-- **Ignoring reference model:** Using π instead of π_ref in loss → diverges from base behavior. Always include reference log probabilities.
-- **Not normalizing lengths:** Long preferred responses vs short dispreferred → length bias. Normalize by response length or use length-controlled sampling.
-- **Greedy decoding:** DPO optimizes likelihood, not decoding. Use nucleus/temperature sampling at inference to match training distribution.
-- **Comparing unfairly:** DPO on 10k pairs vs RLHF on 50k pairs. Fair comparison needs same data/compute budgets.
-
-## Code Example
+## Implementation
 
 ```python
 from datasets import load_dataset
@@ -199,7 +192,17 @@ dpo_trainer = DPOTrainer(
 dpo_trainer.train()
 ```
 
-## Interview Quick-Reference
+## Failure Modes
+
+- **Wrong temperature (β):** Too low β (< 0.1) → model ignores preferences. Too high β (> 1.0) → overfitting to preferences, language quality drops. Try β = 0.5 default.
+- **Bad SFT base:** DPO amplifies base model issues. If SFT is poor, DPO doesn't fix it. Start with good SFT.
+- **Preference data quality:** Noisy labels (arbitrary or inconsistent preferences) → model learns bad patterns. Collect carefully, check inter-annotator agreement.
+- **Ignoring reference model:** Using π instead of π_ref in loss → diverges from base behavior. Always include reference log probabilities.
+- **Not normalizing lengths:** Long preferred responses vs short dispreferred → length bias. Normalize by response length or use length-controlled sampling.
+- **Greedy decoding:** DPO optimizes likelihood, not decoding. Use nucleus/temperature sampling at inference to match training distribution.
+- **Comparing unfairly:** DPO on 10k pairs vs RLHF on 50k pairs. Fair comparison needs same data/compute budgets.
+
+## Interview Quick Reference
 
 | Question | What to say |
 |---|---|
@@ -211,6 +214,13 @@ dpo_trainer.train()
 | "Implicit reward model?" | DPO computes reward implicitly in loss function. Can't inspect/debug separately. Trade-off: simplicity vs interpretability. |
 | "When use DPO?" | When you have preference data and want speed/simplicity. RLHF if you need maximum quality and have compute budget. |
 
+## Related Concepts
+
+- [[rlhf]] — traditional preference optimization approach (more complex)
+- [[fine-tuning]] — supervised fine-tuning baseline
+- [[instruction-tuning]] — task-specific training foundation
+- [[in-context-learning]] — combining with ICL for better outputs
+
 ## Real-World Examples
 
 ### DPO for LLM Alignment
@@ -219,7 +229,7 @@ Base model: 45% human preference. After DPO (10K preference pairs): 72% human pr
 ### DPO for Code Generation
 Base model: 40% correct solutions. Target: 70%. DPO on 5K (output, correct, incorrect) triplets. Result: 68% accuracy, 5% improvement. Faster than RLHF pipeline (RL training). Deployed in Copilot-style autocomplete.
 
-## Interview Q&A
+## Topic-specific notes
 
 **Q: Why does DPO not require a separate reward model while RLHF does?**
 A: DPO mathematically shows that the optimal policy under RLHF can be expressed directly in terms of the ratio of chosen to rejected completion probabilities. This means the language model implicitly represents the reward through its log-probabilities. The DPO loss directly updates these log-probs using preference pairs, bypassing the need to train and maintain a separate reward model while achieving equivalent results.
@@ -239,14 +249,8 @@ A: Use AI feedback (RLAIF): prompt GPT-4 to generate both a "better" and "worse"
 **Q: What evaluation metrics tell you if DPO actually improved the model?**
 A: Win rate against the SFT reference model on a held-out preference test set (should be >50%). Reward model score on the test set (should increase). MT-Bench or AlpacaEval for general instruction following. Crucially, also check capability regressions: MMLU, HumanEval, TruthfulQA—DPO can degrade factual accuracy if preference data favors confident-sounding but wrong answers.
 
-
-## Related Topics
-- [[rlhf]] — traditional preference optimization approach (more complex)
-- [[fine-tuning]] — supervised fine-tuning baseline
-- [[instruction-tuning]] — task-specific training foundation
-- [[in-context-learning]] — combining with ICL for better outputs
-
 ## Resources
+
 - [Direct Preference Optimization: Your Language Model is Secretly a Reward Model](https://arxiv.org/abs/2305.18290)
 - [Identity Preference Optimization (IPO)](https://arxiv.org/abs/2310.12036)
 - [TRL Library: DPO Trainer](https://huggingface.co/docs/trl/en/dpo_trainer)

@@ -1,16 +1,19 @@
 # Parameter-Efficient Fine-Tuning (PEFT)
 
-## Understanding Parameter Efficient Finetuning
+Full fine-tuning is expensive.
 
-Parameter Efficient Finetuning is a foundational concept in large language model development that addresses critical challenges in model architecture, training efficiency, or inference performance. Understanding this concept is essential for anyone working with modern language models, whether in research, fine-tuning, or production deployment.
+## Prerequisites
 
-The core innovation underlying Parameter Efficient Finetuning lies in rethinking standard approaches to achieve better efficiency or effectiveness. Rather than accepting conventional trade-offs, this technique exploits mathematical or architectural insights to push the frontier of what's possible with given computational constraints.
+Familiarity with prefix tuning. This note focuses on the LLM-specific mechanism and its engineering selection boundary.
 
-In practical applications, Parameter Efficient Finetuning enables capabilities that would otherwise be infeasible: reducing computational requirements, improving model quality, enabling faster iteration, or supporting new use cases. The real-world impact has made Parameter Efficient Finetuning widely adopted across industry applications, from consumer products to enterprise systems.
+## Learning Outcomes
 
-Implementing Parameter Efficient Finetuning requires understanding both its theoretical foundations and practical considerations. The following sections provide detailed explanations of how Parameter Efficient Finetuning works, when to use it, common implementation patterns, and lessons learned from production deployments. By mastering these concepts, practitioners can make informed decisions about when and how to apply Parameter Efficient Finetuning to their specific challenges.
+- Explain the mechanism and assumptions behind parameter-efficient fine-tuning (peft).
+- Compare its main alternative using task quality and one operational cost.
+- Diagnose a failure using a metric or example tied to parameter-efficient fine-tuning (peft).
 
 ## Core Intuition
+
 Full fine-tuning is expensive. PEFT methods train only small modules or low-rank updates. Achieve 95-98% of full FT quality with 1-5% of parameters and compute.
 
 ## How It Works
@@ -63,7 +66,7 @@ graph LR
     style F fill:#e8f5e9
 ```
 
-## Key Properties / Trade-offs
+## Trade-offs
 
 | Method | Flexibility | Accuracy | Param Count | Combine |
 |--------|-------------|----------|-------------|---------|
@@ -78,16 +81,7 @@ graph LR
 - Prefix: sequence tasks where prefix makes sense
 - BitFit: extreme memory constraints only
 
-## Common Mistakes / Gotchas
-
-- **Choosing wrong rank:** r=2 might be too small, r=64 defeats purpose. Try r=8, r=16 first.
-- **Not scaling learning rate:** PEFT often uses higher LR than FT. Experiment: 1e-4 to 5e-4.
-- **Freezing wrong layers:** accidentally update base weights → cost increases. Double-check only target modules frozen.
-- **Comparing unfairly:** 1-hour LoRA vs 100-hour FT; quality difference small but time difference huge.
-- **Not merging for deployment:** keep base + LoRA separate during dev; merge offline for inference.
-- **Using on tiny models:** PEFT has overhead. On 100M models, full FT might be faster.
-
-## Code Example
+## Implementation
 
 ```python
 from peft import get_peft_model, LoraConfig
@@ -137,7 +131,16 @@ merged_model = model.merge_and_unload()
 merged_model.save_pretrained("./merged_model")
 ```
 
-## Interview Quick-Reference
+## Failure Modes
+
+- **Choosing wrong rank:** r=2 might be too small, r=64 defeats purpose. Try r=8, r=16 first.
+- **Not scaling learning rate:** PEFT often uses higher LR than FT. Experiment: 1e-4 to 5e-4.
+- **Freezing wrong layers:** accidentally update base weights → cost increases. Double-check only target modules frozen.
+- **Comparing unfairly:** 1-hour LoRA vs 100-hour FT; quality difference small but time difference huge.
+- **Not merging for deployment:** keep base + LoRA separate during dev; merge offline for inference.
+- **Using on tiny models:** PEFT has overhead. On 100M models, full FT might be faster.
+
+## Interview Quick Reference
 
 | Question | What to say |
 |---|---|
@@ -147,6 +150,16 @@ merged_model.save_pretrained("./merged_model")
 | "Multi-task PEFT?" | Load different LoRAs for different tasks on same base. Flexible, efficient. |
 | "Deploy PEFT?" | Merge base + LoRA offline (save merged) or keep separate (load LoRA at inference). |
 
+
+
+**Design follow-up:** How would you monitor this choice in production and decide when to use an alternative?
+## Related Concepts
+
+- [LoRA](08-lora.md) — specific PEFT variant
+- [Fine-tuning](04-finetuning.md) — full FT baseline
+- [Adapters](09-adapters.md) — another PEFT method
+- [Quantization](30-quantization.md) — orthogonal technique for compression
+
 ## Real-World Examples
 
 ### LoRA Multi-Task
@@ -155,7 +168,7 @@ merged_model.save_pretrained("./merged_model")
 ### QLoRA on Consumer GPU
 13B model with QLoRA: 6GB memory. RTX 3090 (24GB) trains comfortably. Enables researchers without cloud budget.
 
-## Interview Q&A
+## Topic-specific notes
 
 **Q: How do you choose between LoRA, adapters, and prefix tuning for a new task?**
 A: LoRA: default choice for most tasks—zero inference overhead after merging, works well at ranks 4-32, broad community support. Adapters: when you need to serve many tasks on one base model without merging (hot-swappable). Prefix tuning: when you want to minimize trainable parameters and the task is generation-focused. In practice, run a quick experiment with LoRA first; switch to alternatives only if you have specific constraints (multi-task serving → adapters, extreme parameter budget → prompt tuning).
@@ -175,14 +188,8 @@ A: For most standard NLP tasks (classification, QA, summarization), LoRA at rank
 **Q: How do you set up PEFT training with Hugging Face and what are the key configuration choices?**
 A: Use `peft.LoraConfig` (rank r, target_modules, lora_alpha, lora_dropout), wrap with `get_peft_model`. Key choices: target_modules (q_proj+v_proj is default; add k_proj and o_proj for more capacity); lora_alpha (typically 2×rank for stable training); use `prepare_model_for_kbit_training` before applying PEFT for quantized base models. Always call `model.print_trainable_parameters()` to verify you're training the right number of parameters.
 
-
-## Related Topics
-- [LoRA](08-lora.md) — specific PEFT variant
-- [Fine-tuning](04-finetuning.md) — full FT baseline
-- [Adapters](09-adapters.md) — another PEFT method
-- [Quantization](30-quantization.md) — orthogonal technique for compression
-
 ## Resources
+
 - [PEFT: Hugging Face Library](https://github.com/huggingface/peft)
 - [LoRA: Low-Rank Adaptation](https://arxiv.org/abs/2106.09685)
 - [Adapter Modules](https://arxiv.org/abs/1902.00751)

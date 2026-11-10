@@ -1,36 +1,18 @@
-"""
-Decode Length Prediction
-
-Production-quality implementation of decode length prediction.
-"""
-
-import numpy as np
-import torch
-import torch.nn as nn
-from typing import Dict, List, Tuple, Optional
-
-
-class DecodeLengthPredictor(nn.Module):
-    """Production-grade implementation."""
-    
-    def __init__(self, hidden_dim: int = 64, device: Optional[torch.device] = None):
-        super().__init__()
-        self.hidden_dim = hidden_dim
-        self.device = device or torch.device('cuda' if torch.cuda.is_available() else 'cpu')
-        self.linear = nn.Linear(hidden_dim, hidden_dim)
-        self.norm = nn.LayerNorm(hidden_dim)
-    
-    def forward(self, x: torch.Tensor) -> torch.Tensor:
-        x = x.to(self.device)
-        x = self.linear(x)
-        x = self.norm(x)
-        return x
-
-
+"""Length prediction calibration and tail-reservation diagnostics."""
+def isotonic_non_decreasing(predicted, observed):
+    pairs=sorted(zip(predicted,observed)); blocks=[]
+    for _,y in pairs:
+        blocks.append([float(y),1])
+        while len(blocks)>1 and blocks[-2][0]/blocks[-2][1] > blocks[-1][0]/blocks[-1][1]:
+            b=blocks.pop(); blocks[-1][0]+=b[0]; blocks[-1][1]+=b[1]
+    out=[]
+    for total,n in blocks: out.extend([total/n]*n)
+    return out
+def underprediction_rate(predicted,actual): return sum(p<a for p,a in zip(predicted,actual))/max(1,len(actual))
+def tail_report(predicted,actual):
+    errors=[a-p for p,a in zip(predicted,actual)]; s=sorted(actual)
+    p95=s[min(len(s)-1,int(.95*len(s)))] if s else 0
+    return {"underprediction_rate":underprediction_rate(predicted,actual),"mean_absolute_error":sum(abs(x) for x in errors)/max(1,len(errors)),"actual_p95":p95,"reserve_p95":p95}
 if __name__ == "__main__":
-    device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
-    model = DecodeLengthPredictor(hidden_dim=64, device=device)
-    x = torch.randn(4, 8, 64)
-    with torch.no_grad():
-        output = model(x)
-    print(f"Input: {x.shape} → Output: {output.shape}")
+    y=[8,9,10,12,13,18,20,44,51,63]; p=[7,10,9,11,15,15,18,22,27,30]
+    print("calibrated",isotonic_non_decreasing(p,y)); print(tail_report(p,y))

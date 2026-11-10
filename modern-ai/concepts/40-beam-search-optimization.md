@@ -1,6 +1,75 @@
 # Beam Search Optimization
 
-## Detailed Explanation
+**TL;DR:** Beam search keeps several high-scoring partial sequences to reduce greedy decoding errors, trading memory and latency for broader candidate exploration.
+
+## Prerequisites
+
+[sequence-to-sequence models](../../nlp/concepts/04-seq2seq-attention.md)
+
+## Learning Outcomes
+
+- Explain the computation and state affected by beam search optimization.
+- Compare alternatives using quality, latency, and resource measurements.
+- Diagnose a topic-specific failure from an observable signal.
+
+## Core Intuition
+
+Greedy decoding retains one prefix; beam search retains k prefixes and expands each before pruning by cumulative score.
+
+## How It Works
+
+For each prefix, add candidate log probabilities, apply finished-sequence and length rules, then retain the best k hypotheses. Without length normalization, log probability increasingly favors short outputs because each added token contributes a non-positive term. Wider beams can expose better sequences but also amplify model search errors and increase decoder cache use.
+
+Evaluate task quality, length distribution, duplicate rate, latency, and peak KV memory across beam widths. Tune normalization on validation data and report by input length. For open-ended generation, beam search may reduce diversity or produce generic high-probability continuations; sampling can be better when varied plausible outputs are desired.
+
+## Trade-offs
+
+| Choice | Benefit | Cost or boundary |
+|---|---|---|
+| Greedy | Direct topic-specific baseline | Establishes quality and resource reference |
+| Beam width 4 | Improves the named objective | Adds its stated operating cost |
+| Length-normalized beam | Adapts to a useful workload slice | Requires calibration and monitoring |
+| Diverse beam | Provides a conservative fallback | Gives up some potential gain |
+
+## Implementation
+
+This dependency-light example isolates the topic’s decision rule; it is not a benchmark of accelerator performance.
+
+```python
+from math import log
+def extend(prefix_score, token_probability):
+    return prefix_score + log(token_probability)
+
+assert extend(0.0, 1.0) == 0.0
+```
+
+## Failure Modes
+
+- Beam favors short outputs: compare length ratios and tune normalization on held-out references.
+- Wider beam returns repeated or generic candidates: evaluate diversity and use task-appropriate decoding.
+- Beam cache exceeds memory: measure peak live hypotheses and cap width or batch size.
+
+## Interview Quick Reference
+
+| Question | Expected answer and follow-up |
+|---|---|
+| When beam over sampling? | Use beam for tasks with a meaningful sequence score and one preferred answer; sampling fits diverse creative outputs. Follow-up: what metric captures collapse? |
+| Why normalize length? | Cumulative log scores penalize longer sequences; a validated normalization reduces that bias. Debug follow-up: inspect output-length shifts. |
+| What is the compute cost? | Roughly k active prefixes per step plus hypothesis bookkeeping and KV state; benchmark end-to-end. |
+
+## Related Concepts
+
+See [sequence-to-sequence models](../../nlp/concepts/04-seq2seq-attention.md).
+
+## References
+
+- [aclanthology.org](https://aclanthology.org/W14-4012/)
+- [arxiv.org](https://arxiv.org/abs/1702.01806)
+
+### Additional Technical Detail
+
+
+#### Detailed Explanation
 
 Beam search is the standard decoding algorithm for sequence generation: it maintains K candidate sequences (beams) at each step, expanding each by one token from the full vocabulary, then pruning to keep only the K highest log-probability sequences. The algorithm produces better outputs than greedy decoding (K=1) because it explores multiple hypotheses in parallel, avoiding locally optimal but globally suboptimal token choices.
 
@@ -10,11 +79,11 @@ Optimization addresses several practical problems with naive beam search: (1) di
 
 Modern implementations add: alpha-length normalization (0.6 is the WMT benchmark standard), repetition penalty (divide logits of previously seen tokens by a factor > 1), n-gram blocking (force tokens appearing in recent n-gram contexts to probability 0), and diverse beam search (penalize hypotheses similar to already-retained beams). These together yield translations and summaries with 2-5 BLEU/ROUGE points higher than naive beam search.
 
-## Core Intuition
+#### Core Intuition
 
 Beam search is like tracking the K most promising chess games simultaneously instead of committing to one move at a time. After each move, you keep only the K games with the best total position score and discard the rest. Length normalization prevents you from always preferring games that end in a draw quickly (short sequences) over games with a winning endgame (long, high-quality sequences). Diversity penalties ensure you are not tracking K nearly-identical games when it would be more useful to explore K genuinely different strategies.
 
-## How It Works
+#### How It Works
 
 1. **Initialize K beams from start token** — Create K identical beams, each containing only the BOS token. Score each beam with its initial log-probability (log p(BOS) = 0 by convention).
 2. **Expand: generate all vocab candidates** — For each of the K active beams, compute log p(v | beam) for all V vocabulary tokens. This produces K x V candidate sequences. Memory: K x V logit tensors per step.
@@ -37,9 +106,9 @@ graph TD
     H -->|Yes| I[Return highest-scoring\ncompleted hypothesis]
 ```
 
-## Architecture / Trade-offs
+#### Architecture / Trade-offs
 
-### Beam Width vs Quality vs Memory (WMT14 EN-DE Translation)
+#### Beam Width vs Quality vs Memory (WMT14 EN-DE Translation)
 
 | Beam Width K | BLEU Score | Memory (relative) | Latency (relative) | Notes |
 |-------------|-----------|-------------------|-------------------|-------|
@@ -49,7 +118,7 @@ graph TD
 | 16 | 27.8 | 16.0x | 11.8x | Diminishing returns |
 | 32 | 27.9 | 32.0x | 22.5x | Never worth it |
 
-### Length Normalization Alpha (WMT14, K=4)
+#### Length Normalization Alpha (WMT14, K=4)
 
 | Alpha | Avg Output Length | BLEU | Effect |
 |-------|------------------|------|--------|
@@ -58,7 +127,7 @@ graph TD
 | 0.7 | 24.8 tokens | 27.0 | Slightly favors longer |
 | 1.0 (full normalization) | 31.2 tokens | 25.6 | Over-corrects, too verbose |
 
-### Diverse Beam Search Penalty
+#### Diverse Beam Search Penalty
 
 | Diversity Penalty lambda | Hypothesis Similarity | BLEU | Use Case |
 |--------------------------|----------------------|------|---------|
@@ -66,7 +135,7 @@ graph TD
 | 0.5 | Moderate (0.65 similarity) | 26.8 | Multiple distinct candidates |
 | 1.0 | Low (0.45 similarity) | 25.9 | Maximum diversity, re-ranking |
 
-## Interview Q&A
+#### Interview Q&A
 
 **Q: Why does greedy decoding often produce worse outputs than beam search even with the same model?**
 A: Greedy decoding commits to the highest-probability token at each step. If the optimal sequence requires choosing a lower-probability token at step 5 to enable high-probability tokens at steps 6-10, greedy never explores that path. Beam search keeps K hypotheses alive simultaneously, allowing it to recover from locally suboptimal choices. The classic example: "The company announced" -> greedy might choose "profits" (high probability), while beam search explores both "profits" and "layoffs" and selects "layoffs" when subsequent tokens confirm that context.
@@ -86,7 +155,7 @@ A: Repetition penalty multiplies the logits of recently seen tokens by 1/penalty
 **Q: What is diverse beam search and when does it add value over standard beam search?**
 A: Standard beam search K=8 often returns 8 very similar hypotheses (varying only in word choice for one or two positions). Diverse beam search adds a group-level penalty: `score(y_t) = log_p(y_t) - lambda * sim(y_t, beams_in_other_groups)`, forcing different beam groups to explore different regions of the output space. This adds value when you need to present multiple distinct candidates to users (e.g., 3 different phrasing options for an auto-reply) or when you plan to re-rank hypotheses with a separate model (re-ranker benefits from diverse candidates).
 
-## Best Practices
+#### Best Practices
 
 - Use K=4 as the default beam width for production — it recovers 85-90% of K=8 quality at half the memory and 60% of the latency.
 - Set length normalization alpha=0.6 for translation and summarization; lower values (0.4) for tasks where brevity is preferred; higher (0.8) for code generation where completeness matters.
@@ -95,7 +164,7 @@ A: Standard beam search K=8 often returns 8 very similar hypotheses (varying onl
 - If using beam search in a streaming context (displaying tokens as they are generated), consider switching to top-p sampling — beam search cannot stream because it does not commit to tokens until a beam is complete.
 - Monitor beam diversity in production: if the average pairwise similarity between returned beams exceeds 0.9, you are wasting compute on redundant hypotheses; consider reducing K or adding diversity penalty.
 
-## Common Pitfalls
+#### Common Pitfalls
 
 - **Memory explosion with large K and long sequences**: K=16 for a 7B model generating 512 tokens requires 32GB+ of KV cache alone. Symptom: OOM errors during beam search on long outputs. Fix: cap K at 4-8 for production; use paged KV attention to share cache across beams with common prefixes; or switch to sampling for long-form generation.
 
@@ -105,7 +174,7 @@ A: Standard beam search K=8 often returns 8 very similar hypotheses (varying onl
 
 - **Diverse beam search with high lambda destroys quality**: When lambda is too high, the diversity penalty overwhelms the language model score, forcing beams into low-probability regions. Symptom: diverse hypotheses are gibberish or have very low individual scores. Fix: cap lambda at 1.0; verify that each individual hypothesis has a length-normalized score within 2x of the best hypothesis.
 
-## Related Concepts
+#### Related Concepts
 
 - [Grammar-Constrained Generation](./41-grammar-constrained-generation.md)
 - [Token Decompression](./44-token-decompression.md)

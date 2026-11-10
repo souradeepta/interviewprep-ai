@@ -1,16 +1,19 @@
 # RLHF (Reinforcement Learning from Human Feedback)
 
-## Understanding Rlhf
+Humans can't exhaustively specify what makes a "good" response.
 
-Rlhf is a foundational concept in large language model development that addresses critical challenges in model architecture, training efficiency, or inference performance. Understanding this concept is essential for anyone working with modern language models, whether in research, fine-tuning, or production deployment.
+## Prerequisites
 
-The core innovation underlying Rlhf lies in rethinking standard approaches to achieve better efficiency or effectiveness. Rather than accepting conventional trade-offs, this technique exploits mathematical or architectural insights to push the frontier of what's possible with given computational constraints.
+Familiarity with instruction tuning. This note focuses on the LLM-specific mechanism and its engineering selection boundary.
 
-In practical applications, Rlhf enables capabilities that would otherwise be infeasible: reducing computational requirements, improving model quality, enabling faster iteration, or supporting new use cases. The real-world impact has made Rlhf widely adopted across industry applications, from consumer products to enterprise systems.
+## Learning Outcomes
 
-Implementing Rlhf requires understanding both its theoretical foundations and practical considerations. The following sections provide detailed explanations of how Rlhf works, when to use it, common implementation patterns, and lessons learned from production deployments. By mastering these concepts, practitioners can make informed decisions about when and how to apply Rlhf to their specific challenges.
+- Explain the mechanism and assumptions behind rlhf (reinforcement learning from human feedback).
+- Compare its main alternative using task quality and one operational cost.
+- Diagnose a failure using a metric or example tied to rlhf (reinforcement learning from human feedback).
 
 ## Core Intuition
+
 Humans can't exhaustively specify what makes a "good" response. But they can compare two outputs: "A is better than B." Collect thousands of such comparisons, learn patterns (reward model), then optimize the LLM to maximize that reward. This is how ChatGPT/Claude are aligned.
 
 ## How It Works
@@ -111,7 +114,7 @@ graph TD
     style E fill:#e8f5e9
 ```
 
-## Key Properties / Trade-offs
+## Trade-offs
 
 | Stage | Data Needed | Duration | Cost | Compute |
 |-------|------------|----------|------|---------|
@@ -129,27 +132,7 @@ graph TD
 | DPO | 90-94% | Medium | $ | Medium |
 | PPO-based | 92-96% | Slow | $$$ | Very High |
 
-## Common Mistakes / Gotchas
-
-- **Reward hacking:** Model exploits reward model instead of actually improving. Example: outputs nothing (minimal tokens), reward model says "no errors!" → rewarded despite useless. Mitigation: add diversity/length rewards, use multiple reward signals.
-  
-- **Reward model overfitting:** Training on 10k examples with large model → RM generalizes poorly. New prompts → RM gives bad signals. Mitigation: use smaller RM, regularize, validate on held-out data.
-
-- **Annotator bias:** Annotators have personal preferences that don't generalize. Some prefer verbose, others terse. Result: RM learns biased preferences → aligned model copies biases. Mitigation: Multiple annotators, diversity training, check inter-annotator agreement (target >75%).
-
-- **Divergence from base policy:** KL penalty β too low → π_RL diverges too far from π_SFT, may degrade language quality. β too high → ignores reward signal. Optimal: β ≈ 0.02-0.1.
-
-- **Scaling issues:** Small RM (350M) can't predict preferences well for 7B+ policy. Large RM adds overhead. Mitigation: match RM and policy size roughly, or use policy-based reward (same model predicts own reward).
-
-- **Not validating on held-out annotators:** Train RM on annotator group A, deployed model optimized for group A's preferences. Group B users don't like results. Mitigation: collect data from diverse annotators, validate cross-group.
-
-- **Too few preference signals:** 1k comparisons → noisy RM → weak optimization. Need 10k+ high-quality comparisons. Scaling annotation is expensive.
-
-- **Initialization matters:** RLHF starting from weak SFT → poor results. Start from strong SFT base. PPO is unstable with bad initializations.
-
-- **Decoding mismatch:** RLHF trains on sampled decoding (temperature > 0). Deploy with greedy decoding (temperature = 0) → different behavior. Use same sampling at train and inference.
-
-## Code Example
+## Implementation
 
 ```python
 from datasets import load_dataset
@@ -166,7 +149,7 @@ tokenizer.pad_token = tokenizer.eos_token
 # Stage 2: Load pre-trained reward model (from previous training)
 reward_model_name = "OpenAssistant/reward-model-deberta-v3-large"
 reward_model = AutoModelForSequenceClassification.from_pretrained(
-    reward_model_name, 
+    reward_model_name,
     num_labels=1  # Single scalar reward
 )
 
@@ -201,17 +184,17 @@ for epoch in range(10):
             max_new_tokens=100,
             temperature=0.7,
         )
-        
+
         # Score responses using reward model
         rewards = ppo_trainer.get_rewards(response_tensors)
-        
+
         # Update policy with PPO
         stats = ppo_trainer.step(
             batch["input_ids"],
             response_tensors,
             rewards,
         )
-        
+
         print(f"Epoch {epoch}: {stats}")
 
 # Save final model
@@ -231,7 +214,27 @@ dpo_trainer = DPOTrainer(
 dpo_trainer.train()  # Single stage instead of 3
 ```
 
-## Interview Quick-Reference
+## Failure Modes
+
+- **Reward hacking:** Model exploits reward model instead of actually improving. Example: outputs nothing (minimal tokens), reward model says "no errors!" → rewarded despite useless. Mitigation: add diversity/length rewards, use multiple reward signals.
+
+- **Reward model overfitting:** Training on 10k examples with large model → RM generalizes poorly. New prompts → RM gives bad signals. Mitigation: use smaller RM, regularize, validate on held-out data.
+
+- **Annotator bias:** Annotators have personal preferences that don't generalize. Some prefer verbose, others terse. Result: RM learns biased preferences → aligned model copies biases. Mitigation: Multiple annotators, diversity training, check inter-annotator agreement (target >75%).
+
+- **Divergence from base policy:** KL penalty β too low → π_RL diverges too far from π_SFT, may degrade language quality. β too high → ignores reward signal. Optimal: β ≈ 0.02-0.1.
+
+- **Scaling issues:** Small RM (350M) can't predict preferences well for 7B+ policy. Large RM adds overhead. Mitigation: match RM and policy size roughly, or use policy-based reward (same model predicts own reward).
+
+- **Not validating on held-out annotators:** Train RM on annotator group A, deployed model optimized for group A's preferences. Group B users don't like results. Mitigation: collect data from diverse annotators, validate cross-group.
+
+- **Too few preference signals:** 1k comparisons → noisy RM → weak optimization. Need 10k+ high-quality comparisons. Scaling annotation is expensive.
+
+- **Initialization matters:** RLHF starting from weak SFT → poor results. Start from strong SFT base. PPO is unstable with bad initializations.
+
+- **Decoding mismatch:** RLHF trains on sampled decoding (temperature > 0). Deploy with greedy decoding (temperature = 0) → different behavior. Use same sampling at train and inference.
+
+## Interview Quick Reference
 
 | Question | What to say |
 |---|---|
@@ -243,6 +246,21 @@ dpo_trainer.train()  # Single stage instead of 3
 | "vs DPO?" | RLHF: 3 stages, complex, slow, flexible. DPO: 2 stages, simple, fast, comparable quality. Use DPO if no specialized RM needed. |
 | "Scale RLHF?" | 10k comparisons takes weeks to annotate. Use smaller subsets or synthetic preferences. Alternative: DPO avoids RM bottleneck. |
 
+## Related Concepts
+
+- [[dpo]] — simpler direct preference optimization alternative
+- [[fine-tuning]] — supervised fine-tuning baseline
+- [[instruction-tuning]] — task-specific training foundation
+- [[reward-modeling]] — learning preference signals (core of RLHF stage 2)
+
+## Real-World Examples
+
+### OpenAI ChatGPT Alignment
+RLHF pipeline: 13K human evaluators. Process: GPT-3.5 → RLHF → ChatGPT. Improvement: instruction-following, refuses harmful. Standard approach for alignment in industry.
+
+### Safety Fine-Tuning
+Base model: 60% refuse harmful, 40% comply. After RLHF: 95% refuse, 5% false positives. Trade-off: safety vs helpfulness (needs careful tuning).
+
 ## Real-World Examples
 
 ### OpenAI ChatGPT Alignment
@@ -259,15 +277,7 @@ RLHF pipeline: 13K human evaluators. Process: GPT-3.5 → RLHF → ChatGPT. Impr
 ### Safety Fine-Tuning
 Base model: 60% refuse harmful, 40% comply. After RLHF: 95% refuse, 5% false positives. Trade-off: safety vs helpfulness (needs careful tuning).
 
-## Real-World Examples
-
-### OpenAI ChatGPT Alignment
-RLHF pipeline: 13K human evaluators. Process: GPT-3.5 → RLHF → ChatGPT. Improvement: instruction-following, refuses harmful. Standard approach for alignment in industry.
-
-### Safety Fine-Tuning
-Base model: 60% refuse harmful, 40% comply. After RLHF: 95% refuse, 5% false positives. Trade-off: safety vs helpfulness (needs careful tuning).
-
-## Interview Q&A
+## Topic-specific notes
 
 **Q: Why does RLHF improve model behavior beyond what supervised fine-tuning achieves?**
 A: SFT teaches the model to mimic demonstrations but can't distinguish "pretty good" from "excellent" responses—it treats all training examples equally. RLHF optimizes explicitly for human preferences by training a reward model on pairwise comparisons, then using RL to maximize that reward. This allows the model to explore response variations not in the training data and learn nuanced preferences like helpfulness vs verbosity trade-offs.
@@ -287,14 +297,8 @@ A: PPO (Proximal Policy Optimization) clips the policy update to prevent large s
 **Q: When would you choose DPO over PPO for preference optimization?**
 A: DPO when: you have a fixed preference dataset and don't need online data collection, you want simpler implementation (no reward model, no RL loop), or your compute budget is limited. PPO when: you need online data collection (model generates rollouts, humans rate them), you want to optimize a non-differentiable reward (e.g., from a separate classifier), or you need fine-grained control over the optimization process. In practice, DPO has become the default for most fine-tuning workflows.
 
-
-## Related Topics
-- [[dpo]] — simpler direct preference optimization alternative
-- [[fine-tuning]] — supervised fine-tuning baseline
-- [[instruction-tuning]] — task-specific training foundation
-- [[reward-modeling]] — learning preference signals (core of RLHF stage 2)
-
 ## Resources
+
 - [Learning to Summarize from Human Feedback](https://arxiv.org/abs/2009.01325) — foundational RLHF paper
 - [InstructGPT: Training Language Models to Follow Instructions](https://arxiv.org/abs/2203.02155) — ChatGPT alignment via RLHF
 - [Training a Helpful and Harmless Assistant with Reinforcement Learning from Human Feedback](https://arxiv.org/abs/2204.05862) — Anthropic's approach
@@ -309,7 +313,7 @@ graph TD
     B["Fine-tuning"] -->|prerequisite| A
     A -->|used with| D["Instruction Tuning"]
     A -->|used with| D["DPO (Direct Preference Optimization)"]
-    
+
     style A fill:#fff3e0
 ```
 

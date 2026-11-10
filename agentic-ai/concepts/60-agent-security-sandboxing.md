@@ -1,5 +1,62 @@
 # Agent Security and Sandboxing
+**TL;DR:** Agent security limits what untrusted model output can cause through capability controls, isolated execution, and auditable policy enforcement.
 
+## Prerequisites
+Tool calling, operating-system permissions, and threat modeling.
+
+## Learning Outcomes
+- Identify prompt injection and confused-deputy paths.
+- Apply least privilege to tools and execution environments.
+- Test containment using adversarial inputs and side-effect assertions.
+
+## Core Intuition
+A sandbox is a locked workbench with only the tools needed for one job. Telling an agent “do not access other files” is a sign on the wall; operating-system permissions are the lock. Safety instructions help behavior, but containment must be enforced outside the model.
+
+## How It Works
+The operating flow identifies the task state, selects a bounded strategy, gathers only the evidence needed for that decision, validates the result, and records the outcome. Threat modeling must include indirect instructions inside retrieved content and actions taken by downstream tools. A model may be persuaded to send data to an allowed browser or database endpoint even when shell access is blocked, so policy checks need user, resource, and operation context. Separate identities for read and write tools, scope permissions to a task, and record authorization decisions. A sandbox limits damage after a mistake; it does not decide whether the requested action was appropriate.
+Start from assets and trust boundaries: secrets, user data, source code, external services, and the agent’s tool gateway. Treat retrieved documents, emails, web pages, and code as untrusted data that may contain instructions. Separate data from control decisions, but assume prompt separation can fail. Give each tool a narrow schema and authorization check, scope credentials to one operation, and prevent arbitrary URL, shell, and filesystem access. For code execution, use disposable containers with resource limits, no ambient secrets, restricted network egress, and timeouts. Validate outputs before any privileged action.
+Threat modeling must include indirect instructions inside retrieved content and actions taken by downstream tools. A model may be persuaded to send data to an allowed browser or database endpoint even when shell access is blocked, so policy checks need user, resource, and operation context. Separate identities for read and write tools, scope permissions to a task, and record authorization decisions. A sandbox limits damage after a mistake; it does not decide whether the requested action was appropriate.
+Security tests should assert both the response and the absence of side effects. Use canary secrets, malicious retrieved instructions, path traversal inputs, oversized payloads, and attempts to access unauthorized tools. Measure blocked-action rate, false-denial rate on allowed workflows, secret exposure, and time to revoke a compromised capability. Review traces for sensitive content and define retention. A sandbox’s isolation claims depend on its runtime configuration; test the deployed image and kernel boundary, not only a local mock.
+
+## Trade-offs
+| Choice | Benefit | Cost or boundary |
+|---|---|---|
+| Prompt-only restriction | Easy to add | Cannot enforce against injection |
+| Tool allowlist | Limits available actions | Needs correct per-user authorization |
+| Container sandbox | Constrains execution | Kernel and configuration risk |
+| Human approval gate | Controls high-impact action | Adds delay and reviewer burden |
+
+## Implementation
+This dependency-light example models a bounded policy decision. It is an executable illustration of the control boundary; it does not call an LLM or establish production quality.
+
+```python
+def authorize(tool, allowed, user_scope):
+    return tool in allowed and user_scope.get(tool, False)
+
+assert authorize('read_ticket', {'read_ticket', 'refund'}, {'read_ticket': True})
+assert not authorize('refund', {'read_ticket', 'refund'}, {'read_ticket': True})
+```
+
+## Failure Modes
+- Retrieved prompt injection triggers a tool: enforce authorization at the gateway and test malicious documents.
+- Credential leaks into model context: use short-lived scoped credentials outside prompts and inspect traces.
+- Sandbox escapes via network or files: deny by default, restrict egress, and test deployed isolation.
+
+## Interview Quick Reference
+| Question | Expected answer and follow-up |
+|---|---|
+| Is prompt injection solved by a system prompt? | No; use untrusted-input handling plus external capability and authorization controls. Design follow-up: what does the tool gateway verify? |
+| What belongs in a code sandbox? | Only task inputs and minimal dependencies, with bounded CPU, memory, time, filesystem, and network access. Debug follow-up: how do you test egress denial? |
+| How do you contain a compromised agent? | Revoke scoped credentials, stop active jobs, preserve audit evidence, and replay the incident path. |
+
+## Related Concepts
+See [Tool use](03-tool-use.md), [safety alignment](36-safety-alignment.md), [agent deployment](56-agent-deployment-patterns.md).
+
+## References
+- [owasp.org](https://owasp.org/www-project-top-10-for-large-language-model-applications/)
+- [csrc.nist.gov](https://csrc.nist.gov/pubs/sp/800/207/final)
+
+## Further Topic Detail
 ## Detailed Explanation
 
 Agent security sandboxing constrains the actions agents can take, preventing them from accessing sensitive data, making dangerous API calls, or performing unauthorized operations. Unlike model-only systems where the model's output is reviewed before taking action, agents autonomously call tools, creating security risks if not carefully controlled. Sandboxing creates isolation: agents operate in constrained environments where their tool access is limited to safe operations.
@@ -8,9 +65,11 @@ Sandboxing approaches include: (1) Capability restrictions (agents can only acce
 
 Agent security sandboxing is crucial as agents gain more capabilities and operate in higher-stakes domains. Understanding it requires security thinking and appreciation for threat models—what could go wrong if agents misbehave, and what controls prevent those failures.
 
+
 ## Core Intuition
 
 Giving someone access to your bank account is risky. A security sandbox is like giving them access to a limited, monitored account: they can perform safe operations, but can't drain all funds or access sensitive information. Each agent should work in such a 'sandbox' appropriate to their trustworthiness and the risks they could cause.
+
 
 ## How It Works
 
@@ -22,15 +81,8 @@ Giving someone access to your bank account is risky. A security sandbox is like 
 6. Monitoring: log all system calls, detect malicious behavior
 7. Auditing: track what code executed, who triggered it, what resources used
 
-```mermaid
-graph TD
-    A[Input] -->|Process| B[Model/Algorithm]
-    B -->|Output| C[Result]
-```
 
-## Architecture / Trade-offs
 
-Key trade-offs and design considerations for this concept.
 
 ## Interview Q&A
 
@@ -49,28 +101,3 @@ A: Generation: agent writes code, human reviews, human executes (safe). Executio
 
 **Q: How do you prevent agents from accessing credentials?**
 A: Secrets management: don't pass credentials in prompts. Use secret vault (AWS Secrets Manager, HashiCorp Vault). Agent calls API with permission token (not full credentials). Audit: log which secrets accessed by whom. Rotate regularly.
-
-
-## Best Practices
-
-- Apply best practices specific to this concept
-- Consider edge cases and failure modes
-- Test on representative data
-- Evaluate comprehensively
-
-## Common Pitfalls
-
-- Avoid over-simplification
-- Watch for incorrect assumptions
-- Test edge cases thoroughly
-- Monitor for degradation
-
-## Code Examples
-
-See the associated notebook for implementation and real-world examples.
-
-## Related Concepts
-
-- Understand prerequisites first
-- Connect related topics
-- Build integrated knowledge

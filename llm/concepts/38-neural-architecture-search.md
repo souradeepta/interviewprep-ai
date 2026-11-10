@@ -1,16 +1,22 @@
 # Neural Architecture Search
 
-## Detailed Explanation
+NAS optimizes only within its search space and evaluation protocol, so the winning architecture is conditional on both.
 
-Neural Architecture Search (NAS) automatically discovers neural network architectures optimized for specific tasks rather than relying on manual design by human experts. This is powerful because: (1) good architectures are often task-specific, (2) the design space is vast (billions of possible architectures), (3) hand-designed architectures may be suboptimal, and (4) as hardware changes (new accelerators, devices), optimal architectures change. NAS methods systematically explore this space using techniques from hyperparameter optimization, evolutionary algorithms, and reinforcement learning.
+## Prerequisites
 
-NAS approaches vary widely: random search (baseline), reinforcement learning (controller learns to propose architectures), evolutionary algorithms (population-based search), and differentiable approaches (making architecture selection continuous and gradient-based). The challenge is that evaluating an architecture requires training it, which is expensive—so efficient NAS methods use tricks like weight sharing (reusing parameters across candidate architectures) or performance predictors (learning to estimate accuracy without full training). Discovered architectures have driven breakthroughs in computer vision (EfficientNet) and language understanding (Evolved Transformer).
+Understand transformer inputs, tensor shapes, and how to evaluate a model on held-out data. This lesson narrows that background to the mechanism and decisions specific to neural architecture search.
 
-NAS is increasingly important as model size and complexity grow. Understanding it requires appreciating the exploration-exploitation tradeoff in architecture search, the importance of search space design (what variations to consider), and the practical constraints of computational budgets. It bridges machine learning and architecture design.
+## Learning Outcomes
+
+- Explain the central mechanism and identify its key inputs and outputs.
+- Compare at least two design choices using a quality measure and an operational cost.
+- Diagnose a failure by selecting a workload slice and testing the assumption it violates.
 
 ## Core Intuition
 
 Designing neural networks is like designing a building: you need decisions about number of floors (layers), room layouts (connections), and materials (activation functions). NAS is like having a robot architect that automatically designs buildings, testing thousands of variations until finding the best design for the requirements. Instead of relying on human architects, let automated search find good designs.
+
+NAS optimizes only within its search space and evaluation protocol, so the winning architecture is conditional on both. A reliable design begins with a simple baseline and makes the specialized method earn its added complexity through measured improvement. Keep the evaluation split and serving constraints fixed so the comparison isolates the design decision.
 
 ## How It Works
 
@@ -28,41 +34,53 @@ graph TD
     B -->|Output| C[Result]
 ```
 
-## Architecture / Trade-offs
+Include latency and memory constraints in candidate selection, then retrain finalists from scratch on the full recipe. Compare alternatives at a fixed input distribution and record both quality and system cost. For image models, vary resolution and patch size; for fusion, vary which modalities are available; for security, exercise allowed and denied actions; for retrieval, separate candidate generation from ranking. These controls make it possible to tell whether a change fixes the intended bottleneck or only moves it.
 
-### NAS Search Strategy
+A useful experiment includes a baseline, a changed condition, and a deliberately difficult case. Use deterministic synthetic examples first to validate logic, then a held-out realistic slice to estimate task impact. Report uncertainty or repeat runs when training randomness can change the result.
 
-```mermaid
-graph TD
-    A["Architecture Search"] -->|Random Search| B["Baseline<br/>Random sampling"]
-    A -->|Evolutionary| C["Genetic algorithm<br/>Population-based"]
-    A -->|Reinforcement Learning| D["Controller network<br/>Learns to propose architectures"]
-    A -->|Differentiable| E["Continuous relaxation<br/>Gradient-based optimization"]
+## Trade-offs
 
-    B -->|Speed| F["Slowest"]
-    C -->|Speed| G["Medium"]
-    D -->|Speed| G
-    E -->|Speed| H["Fastest"]
+| Design | Benefit | Cost or risk | Decision signal |
+|---|---|---|---|
+| Unconstrained baseline | Keeps the largest set of interactions or evidence | Highest memory, compute, or input burden | Use while the workload fits and quality is the priority |
+| Structured method | Bounds a specific resource or failure path | May exclude useful cases | Use when workload structure justifies the constraint |
+| Learned or approximate method | Can adapt behavior to the task | Adds estimation error and tuning sensitivity | Require slice-level quality checks |
+| Modular fallback | Limits blast radius and supports missing inputs | Adds routing or orchestration work | Use when inputs or permissions vary by request |
 
-    F -->|Quality| I["Baseline"]
-    G -->|Quality| J["Good"]
-    H -->|Quality| K["Excellent"]
+## Implementation
 
-    style E fill:#e8f5e9
+The following dependency-light check captures one invariant for the topic. It is a logic check, not a claim of end-to-end model performance.
+
+```python
+candidates = [8, 5, 11]
+assert min(candidates) == 5
 ```
 
-### Search Space Design
+For a full experiment, keep a control implementation and record input shape, data split, model version, batch policy, hardware, and measurement method. Measure warm and steady-state latency separately where compilation or caching is involved. A measured result should state the exact workload and include quality; a microbenchmark cannot establish user-facing benefit by itself.
 
-| Dimension | Options | Impact |
-|-----------|---------|--------|
-| **Number of layers** | 2-20 | Depth complexity |
-| **Layer type** | Conv, Dense, Attention | Architecture diversity |
-| **Kernel size** | 1, 3, 5, 7 | Receptive field |
-| **Filters/units** | 16-512 | Model capacity |
-| **Skip connections** | Yes/No | Information flow |
-| **Activation** | ReLU, GELU, Swish | Non-linearity |
-## Interview Q&A
+## Failure Modes
 
+- Proxy ranking reverses after full training; retrain several finalists. Diagnose by logging the topic-specific signal and comparing it with the expected input contract.
+- Validation data leaks into repeated search decisions; preserve a final test set. Build a targeted edge case and check whether the failure is systematic across a meaningful slice.
+- FLOPs satisfy a constraint but device latency does not; profile the target hardware. Compare against the baseline and monitor the affected quality or tail-cost metric after rollout.
+
+## Interview Quick Reference
+
+| Question | Expected answer |
+|---|---|
+| What is the design’s central mechanism? | NAS optimizes only within its search space and evaluation protocol, so the winning architecture is conditional on both. Name its assumptions and the resource or behavior it changes. |
+| What alternative would you evaluate? | Compare the unconstrained baseline with a structured or modular approach on the same task and budget. |
+| How would you investigate a regression? | Slice the affected workload, test the violated assumption, and compare with a control path. |
+
+**Debugging follow-up:** Proxy ranking reverses after full training; retrain several finalists. What would you log, what held-out case would you add, and which metric would trigger rollback?
+
+## Related Concepts
+
+Read [attention optimization](24-attention-optimization.md), [evaluation](32-evaluation.md), and the [associated notebook](../notebooks/38-neural-architecture-search.ipynb). Drill: [practice question](../interview-prep/curriculum-practice.md#neural-architecture-search).
+
+References: [primary source](https://arxiv.org/abs/1802.01548); [technical reference](https://arxiv.org/abs/1611.01578).
+
+### Existing interview notes
 
 **Q: Why is NAS expensive and how do you reduce cost?**
 A: NAS trains hundreds of models, each taking hours. Expensive because: full training per candidate. Reduce: (1) early stopping (train only 10 epochs), (2) weight sharing (reuse weights across architectures), (3) proxy tasks (smaller dataset), (4) Bayesian optimization (fewer candidates).
@@ -78,28 +96,3 @@ A: Use population-based methods (evolutionary), not greedy. Diversity: encourage
 
 **Q: What is Bayesian optimization in NAS?**
 A: Gaussian process models performance as function of architecture parameters. Iteratively: (1) sample next architecture (exploit high expected performance + explore uncertainty), (2) train + evaluate, (3) update model. Fewer evaluations than random search (10-100x speedup).
-
-
-## Best Practices
-
-- Apply best practices specific to this concept
-- Consider edge cases and failure modes
-- Test on representative data
-- Evaluate comprehensively
-
-## Common Pitfalls
-
-- Avoid over-simplification
-- Watch for incorrect assumptions
-- Test edge cases thoroughly
-- Monitor for degradation
-
-## Code Examples
-
-See the associated notebook for implementation and real-world examples.
-
-## Related Concepts
-
-- Understand prerequisites first
-- Connect related topics
-- Build integrated knowledge

@@ -1,16 +1,19 @@
 # Token Optimization
 
-## Understanding Token Optimization
+Tokens = compute, memory, cost, latency.
 
-Token Optimization is a foundational concept in large language model development that addresses critical challenges in model architecture, training efficiency, or inference performance. Understanding this concept is essential for anyone working with modern language models, whether in research, fine-tuning, or production deployment.
+## Prerequisites
 
-The core innovation underlying Token Optimization lies in rethinking standard approaches to achieve better efficiency or effectiveness. Rather than accepting conventional trade-offs, this technique exploits mathematical or architectural insights to push the frontier of what's possible with given computational constraints.
+Familiarity with inference optimization. This note focuses on the LLM-specific mechanism and its engineering selection boundary.
 
-In practical applications, Token Optimization enables capabilities that would otherwise be infeasible: reducing computational requirements, improving model quality, enabling faster iteration, or supporting new use cases. The real-world impact has made Token Optimization widely adopted across industry applications, from consumer products to enterprise systems.
+## Learning Outcomes
 
-Implementing Token Optimization requires understanding both its theoretical foundations and practical considerations. The following sections provide detailed explanations of how Token Optimization works, when to use it, common implementation patterns, and lessons learned from production deployments. By mastering these concepts, practitioners can make informed decisions about when and how to apply Token Optimization to their specific challenges.
+- Explain the mechanism and assumptions behind token optimization.
+- Compare its main alternative using task quality and one operational cost.
+- Diagnose a failure using a metric or example tied to token optimization.
 
 ## Core Intuition
+
 Tokens = compute, memory, cost, latency. Every token processed costs. Token optimization asks: which tokens are essential? Can we stop early? Can we merge similar tokens? Skip redundant computation? Results: faster inference at acceptable quality loss.
 
 ## How It Works
@@ -152,7 +155,7 @@ graph LR
     style E fill:#e8f5e9
 ```
 
-## Key Properties / Trade-offs
+## Trade-offs
 
 | Technique | Speedup | Quality Loss | Latency | Memory | Complexity |
 |-----------|---------|--------------|---------|--------|-----------|
@@ -176,23 +179,7 @@ Not ideal for:
   - Long-context understanding (merging loses detail)
 ```
 
-## Common Mistakes / Gotchas
-
-- **Too aggressive pruning/merging:** cut too many tokens → quality drops significantly (>5%). Validate on benchmarks. Use 1-2% loss as guideline.
-
-- **Not measuring on diverse set:** early exit trained on easy samples → doesn't generalize to hard samples. Benchmark on representative distribution.
-
-- **Task-specific thresholds:** optimal entropy threshold for classification != for generation. Tune per task.
-
-- **Ignoring class imbalance:** if dataset heavily skewed (90% easy, 10% hard), early exit saves lots on easy but hurts hard. Consider weighted quality metrics.
-
-- **Not profiling incompatibilities:** some optimizations conflict (aggressive pruning + token merging → too much loss). Test combinations.
-
-- **Measuring only on training distribution:** model optimized for training tasks → may overfit heuristics. Test on out-of-distribution examples.
-
-- **Forgetting downstream effects:** early exit changes hidden representation shape → affects downstream classifiers. Must retrain/fine-tune classifier heads.
-
-## Code Example
+## Implementation
 
 ```python
 import torch
@@ -222,7 +209,7 @@ class EarlyExitModel(torch.nn.Module):
             
             # Check entropy at this layer
             cls_token = embeddings[:, 0, :]  # [CLS] token
-            logits = self.exit_heads[layer_idx](cls_token)
+            logits = self.exit_heads[layer_idx].forward(cls_token)
             
             # Compute entropy
             probs = torch.softmax(logits, dim=-1)
@@ -317,7 +304,23 @@ print(f"Output shape: {outputs.shape}")
 print(f"Prediction: {torch.argmax(outputs, dim=-1)}")
 ```
 
-## Interview Quick-Reference
+## Failure Modes
+
+- **Too aggressive pruning/merging:** cut too many tokens → quality drops significantly (>5%). Validate on benchmarks. Use 1-2% loss as guideline.
+
+- **Not measuring on diverse set:** early exit trained on easy samples → doesn't generalize to hard samples. Benchmark on representative distribution.
+
+- **Task-specific thresholds:** optimal entropy threshold for classification != for generation. Tune per task.
+
+- **Ignoring class imbalance:** if dataset heavily skewed (90% easy, 10% hard), early exit saves lots on easy but hurts hard. Consider weighted quality metrics.
+
+- **Not profiling incompatibilities:** some optimizations conflict (aggressive pruning + token merging → too much loss). Test combinations.
+
+- **Measuring only on training distribution:** model optimized for training tasks → may overfit heuristics. Test on out-of-distribution examples.
+
+- **Forgetting downstream effects:** early exit changes hidden representation shape → affects downstream classifiers. Must retrain/fine-tune classifier heads.
+
+## Interview Quick Reference
 
 | Question | What to say |
 |---|---|
@@ -328,6 +331,16 @@ print(f"Prediction: {torch.argmax(outputs, dim=-1)}")
 | "Quality impact?" | Early exit: 1-2%. Pruning: <1%. Merging: 1-2%. Combined: 2-4%. Acceptable for most but validate. |
 | "Implementation?" | Dynamic batching harder (vLLM does it). Early exit easier (add classifiers). Merging moderate complexity. |
 
+
+
+**Design follow-up:** How would you monitor this choice in production and decide when to use an alternative?
+## Related Concepts
+
+- [[continuous-batching]] — reduce padding, dynamic request scheduling
+- [[inference-optimization]] — broader optimization landscape
+- [[kv-cache]] — KV cache grows with token count
+- [[attention-optimization]] — reduce attention computation
+
 ## Real-World Examples
 
 ### Document Summarization for RAG
@@ -336,7 +349,7 @@ RAG: retrieve 10 documents (50K tokens). Summarize each to 1K tokens (5K total).
 ### Smart Batching
 Mix short (10 tokens) and long (100 tokens) requests. Pad to max: wasteful. Smart batching: group by length, process separately. Throughput: +30%.
 
-## Interview Q&A
+## Topic-specific notes
 
 **Q: What is the most impactful way to reduce token usage in a production LLM application?**
 A: Prompt compression is typically highest impact: remove redundant examples, use concise phrasing, remove explanatory scaffolding that doesn't improve output quality. Measure: compress each prompt component independently and measure output quality impact. For RAG applications, retrieved context is usually the largest token consumer—better retrieval precision (fewer, more relevant chunks) reduces tokens more than prompt rewording. A 30-50% token reduction with no quality loss is achievable in most applications.
@@ -356,14 +369,8 @@ A: Prompt caching (Anthropic, OpenAI) reuses KV computations for repeated prefix
 **Q: What are the cost implications of different LLM context lengths and how do you manage them?**
 A: Cost scales linearly with input+output tokens for most APIs. Input tokens are cheaper than output tokens (typically 3-5x). Long system prompts repeated across many calls are expensive—cache them. For applications with 100K+ token contexts, cost can be 100x higher than short-context equivalents. Implement token budgets: track usage per user/session, implement prompt compression when approaching limits, alert on unexpected token usage spikes that may indicate prompt injection or runaway loops.
 
-
-## Related Topics
-- [[continuous-batching]] — reduce padding, dynamic request scheduling
-- [[inference-optimization]] — broader optimization landscape
-- [[kv-cache]] — KV cache grows with token count
-- [[attention-optimization]] — reduce attention computation
-
 ## Resources
+
 - [Token Merging for Fast Stable Diffusion (ToMe)](https://arxiv.org/abs/2303.17604)
 - [Early Exiting in Transformers for More Efficient Inference](https://arxiv.org/abs/2002.00028)
 - [Fastformer: Additive Attention Can Be All You Need](https://arxiv.org/abs/2108.09084)

@@ -1,8 +1,78 @@
 # Logistics Agents
+**TL;DR:** A logistics agent recommends or executes constrained shipment actions while preserving feasibility, freshness, and an auditable human override path.
+
+## Prerequisites
+Optimization basics, event-driven systems, and agent tool-use boundaries.
+
+## Learning Outcomes
+- Model shipment assignment with capacity and time-window constraints.
+- Design replanning around stale events and idempotent updates.
+- Define escalation rules for infeasible or high-impact actions.
+
+## Core Intuition
+A dispatcher does not merely choose the shortest route: the truck has capacity, the dock has operating hours, the shipment may be regulated, and a missed delivery can cost more than extra mileage. A logistics agent must reason over a feasible plan and the cost of changing it. The plan is advisory until constraints and authority checks pass.
+
+## How It Works
+Represent orders, vehicles, depots, and carrier options as typed records with explicit units and timestamps. A planner proposes assignments that satisfy hard constraints such as capacity, service window, and restricted destination. Soft objectives—distance, cost, lateness risk, emissions—are optimized only inside the feasible set. On each new event, compute the affected part of the plan and compare a replan against the committed baseline. Before calling a carrier or warehouse API, validate authorization, deduplicate the command, and persist an idempotency key.
+Events are imperfect observations. A missing scan does not prove that a shipment stopped moving, and two systems may report different states because their clocks or update delays differ. Store event time and ingestion time separately, assign source reliability, and expose stale state to the planner. A replan should carry the assumptions that produced it, the affected shipment identifiers, and the expected cost and service change. If those assumptions expire before execution, recompute rather than applying the obsolete route.
+Replanning should preserve commitments that cannot safely change, including regulated handling requirements, dock appointments, and already dispatched vehicles. Model those as hard constraints with explicit ownership, not as large penalty weights that an optimizer may violate when costs change. Human override is also an event in the plan history: record who changed the route, what information they used, and whether the new plan was later feasible. Replay this history during incident review to distinguish bad recommendations from missing or delayed data.
+Evaluate on replayed event sequences, not isolated static routes. Measure feasible-plan rate, on-time probability, cost per delivered shipment, disruption recovery time, and the percentage of proposed changes accepted by an operator. Report tail lateness and performance for rare constraints such as cold-chain handling or customs holds. A low route cost is not success if it creates infeasible schedules or excess replanning churn. Keep synthetic exercises clearly separate from carrier performance claims.
+
+## Trade-offs
+| Choice | Benefit | Cost or boundary |
+|---|---|---|
+| Reoptimize globally | Can find system-wide savings | Large solve time and plan churn |
+| Replan affected shipments | Fast and stable | Can miss cross-route gains |
+| Automate low-impact changes | Low operator load | Requires trustworthy constraints |
+| Human approval for exceptions | Safer on ambiguous cases | Slower resolution |
+
+## Implementation
+This dependency-light example models a bounded policy decision. It is an executable illustration of the control boundary; it does not call an LLM or establish production quality.
+
+```python
+def feasible_load(load, capacity, window_ok):
+    return load <= capacity and window_ok
+
+assert feasible_load(8, 10, True)
+assert not feasible_load(12, 10, True)
+```
+
+## Failure Modes
+- Stale tracking event: compare event and ingestion times and query the authoritative source before changing a commitment.
+- Infeasible route after disruption: run hard-constraint validation after every solve and keep a safe fallback plan.
+- Duplicate carrier instruction: use a durable idempotency key and reconcile command state before retrying.
+
+## Interview Quick Reference
+| Question | Expected answer and follow-up |
+|---|---|
+| How do you replan after a carrier outage? | Identify affected shipments, recompute feasible alternatives, quantify service and cost changes, then automate only within preapproved limits. Design follow-up: what state makes the plan stale? |
+| How do you handle conflicting tracking events? | Retain both source and timestamps, apply an explicit source policy, and avoid treating missing data as a confirmed event. Debug follow-up: how would you find a clock skew? |
+| What should be automated? | Reversible low-impact assignments under validated constraints; regulated, infeasible, or high-value exceptions go to a human. |
+
+## Related Concepts
+See [Real-time agents](50-real-time-agents.md), [agent state management](57-agent-state-management.md), [agent monitoring](30-agent-monitoring.md).
+
+## References
+- [developers.google.com](https://developers.google.com/optimization/routing)
+- [www.gs1.org](https://www.gs1.org/standards/epcis)
+
+## Further Topic Detail
+## Core Intuition
+A dispatcher does not merely choose the shortest route: the truck has capacity, the dock has operating hours, the shipment may be regulated, and a missed delivery can cost more than extra mileage. A logistics agent must reason over a feasible plan and the cost of changing it. The plan is advisory until constraints and authority checks pass.
+
+
+## How It Works
+Represent orders, vehicles, depots, and carrier options as typed records with explicit units and timestamps. A planner proposes assignments that satisfy hard constraints such as capacity, service window, and restricted destination. Soft objectives—distance, cost, lateness risk, emissions—are optimized only inside the feasible set. On each new event, compute the affected part of the plan and compare a replan against the committed baseline. Before calling a carrier or warehouse API, validate authorization, deduplicate the command, and persist an idempotency key.
+Events are imperfect observations. A missing scan does not prove that a shipment stopped moving, and two systems may report different states because their clocks or update delays differ. Store event time and ingestion time separately, assign source reliability, and expose stale state to the planner. A replan should carry the assumptions that produced it, the affected shipment identifiers, and the expected cost and service change. If those assumptions expire before execution, recompute rather than applying the obsolete route.
+Replanning should preserve commitments that cannot safely change, including regulated handling requirements, dock appointments, and already dispatched vehicles. Model those as hard constraints with explicit ownership, not as large penalty weights that an optimizer may violate when costs change. Human override is also an event in the plan history: record who changed the route, what information they used, and whether the new plan was later feasible. Replay this history during incident review to distinguish bad recommendations from missing or delayed data.
+Evaluate on replayed event sequences, not isolated static routes. Measure feasible-plan rate, on-time probability, cost per delivered shipment, disruption recovery time, and the percentage of proposed changes accepted by an operator. Report tail lateness and performance for rare constraints such as cold-chain handling or customs holds. A low route cost is not success if it creates infeasible schedules or excess replanning churn. Keep synthetic exercises clearly separate from carrier performance claims.
+
 
 ## Detailed Explanation
 
 Logistics agents optimize operations: route planning, inventory management, shipment tracking. Mechanisms: (1) constraint satisfaction (time windows, capacity), (2) optimization (minimize cost/time), (3) real-time adaptation. Advantages: cost reduction, faster delivery, better utilization. Challenges: complexity (hundreds of constraints), uncertainty (traffic, delays), dynamics (orders arrive continuously). Best for: delivery routing, warehouse optimization, inventory planning.
+
+
 
 ## Interview Q&A
 
@@ -23,39 +93,3 @@ A: Integrate with authoritative trade compliance databases (HTS codes, denied pa
 
 **Q: What is the risk of automation bias in logistics agents and how do you mitigate it?**
 A: Automation bias: operators trust and follow agent recommendations without sufficient scrutiny, even when the agent is wrong. In logistics, this can mean accepting a suboptimal routing decision, missing a compliance issue, or mishandling a high-value shipment exception. Mitigate with: requiring acknowledgment rather than auto-acceptance for high-impact decisions, displaying the agent's confidence and key factors behind recommendations, tracking human override rates (very low = automation bias risk), and regularly testing with adversarial edge cases where the agent's default recommendation is wrong.
-
-
-## Best Practices
-
-1. Real-time updates
-2. Constraint prioritization
-3. Fallback plans
-4. Capacity buffers
-5. Monitoring dashboards
-6. Continuous optimization
-7. Driver preferences
-8. Customer communication
-
-## Code Examples
-
-```python
-class LogisticsAgent:
-    def plan_routes(self, orders, vehicles, constraints):
-        # Optimize routes
-        routes = self._optimize_assignment(orders, vehicles, constraints)
-        # Check feasibility
-        if not self._feasible(routes):
-            return None
-        return routes
-    
-    def replan_on_change(self, new_order, current_routes):
-        # Adapt to new order
-        updated = self._insert_order(new_order, current_routes)
-        if self._cost_increase(updated) > self.threshold:
-            return 'request_approval'
-        return updated
-```
-
-## Related Concepts
-
-- Real-Time Agents, Optimization, Monitoring

@@ -1,6 +1,75 @@
 # Layer Skipping
 
-## Detailed Explanation
+**TL;DR:** Layer skipping bypasses selected transformer blocks; calibration must show that the saved layer compute exceeds routing overhead without violating quality targets.
+
+## Prerequisites
+
+[Transformer models](../../ml/concepts/transformers.md)
+
+## Learning Outcomes
+
+- Explain the computation and state affected by layer skipping.
+- Compare alternatives using quality, latency, and resource measurements.
+- Diagnose a topic-specific failure from an observable signal.
+
+## Core Intuition
+
+Static skipping needs no per-token router, while dynamic skipping adapts to inputs at added decision cost.
+
+## How It Works
+
+Skip residual blocks only when measured sensitivity is low; hidden-state shape and sequence positions remain fixed. Validate prompt and decode paths separately because autoregressive reuse changes the cost balance.
+
+Measure layer latency, skip rate, task quality and tail response time on the target hardware. A cosine similarity alone is not proof that a block is redundant: it may hide rare but important features.
+
+## Trade-offs
+
+| Choice | Benefit | Cost or boundary |
+|---|---|---|
+| Static FFN mask | Direct topic-specific baseline | Establishes quality and resource reference |
+| Dynamic gate | Improves the named objective | Adds its stated operating cost |
+| Attention skip | Adapts to a useful workload slice | Requires calibration and monitoring |
+| Random mask | Provides a conservative fallback | Gives up some potential gain |
+
+## Implementation
+
+This dependency-light example isolates the topic’s decision rule; it is not a benchmark of accelerator performance.
+
+```python
+def skip_layer(hidden, transform, should_skip):
+    return hidden if should_skip else transform(hidden)
+
+x = [1.0, 2.0]
+assert skip_layer(x, lambda h: [v + 1 for v in h], True) == x
+```
+
+## Failure Modes
+
+- A skip mask chosen on the wrong domain removes needed transformations: calibrate on representative held-out prompts and generation traces.
+- Router time exceeds avoided work: profile per-layer gate and kernel time, then use static decisions or skip larger blocks.
+- Quality regresses on long context: slice by context length and task, then lower skip rate or restore attention blocks.
+
+## Interview Quick Reference
+
+| Question | Expected answer and follow-up |
+|---|---|
+| When skip attention? | Only when held-out sensitivity and task evaluation support it; FFN sublayers are usually the safer first target. Follow-up: how test long-range tasks? |
+| How avoid calibration leakage? | Use a held-out representative calibration set and a separate acceptance suite. Debug follow-up: inspect domain slices. |
+| How measure speedup? | Benchmark full request latency on target runtime; fewer FLOPs do not guarantee faster kernels. |
+
+## Related Concepts
+
+See [Transformer models](../../ml/concepts/transformers.md).
+
+## References
+
+- [arxiv.org](https://arxiv.org/abs/2403.03853)
+- [arxiv.org](https://arxiv.org/abs/2305.17399)
+
+### Additional Technical Detail
+
+
+#### Detailed Explanation
 
 Layer skipping is an inference optimization technique where individual transformer blocks are bypassed for a given input, with the hidden state passing directly through the residual connection (`h_{l+1} = h_l`) as if the layer did not exist. Unlike adaptive layer selection (early exit), layer skipping does not terminate computation entirely — it selectively omits specific middle layers while continuing forward through the rest of the network, making it compatible with autoregressive decoding.
 
@@ -10,11 +79,11 @@ Two implementations exist: static skipping (identify redundant layers via calibr
 
 Real-world savings: skipping 30% of FFN sublayers in a 7B parameter model reduces inference FLOPs by ~20-25% and decreases latency by 15-18% on A100 GPUs. The accuracy trade-off is typically under 1% on benchmarks when layers are selected by sensitivity rather than randomly.
 
-## Core Intuition
+#### Core Intuition
 
 Imagine a factory assembly line where every product passes through every station even if some stations do nothing for that particular product. Layer skipping is the floor manager who looks at each product and routes it around the stations that add no value for it. The key insight is that the "do nothing" stations are identifiable ahead of time via testing, and bypassing them saves time without changing the final product.
 
-## How It Works
+#### How It Works
 
 1. **Calibration: compute layer sensitivity scores** — Run a representative calibration dataset through the model and compute two metrics per layer: gradient norm `||∂L/∂W_l||` (how much each layer affects the loss) and cosine similarity `cos(h_{l-1}, h_l)` (how much the layer transforms its input). Layers with low gradient norm AND high cosine similarity are prime skip candidates.
 2. **Rank and select layers for skipping** — Sort layers by sensitivity score (ascending). Select the top-k% lowest-sensitivity layers as candidates. Typical: skip 20-40% of FFN sublayers, almost never skip attention sublayers unless gradient norm is near zero.
@@ -34,9 +103,9 @@ graph TD
     OUT --> NEXT[Next Layer l+1]
 ```
 
-## Architecture / Trade-offs
+#### Architecture / Trade-offs
 
-### Static vs Dynamic Layer Skipping
+#### Static vs Dynamic Layer Skipping
 
 | Approach | Selection Method | Overhead at Inference | Accuracy | Best For |
 |----------|-----------------|----------------------|----------|---------|
@@ -45,7 +114,7 @@ graph TD
 | RL-trained router | Reward = accuracy - latency | 2-5ms per layer | -0.2 to -0.5% | Maximum efficiency |
 | Random skip (baseline) | Random | Zero | -5 to -15% | Ablation study only |
 
-### Skip Rate vs Latency vs Accuracy (Llama-7B, 32 layers)
+#### Skip Rate vs Latency vs Accuracy (Llama-7B, 32 layers)
 
 | Layers Skipped | Skip Rate | FLOPs Reduction | Latency Reduction | Accuracy Drop (MMLU) |
 |---------------|-----------|----------------|------------------|----------------------|
@@ -55,11 +124,11 @@ graph TD
 | 12 FFN layers | 37% | 23% | 18% | 2.1% |
 | 8 FFN + 4 Attn | 37% | 22% | 15% | 3.5% |
 
-### Trade-off Analysis
+#### Trade-off Analysis
 
 FFN sublayers are much safer to skip than attention sublayers. FFN layers perform position-wise feed-forward transformations that are relatively independent; attention layers compute cross-token interactions that are critical for coherence. Skip FFN first, skip attention only if gradient norms are extremely low (< 0.01 normalized). Skip rate of 20-25% offers the best Pareto point: meaningful speedup with near-zero accuracy loss.
 
-## Interview Q&A
+#### Interview Q&A
 
 **Q: When is it safe to skip attention sublayers vs FFN sublayers?**
 A: FFN sublayers are far safer to skip. They perform pointwise transformations on individual token representations and are relatively redundant in middle layers. Attention sublayers compute cross-token interactions — skipping them breaks the model's ability to resolve long-range dependencies and coreferences. Skip attention layers only if calibration shows `cos(h_{l-1}, h_l) > 0.97` AND gradient norm < 0.01. In practice, skip FFN layers first; add attention skipping only if FFN skipping alone doesn't meet your latency target.
@@ -79,7 +148,7 @@ A: Yes, and it's a common production pattern. Apply quantization first (reduces 
 **Q: How do you handle variable-length inputs when using static layer skipping?**
 A: Static skipping selects the same set of layers to skip for all inputs regardless of length. For short inputs, most layers may have low sensitivity; for very long inputs (> 4096 tokens), more layers may be essential for maintaining long-range context. Validate your static skip configuration on inputs across the full length distribution. If accuracy degrades specifically on long inputs, consider a length-conditional configuration: no skipping for inputs > 2000 tokens, 20% skipping for inputs < 512 tokens.
 
-## Best Practices
+#### Best Practices
 
 - Always prioritize skipping FFN sublayers over attention sublayers; FFN layers account for 67% of transformer FLOPs but are more redundant than attention in middle layers.
 - Use gradient norm as the primary sensitivity metric and cosine similarity as a tiebreaker — gradient norm is more reliable for task-specific sensitivity, cosine similarity catches general redundancy.
@@ -89,7 +158,7 @@ A: Static skipping selects the same set of layers to skip for all inputs regardl
 - Monitor inference latency per layer in production to catch cases where a skipped layer's router overhead exceeds the layer's compute cost (common with tiny FFN layers in small models).
 - Re-calibrate layer sensitivity after fine-tuning — fine-tuning changes gradient distributions and can make previously redundant layers essential for the new task.
 
-## Common Pitfalls
+#### Common Pitfalls
 
 - **Skipping attention layers breaks long-range dependencies**: Attention sublayers are responsible for relating tokens across long distances. Skipping even one attention layer in a 12-layer model can collapse coreference resolution accuracy by 8-15%. Symptom: model handles sentence-level tasks fine but fails on paragraph-level or multi-hop QA. Fix: restrict skipping to FFN sublayers only, or verify gradient norm is below 0.005 before adding any attention layer to the skip list.
 
@@ -99,7 +168,7 @@ A: Static skipping selects the same set of layers to skip for all inputs regardl
 
 - **Router overhead exceeds savings for small models**: A 2-layer MLP router adds 0.5-2ms per layer decision. For small models where each layer takes 1-3ms total, the router cost is 25-100% of the layer cost it's supposed to save. Symptom: end-to-end latency does not improve despite 30% skip rate. Fix: use static skipping for models under 3B parameters; dynamic routing is only beneficial at 7B+ where individual layers take 10+ ms.
 
-## Related Concepts
+#### Related Concepts
 
 - [Adaptive Layer Selection](./37-adaptive-layer-selection.md)
 - [Token Pruning and Merging](./36-token-pruning-merging.md)

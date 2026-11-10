@@ -1,36 +1,11 @@
-"""
-Speculative Decoding
-
-Production-quality implementation of speculative decoding.
-"""
-
-import numpy as np
-import torch
-import torch.nn as nn
-from typing import Dict, List, Tuple, Optional
-
-
-class SpeculativeDecoder(nn.Module):
-    """Production-grade implementation."""
-    
-    def __init__(self, hidden_dim: int = 64, device: Optional[torch.device] = None):
-        super().__init__()
-        self.hidden_dim = hidden_dim
-        self.device = device or torch.device('cuda' if torch.cuda.is_available() else 'cpu')
-        self.linear = nn.Linear(hidden_dim, hidden_dim)
-        self.norm = nn.LayerNorm(hidden_dim)
-    
-    def forward(self, x: torch.Tensor) -> torch.Tensor:
-        x = x.to(self.device)
-        x = self.linear(x)
-        x = self.norm(x)
-        return x
-
-
+"""Acceptance accounting and a transparent speculative-decoding speed bound."""
+def account(draft_tokens, accepted_prefix, draft_cost, verify_cost, target_step_cost):
+    if not 0 <= accepted_prefix <= draft_tokens: raise ValueError("accepted prefix out of range")
+    emitted=accepted_prefix + int(accepted_prefix < draft_tokens)
+    baseline=max(1,emitted)*target_step_cost
+    speculative=draft_tokens*draft_cost + verify_cost
+    return {"accepted":accepted_prefix,"rejected":draft_tokens-accepted_prefix,"emitted_per_cycle":emitted,
+            "acceptance_rate":accepted_prefix/max(1,draft_tokens),"baseline_cost":baseline,"speculative_cost":speculative,
+            "speedup_bound":baseline/speculative if speculative else float("inf")}
 if __name__ == "__main__":
-    device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
-    model = SpeculativeDecoder(hidden_dim=64, device=device)
-    x = torch.randn(4, 8, 64)
-    with torch.no_grad():
-        output = model(x)
-    print(f"Input: {x.shape} → Output: {output.shape}")
+    for a in range(5): print(account(4,a,.15,.8,1.0))

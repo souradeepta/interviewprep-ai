@@ -1,36 +1,15 @@
-"""
-Prefill Decode Disaggregation
-
-Production-quality implementation of prefill decode disaggregation.
-"""
-
-import numpy as np
-import torch
-import torch.nn as nn
-from typing import Dict, List, Tuple, Optional
-
-
-class DisaggregatedServer(nn.Module):
-    """Production-grade implementation."""
-    
-    def __init__(self, hidden_dim: int = 64, device: Optional[torch.device] = None):
-        super().__init__()
-        self.hidden_dim = hidden_dim
-        self.device = device or torch.device('cuda' if torch.cuda.is_available() else 'cpu')
-        self.linear = nn.Linear(hidden_dim, hidden_dim)
-        self.norm = nn.LayerNorm(hidden_dim)
-    
-    def forward(self, x: torch.Tensor) -> torch.Tensor:
-        x = x.to(self.device)
-        x = self.linear(x)
-        x = self.norm(x)
-        return x
-
-
+"""Deterministic FCFS prefill/decode pipeline simulation."""
+def simulate(requests):
+    pfree=dfree=0.0; rows=[]
+    for i,(arrival,prefill,decode) in enumerate(requests):
+        ps=max(arrival,pfree); pd=ps+prefill; pfree=pd
+        ds=max(pd,dfree); done=ds+decode; dfree=done
+        rows.append({"id":i,"arrival":arrival,"first_token":pd,"finish":done,"latency":done-arrival})
+    return rows
+def percentile(values,p):
+    s=sorted(values)
+    if not s:return 0
+    return s[min(len(s)-1,max(0,int((len(s)-1)*p+0.999999)))]
 if __name__ == "__main__":
-    device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
-    model = DisaggregatedServer(hidden_dim=64, device=device)
-    x = torch.randn(4, 8, 64)
-    with torch.no_grad():
-        output = model(x)
-    print(f"Input: {x.shape} → Output: {output.shape}")
+    r=simulate([(0,5,1),(1,1,4),(2,2,2),(3,1,1)]); lat=[x['latency'] for x in r]
+    print(r,"p50",percentile(lat,.5),"p95",percentile(lat,.95))

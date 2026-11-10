@@ -1,6 +1,75 @@
 # Token Decompression and Recovery
 
-## Detailed Explanation
+**TL;DR:** Span token compression replaces frequent token sequences with compact symbols; model and cache semantics must remain consistent through expansion.
+
+## Prerequisites
+
+[token pruning and merging](36-token-pruning-merging.md)
+
+## Learning Outcomes
+
+- Explain the computation and state affected by token decompression and recovery.
+- Compare alternatives using quality, latency, and resource measurements.
+- Diagnose a topic-specific failure from an observable signal.
+
+## Core Intuition
+
+A span code can shorten repeated structured inputs, but unlike ordinary text compression it changes the model’s token vocabulary and learned sequence distribution.
+
+## How It Works
+
+Build a vocabulary from frequent spans in the target domain, encode with a deterministic longest-match rule, train or adapt the model on the new representation, and expand codes during decoding. Round-trip tests verify exact byte or token recovery for encoded inputs. The model may produce either a span code or ordinary component tokens, so decoding must handle both without ambiguity.
+
+Measure sequence reduction, end-to-end throughput, vocabulary and embedding memory, task quality, and actual KV-cache behavior. A code that represents several original tokens occupies one model position; it cannot generally be expanded into equivalent per-token hidden states after generation. Position and cache semantics must be defined by the model design, not repaired by inserting guessed KV entries.
+
+## Trade-offs
+
+| Choice | Benefit | Cost or boundary |
+|---|---|---|
+| Base tokenizer only | Direct topic-specific baseline | Establishes quality and resource reference |
+| Fixed span vocabulary | Improves the named objective | Adds its stated operating cost |
+| Domain-adapted span tokens | Adapts to a useful workload slice | Requires calibration and monitoring |
+| Ordinary compression before tokenization | Provides a conservative fallback | Gives up some potential gain |
+
+## Implementation
+
+This dependency-light example isolates the topic’s decision rule; it is not a benchmark of accelerator performance.
+
+```python
+spans = {'<IMP>': ['import', 'numpy', 'as', 'np']}
+def expand(tokens):
+    return [part for token in tokens for part in spans.get(token, [token])]
+
+assert expand(['<IMP>', 'x']) == ['import', 'numpy', 'as', 'np', 'x']
+```
+
+## Failure Modes
+
+- Training and inference tokenization differ: version the mapping and test identical round trips at every boundary.
+- Compression ratios vanish out of domain: measure span coverage on production samples and gate use by domain.
+- Cache semantics are invalid after expansion: define positions and model training consistently; do not splice synthetic KV states.
+
+## Interview Quick Reference
+
+| Question | Expected answer and follow-up |
+|---|---|
+| Is expansion lossless? | The code-to-span map can be lossless as data encoding, but model behavior is not equivalent to processing component tokens. Follow-up: test exact round trips. |
+| When is it worthwhile? | When frequent structured spans materially shorten sequences enough to offset vocabulary, training, and serving complexity. |
+| How validate cache correctness? | Compare full-context reference behavior and position semantics; benchmark actual cache implementation, not reconstructed entries. |
+
+## Related Concepts
+
+See [token pruning and merging](36-token-pruning-merging.md).
+
+## References
+
+- [arxiv.org](https://arxiv.org/abs/1508.07909)
+- [huggingface.co](https://huggingface.co/docs/tokenizers/en/api/added-tokens)
+
+### Additional Technical Detail
+
+
+#### Detailed Explanation
 
 Token decompression (also called span compression or mega-token expansion) is a technique that replaces frequently occurring multi-token spans in training data with single compressed token IDs, allowing the model to process shorter sequences, and then expands the compressed tokens back to their original multi-token form at output. It is conceptually an extension of the BPE (Byte Pair Encoding) tokenization philosophy: if BPE merges common character pairs into subword tokens, token decompression merges common subword sequences into larger "mega-tokens."
 
@@ -10,11 +79,11 @@ The gain is domain-specific. For natural language text, most spans of length > 3
 
 The key operational challenge is KV cache compatibility: when compressed tokens are part of the context window, decompressing them in the KV cache at output time naively requires inserting new KV entries into the middle of the cache, which invalidates positional encodings for all subsequent entries. The correct approach is to decompress eagerly in the KV cache when each mega-token is generated, before the next token's attention computation.
 
-## Core Intuition
+#### Core Intuition
 
 Token decompression is like a legal team that has created standard clause shorthand codes for frequently used contract boilerplate. Instead of typing "the party of the first part agrees to indemnify and hold harmless" 500 times in a document, they use clause code "IH-7" and expand it only at printing time. The lawyer works with short clause codes (compressed sequence), thinks faster, and the final contract gets printed with all the full text restored. The model "thinks" in compressed token space and expands to readable form at output.
 
-## How It Works
+#### How It Works
 
 1. **Build frequency table of multi-token spans** — Scan the training corpus and count the frequency of all token n-grams for n in {2, 3, 4, 5}. For each span, compute `compression_value = (len(span) - 1) * freq(span)` — the total tokens saved if this span is compressed. Higher is better.
 2. **Select spans for compression** — Apply a threshold: compress span if `compression_value > threshold`. Typical selection: top 1,000-10,000 spans by compression value, representing the most frequent and longest patterns. Assign each selected span a new token ID in the extended vocabulary.
@@ -37,9 +106,9 @@ graph TD
     DECOMP --> FINAL[Full Output Sequence]
 ```
 
-## Architecture / Trade-offs
+#### Architecture / Trade-offs
 
-### Compression Ratio by Domain (GPT-2 tokenizer, 50k base vocabulary)
+#### Compression Ratio by Domain (GPT-2 tokenizer, 50k base vocabulary)
 
 | Domain | Avg Span Length | Compression Ratio | Attention FLOPs Reduction | Accuracy Impact |
 |--------|----------------|-------------------|--------------------------|----------------|
@@ -49,7 +118,7 @@ graph TD
 | JSON (fixed schema) | 5.1 tokens | 35-50% | 58-75% | Negligible |
 | Log files (structured) | 6.3 tokens | 40-55% | 64-80% | Negligible |
 
-### Vocabulary Size vs Compression Quality
+#### Vocabulary Size vs Compression Quality
 
 | Mega-token Vocabulary Size | Compression Ratio | Model Size Increase | Training Stability |
 |---------------------------|-------------------|--------------------|--------------------|
@@ -58,7 +127,7 @@ graph TD
 | 10,000 mega-tokens | 20-35% | 2-4% | Good |
 | 50,000 mega-tokens | 35-55% | 10-20% | Harder (sparse mega-token usage) |
 
-### Comparison: Token Decompression vs Alternative Compression Approaches
+#### Comparison: Token Decompression vs Alternative Compression Approaches
 
 | Method | Compression Ratio | Lossless? | Compatible with KV Cache | Training Required |
 |--------|------------------|-----------|--------------------------|------------------|
@@ -67,7 +136,7 @@ graph TD
 | Token merging (ToMe) | 25-50% | Near-lossless | Needs reindexing | Minimal (add-on) |
 | Sliding window attention | N/A (scope reduction) | Yes | Yes | No |
 
-## Interview Q&A
+#### Interview Q&A
 
 **Q: When does token decompression provide the most benefit vs other compression techniques?**
 A: Token decompression provides the most benefit when the input domain has highly repetitive, structured patterns — code, SQL, JSON, log files. The compression is lossless (exact expansion), which is important for tasks where every token matters (code generation, SQL). For natural language, token pruning or attention mechanisms are better suited because the patterns are less predictable. Quantify the opportunity before investing: measure average compression ratio on your production corpus. If it is under 15%, the engineering cost of token decompression likely exceeds the benefit.
@@ -87,7 +156,7 @@ A: Consider the token sequence `[A, B, C]` where both `[A, B]` and `[B, C]` are 
 **Q: What happens to decompression at inference when the model generates a partial mega-token (the first few tokens of what should be a mega-token span)?**
 A: The model may generate the start of a mega-token span without choosing the mega-token itself — e.g., generate `import numpy` as two separate tokens instead of the mega-token `MT_import_numpy_as_np`. This is not an error; the model has freedom to generate either form, and both decode to valid Python. The decompression lookup table only expands recognized mega-token IDs; unrecognized tokens pass through unchanged. For correctness-critical applications (SQL, JSON), use grammar-constrained generation to force the model to use mega-tokens when available, ensuring consistent decompression.
 
-## Best Practices
+#### Best Practices
 
 - Target domains where compression ratios exceed 20% before investing in token decompression — measure on your actual production corpus before building the infrastructure.
 - Select mega-token vocabulary by compression value = (span_length - 1) * frequency; do not add spans below frequency 0.01% of corpus tokens even if they are long.
@@ -97,7 +166,7 @@ A: The model may generate the start of a mega-token span without choosing the me
 - Validate compression-decompression round-trip fidelity on 100% of test inputs before deployment — a bug in the decompression lookup table silently corrupts all outputs.
 - Monitor mega-token usage rate in production: if frequently used mega-tokens drop in usage, it signals distribution shift (new input patterns that bypass span matching) and may require updating the mega-token vocabulary.
 
-## Common Pitfalls
+#### Common Pitfalls
 
 - **Decompression overhead at inference negates training savings**: If decompression is performed lazily at the end of generation (after the full sequence is generated), the KV cache holds compressed representations and must be fully re-expanded. For sequences with 100 mega-tokens each expanding to 4 sub-tokens, this post-hoc expansion touches 400 KV cache entries. Symptom: generation is fast but post-processing latency spikes. Fix: decompress eagerly in the KV cache as each mega-token is generated.
 
@@ -107,7 +176,7 @@ A: The model may generate the start of a mega-token span without choosing the me
 
 - **Positional embedding corruption when mega-tokens expand**: If using absolute position embeddings and you expand a mega-token at position 50 to 4 sub-tokens after generation, positions 51+ are now at position 54+ in the decoded sequence but their KV cache entries were computed at position 51-N. For subsequent generation steps, these positions are misattributed. **Symptom:** Generation quality degrades progressively for outputs beyond position 512 — tokens after decompression expansion show positional hallucinations and repetition loops not present in the uncompressed baseline. Fix: use relative position embeddings (RoPE, ALiBi) throughout the model, which are robust to position reindexing.
 
-## Related Concepts
+#### Related Concepts
 
 - [Grammar-Constrained Generation](./41-grammar-constrained-generation.md)
 - [Beam Search Optimization](./40-beam-search-optimization.md)

@@ -1,67 +1,19 @@
 # Quantization (for LLMs)
 
-## Understanding Quantization: Trading Precision for Efficiency
+LLMs are huge (LLaMA 70B = 140GB in float32).
 
-Quantization reduces model size and inference latency by representing weights and activations using fewer bits (e.g., INT8 instead of FP32). A 7B parameter model in FP32 requires 28GB VRAM; quantized to INT8, it requires 7GB. The key insight: neural networks remain robust to reduced precision because not all bits carry information equally. By carefully choosing quantization schemes (symmetric, asymmetric, dynamic, static), we can achieve 2-4x memory reduction with minimal accuracy loss (<1% for most tasks).
+## Prerequisites
 
-Different quantization approaches offer distinct trade-offs: Post-Quantization (quantize after training) is simplest but sacrifices 1-2% accuracy. Quantization-Aware Training (QAT) accounts for quantization during training, achieving <0.5% accuracy loss. Dynamic quantization computes scale factors per batch (more compute, better accuracy). Static quantization pre-computes scales (faster inference, slightly lower accuracy). For production deployment, the choice depends on whether latency or accuracy is the harder constraint.
+Familiarity with token optimization. This note focuses on the LLM-specific mechanism and its engineering selection boundary.
 
-In practice, INT8 quantization is industry standard: it provides 4x memory reduction, requires minimal retraining, and is supported by hardware accelerators (GPUs, TPUs, mobile chips). INT4 quantization pushes further (8x reduction) but introduces 2-3% accuracy loss for some tasks. Modern techniques like Dynamic Quantization and Mixed Precision quantization (quantize weights, keep activations in FP32) balance extreme compression with maintained performance.
+## Learning Outcomes
 
-Quantization unlocks mobile and edge deployment: a 7B model quantized to INT4 fits on a smartphone (~2GB), enabling on-device inference with zero latency and privacy. For cloud inference, quantization reduces costs significantly—a quantized model runs faster, uses less memory, and requires cheaper hardware. This combination of reduced memory, faster latency, and maintained accuracy makes quantization essential for any production LLM system.
+- Explain the mechanism and assumptions behind quantization (for llms).
+- Compare its main alternative using task quality and one operational cost.
+- Diagnose a failure using a metric or example tied to quantization (for llms).
 
-## Model Quantization: Compression and Efficiency
-
-Quantization reduces model size and computational requirements by representing weights and activations using lower-precision data types. The fundamental insight: neural networks have redundancy that allows lower precision without significant accuracy loss.
-
-### Quantization Types and Mechanisms
-
-**1. Weight Quantization (Primary target for deployment)**
-- Reduces stored model size
-- Example: FP32 (4 bytes/param) → INT8 (1 byte/param) = 4× compression
-- Applied: offline, once per model
-
-**2. Activation Quantization (Less common, complex)**
-- Reduces runtime computation
-- Depends on input distribution
-- Applied: during inference
-
-**3. Bit-Width Variations**
-- FP32: Full precision (baseline)
-- FP16/BF16: Half precision (minimal loss)
-- INT8: 8-bit integer (1-2% loss)
-- INT4: 4-bit integer (1-3% loss)
-- INT2/INT1: Extreme (significant accuracy loss)
-
-### Calibration: The Critical Step
-
-Quantization requires calibration to determine appropriate scale factors:
-1. **Collect calibration data**: Run forward pass on representative inputs (first 100-500 batches)
-2. **Compute statistics**: Min/max values, percentiles (KL divergence, entropy)
-3. **Determine scales**: Map FP32 range to lower-bit range
-4. **Validate**: Check accuracy on validation set## Quantization Methods Comparison
-
-| Method | Training Time | Accuracy Loss | Speed Gain | Memory Reduction | Complexity | Production Ready |
-|--------|--------------|---------------|-----------|-----------------|-----------|-----------------|
-| **Post-Training INT8** | None (fast) | 1-2% | 2-3× | 4× | Low | ✅ Yes |
-| **Post-Training INT4** | None (fast) | 2-4% | 3-5× | 8× | Low | ✅ Yes (GPTQ) |
-| **QAT (INT8)** | Hours | 0.5-1% | 2-3× | 4× | High | ✅ Yes |
-| **QAT (INT4)** | Days | 1-2% | 3-5× | 8× | High | ⚠️ Emerging |
-| **Knowledge Distillation** | Days | Variable | 5-10× | 10-50× | Very High | ✅ Yes |
-| **Pruning + Quant** | Hours-Days | 2-3% | 5-10× | 10-20× | Medium | ✅ Yes |
-| **Sparsity** | Variable | 1-3% | 3-8× | 4-16× | Medium | ⚠️ Emerging |
-
-### Quantization Precision Trade-offs
-
-| Precision | Bytes/Param | Model Size (7B) | Typical Accuracy Loss | Deployment |
-|-----------|-----------|-----------------|----------------------|------------|
-| **FP32** | 4 | 28 GB | Baseline (0%) | GPU/CPU |
-| **FP16/BF16** | 2 | 14 GB | <0.5% | GPU |
-| **INT8** | 1 | 7 GB | 1-2% | GPU/CPU/Mobile |
-| **INT4 (GPTQ)** | 0.5 | 3.5 GB | 2-4% | Mobile/Edge |
-| **INT3** | 0.375 | 2.6 GB | 4-8% | Research |
-| **INT2/INT1** | 0.125-0.25 | 0.9-1.7 GB | 10-30% | Research |
 ## Core Intuition
+
 LLMs are huge (LLaMA 70B = 140GB in float32). Store weights in lower precision (8-bit, 4-bit) → same model, 4-16x smaller. Run inference on GPU/CPU with less memory → faster, cheaper. Small accuracy drop because LLM outputs are often robust to quantization noise.
 
 ## How It Works
@@ -118,7 +70,7 @@ graph LR
     style F fill:#fff3e0
 ```
 
-## Key Properties / Trade-offs
+## Trade-offs
 
 | Method | Model Size | Speed | Accuracy | Cost | Use Case |
 |--------|-----------|-------|----------|------|----------|
@@ -134,17 +86,7 @@ graph LR
 - Per-layer: per-weight-matrix scales (better quality)
 - Per-channel: per-neuron scales (highest quality, slightly slower)
 
-## Common Mistakes / Gotchas
-
-- **Quantizing activations naively:** Activations have outliers (large values) that don't quantize well. Use clipping or smooth quantization.
-- **Ignoring outlier patterns:** Some weights/activations are outliers (rare large values). Quantizing equally to all values wastes precision. Use asymmetric quantization.
-- **Too aggressive reduction:** int4 on all layers can hurt accuracy. Try int8 first; use int4 selectively on FFN layers.
-- **Not calibrating on representative data:** Calibration set quality matters. If calibration data ≠ actual input distribution, quantization scales are wrong.
-- **Forgetting that int4 may not be "free":** int4 kernels aren't available on all hardware. GPU/CPU support varies. Check before deploying.
-- **Quantizing in wrong order:** Should be done after training is complete. Quantizing mid-training can be suboptimal.
-- **Assuming symmetric quantization works:** For weights with skewed distributions, asymmetric quantization (e.g., int8 with signed range [-127, 127]) works better.
-
-## Code Example
+## Implementation
 
 ```python
 import torch
@@ -198,7 +140,17 @@ quantized_model = AutoModelForCausalLM.from_pretrained(
 )
 ```
 
-## Interview Quick-Reference
+## Failure Modes
+
+- **Quantizing activations naively:** Activations have outliers (large values) that don't quantize well. Use clipping or smooth quantization.
+- **Ignoring outlier patterns:** Some weights/activations are outliers (rare large values). Quantizing equally to all values wastes precision. Use asymmetric quantization.
+- **Too aggressive reduction:** int4 on all layers can hurt accuracy. Try int8 first; use int4 selectively on FFN layers.
+- **Not calibrating on representative data:** Calibration set quality matters. If calibration data ≠ actual input distribution, quantization scales are wrong.
+- **Forgetting that int4 may not be "free":** int4 kernels aren't available on all hardware. GPU/CPU support varies. Check before deploying.
+- **Quantizing in wrong order:** Should be done after training is complete. Quantizing mid-training can be suboptimal.
+- **Assuming symmetric quantization works:** For weights with skewed distributions, asymmetric quantization (e.g., int8 with signed range [-127, 127]) works better.
+
+## Interview Quick Reference
 
 | Question | What to say |
 |---|---|
@@ -209,27 +161,15 @@ quantized_model = AutoModelForCausalLM.from_pretrained(
 | "When to quantize?" | Always for deployment. int8 default. Use int4 if memory critical or batch size matters. |
 | "Calibration data?" | Use representative data (similar to production). Wrong distribution → scales are off → accuracy loss. |
 
-## Real-World Examples
 
-### INT8 Quantization for Batch Inference
-Llama 2 7B FP32: 28GB VRAM, 100 ms/token. INT8: 7GB VRAM, 70 ms/token (15% faster). Deployed on A100 (80GB): FP32 = 2 models, INT8 = 10 models. Throughput: 2 models × 10 tok/s = 20 tok/s. With quantization: 10 models × 15 tok/s = 150 tok/s (7x improvement).
 
-### QLoRA for Fine-Tuning on Consumer GPU
-Llama 2 13B FP32: 52GB VRAM (beyond consumer GPUs). INT4 + LoRA: 6GB VRAM (RTX 3090 compatible). Process: quantize base model, train LoRA on top. Result: 95% of full fine-tune accuracy. Enables small teams to fine-tune large models independently.
+**Design follow-up:** How would you monitor this choice in production and decide when to use an alternative?
+## Related Concepts
 
-### GPTQ for On-Device Inference
-Model: 13B parameters. FP32: 52GB (not mobile-feasible). INT4 GPTQ: 3.5GB. Deployed on iPhone 14 Pro (6GB RAM). Inference: 5-10 tok/s (slow but functional). Use case: offline translation, on-device assistant. Trade-off: latency vs privacy (no cloud calls).
-
-## Real-World Examples
-
-### INT8 Quantization for Batch Inference
-Llama 2 7B FP32: 28GB VRAM, 100 ms/token. INT8: 7GB VRAM, 70 ms/token (15% faster). Deployed on A100 (80GB): FP32 = 2 models, INT8 = 10 models. Throughput: 2 models × 10 tok/s = 20 tok/s. With quantization: 10 models × 15 tok/s = 150 tok/s (7x improvement).
-
-### QLoRA for Fine-Tuning on Consumer GPU
-Llama 2 13B FP32: 52GB VRAM (beyond consumer GPUs). INT4 + LoRA: 6GB VRAM (RTX 3090 compatible). Process: quantize base model, train LoRA on top. Result: 95% of full fine-tune accuracy. Enables small teams to fine-tune large models independently.
-
-### GPTQ for On-Device Inference
-Model: 13B parameters. FP32: 52GB (not mobile-feasible). INT4 GPTQ: 3.5GB. Deployed on iPhone 14 Pro (6GB RAM). Inference: 5-10 tok/s (slow but functional). Use case: offline translation, on-device assistant. Trade-off: latency vs privacy (no cloud calls).
+- [Inference Optimization](28-inference-optimization.md) — quantization is one technique among many
+- [KV Cache](23-kv-cache.md) — another memory optimization for inference
+- [Speculative Decoding](27-speculative-decoding.md) — speed optimization compatible with quantization
+- [Model Compression](../../ml/concepts/model-compression.md) — broader compression techniques
 
 ## Real-World Examples
 
@@ -286,7 +226,29 @@ Llama 2 13B FP32: 52GB VRAM (beyond consumer GPUs). INT4 + LoRA: 6GB VRAM (RTX 3
 ### GPTQ for On-Device Inference
 Model: 13B parameters. FP32: 52GB (not mobile-feasible). INT4 GPTQ: 3.5GB. Deployed on iPhone 14 Pro (6GB RAM). Inference: 5-10 tok/s (slow but functional). Use case: offline translation, on-device assistant. Trade-off: latency vs privacy (no cloud calls).
 
-## Interview Q&A
+## Real-World Examples
+
+### INT8 Quantization for Batch Inference
+Llama 2 7B FP32: 28GB VRAM, 100 ms/token. INT8: 7GB VRAM, 70 ms/token (15% faster). Deployed on A100 (80GB): FP32 = 2 models, INT8 = 10 models. Throughput: 2 models × 10 tok/s = 20 tok/s. With quantization: 10 models × 15 tok/s = 150 tok/s (7x improvement).
+
+### QLoRA for Fine-Tuning on Consumer GPU
+Llama 2 13B FP32: 52GB VRAM (beyond consumer GPUs). INT4 + LoRA: 6GB VRAM (RTX 3090 compatible). Process: quantize base model, train LoRA on top. Result: 95% of full fine-tune accuracy. Enables small teams to fine-tune large models independently.
+
+### GPTQ for On-Device Inference
+Model: 13B parameters. FP32: 52GB (not mobile-feasible). INT4 GPTQ: 3.5GB. Deployed on iPhone 14 Pro (6GB RAM). Inference: 5-10 tok/s (slow but functional). Use case: offline translation, on-device assistant. Trade-off: latency vs privacy (no cloud calls).
+
+## Real-World Examples
+
+### INT8 Quantization for Batch Inference
+Llama 2 7B FP32: 28GB VRAM, 100 ms/token. INT8: 7GB VRAM, 70 ms/token (15% faster). Deployed on A100 (80GB): FP32 = 2 models, INT8 = 10 models. Throughput: 2 models × 10 tok/s = 20 tok/s. With quantization: 10 models × 15 tok/s = 150 tok/s (7x improvement).
+
+### QLoRA for Fine-Tuning on Consumer GPU
+Llama 2 13B FP32: 52GB VRAM (beyond consumer GPUs). INT4 + LoRA: 6GB VRAM (RTX 3090 compatible). Process: quantize base model, train LoRA on top. Result: 95% of full fine-tune accuracy. Enables small teams to fine-tune large models independently.
+
+### GPTQ for On-Device Inference
+Model: 13B parameters. FP32: 52GB (not mobile-feasible). INT4 GPTQ: 3.5GB. Deployed on iPhone 14 Pro (6GB RAM). Inference: 5-10 tok/s (slow but functional). Use case: offline translation, on-device assistant. Trade-off: latency vs privacy (no cloud calls).
+
+## Topic-specific notes
 
 **Q: What is the difference between post-training quantization (PTQ) and quantization-aware training (QAT)?**
 A: PTQ: quantize a pretrained model without retraining—fast (minutes to hours), minimal quality loss for INT8, significant loss for INT4. QAT: simulate quantization during training so the model learns to be robust to quantization noise—slower (requires full training run), better quality, especially for INT4 and INT2. For LLMs, PTQ with GPTQ or AWQ achieves near-QAT quality by finding optimal quantization points using calibration data, making QAT rarely necessary at int8/int4.
@@ -306,14 +268,8 @@ A: Quantization affects tasks differently. Factual recall and classification: mi
 **Q: How do you deploy a quantized model in production and what serving infrastructure considerations apply?**
 A: Use frameworks that support quantized inference natively: vLLM (supports GPTQ, AWQ, INT8), TGI (similar support), llama.cpp for CPU/edge deployment with GGUF format. Key considerations: quantized models require specific CUDA kernels (not all hardware supports INT4 efficiently), kernel warmup time on first inference, batch size limitations for some quantized kernels. Benchmark end-to-end throughput with quantized models—sometimes the specialized kernels have overhead that reduces gains at small batch sizes.
 
-
-## Related Topics
-- [Inference Optimization](28-inference-optimization.md) — quantization is one technique among many
-- [KV Cache](23-kv-cache.md) — another memory optimization for inference
-- [Speculative Decoding](27-speculative-decoding.md) — speed optimization compatible with quantization
-- [Model Compression](../../ml/concepts/model-compression.md) — broader compression techniques
-
 ## Resources
+
 - [Quantization Fundamentals with Hugging Face](https://huggingface.co/docs/transformers/quantization)
 - [bitsandbytes: Quantization Library](https://github.com/TimDettmers/bitsandbytes)
 - [GPTQ: Accurate Post-Training Quantization for Generative Pre-trained Transformers](https://arxiv.org/abs/2210.17323)
@@ -346,6 +302,7 @@ graph TD
 
 **Q: How does quantization affect model calibration?**
 *A: During quantization: calibrate on representative dataset (first 100 batches). Bad calibration: outlier batches → poor scale factors → errors. Good: diverse calibration set. Check: perplexity before/after quantization (should increase <5%).*
+
 ## Real-World Applications
 
 ### NVIDIA: TensorRT optimization
@@ -370,4 +327,3 @@ Uses post-training quantization for LLAMA models to serve billions of requests w
 - **Calibration on unrepresentative data**: Calibration on unrepresentative data: scaling factors won't generalize to real data
 - **Extreme quantization (2-bit) for all layers**: Extreme quantization (2-bit) for all layers: some layers are sensitive, need higher precision
 - **Ignoring hardware**: Ignoring hardware: int4 speedup varies wildly by hardware; may not justify complexity
-

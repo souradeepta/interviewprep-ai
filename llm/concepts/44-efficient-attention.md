@@ -1,16 +1,22 @@
 # Efficient Attention
 
-## Detailed Explanation
+FlashAttention reduces memory traffic while computing exact attention; sparse and linear variants also change which interactions are computed.
 
-Efficient attention mechanisms address the O(n²) complexity bottleneck of standard self-attention, which prevents transformers from handling very long sequences. Since attention requires computing similarity between every position and every other position, sequences longer than a few thousand tokens become prohibitively expensive. Modern applications demand longer contexts: document understanding (legal documents, books), code understanding (entire files or repositories), multi-turn conversations with history.
+## Prerequisites
 
-Approaches to efficient attention include: (1) Sparse attention (limiting which positions attend to which, e.g., sliding window only attends to nearby positions), (2) Approximate methods (using clever tricks to approximate the attention matrix without computing it fully), (3) Linear attention (rewriting attention computation to avoid the quadratic term), (4) Hierarchical approaches (attending first within chunks, then between chunks). Each trades computation against expressiveness: sparse attention is fast but might miss long-range dependencies, linear attention is efficient but loses the ability to select which previous tokens matter most.
+Understand transformer inputs, tensor shapes, and how to evaluate a model on held-out data. This lesson narrows that background to the mechanism and decisions specific to efficient attention.
 
-Efficient attention is fundamental to scaling transformers beyond current limits. Understanding it requires mathematical sophistication (understanding how attention computation can be reorganized) and awareness of the specific bottleneck: computing the full attention matrix is O(n²), and efficient methods avoid computing or storing this full matrix.
+## Learning Outcomes
+
+- Explain the central mechanism and identify its key inputs and outputs.
+- Compare at least two design choices using a quality measure and an operational cost.
+- Diagnose a failure by selecting a workload slice and testing the assumption it violates.
 
 ## Core Intuition
 
 Standard attention is like having a person remember every detail they've ever heard about the topic, comparing current input to every past fact. That's exhausting for long memories. Efficient attention is like having a person remember key facts and recent context, quickly skipping irrelevant details. Different efficient methods skip details differently—some remember recency, others remember importance, others remember specific structural patterns.
+
+FlashAttention reduces memory traffic while computing exact attention; sparse and linear variants also change which interactions are computed. A reliable design begins with a simple baseline and makes the specialized method earn its added complexity through measured improvement. Keep the evaluation split and serving constraints fixed so the comparison isolates the design decision.
 
 ## How It Works
 
@@ -29,35 +35,53 @@ graph TD
     B -->|Output| C[Result]
 ```
 
-## Architecture / Trade-offs
+Separate attention arithmetic from memory traffic and compare full, local, and tiled methods at the same sequence lengths. Compare alternatives at a fixed input distribution and record both quality and system cost. For image models, vary resolution and patch size; for fusion, vary which modalities are available; for security, exercise allowed and denied actions; for retrieval, separate candidate generation from ranking. These controls make it possible to tell whether a change fixes the intended bottleneck or only moves it.
 
-### Attention Mechanism Complexity
+A useful experiment includes a baseline, a changed condition, and a deliberately difficult case. Use deterministic synthetic examples first to validate logic, then a held-out realistic slice to estimate task impact. Report uncertainty or repeat runs when training randomness can change the result.
 
-```mermaid
-graph LR
-    A["Sequence Length n"] -->|Standard| B["O(n²) memory<br/>O(n²) compute"]
-    A -->|Linear| C["O(n) memory<br/>O(n) compute"]
-    A -->|Sparse| D["O(n*s) memory<br/>O(n*s) compute"]
+## Trade-offs
 
-    B -->|4K tokens| E["12GB+ memory<br/>Slow"]
-    C -->|128K tokens| F["Low memory<br/>Fast"]
-    D -->|64K tokens| G["Medium memory<br/>Medium speed"]
+| Design | Benefit | Cost or risk | Decision signal |
+|---|---|---|---|
+| Unconstrained baseline | Keeps the largest set of interactions or evidence | Highest memory, compute, or input burden | Use while the workload fits and quality is the priority |
+| Structured method | Bounds a specific resource or failure path | May exclude useful cases | Use when workload structure justifies the constraint |
+| Learned or approximate method | Can adapt behavior to the task | Adds estimation error and tuning sensitivity | Require slice-level quality checks |
+| Modular fallback | Limits blast radius and supports missing inputs | Adds routing or orchestration work | Use when inputs or permissions vary by request |
 
-    style C fill:#e8f5e9
+## Implementation
+
+The following dependency-light check captures one invariant for the topic. It is a logic check, not a claim of end-to-end model performance.
+
+```python
+n, window = 1000, 64
+assert n*window < n*n
 ```
 
-### Attention Approximation Methods
+For a full experiment, keep a control implementation and record input shape, data split, model version, batch policy, hardware, and measurement method. Measure warm and steady-state latency separately where compilation or caching is involved. A measured result should state the exact workload and include quality; a microbenchmark cannot establish user-facing benefit by itself.
 
-| Method | Complexity | Information Loss | Stability |
-|--------|-----------|-----------------|-----------|
-| **Full attention** | O(n²) | None | High |
-| **Sliding window** | O(n) | High (missing long-range) | Very high |
-| **Local + global** | O(n) | Low | High |
-| **Linear attention** | O(n) | Medium (approximation) | Medium |
-| **Hierarchical** | O(n log n) | Low | High |
-| **Random projection** | O(n) | Medium | Low |
-## Interview Q&A
+## Failure Modes
 
+- Local window misses a distant dependency; test long-range retrieval tasks. Diagnose by logging the topic-specific signal and comparing it with the expected input contract.
+- Approximation lowers task quality; compare against exact attention on a representative slice. Build a targeted edge case and check whether the failure is systematic across a meaningful slice.
+- Memory bandwidth improvement is reported as a reduction in quadratic arithmetic; state the distinction. Compare against the baseline and monitor the affected quality or tail-cost metric after rollout.
+
+## Interview Quick Reference
+
+| Question | Expected answer |
+|---|---|
+| What is the design’s central mechanism? | FlashAttention reduces memory traffic while computing exact attention; sparse and linear variants also change which interactions are computed. Name its assumptions and the resource or behavior it changes. |
+| What alternative would you evaluate? | Compare the unconstrained baseline with a structured or modular approach on the same task and budget. |
+| How would you investigate a regression? | Slice the affected workload, test the violated assumption, and compare with a control path. |
+
+**Debugging follow-up:** Local window misses a distant dependency; test long-range retrieval tasks. What would you log, what held-out case would you add, and which metric would trigger rollback?
+
+## Related Concepts
+
+Read [attention optimization](24-attention-optimization.md), [evaluation](32-evaluation.md), and the [associated notebook](../notebooks/44-efficient-attention.ipynb). Drill: [practice question](../interview-prep/curriculum-practice.md#efficient-attention).
+
+References: [primary source](https://arxiv.org/abs/2205.14135); [technical reference](https://arxiv.org/abs/2307.08691).
+
+### Existing interview notes
 
 **Q: What is Flash Attention and why is it so fast?**
 A: Flash Attention: I/O aware algorithm, reduces memory access (main bottleneck). Groups computation to fit in GPU cache. Mathematically same result as standard attention but 4-10x faster in practice. No approximation, just better implementation.
@@ -73,28 +97,3 @@ A: Sparse: better accuracy (closer to full attention), moderate speedup (2-4x). 
 
 **Q: Can you combine efficient attention with long-context training?**
 A: Yes, combine for best results: (1) efficient attention (Flash/sparse) during training, (2) position interpolation for longer context, (3) train on progressively longer sequences. Enables training on very long context (100K+) with reasonable compute.
-
-
-## Best Practices
-
-- Apply best practices specific to this concept
-- Consider edge cases and failure modes
-- Test on representative data
-- Evaluate comprehensively
-
-## Common Pitfalls
-
-- Avoid over-simplification
-- Watch for incorrect assumptions
-- Test edge cases thoroughly
-- Monitor for degradation
-
-## Code Examples
-
-See the associated notebook for implementation and real-world examples.
-
-## Related Concepts
-
-- Understand prerequisites first
-- Connect related topics
-- Build integrated knowledge

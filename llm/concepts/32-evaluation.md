@@ -1,16 +1,19 @@
 # Evaluation (for LLMs)
 
-## Understanding Evaluation
+"Good" is task-dependent.
 
-Evaluation is a foundational concept in large language model development that addresses critical challenges in model architecture, training efficiency, or inference performance. Understanding this concept is essential for anyone working with modern language models, whether in research, fine-tuning, or production deployment.
+## Prerequisites
 
-The core innovation underlying Evaluation lies in rethinking standard approaches to achieve better efficiency or effectiveness. Rather than accepting conventional trade-offs, this technique exploits mathematical or architectural insights to push the frontier of what's possible with given computational constraints.
+Familiarity with multimodal. This note focuses on the LLM-specific mechanism and its engineering selection boundary.
 
-In practical applications, Evaluation enables capabilities that would otherwise be infeasible: reducing computational requirements, improving model quality, enabling faster iteration, or supporting new use cases. The real-world impact has made Evaluation widely adopted across industry applications, from consumer products to enterprise systems.
+## Learning Outcomes
 
-Implementing Evaluation requires understanding both its theoretical foundations and practical considerations. The following sections provide detailed explanations of how Evaluation works, when to use it, common implementation patterns, and lessons learned from production deployments. By mastering these concepts, practitioners can make informed decisions about when and how to apply Evaluation to their specific challenges.
+- Explain the mechanism and assumptions behind evaluation (for llms).
+- Compare its main alternative using task quality and one operational cost.
+- Diagnose a failure using a metric or example tied to evaluation (for llms).
 
 ## Core Intuition
+
 "Good" is task-dependent. Perplexity measures language modeling quality. Accuracy measures exact correctness. BLEU measures word-level similarity to references. Human evaluation answers "does this actually help people?" Combine multiple signals for holistic understanding.
 
 ## How It Works
@@ -79,7 +82,7 @@ graph TD
     style D fill:#e0f2f1
 ```
 
-## Key Properties / Trade-offs
+## Trade-offs
 
 | Metric | Cost | Reliability | Coverage |
 |--------|------|-------------|----------|
@@ -102,19 +105,7 @@ graph TD
 | Code Gen | Pass@k, human review | Coverage of test cases |
 | Classification | Accuracy, F1, confusion matrix | Precision/Recall per class |
 
-## Common Mistakes / Gotchas
-
-- **Over-optimizing single metric:** BLEU can be gamed (match reference exactly). Real quality requires human eval.
-- **Ignoring human baseline:** Your 50 BLEU is only good if human baseline is ~30. Compare to reference and human performance.
-- **Automatic metrics don't measure hallucination:** BLEU/ROUGE measure similarity to reference, not factuality. Model can hallucinate perfectly. Need fact-checking.
-- **Human eval without guidelines:** Annotators need clear instructions (rubric). Without guidelines, inter-annotator agreement is low (Kappa < 0.6).
-- **Small test set:** Metrics are noisy on small sets (<100 examples). Results may not be significant. Larger set (1000+) is safer for conclusions.
-- **Distribution shift:** Metrics on training domain ≠ generalization to production. Evaluate on diverse, representative test sets.
-- **Assuming ROUGE for summaries:** ROUGE-L is standard but limited (lexical overlap only). Combine with BERTScore and human judgment.
-- **Ignoring class imbalance:** For imbalanced classification, accuracy is misleading. Use F1 or balanced accuracy instead.
-- **LLM-as-Judge without validation:** Using GPT-4 to score outputs is tempting but requires validation (does it align with human ratings?). Validate first.
-
-## Code Example
+## Implementation
 
 ```python
 import numpy as np
@@ -184,7 +175,19 @@ avg_judge = np.mean(judge_scores)
 print(f"LLM-as-Judge: {avg_judge:.1f}/10")
 ```
 
-## Interview Quick-Reference
+## Failure Modes
+
+- **Over-optimizing single metric:** BLEU can be gamed (match reference exactly). Real quality requires human eval.
+- **Ignoring human baseline:** Your 50 BLEU is only good if human baseline is ~30. Compare to reference and human performance.
+- **Automatic metrics don't measure hallucination:** BLEU/ROUGE measure similarity to reference, not factuality. Model can hallucinate perfectly. Need fact-checking.
+- **Human eval without guidelines:** Annotators need clear instructions (rubric). Without guidelines, inter-annotator agreement is low (Kappa < 0.6).
+- **Small test set:** Metrics are noisy on small sets (<100 examples). Results may not be significant. Larger set (1000+) is safer for conclusions.
+- **Distribution shift:** Metrics on training domain ≠ generalization to production. Evaluate on diverse, representative test sets.
+- **Assuming ROUGE for summaries:** ROUGE-L is standard but limited (lexical overlap only). Combine with BERTScore and human judgment.
+- **Ignoring class imbalance:** For imbalanced classification, accuracy is misleading. Use F1 or balanced accuracy instead.
+- **LLM-as-Judge without validation:** Using GPT-4 to score outputs is tempting but requires validation (does it align with human ratings?). Validate first.
+
+## Interview Quick Reference
 
 | Question | What to say |
 |---|---|
@@ -195,27 +198,15 @@ print(f"LLM-as-Judge: {avg_judge:.1f}/10")
 | "How many annotators?" | 2-3 per example for inter-annotator agreement. Kappa ≥ 0.7 is acceptable; <0.6 means guidelines unclear. |
 | "LLM-as-Judge?" | Tempting but untested. Validate that it correlates with human judgments before relying on it. |
 
-## Real-World Examples
 
-### Evaluation in Production LLM API
-Benchmark: MMLU 78%. Production eval: real customer queries. Problem: MMLU accuracy doesn't translate to user satisfaction. Added human eval: 100 random queries per week. Discovered: model good at benchmarks but verbose in practice.
 
-### Multilingual Evaluation Challenges
-English model: 90% accuracy. Same model + light multilingual tuning: 45% on non-English (not measured!). Added language-specific evals. Now: 85% across 10 languages (vs false impression of 90%).
+**Design follow-up:** How would you monitor this choice in production and decide when to use an alternative?
+## Related Concepts
 
-### Domain Evaluation
-General model on medical domain. MMLU-Medicine: 60%. Real doctor evaluation: accuracy clinically acceptable 92% (very critical tasks missed, needs review). Lesson: domain experts should evaluate.
-
-## Real-World Examples
-
-### Evaluation in Production LLM API
-Benchmark: MMLU 78%. Production eval: real customer queries. Problem: MMLU accuracy doesn't translate to user satisfaction. Added human eval: 100 random queries per week. Discovered: model good at benchmarks but verbose in practice.
-
-### Multilingual Evaluation Challenges
-English model: 90% accuracy. Same model + light multilingual tuning: 45% on non-English (not measured!). Added language-specific evals. Now: 85% across 10 languages (vs false impression of 90%).
-
-### Domain Evaluation
-General model on medical domain. MMLU-Medicine: 60%. Real doctor evaluation: accuracy clinically acceptable 92% (very critical tasks missed, needs review). Lesson: domain experts should evaluate.
+- [Prompt Optimization](17-prompt-optimization.md) — evaluating changes to prompts
+- [Instruction Tuning](05-instruction-tuning.md) — training requires eval metrics
+- [RLHF](06-rlhf.md) — uses human eval for reward modeling
+- [Evaluation Metrics](../../ml/concepts/evaluation-metrics.md) — broader evaluation concepts
 
 ## Real-World Examples
 
@@ -250,7 +241,29 @@ English model: 90% accuracy. Same model + light multilingual tuning: 45% on non-
 ### Domain Evaluation
 General model on medical domain. MMLU-Medicine: 60%. Real doctor evaluation: accuracy clinically acceptable 92% (very critical tasks missed, needs review). Lesson: domain experts should evaluate.
 
-## Interview Q&A
+## Real-World Examples
+
+### Evaluation in Production LLM API
+Benchmark: MMLU 78%. Production eval: real customer queries. Problem: MMLU accuracy doesn't translate to user satisfaction. Added human eval: 100 random queries per week. Discovered: model good at benchmarks but verbose in practice.
+
+### Multilingual Evaluation Challenges
+English model: 90% accuracy. Same model + light multilingual tuning: 45% on non-English (not measured!). Added language-specific evals. Now: 85% across 10 languages (vs false impression of 90%).
+
+### Domain Evaluation
+General model on medical domain. MMLU-Medicine: 60%. Real doctor evaluation: accuracy clinically acceptable 92% (very critical tasks missed, needs review). Lesson: domain experts should evaluate.
+
+## Real-World Examples
+
+### Evaluation in Production LLM API
+Benchmark: MMLU 78%. Production eval: real customer queries. Problem: MMLU accuracy doesn't translate to user satisfaction. Added human eval: 100 random queries per week. Discovered: model good at benchmarks but verbose in practice.
+
+### Multilingual Evaluation Challenges
+English model: 90% accuracy. Same model + light multilingual tuning: 45% on non-English (not measured!). Added language-specific evals. Now: 85% across 10 languages (vs false impression of 90%).
+
+### Domain Evaluation
+General model on medical domain. MMLU-Medicine: 60%. Real doctor evaluation: accuracy clinically acceptable 92% (very critical tasks missed, needs review). Lesson: domain experts should evaluate.
+
+## Topic-specific notes
 
 **Q: Why is perplexity a poor metric for evaluating LLM quality for downstream tasks?**
 A: Perplexity measures average per-token log-probability—it captures how well the model fits the text distribution but doesn't measure usefulness for tasks. A model with lower perplexity may perform worse on instruction following, reasoning, or safety. Models can achieve low perplexity by being verbose and hedged in ways that annoy users. Always pair perplexity with task-specific metrics (exact match, ROUGE, human preference win rate) relevant to your actual use case.
@@ -270,14 +283,8 @@ A: Static benchmarks (MMLU, HumanEval): fixed test sets, reproducible, good for 
 **Q: How do you handle evaluation for subjective tasks where there is no single correct answer?**
 A: For creative writing, explanation quality, or tone—use pairwise comparison (A vs. B) rather than absolute scoring, which is more reliable and less affected by scale calibration issues. Collect multiple human ratings per response and report inter-annotator agreement (Cohen's kappa). Use diverse annotators to capture different preferences. For production, use implicit signals (user satisfaction, follow-up rate, session length) as proxies. Separate "factually correct" from "stylistically preferred" in your rubrics.
 
-
-## Related Topics
-- [Prompt Optimization](17-prompt-optimization.md) — evaluating changes to prompts
-- [Instruction Tuning](05-instruction-tuning.md) — training requires eval metrics
-- [RLHF](06-rlhf.md) — uses human eval for reward modeling
-- [Evaluation Metrics](../../ml/concepts/evaluation-metrics.md) — broader evaluation concepts
-
 ## Resources
+
 - [BLEU: a Method for Automatic Evaluation of Machine Translation](https://aclanthology.org/P02-1040/)
 - [ROUGE: A Package for Automatic Evaluation of Summaries](https://aclanthology.org/W04-1013/)
 - [Evaluation of Text Generation: A Survey](https://arxiv.org/abs/2006.14799)

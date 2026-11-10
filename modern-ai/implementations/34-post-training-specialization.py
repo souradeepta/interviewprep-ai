@@ -1,36 +1,13 @@
-"""
-Post Training Specialization
-
-Production-quality implementation of post training specialization.
-"""
-
-import numpy as np
-import torch
-import torch.nn as nn
-from typing import Dict, List, Tuple, Optional
-
-
-class PostTrainingPipeline(nn.Module):
-    """Production-grade implementation."""
-    
-    def __init__(self, hidden_dim: int = 64, device: Optional[torch.device] = None):
-        super().__init__()
-        self.hidden_dim = hidden_dim
-        self.device = device or torch.device('cuda' if torch.cuda.is_available() else 'cpu')
-        self.linear = nn.Linear(hidden_dim, hidden_dim)
-        self.norm = nn.LayerNorm(hidden_dim)
-    
-    def forward(self, x: torch.Tensor) -> torch.Tensor:
-        x = x.to(self.device)
-        x = self.linear(x)
-        x = self.norm(x)
-        return x
-
-
-if __name__ == "__main__":
-    device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
-    model = PostTrainingPipeline(hidden_dim=64, device=device)
-    x = torch.randn(4, 8, 64)
-    with torch.no_grad():
-        output = model(x)
-    print(f"Input: {x.shape} → Output: {output.shape}")
+"""Rule-based specialization choice: prompt, RAG, LoRA, or full fine-tuning."""
+def recommend(knowledge_changes_often, private_facts, behavior_gap, broad_capability_gap, data_examples):
+    if knowledge_changes_often or private_facts: return "RAG"
+    if not behavior_gap and not broad_capability_gap: return "prompting"
+    if behavior_gap and data_examples>=100: return "LoRA"
+    if broad_capability_gap and data_examples>=10000: return "full_fine_tuning"
+    return "collect_evaluation_and_training_data"
+def matrix():
+    return {"prompting":("instructions","no weight update","limited durable behavior"),
+            "RAG":("changing/private facts","retrieval pipeline","retrieval and citation failures"),
+            "LoRA":("bounded behavior/style","adapter weights","data coverage and forgetting"),
+            "full_fine_tuning":("broad capability change","large labeled corpus","high cost and regression risk")}
+if __name__ == "__main__": print(matrix()); print(recommend(True,True,False,False,0))

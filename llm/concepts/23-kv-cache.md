@@ -1,16 +1,19 @@
 # KV Cache
 
-## Understanding Kv Cache
+Autoregressive generation means predicting token 1, then token 2 (using token 1), then token 3 (using tokens 1+2), etc.
 
-Kv Cache is a foundational concept in large language model development that addresses critical challenges in model architecture, training efficiency, or inference performance. Understanding this concept is essential for anyone working with modern language models, whether in research, fine-tuning, or production deployment.
+## Prerequisites
 
-The core innovation underlying Kv Cache lies in rethinking standard approaches to achieve better efficiency or effectiveness. Rather than accepting conventional trade-offs, this technique exploits mathematical or architectural insights to push the frontier of what's possible with given computational constraints.
+Familiarity with semantic caching. This note focuses on the LLM-specific mechanism and its engineering selection boundary.
 
-In practical applications, Kv Cache enables capabilities that would otherwise be infeasible: reducing computational requirements, improving model quality, enabling faster iteration, or supporting new use cases. The real-world impact has made Kv Cache widely adopted across industry applications, from consumer products to enterprise systems.
+## Learning Outcomes
 
-Implementing Kv Cache requires understanding both its theoretical foundations and practical considerations. The following sections provide detailed explanations of how Kv Cache works, when to use it, common implementation patterns, and lessons learned from production deployments. By mastering these concepts, practitioners can make informed decisions about when and how to apply Kv Cache to their specific challenges.
+- Explain the mechanism and assumptions behind kv cache.
+- Compare its main alternative using task quality and one operational cost.
+- Diagnose a failure using a metric or example tied to kv cache.
 
 ## Core Intuition
+
 Autoregressive generation means predicting token 1, then token 2 (using token 1), then token 3 (using tokens 1+2), etc. Without KV cache, computing attention for token T requires recomputing attention over ALL previous tokens (T-1 times). Store the K and V matrices once, reuse them → O(1) per token instead of O(T).
 
 ## How It Works
@@ -74,7 +77,7 @@ graph LR
     style E fill:#e8f5e9
 ```
 
-## Key Properties / Trade-offs
+## Trade-offs
 
 | Aspect | No Cache | With Cache |
 |--------|----------|-----------|
@@ -99,17 +102,7 @@ For LLaMA 7B (4096 hidden_dim, 32 layers):
 For seq_len=2048: 8.4MB × 2048 ≈ 17GB
 ```
 
-## Common Mistakes / Gotchas
-
-- **Not clearing cache between sequences:** If processing multiple sequences, old cache corrupts new predictions. Always reset cache per sequence.
-- **Assuming cache is "free":** Cache memory grows with sequence length. Can OOM on long sequences (2k+ tokens).
-- **Batch size assumptions:** Batch size is limited by cache size, not just compute. Small cache limits batching for long sequences.
-- **Cache format consistency:** Different frameworks (HF, vLLM, llama.cpp) use different cache formats. Reusing cache across frameworks fails.
-- **No updates for new tokens:** Cache is immutable after generation. If you want to regenerate, must start fresh (can't splice new branch).
-- **Ignoring batch size in cache:** total_cache_mem = batch_size × seq_len × num_layers × d. Doubling batch size doubles memory.
-- **Not using Flash Attention compatible:** Some flashy optimizations (Flash Attention v2) are incompatible with certain cache formats. Check integration.
-
-## Code Example
+## Implementation
 
 ```python
 import torch
@@ -177,7 +170,17 @@ print(f"Without cache: {time_no_cache:.2f}s")
 print(f"Speedup: {time_no_cache / time_cached:.1f}x")
 ```
 
-## Interview Quick-Reference
+## Failure Modes
+
+- **Not clearing cache between sequences:** If processing multiple sequences, old cache corrupts new predictions. Always reset cache per sequence.
+- **Assuming cache is "free":** Cache memory grows with sequence length. Can OOM on long sequences (2k+ tokens).
+- **Batch size assumptions:** Batch size is limited by cache size, not just compute. Small cache limits batching for long sequences.
+- **Cache format consistency:** Different frameworks (HF, vLLM, llama.cpp) use different cache formats. Reusing cache across frameworks fails.
+- **No updates for new tokens:** Cache is immutable after generation. If you want to regenerate, must start fresh (can't splice new branch).
+- **Ignoring batch size in cache:** total_cache_mem = batch_size × seq_len × num_layers × d. Doubling batch size doubles memory.
+- **Not using Flash Attention compatible:** Some flashy optimizations (Flash Attention v2) are incompatible with certain cache formats. Check integration.
+
+## Interview Quick Reference
 
 | Question | What to say |
 |---|---|
@@ -188,27 +191,15 @@ print(f"Speedup: {time_no_cache / time_cached:.1f}x")
 | "Incompatible with?" | Some optimizations (certain quantization, non-standard attention) may not support KV caching. Check docs. |
 | "Multi-batch vs single?" | Single long sequence vs multiple short sequences: cache hurts throughput but helps per-token latency. |
 
-## Real-World Examples
 
-### KV Cache in Multi-Turn Chat
-Conversation: 10 turns, each turn 100 tokens input. Without cache: recompute 1000s of attention operations per turn. With cache: reuse 900 from previous turns, compute only 100 new. Latency: 5s → 0.5s per turn.
 
-### Batch Inference with Limited Memory
-GPU: 40GB memory. Batch=64, context=4K, FP32 without GQA: 64GB needed (exceeds memory!). With GQA: 8GB KV cache. Can now run batch=64. Throughput: 100 tok/s (vs impossible without optimization).
+**Design follow-up:** How would you monitor this choice in production and decide when to use an alternative?
+## Related Concepts
 
-### Long-Context RAG with Cache Optimization
-Retrieval: 100 context chunks (100K tokens). Naive: KV cache 25GB. GQA + INT8: 1.5GB. Within inference budget. Latency: 500ms (reasonable). Without optimization: impossible.
-
-## Real-World Examples
-
-### KV Cache in Multi-Turn Chat
-Conversation: 10 turns, each turn 100 tokens input. Without cache: recompute 1000s of attention operations per turn. With cache: reuse 900 from previous turns, compute only 100 new. Latency: 5s → 0.5s per turn.
-
-### Batch Inference with Limited Memory
-GPU: 40GB memory. Batch=64, context=4K, FP32 without GQA: 64GB needed (exceeds memory!). With GQA: 8GB KV cache. Can now run batch=64. Throughput: 100 tok/s (vs impossible without optimization).
-
-### Long-Context RAG with Cache Optimization
-Retrieval: 100 context chunks (100K tokens). Naive: KV cache 25GB. GQA + INT8: 1.5GB. Within inference budget. Latency: 500ms (reasonable). Without optimization: impossible.
+- [Inference Optimization](28-inference-optimization.md) — KV cache is one technique among many
+- [Speculative Decoding](27-speculative-decoding.md) — uses KV cache for parallelization
+- [Continuous Batching](26-continuous-batching.md) — manages KV cache for multiple sequences
+- [Attention Mechanism](../../ml/concepts/attention-mechanism.md) — what KV cache optimizes
 
 ## Real-World Examples
 
@@ -243,7 +234,29 @@ GPU: 40GB memory. Batch=64, context=4K, FP32 without GQA: 64GB needed (exceeds m
 ### Long-Context RAG with Cache Optimization
 Retrieval: 100 context chunks (100K tokens). Naive: KV cache 25GB. GQA + INT8: 1.5GB. Within inference budget. Latency: 500ms (reasonable). Without optimization: impossible.
 
-## Interview Q&A
+## Real-World Examples
+
+### KV Cache in Multi-Turn Chat
+Conversation: 10 turns, each turn 100 tokens input. Without cache: recompute 1000s of attention operations per turn. With cache: reuse 900 from previous turns, compute only 100 new. Latency: 5s → 0.5s per turn.
+
+### Batch Inference with Limited Memory
+GPU: 40GB memory. Batch=64, context=4K, FP32 without GQA: 64GB needed (exceeds memory!). With GQA: 8GB KV cache. Can now run batch=64. Throughput: 100 tok/s (vs impossible without optimization).
+
+### Long-Context RAG with Cache Optimization
+Retrieval: 100 context chunks (100K tokens). Naive: KV cache 25GB. GQA + INT8: 1.5GB. Within inference budget. Latency: 500ms (reasonable). Without optimization: impossible.
+
+## Real-World Examples
+
+### KV Cache in Multi-Turn Chat
+Conversation: 10 turns, each turn 100 tokens input. Without cache: recompute 1000s of attention operations per turn. With cache: reuse 900 from previous turns, compute only 100 new. Latency: 5s → 0.5s per turn.
+
+### Batch Inference with Limited Memory
+GPU: 40GB memory. Batch=64, context=4K, FP32 without GQA: 64GB needed (exceeds memory!). With GQA: 8GB KV cache. Can now run batch=64. Throughput: 100 tok/s (vs impossible without optimization).
+
+### Long-Context RAG with Cache Optimization
+Retrieval: 100 context chunks (100K tokens). Naive: KV cache 25GB. GQA + INT8: 1.5GB. Within inference budget. Latency: 500ms (reasonable). Without optimization: impossible.
+
+## Topic-specific notes
 
 **Q: Why does KV cache dramatically speed up autoregressive generation?**
 A: Without KV cache, generating each token requires computing attention over all previous tokens from scratch—O(n²) operations per token, O(n³) total for n tokens. With KV cache, key and value matrices are computed once per token and stored; subsequent tokens only compute attention for the new token against stored KVs—O(n) per token. For a 100-token response, this is roughly 50x fewer attention computations.
@@ -263,14 +276,8 @@ A: Continuous batching adds new requests to the batch as others complete, mainta
 **Q: What are the symptoms of KV cache exhaustion in production and how do you handle it?**
 A: Symptoms: sudden OOM errors, requests being rejected, latency spikes when cache is full. Handle with: streaming responses (start returning tokens before generation is complete, freeing memory sooner), request queuing with backpressure, dynamic batching (reduce batch size when memory is high), or aggressive KV cache quantization (INT8 KV cache reduces memory 2x at <1% quality loss). Monitor KV cache utilization as a primary LLM serving metric.
 
-
-## Related Topics
-- [Inference Optimization](28-inference-optimization.md) — KV cache is one technique among many
-- [Speculative Decoding](27-speculative-decoding.md) — uses KV cache for parallelization
-- [Continuous Batching](26-continuous-batching.md) — manages KV cache for multiple sequences
-- [Attention Mechanism](../../ml/concepts/attention-mechanism.md) — what KV cache optimizes
-
 ## Resources
+
 - [Transformer-XL: Attentive Language Models Beyond a Fixed-Length Context](https://arxiv.org/abs/1901.02860)
 - [vLLM: Efficient Memory Management for LLM Serving](https://arxiv.org/abs/2309.06180)
 - [Flash-Decoding: Fast and Accurate Generation in Long-Context LLMs](https://arxiv.org/abs/2307.01841)

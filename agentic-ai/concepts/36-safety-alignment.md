@@ -1,5 +1,95 @@
 # Safety Alignment
 
+**TL;DR:** Safety alignment constrains agent behavior so its actions remain within intended policy and authority.
+
+## Prerequisites
+
+Readers should understand basic LLM calls, structured inputs and outputs, and the agent lifecycle. They should be comfortable distinguishing an agent decision from deterministic application code and know how to read a simple Python function.
+
+## Learning Outcomes
+
+- Define the task boundary and identify the assumptions that affect safety alignment.
+- Select measurable quality and operational metrics for a stated workload.
+- Compare at least two implementation choices and explain their costs.
+- Diagnose a representative failure and choose a concrete mitigation.
+
+## Core Intuition
+
+Safety alignment constrains agent behavior so its actions remain within intended policy and authority. The practical design centers on policy specification, threat model, capability boundary, and escalation path. This works because an agent is a multi-step system: a useful answer depends on state, decisions, external evidence, and action permissions. Evaluating only fluent final text misses whether the system used the right information, respected constraints, or completed the requested work. Treat the agent as a workflow with inspectable boundaries, and attach evidence to each important transition.
+
+For Safety Alignment, begin by defining the unit of work and its boundary. A request may include planning, retrieval, model inference, tool execution, and validation; if only the final message is measured, intermediate behavior remains invisible. Record which actor owns each decision and what evidence is available at that point. This makes failures diagnosable and prevents a team from claiming improvement based on a metric that does not represent the user task.
+
+## How It Works
+
+A sound workflow first describes a successful task in observable terms. It then records the initial state, each decision-relevant operation, and the final result. The implementation should preserve enough context to connect these events while controlling data access and retention. For an evaluation pipeline, that means versioned examples and scoring; for an operational system, it means request identity, timing, and a response owner. In both cases, the same task definition should drive tests and later review.
+
+The design for Safety Alignment should state its assumptions explicitly. Identify the expected input shape, trusted data, external dependencies, user permissions, and acceptable failure behavior. Separate hard constraints from preferences: a hard constraint must be enforced by deterministic code or an independent check, while a preference can guide model behavior. If an assumption changes between development and deployment, the evaluation and monitoring plan must be revisited before the system is treated as equivalent.
+
+A practical Safety Alignment workflow starts with a small observable baseline. Capture the initial outcome and the cost of producing it, then change one component at a time. Preserve a representative set of ordinary cases, boundary cases, and known failures. Compare results by category rather than only reporting a pooled average. This approach makes trade-offs visible: an apparent gain on common traffic may conceal a regression on an infrequent but high-impact task.
+
+Operational ownership matters for Safety Alignment. A useful design names the person or service that can pause execution, inspect evidence, and restore a known-good version. Define timeouts and retry limits at the boundary where an operation is initiated, and make repeated actions safe with idempotency keys where possible. A system that detects a problem but has no safe response path is observable without being operationally reliable.
+
+## Trade-offs
+
+| Choice | Benefit | Cost or boundary |
+|---|---|---|
+| Policy specification | Makes decisions measurable | Requires careful definitions and upkeep |
+| Automated checks | Fast, repeatable coverage | Miss ambiguous or contextual defects |
+| Human review | Interprets nuance and impact | Costs time and needs reviewer calibration |
+| Strict action limits | Bounds potential harm | Can block valid edge cases |
+
+When adopting Safety Alignment, compare the agent path with a simpler deterministic baseline. The baseline often handles stable rules more cheaply and predictably; the agent is justified when flexible language understanding or adaptation adds measurable value. Measure the complete workflow, including retries, fallbacks, human review, and correction effort. A local speed or quality gain does not count as an end-to-end improvement if it increases downstream work.
+
+## Implementation
+
+The following Python sketch shows a small, deterministic control that can be adapted to safety alignment. It validates a result record before it is accepted, leaving probabilistic judgments to an explicit evaluation stage.
+
+```python
+def accept_result(record, required_fields):
+    missing = [field for field in required_fields if not record.get(field)]
+    if missing:
+        return False, missing
+    return True, []
+
+example = {"outcome": "completed", "evidence": "case-17"}
+accepted, missing = accept_result(example, ["outcome", "evidence"])
+assert accepted and not missing
+```
+
+Validation of Safety Alignment should account for model variation and changing external state. Repeat stochastic cases, pin or record the relevant model and data versions, and distinguish reproducible defects from expected variation. When exact outputs are inappropriate, grade the invariant that matters, such as satisfying constraints, citing a valid source, or asking for missing information. Human reviewers need a rubric and enough context to reproduce the decision.
+
+## Failure Modes
+
+- **Misleading aggregate:** slice results by task type and inspect distributions so a healthy average cannot hide a failing cohort.
+- **Missing or stale evidence:** attach versions and timestamps, then reject records that cannot be reproduced or validated.
+- **Unsafe or costly repetition:** cap retries and loop depth, make writes idempotent, and alert on repeated attempts.
+
+Privacy and security shape the implementation of Safety Alignment. Collect only fields needed for the stated purpose, redact secrets before persistence, and use scoped credentials for tool calls. Treat retrieved or user-provided text as data rather than trusted instructions. Keep consequential actions behind explicit authorization checks and maintain an audit record of the actor, resource, decision, and result without retaining unnecessary sensitive content.
+
+An interview discussion of Safety Alignment is strongest when it starts with a concrete task and constraints. Explain the smallest viable architecture, name the evidence used to judge success, and identify one failure that could cause material harm. Then describe a test that would reveal that failure and a mitigation that operates even if the model is wrong. This links a technical choice to an observable result rather than relying on framework names or broad claims.
+
+## Interview Quick Reference
+
+| Question | Expected answer and follow-up |
+|---|---|
+| What would you measure first? | Policy violation rate, unsafe tool attempts, refusal quality, and override outcomes. Design follow-up: how would you separate task quality from infrastructure delay? |
+| How do you choose a control? | Compare a deterministic baseline with the agent path and state the quality floor. Debug follow-up: what evidence would falsify the claimed improvement? |
+| How do you contain a bad action? | Use scoped access, independent validation, and an explicit approval boundary. Design follow-up: how can an operator stop or reverse the action? |
+
+Safety depends on controls around the model as well as the model’s response text. A practical Safety Alignment workflow starts with a small observable baseline. Capture the initial outcome and the cost of producing it, then change one component at a time. Preserve a representative set of ordinary cases, boundary cases, and known failures. Compare results by category rather than only reporting a pooled average. This approach makes trade-offs visible: an apparent gain on common traffic may conceal a regression on an infrequent but high-impact task.
+
+## Related Concepts
+
+Connect this lesson to agent testing, state management, and deployment practices so that the design is evaluated before release and monitored after launch.
+
+## References
+
+- [OpenTelemetry documentation](https://opentelemetry.io/docs/)
+- [NIST AI Risk Management Framework](https://www.nist.gov/itl/ai-risk-management-framework)
+
+## Preserved Topic Notes
+
+
 ## Detailed Explanation
 
 Safety alignment ensures agents behave safely, within intended bounds, and resist adversarial attacks. Mechanisms: (1) guardrails—validate inputs/outputs against safety rules, (2) prompt injection defense—sanitize user input to prevent instruction override, (3) jailbreak resistance—train models to resist attempts to bypass safety constraints, (4) value alignment—agent's goals match human values (don't optimize for wrong objective), (5) monitoring—detect unsafe behavior in real-time. Challenges: no single solution works universally; tradeoff between safety and capability (too restrictive breaks utility). Key techniques: (1) input validation—filter malicious inputs, (2) output filtering—check outputs don't violate policy, (3) constitutional AI—train with safety principles, (4) adversarial testing—find failure modes, (5) interpretability—understand agent's reasoning. Critical for production because: (1) user safety—agent shouldn't cause harm, (2) legal compliance—regulations require safety guardrails, (3) trust—users must trust agent behavior. Best for: high-stakes domains (healthcare, finance, autonomous systems).

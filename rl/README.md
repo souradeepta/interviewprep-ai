@@ -36,6 +36,12 @@ runnable notebook, and standalone implementation.
 
 ## Learning Paths
 
+### Interview practice
+
+Use the [RL interview question bank](interview-prep/rl-interview-questions.md)
+for 15 prompts covering MDPs, Bellman updates, off-policy stability,
+exploration, reward design, offline RL, and RLHF.
+
 ### RL Fundamentals (Concepts 01-07)
 MDP → Bellman → DP → MC → TD → Q-Learning → SARSA
 

@@ -1,16 +1,19 @@
 # Tokenization
 
-## Understanding Tokenization
+LLMs work with integers, not text.
 
-Tokenization is a foundational concept in large language model development that addresses critical challenges in model architecture, training efficiency, or inference performance. Understanding this concept is essential for anyone working with modern language models, whether in research, fine-tuning, or production deployment.
+## Prerequisites
 
-The core innovation underlying Tokenization lies in rethinking standard approaches to achieve better efficiency or effectiveness. Rather than accepting conventional trade-offs, this technique exploits mathematical or architectural insights to push the frontier of what's possible with given computational constraints.
+Familiarity with probability statistics. This note focuses on the LLM-specific mechanism and its engineering selection boundary.
 
-In practical applications, Tokenization enables capabilities that would otherwise be infeasible: reducing computational requirements, improving model quality, enabling faster iteration, or supporting new use cases. The real-world impact has made Tokenization widely adopted across industry applications, from consumer products to enterprise systems.
+## Learning Outcomes
 
-Implementing Tokenization requires understanding both its theoretical foundations and practical considerations. The following sections provide detailed explanations of how Tokenization works, when to use it, common implementation patterns, and lessons learned from production deployments. By mastering these concepts, practitioners can make informed decisions about when and how to apply Tokenization to their specific challenges.
+- Explain the mechanism and assumptions behind tokenization.
+- Compare its main alternative using task quality and one operational cost.
+- Diagnose a failure using a metric or example tied to tokenization.
 
 ## Core Intuition
+
 LLMs work with integers, not text. Tokenization bridges text → numbers. Key tension: word-level (huge vocabulary, can't handle rare words) vs character-level (small vocabulary, sequences too long). Subword tokenization (BPE) splits words into frequent pieces: "tokenization" → ["token", "ization"] or ["to", "ken", "ization"]. This balances vocabulary size and sequence length.
 
 ## How It Works
@@ -22,15 +25,15 @@ Algorithm:
 1. Initialize: every character is a token
    Text: "tokenization"
    Vocab: {t, o, k, e, n, i, z, a, u, s, p, ...}
-   
+
 2. Count adjacent pairs
    "tokenization" → pairs: ("t","o"), ("o","k"), ("k","e"), ("e","n"), ...
    Most frequent pair: ("e", "n") appears 3 times
-   
+
 3. Merge most frequent pair
    Vocab: {t, o, k, "en", i, z, a, ...}
    Text: "tok"en"ization"
-   
+
 4. Repeat until vocab size = target (e.g., 50k)
    After many iterations:
    "tokenization" → ["token", "ization"]
@@ -72,9 +75,9 @@ Example:
   freq(e, n) = 100
   freq(e) = 1000
   freq(n) = 500
-  
+
   Merge score: log(100 / (1000 × 500)) = log(0.0002) = -8.5
-  
+
 Higher likelihood gain → more likely to be meaningful unit
 ```
 
@@ -88,7 +91,7 @@ No assumption of spaces (good for CJK languages)
 Example (Japanese): "こんにちは" (konnichiwa)
   WordPiece assumes space boundaries → doesn't work
   SentencePiece operates on bytes → works across languages
-  
+
 Vocab: frequent byte sequences globally
 ```
 
@@ -110,13 +113,13 @@ Language effects:
 ```
 English: ~4 characters per token (high compression)
   "tokenization" (12 chars) = 2 tokens = 6 chars per token
-  
+
 French: ~4 characters per token (similar to English)
 
 Chinese/Japanese: ~1.3 characters per token (low compression)
   "你好世界" (4 chars) = ~6-8 tokens
   Cost/token similar, but needs more tokens for same text
-  
+
 Arabic: ~3-4 characters per token (moderate)
 ```
 
@@ -135,7 +138,7 @@ graph LR
     style E fill:#e8f5e9
 ```
 
-## Key Properties / Trade-offs
+## Trade-offs
 
 | Property | Character | BPE | WordPiece | SentencePiece |
 |----------|-----------|-----|-----------|---------------|
@@ -157,36 +160,7 @@ Same context window, different text lengths!
 Critical for multilingual systems.
 ```
 
-## Common Mistakes / Gotchas
-
-- **Assuming tokens = words:** "The", "tokenization", "cat" might be 1, 2, 3 tokens respectively. Subwords != words. Count tokens, not words.
-
-- **Not counting cost:** API costs per token, not character. Long sequences = higher cost even if same characters. Example:
-  ```
-  English prompt: "Explain machine learning" = 4 tokens = $0.00012
-  Chinese prompt: "解释机器学习" = 12 tokens = $0.00036 (3x cost for same info!)
-  ```
-
-- **Tokenizing on wrong side of split:** if test set contains examples of word tokenization during training, that's data leakage. Always tokenize after train/test split.
-
-- **Not accounting for special tokens:** BPE/WordPiece add special tokens:
-  ```
-  "<|endoftext|>" in GPT
-  "[CLS]" "[SEP]" in BERT
-  "<s>" "</s>" in Llama
-  
-  These count toward context limit
-  5 examples × 2 examples = 10 special tokens per prompt
-  Actual tokens available ≤ context_window - special_tokens
-  ```
-
-- **Ignoring tokenizer updates:** new tokenizer = different tokenization = can't use old checkpoints. Keep tokenizer version with model.
-
-- **Assuming fixed tokenization:** some systems retokenize at inference (e.g., re-encode context). Can change token boundaries → hashing/indexing breaks. Use consistent tokenizer.
-
-- **Not handling unknown tokens:** rare words → `[UNK]` token. In fine-tuning, this token has no gradient info. Solution: use SentencePiece or larger vocab, or pre-add custom tokens.
-
-## Code Example
+## Implementation
 
 ```python
 from transformers import AutoTokenizer, GPT2Tokenizer, BertTokenizer
@@ -280,7 +254,36 @@ print(f"Chinese tokens: {count_tokens_by_language('人工智能的未来')}")
 # Chinese has higher token count, so higher API cost!
 ```
 
-## Interview Quick-Reference
+## Failure Modes
+
+- **Assuming tokens = words:** "The", "tokenization", "cat" might be 1, 2, 3 tokens respectively. Subwords != words. Count tokens, not words.
+
+- **Not counting cost:** API costs per token, not character. Long sequences = higher cost even if same characters. Example:
+  ```
+  English prompt: "Explain machine learning" = 4 tokens = $0.00012
+  Chinese prompt: "解释机器学习" = 12 tokens = $0.00036 (3x cost for same info!)
+  ```
+
+- **Tokenizing on wrong side of split:** if test set contains examples of word tokenization during training, that's data leakage. Always tokenize after train/test split.
+
+- **Not accounting for special tokens:** BPE/WordPiece add special tokens:
+  ```
+  "<|endoftext|>" in GPT
+  "[CLS]" "[SEP]" in BERT
+  "<s>" "</s>" in Llama
+
+  These count toward context limit
+  5 examples × 2 examples = 10 special tokens per prompt
+  Actual tokens available ≤ context_window - special_tokens
+  ```
+
+- **Ignoring tokenizer updates:** new tokenizer = different tokenization = can't use old checkpoints. Keep tokenizer version with model.
+
+- **Assuming fixed tokenization:** some systems retokenize at inference (e.g., re-encode context). Can change token boundaries → hashing/indexing breaks. Use consistent tokenizer.
+
+- **Not handling unknown tokens:** rare words → `[UNK]` token. In fine-tuning, this token has no gradient info. Solution: use SentencePiece or larger vocab, or pre-add custom tokens.
+
+## Interview Quick Reference
 
 | Question | What to say |
 |---|---|
@@ -291,27 +294,15 @@ print(f"Chinese tokens: {count_tokens_by_language('人工智能的未来')}")
 | "Multilingual?" | ASCII languages efficient (~4 chars/token). CJK scripts less efficient (~1-2 chars/token). Use SentencePiece for multilingual. |
 | "Context length?" | More tokens per text = shorter effective context. 4K tokens ≠ 4K characters. Count tokens, not chars. |
 
-## Real-World Examples
 
-### Tokenizer for Code LLMs
-General tokenizer: code is inefficient (Python keywords split). Code-specific tokenizer (add 'def', 'class', 'import', etc.): same code = fewer tokens. Effect: can fit 50% more code in context window. Models like StarCoder use custom tokenizers. Result: better code understanding, lower training cost.
 
-### Multilingual Tokenization Strategy
-Single tokenizer for 100 languages. Problem: low-resource languages (e.g., Urdu, Tamil) heavily fragmented. Solution: add dedicated tokens for scripts (Arabic, Devanagari, Han). Effect: rare language tokens +3-5% from fragmentation penalty, improves multilingual consistency.
+**Design follow-up:** How would you monitor this choice in production and decide when to use an alternative?
+## Related Concepts
 
-### Efficient Streaming with Token Prediction
-Real-time translation API. Tokenizer choice impacts: English 'hello' = 1 token (efficient). Japanese 'こんにちは' = 5 tokens (inefficient). Streaming: send tokens as they're generated. Switching to language-specific tokenizer: 3x fewer tokens for Japanese, faster streaming, lower bandwidth.
-
-## Real-World Examples
-
-### Tokenizer for Code LLMs
-General tokenizer: code is inefficient (Python keywords split). Code-specific tokenizer (add 'def', 'class', 'import', etc.): same code = fewer tokens. Effect: can fit 50% more code in context window. Models like StarCoder use custom tokenizers. Result: better code understanding, lower training cost.
-
-### Multilingual Tokenization Strategy
-Single tokenizer for 100 languages. Problem: low-resource languages (e.g., Urdu, Tamil) heavily fragmented. Solution: add dedicated tokens for scripts (Arabic, Devanagari, Han). Effect: rare language tokens +3-5% from fragmentation penalty, improves multilingual consistency.
-
-### Efficient Streaming with Token Prediction
-Real-time translation API. Tokenizer choice impacts: English 'hello' = 1 token (efficient). Japanese 'こんにちは' = 5 tokens (inefficient). Streaming: send tokens as they're generated. Switching to language-specific tokenizer: 3x fewer tokens for Japanese, faster streaming, lower bandwidth.
+- [[pretraining]] — tokenization is first step
+- [[prompt-optimization]] — token count affects prompt engineering
+- [[inference-optimization]] — tokens affect latency/cost
+- [[embeddings]] — downstream from tokenization
 
 ## Real-World Examples
 
@@ -368,7 +359,29 @@ Single tokenizer for 100 languages. Problem: low-resource languages (e.g., Urdu,
 ### Efficient Streaming with Token Prediction
 Real-time translation API. Tokenizer choice impacts: English 'hello' = 1 token (efficient). Japanese 'こんにちは' = 5 tokens (inefficient). Streaming: send tokens as they're generated. Switching to language-specific tokenizer: 3x fewer tokens for Japanese, faster streaming, lower bandwidth.
 
-## Interview Q&A
+## Real-World Examples
+
+### Tokenizer for Code LLMs
+General tokenizer: code is inefficient (Python keywords split). Code-specific tokenizer (add 'def', 'class', 'import', etc.): same code = fewer tokens. Effect: can fit 50% more code in context window. Models like StarCoder use custom tokenizers. Result: better code understanding, lower training cost.
+
+### Multilingual Tokenization Strategy
+Single tokenizer for 100 languages. Problem: low-resource languages (e.g., Urdu, Tamil) heavily fragmented. Solution: add dedicated tokens for scripts (Arabic, Devanagari, Han). Effect: rare language tokens +3-5% from fragmentation penalty, improves multilingual consistency.
+
+### Efficient Streaming with Token Prediction
+Real-time translation API. Tokenizer choice impacts: English 'hello' = 1 token (efficient). Japanese 'こんにちは' = 5 tokens (inefficient). Streaming: send tokens as they're generated. Switching to language-specific tokenizer: 3x fewer tokens for Japanese, faster streaming, lower bandwidth.
+
+## Real-World Examples
+
+### Tokenizer for Code LLMs
+General tokenizer: code is inefficient (Python keywords split). Code-specific tokenizer (add 'def', 'class', 'import', etc.): same code = fewer tokens. Effect: can fit 50% more code in context window. Models like StarCoder use custom tokenizers. Result: better code understanding, lower training cost.
+
+### Multilingual Tokenization Strategy
+Single tokenizer for 100 languages. Problem: low-resource languages (e.g., Urdu, Tamil) heavily fragmented. Solution: add dedicated tokens for scripts (Arabic, Devanagari, Han). Effect: rare language tokens +3-5% from fragmentation penalty, improves multilingual consistency.
+
+### Efficient Streaming with Token Prediction
+Real-time translation API. Tokenizer choice impacts: English 'hello' = 1 token (efficient). Japanese 'こんにちは' = 5 tokens (inefficient). Streaming: send tokens as they're generated. Switching to language-specific tokenizer: 3x fewer tokens for Japanese, faster streaming, lower bandwidth.
+
+## Topic-specific notes
 
 **Q: Why do different tokenizers produce different token counts for the same text, and why does this matter for cost?**
 A: Tokenizers differ in their vocabulary and merging rules (BPE vs WordPiece vs SentencePiece). A word like "unbelievable" might be 1 token in one tokenizer but 4 in another. This directly affects API cost (billed per token), context window utilization, and model behavior since the model sees different granularity of input.
@@ -388,14 +401,8 @@ A: Token boundaries create hard splits that the model treats as semantic units. 
 **Q: How would you debug a model that performs poorly on a specific type of input?**
 A: First tokenize the input and inspect the tokens. Check fertility (tokens per word), check if domain terms are split unexpectedly, check for unusual whitespace or encoding artifacts. Compare tokenization of working vs failing examples. If domain terms are split, consider adding them to a custom tokenizer vocabulary or preprocessing to normalize them before tokenization.
 
-
-## Related Topics
-- [[pretraining]] — tokenization is first step
-- [[prompt-optimization]] — token count affects prompt engineering
-- [[inference-optimization]] — tokens affect latency/cost
-- [[embeddings]] — downstream from tokenization
-
 ## Resources
+
 - [Neural Text Generation With Transformers (OpenAI BPE)](https://openai.com/research/tokenizers)
 - [Byte Pair Encoding Tokenizer](https://arxiv.org/abs/1508.07909)
 - [WordPiece Tokenization (BERT)](https://arxiv.org/abs/1810.04805)
@@ -409,7 +416,7 @@ graph TD
     A["Tokenization"]
     A -->|used with| D["Pretraining"]
     A -->|used with| D["In-Context Learning"]
-    
+
     style A fill:#fff3e0
 ```
 

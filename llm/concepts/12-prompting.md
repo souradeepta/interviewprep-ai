@@ -1,16 +1,19 @@
 # Prompting
 
-## Understanding Prompting
+LLM output quality depends hugely on input framing.
 
-Prompting is a foundational concept in large language model development that addresses critical challenges in model architecture, training efficiency, or inference performance. Understanding this concept is essential for anyone working with modern language models, whether in research, fine-tuning, or production deployment.
+## Prerequisites
 
-The core innovation underlying Prompting lies in rethinking standard approaches to achieve better efficiency or effectiveness. Rather than accepting conventional trade-offs, this technique exploits mathematical or architectural insights to push the frontier of what's possible with given computational constraints.
+Familiarity with parameter efficient finetuning. This note focuses on the LLM-specific mechanism and its engineering selection boundary.
 
-In practical applications, Prompting enables capabilities that would otherwise be infeasible: reducing computational requirements, improving model quality, enabling faster iteration, or supporting new use cases. The real-world impact has made Prompting widely adopted across industry applications, from consumer products to enterprise systems.
+## Learning Outcomes
 
-Implementing Prompting requires understanding both its theoretical foundations and practical considerations. The following sections provide detailed explanations of how Prompting works, when to use it, common implementation patterns, and lessons learned from production deployments. By mastering these concepts, practitioners can make informed decisions about when and how to apply Prompting to their specific challenges.
+- Explain the mechanism and assumptions behind prompting.
+- Compare its main alternative using task quality and one operational cost.
+- Diagnose a failure using a metric or example tied to prompting.
 
 ## Core Intuition
+
 LLM output quality depends hugely on input framing. Same question asked differently → different quality. Prompt engineering is leverage: no code change, big quality gains.
 
 ## How It Works
@@ -56,7 +59,7 @@ graph TD
     style E fill:#c8e6c9
 ```
 
-## Key Properties / Trade-offs
+## Trade-offs
 
 | Approach | Clarity | Examples | Output | Quality |
 |----------|---------|----------|--------|---------|
@@ -65,16 +68,7 @@ graph TD
 | Clear + examples | High | 3-5 | Consistent | High |
 | Clear + CoT | High | Examples | Detailed | Very High |
 
-## Common Mistakes / Gotchas
-
-- **Too wordy:** long prompts confuse. Be concise.
-- **Conflicting constraints:** "be brief" + "explain in detail" → model confused.
-- **Assuming shared knowledge:** LLM doesn't know context you know. Specify.
-- **Bad examples:** wrong examples teach wrong behavior. Curate carefully.
-- **No format spec:** model invents format. Specify exactly what you want.
-- **Not handling edge cases:** prompt works for common cases, breaks on unusual input.
-
-## Code Example
+## Implementation
 
 ```python
 import anthropic
@@ -119,7 +113,16 @@ print("Good:", response_good.content[0].text)
 # Good: "mixed"
 ```
 
-## Interview Quick-Reference
+## Failure Modes
+
+- **Too wordy:** long prompts confuse. Be concise.
+- **Conflicting constraints:** "be brief" + "explain in detail" → model confused.
+- **Assuming shared knowledge:** LLM doesn't know context you know. Specify.
+- **Bad examples:** wrong examples teach wrong behavior. Curate carefully.
+- **No format spec:** model invents format. Specify exactly what you want.
+- **Not handling edge cases:** prompt works for common cases, breaks on unusual input.
+
+## Interview Quick Reference
 
 | Question | What to say |
 |---|---|
@@ -129,16 +132,14 @@ print("Good:", response_good.content[0].text)
 | "Bad performance?" | Improve prompt: be specific, add examples, add constraints, clarify intent. |
 | "Role-play helps?" | Yes. "You are expert in X" guides LLM behavior, improves quality 10-20%. |
 
-## Real-World Examples
 
-### Email Classification Prompts
-Generic: 'Classify email' (50% accuracy). With examples: 'Similar emails are classified as [examples shown]' (75%). With role: 'You are email expert' (78%). Final: +28% improvement.
 
-### Multi-Language Prompting
-Single English prompt: works in English (90%), fails in Spanish (40%). Language-aware prompt: includes language name, examples in that language, cultural context. 90% in both.
+**Design follow-up:** How would you monitor this choice in production and decide when to use an alternative?
+## Related Concepts
 
-### Adversarial Prompt Injection Defense
-Naive prompt: vulnerable to 'Ignore previous instructions'. Defended prompt: explicit rules, constraints, separation of data. Improves robustness against injection attacks by 95%.
+- [Prompt Optimization](17-prompt-optimization.md) — iterative improvement
+- [In-Context Learning](15-in-context-learning.md) — how prompts teach
+- [Chain-of-Thought](16-chain-of-thought.md) — reasoning in prompts
 
 ## Real-World Examples
 
@@ -173,7 +174,18 @@ Single English prompt: works in English (90%), fails in Spanish (40%). Language-
 ### Adversarial Prompt Injection Defense
 Naive prompt: vulnerable to 'Ignore previous instructions'. Defended prompt: explicit rules, constraints, separation of data. Improves robustness against injection attacks by 95%.
 
-## Interview Q&A
+## Real-World Examples
+
+### Email Classification Prompts
+Generic: 'Classify email' (50% accuracy). With examples: 'Similar emails are classified as [examples shown]' (75%). With role: 'You are email expert' (78%). Final: +28% improvement.
+
+### Multi-Language Prompting
+Single English prompt: works in English (90%), fails in Spanish (40%). Language-aware prompt: includes language name, examples in that language, cultural context. 90% in both.
+
+### Adversarial Prompt Injection Defense
+Naive prompt: vulnerable to 'Ignore previous instructions'. Defended prompt: explicit rules, constraints, separation of data. Improves robustness against injection attacks by 95%.
+
+## Topic-specific notes
 
 **Q: How do you systematically improve a prompt that is producing inconsistent results?**
 A: First, collect 20-30 failure examples and categorize them (wrong format, wrong content, missing steps). For each failure category, add a few-shot example that demonstrates the correct behavior, or add an explicit instruction addressing that failure mode. Test on a held-out eval set after each change—adding instructions can fix one problem while breaking another. Use a version-controlled prompt registry to track changes.
@@ -193,13 +205,8 @@ A: Temperature scales the logit distribution before sampling: low temperature (0
 **Q: How do you structure a prompt for a multi-step workflow where the model must maintain state?**
 A: Use structured XML or markdown tags to separate components (instructions, context, current state, task). Pass relevant state explicitly in the prompt—don't rely on the model to infer it. For long workflows, summarize completed steps rather than passing full history. Use explicit step markers ("Step 3 of 5:") to help the model track progress. Test with both short and long accumulated contexts to check for performance degradation.
 
-
-## Related Topics
-- [Prompt Optimization](17-prompt-optimization.md) — iterative improvement
-- [In-Context Learning](15-in-context-learning.md) — how prompts teach
-- [Chain-of-Thought](16-chain-of-thought.md) — reasoning in prompts
-
 ## Resources
+
 - [OpenAI Prompt Engineering](https://platform.openai.com/docs/guides/prompt-engineering)
 - [Prompt Engineering Guide](https://www.promptingguide.ai/)
 

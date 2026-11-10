@@ -2,6 +2,8 @@
 
 Choose your path based on what you're preparing for.
 
+For shared prerequisites, role-based weekly plans, fast-track self-checks, and scored capstones, start with the [Canonical Curriculum Map](curriculum-map.md).
+
 | Roadmap | Best for | Time estimate |
 |---------|----------|---------------|
 | [ML Roadmap](ml-roadmap.md) | ML engineering interviews, ML fundamentals | 8–12 weeks |

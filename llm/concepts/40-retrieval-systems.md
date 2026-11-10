@@ -1,16 +1,22 @@
 # Retrieval Systems
 
-## Detailed Explanation
+A reranker can reorder retrieved candidates but cannot recover a relevant document that candidate generation omitted.
 
-Retrieval systems find relevant documents or information snippets matching a query, forming the backbone of modern search, question-answering, and retrieval-augmented generation (RAG). Unlike generation models that produce text from parameters alone, retrieval systems complement language models by finding relevant context, enabling them to answer questions about external knowledge without retraining on new data.
+## Prerequisites
 
-Key components: (1) Text encoding (converting documents and queries to dense vectors using embedding models), (2) Indexing (organizing millions of vectors for fast search using approximate nearest neighbor methods like HNSW or locality-sensitive hashing), (3) Ranking (efficiently finding top-k most relevant documents from billions), (4) Integration (combining retrieval with generation for end-to-end QA). The challenge is balancing speed (returning results in milliseconds) against relevance (finding documents that genuinely answer the question). Techniques like dense passage retrieval, cross-encoders for re-ranking, and hybrid methods combining keyword and semantic search address these trade-offs.
+Understand transformer inputs, tensor shapes, and how to evaluate a model on held-out data. This lesson narrows that background to the mechanism and decisions specific to retrieval systems.
 
-Retrieval systems are crucial for scaling language models to external knowledge without retraining, enabling applications from search engines to specialized QA systems. Understanding them requires knowledge of vector similarity, approximate nearest neighbor search, and the distinction between recall (finding relevant documents) and precision (ensuring found documents are relevant).
+## Learning Outcomes
+
+- Explain the central mechanism and identify its key inputs and outputs.
+- Compare at least two design choices using a quality measure and an operational cost.
+- Diagnose a failure by selecting a workload slice and testing the assumption it violates.
 
 ## Core Intuition
 
 When answering a question about current events, you don't have that knowledge in your head. Instead, you'd search for articles, read them, then answer the question based on what you found. Retrieval systems work exactly this way: they find relevant documents, the language model reads them, and generates an answer. This separates knowledge storage (documents) from reasoning (language model).
+
+A reranker can reorder retrieved candidates but cannot recover a relevant document that candidate generation omitted. A reliable design begins with a simple baseline and makes the specialized method earn its added complexity through measured improvement. Keep the evaluation split and serving constraints fixed so the comparison isolates the design decision.
 
 ## How It Works
 
@@ -29,37 +35,53 @@ graph TD
     B -->|Output| C[Result]
 ```
 
-## Architecture / Trade-offs
+Measure candidate recall before ranking and nDCG after ranking; separately test freshness and authorization filters. Compare alternatives at a fixed input distribution and record both quality and system cost. For image models, vary resolution and patch size; for fusion, vary which modalities are available; for security, exercise allowed and denied actions; for retrieval, separate candidate generation from ranking. These controls make it possible to tell whether a change fixes the intended bottleneck or only moves it.
 
-### Retrieval System Architecture
+A useful experiment includes a baseline, a changed condition, and a deliberately difficult case. Use deterministic synthetic examples first to validate logic, then a held-out realistic slice to estimate task impact. Report uncertainty or repeat runs when training randomness can change the result.
 
-```mermaid
-graph TD
-    A["Documents"] -->|Encode| B["Dense Embeddings<br/>BERT, MPNet"]
-    B -->|Index| C["Vector Database<br/>HNSW, IVF, FAISS"]
-    
-    D["Query"] -->|Encode| E["Query Embedding"]
-    E -->|Search| C
-    C -->|Top-k candidates| F["Re-ranker<br/>Cross-encoder"]
-    F -->|Ranked results| G["Language Model"]
-    G -->|Answer| H["QA Output"]
+## Trade-offs
 
-    style B fill:#fff3e0
-    style C fill:#e1f5ff
-    style F fill:#f3e5f5
+| Design | Benefit | Cost or risk | Decision signal |
+|---|---|---|---|
+| Unconstrained baseline | Keeps the largest set of interactions or evidence | Highest memory, compute, or input burden | Use while the workload fits and quality is the priority |
+| Structured method | Bounds a specific resource or failure path | May exclude useful cases | Use when workload structure justifies the constraint |
+| Learned or approximate method | Can adapt behavior to the task | Adds estimation error and tuning sensitivity | Require slice-level quality checks |
+| Modular fallback | Limits blast radius and supports missing inputs | Adds routing or orchestration work | Use when inputs or permissions vary by request |
+
+## Implementation
+
+The following dependency-light check captures one invariant for the topic. It is a logic check, not a claim of end-to-end model performance.
+
+```python
+relevant, retrieved = {"a","b"}, ["x","a","b"]
+assert len(relevant & set(retrieved[:3])) == 2
 ```
 
-### Retrieval Methods Trade-offs
+For a full experiment, keep a control implementation and record input shape, data split, model version, batch policy, hardware, and measurement method. Measure warm and steady-state latency separately where compilation or caching is involved. A measured result should state the exact workload and include quality; a microbenchmark cannot establish user-facing benefit by itself.
 
-| Method | Speed | Accuracy | Memory | Scalability |
-|--------|-------|----------|--------|-------------|
-| **Lexical (BM25)** | Very fast | Moderate | Low | Excellent |
-| **Dense (DPR)** | Slow | High | High | Moderate |
-| **Hybrid** | Medium | Very high | High | Good |
-| **Approximate NN** | Fast | High | Medium | Excellent |
-| **Reranking** | Slower | Much higher | Low | Good |
-## Interview Q&A
+## Failure Modes
 
+- Candidate recall is low; inspect query and corpus slices before tuning reranking. Diagnose by logging the topic-specific signal and comparing it with the expected input contract.
+- Stale records remain in the index; test update and deletion propagation. Build a targeted edge case and check whether the failure is systematic across a meaningful slice.
+- Authorization is checked after retrieval; enforce filters before text is exposed downstream. Compare against the baseline and monitor the affected quality or tail-cost metric after rollout.
+
+## Interview Quick Reference
+
+| Question | Expected answer |
+|---|---|
+| What is the design’s central mechanism? | A reranker can reorder retrieved candidates but cannot recover a relevant document that candidate generation omitted. Name its assumptions and the resource or behavior it changes. |
+| What alternative would you evaluate? | Compare the unconstrained baseline with a structured or modular approach on the same task and budget. |
+| How would you investigate a regression? | Slice the affected workload, test the violated assumption, and compare with a control path. |
+
+**Debugging follow-up:** Candidate recall is low; inspect query and corpus slices before tuning reranking. What would you log, what held-out case would you add, and which metric would trigger rollback?
+
+## Related Concepts
+
+Read [attention optimization](24-attention-optimization.md), [evaluation](32-evaluation.md), and the [associated notebook](../notebooks/40-retrieval-systems.ipynb). Drill: [practice question](../interview-prep/curriculum-practice.md#retrieval-systems).
+
+References: [primary source](https://arxiv.org/abs/2104.08663); [technical reference](https://www.elastic.co/guide/en/elasticsearch/reference/current/rrf.html).
+
+### Existing interview notes
 
 **Q: When should you use BM25 vs dense retrieval?**
 A: BM25: exact keyword matches, fast, works for domain with jargon. Dense: semantic understanding, slow, works across paraphrases. Hybrid: BM25 initial retrieval (100 candidates) + dense re-ranking. Typical: dense + sparse together.
@@ -75,28 +97,3 @@ A: Retrieval: fast, retrieve 100-1000 candidates (recall focused). Re-ranking: s
 
 **Q: How do you evaluate retrieval quality?**
 A: Metrics: recall@k (relevant doc in top-k?), NDCG (position of relevant docs matter), MRR (rank of first), precision@k (% of top-k relevant). Task matters: sometimes recall@1 critical, sometimes need top-10 for diversity.
-
-
-## Best Practices
-
-- Apply best practices specific to this concept
-- Consider edge cases and failure modes
-- Test on representative data
-- Evaluate comprehensively
-
-## Common Pitfalls
-
-- Avoid over-simplification
-- Watch for incorrect assumptions
-- Test edge cases thoroughly
-- Monitor for degradation
-
-## Code Examples
-
-See the associated notebook for implementation and real-world examples.
-
-## Related Concepts
-
-- Understand prerequisites first
-- Connect related topics
-- Build integrated knowledge

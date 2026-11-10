@@ -1,98 +1,84 @@
-# Multimodal Reasoning
+# Multimodal Fusion and Missing Inputs
 
-## Detailed Explanation
-Multimodal reasoning enables language models to reason jointly over text and images (or other modalities). CLIP aligns images and text in a shared vector space via contrastive learning. Q-Former acts as a bottleneck, using learnable queries to compress image features conditioned on text queries. LLaVA and Flamingo extend this to full multimodal chain-of-thought where reasoning steps reference both modalities. Production systems achieve strong zero-shot retrieval and complex multimodal reasoning tasks.
+**TL;DR:** Multimodal systems combine evidence from different encoders, and must define how scores are aligned, weighted and renormalized when a modality is noisy or absent.
+
+## Prerequisites
+
+Embedding models and classification metrics.
+
+## Learning Outcomes
+
+- Distinguish early, joint-attention and late score fusion.
+- Implement late fusion that renormalizes weights over present modalities.
+- Diagnose missing-modality and disagreement cases without treating absence as a zero score.
+- Identify calibration and slice tests needed before deployment.
 
 ## Core Intuition
-A picture is worth 1000 words, but transformers work on tokens. Multimodal reasoning translates images to 'visual tokens' the LLM understands, then reasons across both. Q-Former is a translator bottleneck—it reads 10K visual details, extracts 32 key facts conditioned on your text question.
+
+A doctor combines a patient's words, an image and an audio description. If the image was never captured, interpreting its score as zero would incorrectly count evidence against a diagnosis. A missing modality means “no observation”; it should be excluded or handled by an explicit learned missingness policy. Conflicting available signals should also be surfaced.
 
 ## How It Works
 
-1. Encode image with ViT → patch embeddings V ∈ R^{N_v×d}
-2. Encode text with tokenizer → token embeddings T ∈ R^{N_t×d}
-3. CLIP contrastive: minimize InfoNCE on cosine similarity matrix
-4. Q-Former: queries attend image patches conditioned on text
-5. Fusion: project image features to LLM space, concatenate with text tokens
+Early fusion combines representations before prediction, allowing cross-modal interactions but requiring aligned dimensions and more joint training. Late fusion combines modality-specific logits or probabilities. For scores s_m and nonnegative weights a_m, the simple baseline is \(s=\sum_{m\in A}a_ms_m/\sum_{m\in A}a_m\), where A is the set of present modalities. This assumes scores are comparable and weights meaningful; raw logits from differently calibrated models often are not.
 
-```mermaid
-graph LR
-    A[Input] --> B[Process] --> C[Output]
-    style B fill:#e1f5ff
+Joint attention or contrastive alignment can learn cross-modal relationships, but needs paired data and a consistent preprocessing contract. Missingness may correlate with the label, creating a shortcut. A robust system evaluates every modality subset likely to occur, reports coverage, and may return an abstention when evidence is insufficient or contradictory.
+
+The modalities must first be represented on compatible scales. Text and image encoders can each emit a score that looks like a probability but has different calibration. Averaging them directly can let an overconfident channel dominate even when it is less accurate. Calibrate on a held-out set of paired examples, inspect reliability by modality availability, and compare score fusion against simple majority or single-modality baselines. A fusion improvement should persist across the subsets used in production, not only when every sensor is present.
+
+Presence itself is a feature and a potential source of leakage. A camera may be missing because a device model is older, and the device model may correlate with a label. If the classifier uses missingness as a shortcut, it can appear strong on the current cohort and fail after deployment changes. Evaluate metrics conditioned on each modality subset and on the reason for missingness where known. Train with modality dropout or simulated outages when appropriate, but keep synthetic missingness patterns realistic.
+
+Late fusion gives useful modularity: each channel can be tested, updated or disabled independently. It also assumes the channel predictions can be combined after each encoder has already compressed its input. If a question requires grounding a word in a specific image region or synchronizing speech with video, score-level combination may discard the alignment needed to answer. Cross-attention or token-level fusion retains interactions at a higher compute and data cost. Select the simplest architecture that passes alignment-specific evaluations.
+
+Disagreement should be treated as a first-class output. A single weighted average hides whether all modalities support the same answer or one strong channel overrides two conflicting signals. Track pairwise disagreement, per-modality confidence and coverage. Thresholds for abstention need calibration against the cost of incorrect answers and unnecessary deferrals. In high-consequence cases, a missing critical modality may require a refusal or a request for new input rather than renormalizing remaining weights.
+
+Data pairing and preprocessing can dominate modeling. Ensure examples align temporally and semantically; an audio clip paired with the wrong image teaches spurious correlations. Keep image resize/crop, audio sampling rate, text normalization and timestamps versioned. Split train and validation by subject, session or source to prevent near-duplicate leakage across modalities. Audit consent, retention and access policy per modality because an image or audio stream can contain sensitive information not present in its text transcription.
+
+## Trade-offs
+
+| Fusion | Strength | Boundary |
+|---|---|---|
+| Early feature concatenation | Learns interactions | Requires aligned features and joint training |
+| Cross-attention | Flexible token-level grounding | Compute and data demands are higher |
+| Late score fusion | Modular and easy to ablate | Calibration and interaction are limited |
+| Missing-modality specialist | Explicit subset robustness | More models or training cases to maintain |
+
+## Implementation with Python
+
+Run `python3 modern-ai/implementations/32-multimodal-reasoning.py`. Three fixed scalar confidence signals are fused, then one modality is removed and the remaining weights renormalized. This demonstrates bookkeeping, not multimodal understanding.
+
+```python
+import runpy
+fuse = runpy.run_path("modern-ai/implementations/32-multimodal-reasoning.py")["fuse"]
+text_only = fuse(text=.7, image=None, audio=None)
+assert text_only == .7
 ```
 
-## Architecture / Trade-offs
+## Failure Modes
 
-| Aspect | Value | Notes |
-|--------|-------|-------|
-| Complexity | Advanced | Production-ready |
-| Category | Multimodal AI | Multimodal AI domain |
-| Use Case | Multiple | See real-world examples in notebook |
+| Failure | Diagnostic | Mitigation |
+|---|---|---|
+| Missing channel treated as negative evidence | Evaluate modality ablations and null-input cases | Renormalize present weights or train an explicit missingness path |
+| Miscalibrated channels dominate | Calibration curves per modality | Calibrate scores on held-out paired examples |
+| Contradictory inputs produce confident answer | Disagreement and abstention rate | Add conflict-aware policy and inspect examples |
 
-## Design Challenges
+- Missing channel acts as negative evidence: test each availability subset and compare it with an explicit missing-input policy.
+- A miscalibrated channel dominates: inspect modality-specific reliability and recalibrate using paired validation examples.
+- Incorrect pairing teaches shortcuts: audit temporal and identity alignment, split by source/session and inspect disagreement cases.
 
-1. **Challenge 1**: See notebook examples for mitigation strategies.
-2. **Challenge 2**: Production deployment requires careful tuning.
-3. **Challenge 3**: Monitor key metrics during rollout.
+## Interview Quick Reference
 
-## Interview Q&A
-
-**Q1: When would you use this technique vs alternatives?**
-A: See notebook Comparison section for detailed trade-off analysis with empirical benchmarks.
-
-**Q2: What are the main implementation pitfalls?**
-A: See notebook examples which cover common mistakes and their fixes.
-
-**Q3: How do you monitor this in production?**
-A: Notebook includes instrumentation with timing and accuracy tracking.
-
-**Q4: What's the computational cost?**
-A: See envelope calculations in accompanying notebook Level 2 section.
-
-**Q5: How does this scale with model size?**
-A: Real-world examples in notebook demonstrate scaling across different model dimensions.
-
-## Best Practices
-
-- Follow the production patterns in the notebook implementation section
-- Always profile before and after deployment
-- Monitor key metrics (latency, throughput, quality)
-- Start with the basic implementation, optimize later
-- Use the provided utilities from the implementation .py file
-
-## Common Pitfalls
-
-- **Pitfall 1**: Skipping the profiling phase. Fix: Use the timing utilities in the notebook.
-- **Pitfall 2**: Assuming defaults work for your use case. Fix: Tune hyperparameters per notebook examples.
-- **Pitfall 3**: Not monitoring production behavior. Fix: Instrument your code as shown in Real-World Examples.
-
-## Code Examples
-
-See the corresponding Jupyter notebook and Python implementation file for comprehensive, runnable examples with:
-- From-scratch numpy implementations
-- Production torch code with error handling
-- Three different real-world scenarios
-- Comparison benchmarks
+| Question | Expected answer / follow-up |
+|---|---|
+| When is late fusion a good baseline? | Independent encoders or intermittent inputs; ask how you calibrate their scores. |
+| How should missing image data be represented? | As missingness, with a tested policy, not automatically a zero; follow up on informative missingness. |
+| How do you debug a multimodal regression? | Slice by available modalities and disagreement; ask which paired data is required. |
 
 ## Related Concepts
 
-- [Concept 01](./01-llm-evaluation-harness.md) – Evaluation frameworks
-- [Concept 05](./05-advanced-rag-patterns.md) – Related retrieval techniques
-- [Concept 11](./11-flash-attention.md) – Attention optimization fundamentals
+See [multimodal fine-tuning](20-multimodal-finetuning.md), [model evaluation](01-llm-evaluation-harness.md), [notebook 32](../notebooks/32-multimodal-reasoning.ipynb), and [inference interview practice](../interview-prep/inference-systems.md#multimodal-fusion).
 
----
+Evaluation should cover complete and incomplete sensor conditions. Build a matrix whose rows are modality subsets and whose columns include task quality, calibration, coverage and abstention. Rare subsets need targeted validation examples or realistic outage simulation. Do not infer robustness from random modality masking if production failures are correlated, such as low light degrading both images and OCR. Include corrupted-but-present inputs as well as absent inputs; a non-null tensor can still carry no useful evidence.
 
 ## References
 
-Radford et al. (2021). Learning Visual Models from NL Supervision (CLIP). ICML.
-
-Li et al. (2023). BLIP-2: Frozen Encoders + LLM. ICML. arXiv:2301.12597.
-
-Liu et al. (2023). Visual Instruction Tuning (LLaVA). NeurIPS. arXiv:2304.08485.
-
-Anonymous (2025). CoCoVa: Collaborative Cross-modal CoT. arXiv:2601.02422.
-
-Uni-CoT (2025). Unified Chain-of-Thought Across Text/Vision. arXiv:2508.05606.
-
-**Notebook**: `modern-ai/notebooks/multimodal-reasoning.ipynb` (16 cells, 600-950 code lines)
-
-**Implementation**: `modern-ai/implementations/multimodal-reasoning.py` (standalone production code)
+[CLIP](https://arxiv.org/abs/2103.00020) and [Flamingo](https://arxiv.org/abs/2204.14198).

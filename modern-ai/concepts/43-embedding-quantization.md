@@ -1,6 +1,74 @@
 # Embedding Quantization
 
-## Detailed Explanation
+**TL;DR:** Embedding quantization compresses stored vectors for retrieval; evaluate candidate recall and reranking quality, not only byte reduction.
+
+## Prerequisites
+
+[mixed-bit quantization](42-mixed-bit-quantization.md)
+
+## Learning Outcomes
+
+- Explain the computation and state affected by embedding quantization.
+- Compare alternatives using quality, latency, and resource measurements.
+- Diagnose a topic-specific failure from an observable signal.
+
+## Core Intuition
+
+Scalar quantization maps dimensions to compact integer levels; product quantization encodes subvector centroids and supports approximate distance lookup.
+
+## How It Works
+
+For scalar INT8, estimate scale and offset from representative vectors, quantize stored corpus embeddings, and keep query handling consistent with the index metric. Product quantization splits vectors into subvectors, learns codebooks, and replaces each float vector with compact code IDs. Search obtains approximate nearest neighbors, which may then be reranked with original or higher precision vectors. Version the encoder, preprocessing, codebooks, and index together.
+
+Report recall@k against an exact baseline, downstream answer quality, index bytes, build time, query latency, and update cost. Test distribution shift and new documents; old codebooks can poorly represent embeddings from a changed encoder. Asymmetric query/document precision can be valid, but only when distance computation and calibration are evaluated for that exact setup.
+
+## Trade-offs
+
+| Choice | Benefit | Cost or boundary |
+|---|---|---|
+| FP32 exact | Direct topic-specific baseline | Establishes quality and resource reference |
+| INT8 scalar | Improves the named objective | Adds its stated operating cost |
+| Product quantization | Adapts to a useful workload slice | Requires calibration and monitoring |
+| Binary candidates plus rerank | Provides a conservative fallback | Gives up some potential gain |
+
+## Implementation
+
+This dependency-light example isolates the topic’s decision rule; it is not a benchmark of accelerator performance.
+
+```python
+def scalar_quantize(vector, scale):
+    return [max(-127, min(127, round(x / scale))) for x in vector]
+
+assert scalar_quantize([0.2, -0.3], 0.1) == [2, -3]
+```
+
+## Failure Modes
+
+- Quantization reduces nearest-neighbor recall: compare recall@k against exact search and rerank a wider candidate set.
+- Encoder changes leave mixed-version vectors: pin model and index version, then rebuild or migrate atomically.
+- Per-vector outliers ruin scales: measure clipping by dimension and calibrate on representative corpus vectors.
+
+## Interview Quick Reference
+
+| Question | Expected answer and follow-up |
+|---|---|
+| Why rerank? | Approximate search cheaply narrows candidates, while higher precision rescoring improves final ordering. Follow-up: what candidate recall is needed? |
+| When choose PQ? | When memory is dominant and the index scale justifies codebooks and training overhead; compare recall and build cost. |
+| How handle model upgrades? | Build a versioned new index and switch consistently so query and document embeddings share a space. |
+
+## Related Concepts
+
+See [mixed-bit quantization](42-mixed-bit-quantization.md).
+
+## References
+
+- [github.com](https://github.com/facebookresearch/faiss/wiki)
+- [arxiv.org](https://arxiv.org/abs/1908.10396)
+
+### Additional Technical Detail
+
+
+#### Detailed Explanation
 
 Embedding quantization reduces the memory footprint of dense vector embeddings — used in semantic search, retrieval-augmented generation (RAG), and recommendation systems — by converting floating-point vectors to lower-precision integer or binary representations. In retrieval systems, the embedding index is often the dominant memory consumer: 1 billion vectors at FP32 (4 bytes each) for 768-dimensional embeddings requires 3TB of memory, which is economically infeasible for most production systems.
 
@@ -10,11 +78,11 @@ A key insight often missed in practice: quantizing query embeddings loses signif
 
 Real-world applications: Pinecone and Weaviate offer INT8 quantization for their vector indexes; Faiss implements binary quantization with Hamming distance search; recommendation systems at Facebook scale to 100B items using binary embeddings for candidate retrieval followed by FP32 re-ranking.
 
-## Core Intuition
+#### Core Intuition
 
 Think of embedding quantization as converting a high-resolution photograph (FP32 embeddings) to different compression levels: JPEG at 90% quality (INT8, barely distinguishable from original), JPEG at 50% quality (INT4, noticeable artifacts but recognizable), or a black-and-white thumbnail (binary, just the gist). For a photo album with 1 billion photos, even the 90% quality compression saves enough storage to be economically critical, and for a quick first-pass search you just need to identify the rough subject, not every detail.
 
-## How It Works
+#### How It Works
 
 1. **Compute scale factors for scalar quantization** — For each embedding dimension d independently, compute `scale_d = max(|e[:, d]|) / 127` over a representative sample of embeddings (per-dimension scaling is more accurate than per-tensor). For binary quantization, no scale factor is needed.
 2. **Quantize embeddings at index build time** — For INT8: `e_q[d] = clamp(round(e[d] / scale_d), -128, 127)`. For binary: `b[d] = 1 if e[d] > 0 else 0`. Pack binary vectors: 768 dimensions → 768/8 = 96 bytes per vector (vs 3072 bytes for FP32).
@@ -36,9 +104,9 @@ graph TD
     RERANK --> RESULT[Final Top-k results\nhigh accuracy]
 ```
 
-## Architecture / Trade-offs
+#### Architecture / Trade-offs
 
-### Memory vs Recall: Quantization Schemes (768-dim BERT, 1M docs)
+#### Memory vs Recall: Quantization Schemes (768-dim BERT, 1M docs)
 
 | Scheme | Storage per Vector | 1M Vectors | Recall@10 | Speed vs FP32 |
 |--------|--------------------|------------|-----------|---------------|
@@ -49,7 +117,7 @@ graph TD
 | Binary (1-bit) | 96 bytes | 96 MB | 92.0% | 50x (Hamming) |
 | Product Quantization (PQ) | 64 bytes (m=8) | 64 MB | 89.5% | 8x |
 
-### Asymmetric vs Symmetric Quantization
+#### Asymmetric vs Symmetric Quantization
 
 | Configuration | Query Precision | Doc Precision | Recall@10 | Memory | Recommended |
 |--------------|----------------|---------------|-----------|--------|-------------|
@@ -58,7 +126,7 @@ graph TD
 | Asymmetric (standard) | FP32 | INT8 | 98.1% | 0.77 GB | Production |
 | Asymmetric binary | FP32 | Binary | 92% first-pass + FP32 rerank | 96 MB | High-scale retrieval |
 
-### Product Quantization vs Scalar Quantization
+#### Product Quantization vs Scalar Quantization
 
 | Method | Compression Ratio | Recall@10 | Training Required | Best For |
 |--------|------------------|-----------|------------------|---------|
@@ -66,7 +134,7 @@ graph TD
 | Product Quantization (m=8) | 48x | 89% | Yes (k-means per subspace) | Billion-scale search |
 | OPQ (Optimized PQ) | 48x | 92% | Yes | Large-scale, quality matters |
 
-## Interview Q&A
+#### Interview Q&A
 
 **Q: Why should you quantize document embeddings but keep query embeddings in FP32?**
 A: Documents are stored at scale (billions of vectors) where compression is economically essential; each document embedding is accessed many times across many queries so amortizing the slight quality loss is acceptable. Query embeddings are computed once per request and are immediately discarded — they never need to be stored at scale. The compute cost of maintaining FP32 for query embeddings is just one forward pass per request. Asymmetric quantization: FP32 queries against INT8 documents achieves 98%+ of full-precision recall while maintaining the full 4x memory reduction on the document side.
@@ -86,7 +154,7 @@ A: Binary quantization converts each float dimension to 1 bit (positive=1, negat
 **Q: How do embedding quantization schemes interact with model fine-tuning?**
 A: When you fine-tune the embedding model, the distribution of embedding values changes. Previously computed scale factors may be miscalibrated for the new model, and your quantized index (built with the old model's embeddings) is now stale — the old document embeddings are from the old model and are incompatible with new query embeddings. You must rebuild the entire quantized index after fine-tuning. This is a significant operational cost for billion-scale indexes. Mitigations: (1) fine-tune infrequently; (2) use an index update pipeline that re-embeds and re-quantizes incrementally; (3) distill the fine-tuned model into a model that preserves the original embedding distribution where possible.
 
-## Best Practices
+#### Best Practices
 
 - Use asymmetric quantization as the default: keep query embeddings in FP32, quantize document index to INT8 — this preserves 98%+ recall at full 4x memory savings.
 - Compute scale factors per-dimension (not per-tensor): per-tensor scale clips narrow dimensions to high magnitude; per-dimension scale handles heterogeneous dimension distributions accurately.
@@ -96,7 +164,7 @@ A: When you fine-tune the embedding model, the distribution of embedding values 
 - For binary embeddings, use Faiss IndexBinaryFlat or IndexBinaryIVF — these implement optimized Hamming search via popcount CPU intrinsics and are 10-50x faster than naive Python implementations.
 - Re-quantize the index after any embedding model update — stale quantized indexes from an old model version cause severe recall drops when queried with a new model's embeddings.
 
-## Common Pitfalls
+#### Common Pitfalls
 
 - **Quantizing query embeddings symmetrically with document embeddings**: Many implementations quantize both queries and documents to INT8. This causes 2-4% recall drop vs asymmetric quantization at no memory savings on the query side (queries are not stored). Symptom: recall@10 is 96-97% instead of expected 98%+. Fix: apply quantization only to the stored document index; keep query embeddings in FP32 throughout the retrieval pipeline.
 
@@ -106,7 +174,7 @@ A: When you fine-tune the embedding model, the distribution of embedding values 
 
 - **Binary quantization without re-ranking**: Deploying binary search and returning top-10 results directly (without FP32 re-ranking) gives only 88-92% recall. Symptom: end-to-end RAG quality drops unexpectedly. Fix: always implement the two-stage pipeline for binary quantization — binary search for candidates, FP32 re-rank for final results.
 
-## Related Concepts
+#### Related Concepts
 
 - [Mixed-Bit Quantization](./42-mixed-bit-quantization.md)
 - [Token Pruning and Merging](./36-token-pruning-merging.md)

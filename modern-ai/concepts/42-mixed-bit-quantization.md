@@ -1,6 +1,74 @@
 # Mixed-Bit Quantization
 
-## Detailed Explanation
+**TL;DR:** Mixed-bit quantization assigns precision by layer or tensor sensitivity to fit memory and bandwidth limits while controlling quality loss.
+
+## Prerequisites
+
+[model compression](../../ml/concepts/model-compression.md)
+
+## Learning Outcomes
+
+- Explain the computation and state affected by mixed-bit quantization.
+- Compare alternatives using quality, latency, and resource measurements.
+- Diagnose a topic-specific failure from an observable signal.
+
+## Core Intuition
+
+Uniform low precision is simple; mixed precision spends bits where quantization error most harms outputs.
+
+## How It Works
+
+Quantize weights or activations using calibrated scales and zero points, then estimate each tensor’s error or task sensitivity. Allocate higher precision to sensitive outliers or layers under a storage budget. Group size, calibration examples, activation distribution, and hardware kernels all affect the result. Bit width is not itself a latency guarantee: unsupported low-bit operations may dequantize or run slower.
+
+Compare perplexity or task metrics, peak memory, decode throughput, and prompt throughput on the actual backend. Include calibration and loading cost when deployment constraints matter. Quantization error can compound across layers; evaluate the complete model and important task slices rather than summing local reconstruction errors.
+
+## Trade-offs
+
+| Choice | Benefit | Cost or boundary |
+|---|---|---|
+| Uniform INT8 | Direct topic-specific baseline | Establishes quality and resource reference |
+| Uniform INT4 | Improves the named objective | Adds its stated operating cost |
+| Sensitivity-based mixed bits | Adapts to a useful workload slice | Requires calibration and monitoring |
+| Weight-only quantization | Provides a conservative fallback | Gives up some potential gain |
+
+## Implementation
+
+This dependency-light example isolates the topic’s decision rule; it is not a benchmark of accelerator performance.
+
+```python
+def quantize(value, scale):
+    return max(-128, min(127, round(value / scale)))
+
+assert quantize(0.5, 0.1) == 5
+```
+
+## Failure Modes
+
+- Calibration misses activation outliers: inspect clipping and error by channel, then broaden representative calibration.
+- Kernel fallback erases speed gains: confirm backend dispatch and profile actual target hardware.
+- Quality fails on rare tasks: run slice-based regressions and raise precision for sensitive components.
+
+## Interview Quick Reference
+
+| Question | Expected answer and follow-up |
+|---|---|
+| How assign precision? | Measure sensitivity under a memory budget and validate the full model; layer type alone is only a prior. Follow-up: how handle outlier channels? |
+| Why can INT4 be slower? | The backend may unpack or dequantize inefficiently; benchmark supported kernels end to end. |
+| What does calibration set represent? | Production input and activation distributions, including long prompts and task slices; debug clipping by channel. |
+
+## Related Concepts
+
+See [model compression](../../ml/concepts/model-compression.md).
+
+## References
+
+- [arxiv.org](https://arxiv.org/abs/2210.17323)
+- [arxiv.org](https://arxiv.org/abs/2208.07339)
+
+### Additional Technical Detail
+
+
+#### Detailed Explanation
 
 Mixed-bit quantization assigns different numerical precisions to different layers or weight groups within a model, rather than applying a single quantization scheme uniformly. The core insight is that transformer layers vary significantly in their sensitivity to quantization: first and last layers, attention QKV projections, and certain FFN layers preserve most of the model's task accuracy, while many middle FFN layers can tolerate aggressive quantization to INT4 or even INT2 with minimal impact.
 
@@ -10,11 +78,11 @@ Memory savings are concrete: a 7B parameter model in FP16 occupies 14GB. Uniform
 
 Common misconception: bit-width is purely a memory concern. In practice, INT4 on modern GPUs is also faster: NVIDIA H100 INT4 tensor cores are 2x faster than INT8 for matrix multiply, and 8x faster than FP16. Mixed quantization enables hitting specific hardware performance targets (e.g., fit in a single 24GB A10) while controlling the accuracy budget.
 
-## Core Intuition
+#### Core Intuition
 
 Think of a symphony orchestra where every instrument can play at full volume or at various reduced volumes to save energy. The conductor knows from rehearsal that the violin section carries the melody and must play at full volume, while some background percussion sections can be reduced without the audience noticing. Mixed-bit quantization is that conductor's score — full precision for the critical instruments (sensitive layers), reduced precision for the supporting ones, measured by how much each section contributes to the overall sound.
 
-## How It Works
+#### How It Works
 
 1. **Run calibration data through the model** — Feed 512-1024 representative inputs through the model and collect per-layer input/output activations and gradients. This is a standard forward + backward pass on calibration data.
 2. **Compute per-layer sensitivity scores** — For each layer l, compute: `Delta_l = || ΔL / ΔW_l ||` — the gradient norm of the task loss with respect to layer l's weights. Alternatively, use activation-based sensitivity: `s_l = || X_l_fp16 - X_l_int4 || / || X_l_fp16 ||` (relative activation error when quantizing layer l to INT4 in isolation).
@@ -38,9 +106,9 @@ graph TD
     VALID --> DEPLOY[Pack weights\ndeploy with dequant kernels]
 ```
 
-## Architecture / Trade-offs
+#### Architecture / Trade-offs
 
-### Memory vs Accuracy: Quantization Schemes for Llama-7B
+#### Memory vs Accuracy: Quantization Schemes for Llama-7B
 
 | Scheme | Memory | MMLU Accuracy | Perplexity (WikiText) | Notes |
 |--------|--------|---------------|----------------------|-------|
@@ -51,7 +119,7 @@ graph TD
 | Mixed INT4/INT8 (50% INT8) | 7.0 GB | 66.8% | 5.11 | Near-FP16 quality |
 | AWQ (activation-aware) | 3.5 GB | 65.9% | 5.19 | Better than GPTQ INT4 |
 
-### Bit-Width Assignment by Layer Type (Sensitivity Ranking)
+#### Bit-Width Assignment by Layer Type (Sensitivity Ranking)
 
 | Layer Type | Sensitivity | Recommended Precision | Rationale |
 |------------|------------|----------------------|-----------|
@@ -63,7 +131,7 @@ graph TD
 | Middle FFN layers (25-75% depth) | Low | INT4 | Most redundant layers |
 | Attention output projections | Medium | INT8 | Aggregates multi-head attention |
 
-### Hardware Throughput by Precision (A100 80GB vs H100)
+#### Hardware Throughput by Precision (A100 80GB vs H100)
 
 | Precision | A100 TFLOPS | H100 TFLOPS | Memory Bandwidth | Best Use Case |
 |-----------|------------|------------|-----------------|--------------|
@@ -72,7 +140,7 @@ graph TD
 | INT4 | 624 (via INT8 path) | 1248 | 2 TB/s | High-throughput inference |
 | FP8 (E4M3) | 624 | 1200 | 2 TB/s | Training + inference |
 
-## Interview Q&A
+#### Interview Q&A
 
 **Q: How do you determine which layers to quantize to INT4 vs INT8 without hurting accuracy?**
 A: Use sensitivity analysis: for each layer individually, measure the change in validation perplexity when you quantize only that layer to INT4 while keeping all others in FP16. Layers with Delta_perplexity < 0.05 are safe for INT4; layers with Delta_perplexity > 0.2 require INT8 or FP16. This is a sequential experiment on calibration data and takes 30-60 minutes for a 7B model. The resulting sensitivity ranking is stable across similar tasks — you do not need to repeat it for every fine-tuned variant of the same base model.
@@ -92,7 +160,7 @@ A: PTQ (GPTQ, AWQ) quantizes a pretrained FP16 model without additional training
 **Q: How do you validate that mixed-bit quantization meets your accuracy requirements?**
 A: Run three evaluations: (1) perplexity on a held-out language modeling set (good proxy for overall capability degradation; a 0.1 increase in perplexity is typically safe); (2) task-specific benchmark (MMLU for knowledge, HumanEval for code, HellaSwag for commonsense) — these catch task-specific regressions that perplexity misses; (3) worst-case analysis — evaluate on your hardest production examples, the ones your team uses to catch model regressions. If benchmark accuracy drops > 1% or worst-case accuracy drops > 3%, increase the fraction of layers kept in INT8 by 10% and re-evaluate.
 
-## Best Practices
+#### Best Practices
 
 - Always keep token embeddings and the final lm_head in FP16 regardless of overall memory target — these layers are disproportionately sensitive and their quantization causes non-local accuracy loss throughout the model.
 - Use group size 128 as the default for INT4 quantization; group size 64 if accuracy is critical; group size 256 only if memory is extremely tight (gives 0.2-0.5% accuracy loss vs group size 128).
@@ -102,7 +170,7 @@ A: Run three evaluations: (1) perplexity on a held-out language modeling set (go
 - For models > 30B parameters, reduce calibration set size to 256-512 samples to manage memory during sensitivity analysis; quality impact is minimal above 128 samples.
 - Monitor quantized model performance over time in production: user input distributions shift, and layers that were non-sensitive at calibration time may become sensitive under new query patterns.
 
-## Common Pitfalls
+#### Common Pitfalls
 
 - **Quantizing the first and last transformer layers to INT4**: These layers have the highest sensitivity to quantization. The first layers learn input token representations that propagate through all subsequent layers; the last layers map to the output vocabulary. INT4 quantization error in these layers causes global representation degradation. Symptom: 3-5% accuracy drop on all tasks, not just specific ones. Fix: maintain FP16 for all embedding layers and INT8 for the first and last 2-4 transformer layers.
 
@@ -112,7 +180,7 @@ A: Run three evaluations: (1) perplexity on a held-out language modeling set (go
 
 - **Using INT4 for KV cache without awareness of precision impact**: Quantizing the KV cache (the growing key-value store in autoregressive generation) to INT4 reduces memory pressure for long-context generation but causes attention score errors that accumulate across long sequences. Symptom: generation quality degrades for inputs > 2048 tokens. Fix: keep KV cache in INT8, not INT4; or use INT4 KV cache only for the first 50% of layers where attention scores are less critical.
 
-## Related Concepts
+#### Related Concepts
 
 - [Embedding Quantization](./43-embedding-quantization.md)
 - [Layer Skipping](./38-layer-skipping.md)

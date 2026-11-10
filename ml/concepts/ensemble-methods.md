@@ -1,59 +1,89 @@
 # Ensemble Methods
 
-## TL;DR
-Combining multiple models to outperform any individual model. Three paradigms: bagging
-(Random Forest), boosting (XGBoost, LightGBM), and stacking. Gradient boosted trees are
-the dominant approach for tabular data in industry.
+**TL;DR:** Ensembles combine predictions from multiple learners, gaining accuracy when their errors are useful and not perfectly correlated.
+
+## Prerequisites
+
+Prerequisites: [supervised learning](supervised-learning.md), [evaluation metrics](evaluation-metrics.md), and model variance. You can compare bagging, boosting, and stacking; explain diversity and correlated errors; and decide whether ensemble complexity is justified. This ML lesson connects the methods and their bias/variance behavior; the AI track introduces model families more broadly.
+
+## Learning Outcomes
+
+- Explain the central assumptions and mechanism of ensemble methods.
+- Apply the method to a small deterministic example and interpret its output.
+- Compare this method with a plausible alternative using a task-relevant criterion.
+- Diagnose a characteristic failure and choose a validation or mitigation step.
 
 ## Core Intuition
-Ask 100 experts instead of one. Each expert is sometimes wrong, but errors are uncorrelated,
-so averaging cancels noise. This reduces variance (bagging) or reduces bias iteratively (boosting).
+
+Asking several independent experts can reduce the impact of one person's noisy judgment. Averaging works when members make different errors; if they all copy the same flawed signal, adding voters adds little. Bagging creates diversity through resampled data or feature subsets. Boosting builds a sequence of learners that focus on the current residual structure. Stacking learns how to combine out-of-fold predictions from different model families.
+
+Ensembling is not guaranteed to improve test performance: highly correlated models provide little new information, and selecting the ensemble on a small validation set can overfit.
 
 ## How It Works
 
-**Bagging:** train T models on different bootstrap samples, aggregate by vote/mean.
-Random Forest adds feature subsampling at each split to de-correlate trees.
+For regression, average predictions: f̄(x)=T⁻¹Σₜfₜ(x). If each model has error variance σ² and pairwise correlation ρ, average error variance is σ²(ρ+(1−ρ)/T); gains stop as ρ approaches one. Classification can use majority vote or average probabilities/logits, with calibration checked after combination.
 
-**Boosting:** train sequentially, each model correcting previous errors.
-- AdaBoost: upweight misclassified samples
-- Gradient Boosting: fit new tree to negative gradient (residuals)
-- XGBoost/LightGBM: GPU-optimized, regularized, histogram-based gradient boosting
+Bagging fits models in parallel on bootstrap samples. Random forests additionally subsample features at split decisions, reducing tree correlation. Boosting fits learners sequentially to gradients/residuals and controls complexity with shrinkage, depth, and subsampling. Stacking trains a meta-model on predictions generated out-of-fold; using in-sample base predictions leaks overfit signals to the meta-model. Runtime and memory scale with member count unless models are distilled or pruned.
 
-**Stacking:** train a meta-model on out-of-fold predictions of diverse base models.
+Ensemble quality depends on both member accuracy and error dependence. A useful candidate member is not simply another model with a different name; it should add information where the existing ensemble is wrong. Compare residuals or class error indicators on the same validation examples, and inspect whether disagreements correspond to complementary data slices. A weak but diverse model can help under averaging, though it can also dilute a strong member. Use a held-out selection procedure to choose weights rather than assuming equal averaging is always best.
 
-## Key Properties / Trade-offs
-- Bagging: reduces variance — best when base models overfit
-- Boosting: reduces bias and variance — best when base models underfit; sensitive to outliers
-- XGBoost > Random Forest on most tabular benchmarks, but harder to tune
+For classification, averaging predicted probabilities, averaging logits, and majority voting are distinct operations. Probability averaging preserves a probability-like score when each input is normalized, though calibration can still be poor. Logit averaging changes the effective sharpness of the distribution. Majority voting discards confidence and can treat a marginal and a decisive model equally. For regression, prediction scale and systematic bias matter; a biased member can drag the mean. Calibrate or reweight only with data separate from final testing.
 
-## Common Mistakes / Gotchas
-- n_estimators with boosting: lower learning_rate needs more trees
-- Stacking without proper CV leaks meta-training labels
-- Boosting on noisy labels amplifies noise — consider robust loss functions
+Bagging works especially well with unstable base learners because data resampling causes models to vary. Random forests additionally randomize feature subsets to reduce tree correlation. Boosting is different: it builds a sequence where later learners focus on gradients or residuals, and shrinkage/depth controls how aggressively each stage corrects prior errors. Stacking is a learned blend and should use out-of-fold predictions at the meta-training stage. If meta-features are generated by base models trained on the same labels, they are unrealistically clean and the stack will overfit.
 
-## Code Example
+An ensemble has production costs beyond inference calls. Every member may need its own feature transforms, hardware allocation, model loading, monitoring, versioning, and failure handling. Parallel scoring can reduce wall-clock latency but increases peak resource demand. If one member is unavailable, fallback behavior changes the ensemble distribution. A distilled student can compress an ensemble's predictions, but the student should be evaluated as its own model. Maintain a simple baseline so operational complexity remains justified by measurable gains.
+
+A practical ensemble experiment begins with a strong single-model baseline and a fixed validation design. Bagging benefits most when base learners make diverse errors; measure pairwise error correlation rather than assuming that a collection of models will help. Boosting can improve weak learners by focusing on residual structure, but each stage can also fit mislabeled or anomalous examples. A blend should use out-of-fold predictions to train its combiner, because in-sample predictions are optimistically biased. Keep a final untouched test set for one evaluation after all model and blend choices are complete. In production, account for the sum of model latency, memory, monitoring, and rollback complexity; a small offline gain may not justify multiple independent failure surfaces.
+
+## Trade-offs and Selection Boundary
+
+| Method | Typical effect | Boundary |
+|---|---|---|
+| Bagging / random forest | Reduces variance; parallel members | Larger models and limited benefit for already-stable learners |
+| Gradient boosting | Reduces bias and models nonlinear tabular patterns | Sequential training and sensitivity to depth/rate/regularization |
+| Stacking | Combines complementary model families | Requires out-of-fold predictions and careful meta-validation |
+| Simple averaging | Low-complexity robust blend | Members need compatible output scales and useful diversity |
+
+Use ensembles when validation gains justify inference cost, latency, memory, and operational ownership. For low-latency deployment, compare one strong model or distilled student. On tabular tasks, boosted trees are a strong baseline; neural ensembles are not automatically better.
+
+## Implementation
+
 ```python
-from sklearn.ensemble import RandomForestClassifier, GradientBoostingClassifier
-from sklearn.datasets import make_classification
-from sklearn.model_selection import cross_val_score
+def average(predictions):
+    if not predictions or any(len(p) != len(predictions[0]) for p in predictions):
+        raise ValueError("non-empty predictions with equal lengths required")
+    return [sum(row)/len(row) for row in zip(*predictions)]
 
-X, y = make_classification(n_samples=1000, n_features=20, random_state=42)
-rf = RandomForestClassifier(n_estimators=100, random_state=42)
-gb = GradientBoostingClassifier(n_estimators=100, learning_rate=0.1, random_state=42)
-print("RF:", cross_val_score(rf, X, y, cv=5, scoring='roc_auc').mean())
-print("GB:", cross_val_score(gb, X, y, cv=5, scoring='roc_auc').mean())
+a = [0.0, 1.0, 0.0, 1.0]
+b = [0.0, 0.0, 1.0, 1.0]
+blend = average([a, b])
+assert blend == [0.0, .5, .5, 1.0]
+# Identical members provide no ensemble diversity.
+assert average([a, a]) == a
 ```
 
-## Interview Quick-Reference
-| Question | What to say |
+## Failure Modes and Diagnostics
+
+1. **Correlated members:** ensemble performs like its strongest member. Measure pairwise residual/error correlation and add genuinely different data views or inductive biases.
+2. **Stacking leakage:** meta-learner sees predictions from models trained on its own rows. Generate out-of-fold base predictions and keep final evaluation separate.
+3. **Probability miscalibration:** averaging improves ranking but harms decisions. Check reliability curves and recalibrate on held-out data.
+4. **Operational cost exceeds gain:** member loading or sequential scoring breaks latency SLO. Benchmark end-to-end and consider distillation or fewer members.
+
+## Interview Quick Reference
+
+| Question | Answer |
 |---|---|
-| "How does Random Forest reduce variance?" | Bootstrap sampling + feature subsampling at each split produces uncorrelated trees. Averaging uncorrelated predictions reduces variance. |
-| "Bagging vs boosting?" | Bagging: parallel, reduces variance. Boosting: sequential, corrects errors, reduces bias. |
-| "XGBoost vs Random Forest?" | XGBoost typically achieves lower error but requires more tuning; RF is faster and more robust to hyperparameters. |
+| Why does bagging help? | Resampling and averaging reduce variance, especially for unstable learners. |
+| Why does ensemble diversity matter? | Correlated errors remain after averaging; independent errors can cancel. |
+| Design follow-up: ensemble wins offline but misses latency. | Compare cost-quality frontier and reduce members, parallelize safely, or distill into one model. |
 
-## Related Topics
-- [Supervised Learning](supervised-learning.md) — [Implementations: Random Forest](../implementations/random-forest.ipynb)
+## Related Concepts
 
-## Resources
-- [XGBoost paper](https://arxiv.org/abs/1603.02754) — Chen & Guestrin
-- [Random Forests](https://link.springer.com/article/10.1023/A:1010933404324) — Breiman
+- [Random forests via unsupervised/ensemble notebook](../notebooks/12-ensemble-methods.ipynb), [regularization](regularization.md), and [model selection](model-selection.md)
+- [Matching notebook](../notebooks/12-ensemble-methods.ipynb)
+- [Interview practice: bias-variance](../interview-prep/ml-theory-questions.md#q-what-is-the-bias-variance-trade-off)
+
+## References
+
+- Breiman, [Bagging Predictors](https://doi.org/10.1007/BF00058655).
+- Wolpert, [Stacked Generalization](https://doi.org/10.1016/S0893-6080(05)80023-1).

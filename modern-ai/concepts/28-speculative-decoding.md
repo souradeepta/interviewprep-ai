@@ -1,96 +1,85 @@
 # Speculative Decoding
 
-## Detailed Explanation
-Speculative decoding accelerates LLM inference 2-4x by using a small fast draft model to generate candidate tokens, then verifying all candidates in parallel with the large model. Unlike beam search, it's lossless—the output distribution is identical to standard autoregressive generation. By parallelizing draft and verify phases and using acceptance sampling, it achieves near-linear speedup with low acceptance rates (0.6–0.8) even when draft and target models differ.
+**TL;DR:** A cheap draft proposes several tokens and a target model verifies them; acceptance sampling can preserve the target distribution, while speed depends on acceptance and verification cost.
+
+## Prerequisites
+
+Autoregressive decoding and probability distributions.
+
+## Learning Outcomes
+
+- Explain a draft/verify cycle and its acceptance-correction behavior.
+- Account for accepted and rejected prefixes over a decoding cycle.
+- Derive a symbolic break-even condition from draft, verify and target costs.
+- Distinguish a theoretical work estimate from measured latency.
 
 ## Core Intuition
-Imagine writing an essay: a junior writer drafts 5 paragraphs quickly (cheap), then you (senior) review all 5 in one read (expensive but parallelized). You accept good paragraphs, reject bad ones and rewrite. The final essay is as good as if you wrote it solo, but you finish faster.
+
+A fast junior writer proposes a few words and an expert checks them together. If the first words agree, the expert saves repeated sequential decisions; at the first disagreement, the expert supplies the correction and the process restarts. Draft tokens are useful only when the verification work is cheaper than asking the target model to generate each token separately.
 
 ## How It Works
 
-1. Draft: small model M_q generates γ tokens (γ=4–8)
-2. Verify: large model M_p processes context + γ draft tokens in parallel
-3. Accept: for each position t, accept if r ≤ min(1, p(x_t)/q(x_t))
-4. Reject & resample: on first rejection, resample from p'(x)=normalize(max(0,p-q))
-5. Iterate: continue from new context, repeat
+Let q be the draft distribution and p the target distribution. For a proposed token x, rejection sampling accepts with probability \(\min(1,p(x)/q(x))\). If rejected, a correction drawn from the residual distribution proportional to \(\max(0,p-q)\) preserves the target distribution under the algorithm's assumptions. Practical systems may use different speculative methods; exactness claims must state the method and sampling setup.
 
-```mermaid
-graph LR
-    A[Input] --> B[Process] --> C[Output]
-    style B fill:#e1f5ff
+For a draft length gamma and prefix acceptance A, one cycle yields A draft tokens and typically a correction token when rejection occurs. If draft cost per token is d, target verification cost is v, and ordinary target cost per token is t, a rough cycle ratio is \(t(A+I[A<gamma])/(gamma d+v)\). This ignores scheduling, memory traffic, batching, and variance. It can be below one. Acceptance alone is not speedup.
+
+The expected accepted prefix depends on agreement at successive positions, not only a single average token match rate. If the conditional probability of accepting each proposed token were a constant a and positions were independent, the probability of accepting at least j proposals would be approximately a^j. Real generation violates this simplifying assumption: uncertainty and draft-target disagreement vary with position, prompt, temperature and token type. Measure the full accepted-prefix histogram, including zero acceptance, rather than reporting only mean acceptance. A high average can hide a long tail of cycles that waste draft work.
+
+Verification's parallelism is algorithm-dependent. A target transformer can score a block of candidate tokens in one forward pass, but causal dependencies and attention-mask construction still matter. A batched pass may use more memory and produce a different kernel profile than sequential decoding. The symbolic cost v should therefore be measured under the actual block length, batch shape and precision. If target verification is close to gamma sequential steps in cost, the draft stage has little room to win. If verification is efficient, one accepted block can amortize its fixed cost.
+
+Exactness also requires carefully defined probabilities. The rejection acceptance ratio is based on the target and draft distributions over the same next-token support. Numerical underflow, temperature or top-p transformations applied inconsistently, and mismatched tokenizers can invalidate the simple argument. If draft and target use different tokenizations, a method needs an explicit alignment mechanism. Correct sampling may use a residual distribution after rejection; simply replacing the rejected token with the target argmax is a different decoding policy and can change output distribution.
+
+Operationally, speculation is most attractive when prompts lead to predictable continuations, such as structured output or code completion, but these are hypotheses to verify on real traces. It may be weaker on open-ended reasoning where the draft diverges quickly. Evaluate separately by request class and measure quality parity alongside latency. Include draft memory in the deployment budget, cache synchronization behavior, timeout handling and fallback to ordinary target decoding. The fallback matters because a draft model outage must not make the service unavailable.
+
+An online controller can adjust draft length from recent acceptance and verify cost, but the signal is delayed and workload-dependent. Avoid chasing short-lived fluctuations with a large controller gain. Begin with a bounded sweep over a held-out workload, select stable operating points, then add conservative adaptation only if its effect is measurable. Report confidence intervals and tail latency; a small mean improvement accompanied by worse p99 may violate the service objective.
+
+## Trade-offs
+
+| Choice | Advantage | Cost / boundary |
+|---|---|---|
+| Larger draft block | More possible tokens per verify | More wasted draft work after early rejection |
+| Better draft model | Higher acceptance probability | More draft compute and memory |
+| Greedy verification | Simple equality checks | Does not model stochastic distribution-preserving acceptance |
+| Adaptive draft length | Can respond to acceptance history | Adds control complexity and needs workload evaluation |
+
+Use speculation when target verification batches candidates efficiently and draft agreement is high. It is unattractive when the target is already cheap, acceptance is poor, or verification serializes on memory.
+
+## Implementation with Python
+
+Run `python3 modern-ai/implementations/28-speculative-decoding.py`. A fixed cost model sweeps every accepted-prefix length for a four-token draft block and prints accepted/rejected counts and a speedup bound. Those are formula outputs, not measured production gains.
+
+```python
+import runpy
+account = runpy.run_path("modern-ai/implementations/28-speculative-decoding.py")["account"]
+cycle = account(4, 3, draft_cost=.15, verify_cost=.8, target_step_cost=1)
+assert cycle["acceptance_rate"] == .75
+print(cycle["speedup_bound"])  # symbolic cost ratio, not a benchmark
 ```
 
-## Architecture / Trade-offs
+## Failure Modes
 
-| Aspect | Value | Notes |
-|--------|-------|-------|
-| Complexity | Advanced | Production-ready |
-| Category | Inference Optimization | Inference Optimization domain |
-| Use Case | Multiple | See real-world examples in notebook |
+| Failure | Signal | Response |
+|---|---|---|
+| Draft mismatch | Low accepted-prefix distribution | Measure acceptance by prompt and generation phase; use a closer draft or disable speculation |
+| Verification overhead dominates | Cycle cost exceeds target-only token cost | Profile target verify kernel and sweep draft length |
+| Distribution silently changes | Output statistics differ under sampling | Test the acceptance/correction algorithm against the target distribution |
 
-## Design Challenges
+- Draft mismatch wastes proposals: inspect accepted-prefix histograms by task and disable or replace the draft for low-agreement classes.
+- Verification overhead removes the gain: compare block verification cost with sequential target cost and sweep block size on representative shapes.
+- Sampling behavior drifts: run target-distribution parity checks and verify that acceptance and residual correction use consistent probabilities.
 
-1. **Challenge 1**: See notebook examples for mitigation strategies.
-2. **Challenge 2**: Production deployment requires careful tuning.
-3. **Challenge 3**: Monitor key metrics during rollout.
+## Interview Quick Reference
 
-## Interview Q&A
-
-**Q1: When would you use this technique vs alternatives?**
-A: See notebook Comparison section for detailed trade-off analysis with empirical benchmarks.
-
-**Q2: What are the main implementation pitfalls?**
-A: See notebook examples which cover common mistakes and their fixes.
-
-**Q3: How do you monitor this in production?**
-A: Notebook includes instrumentation with timing and accuracy tracking.
-
-**Q4: What's the computational cost?**
-A: See envelope calculations in accompanying notebook Level 2 section.
-
-**Q5: How does this scale with model size?**
-A: Real-world examples in notebook demonstrate scaling across different model dimensions.
-
-## Best Practices
-
-- Follow the production patterns in the notebook implementation section
-- Always profile before and after deployment
-- Monitor key metrics (latency, throughput, quality)
-- Start with the basic implementation, optimize later
-- Use the provided utilities from the implementation .py file
-
-## Common Pitfalls
-
-- **Pitfall 1**: Skipping the profiling phase. Fix: Use the timing utilities in the notebook.
-- **Pitfall 2**: Assuming defaults work for your use case. Fix: Tune hyperparameters per notebook examples.
-- **Pitfall 3**: Not monitoring production behavior. Fix: Instrument your code as shown in Real-World Examples.
-
-## Code Examples
-
-See the corresponding Jupyter notebook and Python implementation file for comprehensive, runnable examples with:
-- From-scratch numpy implementations
-- Production torch code with error handling
-- Three different real-world scenarios
-- Comparison benchmarks
+| Question | Expected answer / follow-up |
+|---|---|
+| Why can speculative decoding be lossless? | Correct acceptance and residual sampling recover the target distribution; ask what changes under greedy decoding. |
+| What controls speedup? | Acceptance, draft cost, verification cost and batching; follow up with break-even inequality. |
+| What do you monitor? | Acceptance prefix, cycle latency, target work and output parity; ask how you would disable it safely. |
 
 ## Related Concepts
 
-- [Concept 01](./01-llm-evaluation-harness.md) – Evaluation frameworks
-- [Concept 05](./05-advanced-rag-patterns.md) – Related retrieval techniques
-- [Concept 11](./11-flash-attention.md) – Attention optimization fundamentals
-
----
+See [KV cache optimization](29-kv-cache-optimization.md), [serving frameworks](13-llm-serving-frameworks.md), [notebook 28](../notebooks/28-speculative-decoding.ipynb), and [inference interview practice](../interview-prep/inference-systems.md#speculative-decoding).
 
 ## References
 
-Leviathan et al. (2023). Fast Inference via Speculative Decoding. ICML. arXiv:2211.17192.
-
-Chen et al. (2023). Accelerating with Speculative Sampling. arXiv:2302.01318.
-
-Cai et al. (2024). Medusa: LLM Inference with Multiple Heads. arXiv:2401.10774.
-
-NVIDIA (2024). Introduction to Speculative Decoding. Developer Blog.
-
-**Notebook**: `modern-ai/notebooks/speculative-decoding.ipynb` (16 cells, 600-950 code lines)
-
-**Implementation**: `modern-ai/implementations/speculative-decoding.py` (standalone production code)
+[Fast Inference via Speculative Decoding](https://arxiv.org/abs/2211.17192) and [Speculative Sampling](https://arxiv.org/abs/2302.01318).

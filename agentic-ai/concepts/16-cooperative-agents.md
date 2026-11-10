@@ -1,5 +1,84 @@
 # Cooperative Agents
 
+TL;DR: Cooperative Agents is a design pattern for making an agent more reliable by controlling how it cooperative agents under explicit constraints.
+
+## Prerequisites
+
+This lesson assumes familiarity with agentic-ai/hierarchical-agents. You should be able to describe an LLM request/response cycle, inspect inputs and outputs, and reason about the application boundary where this technique runs. The lesson focuses on cooperative agents as an engineering choice: identify the problem it solves, the resources it consumes, and the evidence needed to know whether it works.
+
+## Learning Outcomes
+
+By the end, you can:
+- Explain the mechanism of cooperative agents and name its key assumptions.
+- Implement a minimal version and trace one successful and one failing execution.
+- Compare it with a simpler alternative using quality, latency, cost, and safety measures.
+- Diagnose a failure from observable evidence and propose a bounded recovery.
+
+## Core Intuition
+
+Treat cooperative agents as a controlled decision in a larger system rather than a magic capability. State the goal, allowed inputs, permitted actions, and stopping condition first. Then trace how information changes at each step. This makes the design reviewable: a teammate can inspect what evidence led to a decision, what the system did, and whether the result met the task contract. The central engineering question is whether the extra mechanism improves outcomes enough to justify its additional complexity and operational cost.
+
+## How It Works
+
+A practical design starts with a task boundary and an observable success criterion. The orchestrator collects the relevant state, selects the next operation, validates its inputs, and records the result. It then checks whether the goal is complete or whether another bounded step is justified. Keep the state passed between steps explicit and small; include only data that affects the decision. Separate policy from execution so a decision can be inspected before it causes an external effect. When possible, make operations idempotent and attach a stable identifier so retries do not duplicate work.
+
+For cooperative agents, the important implementation detail is to make the decision point testable. Define the expected input shape, valid output shape, allowed resource budget, timeout, and fallback behavior. Record a trace containing the request identifier, chosen operation, outcome category, and duration, while excluding secrets and unnecessary personal data. A good trace supports diagnosis without requiring access to hidden model reasoning. Use representative examples and counterexamples to measure success, then inspect disagreements and boundary cases before increasing autonomy.
+
+## Trade-offs
+
+| Approach | Strength | Cost or risk | Choose when |
+|---|---|---|---|
+| Direct, single-step response | Lowest latency and simplest control path | Cannot adapt after new evidence | The task is bounded and context already contains needed facts |
+| Cooperative Agents | Can improve task completion by making the relevant process explicit | More state, integration points, and failure paths to operate | Evaluation shows a repeatable gain for the target workload |
+| Human review or deterministic workflow | Clear accountability and predictable policy enforcement | Slower and may require manual capacity | Errors have high impact or policy requires approval |
+
+Compare alternatives on the same task set. Measure end-to-end task success and constraint violations alongside p50/p95 latency and cost per completed task. Do not count a call as successful merely because it returned valid syntax; verify that the result satisfies the user-facing task and all policy constraints.
+
+## Implementation
+
+The following small Python scaffold makes a bounded decision visible and rejects invalid results before they can influence later steps:
+
+```python
+def run_step(decide, state, allowed_actions, max_steps=3):
+    trace = []
+    for step in range(max_steps):
+        choice = decide(state)
+        if choice not in allowed_actions:
+            return {"ok": False, "reason": "invalid_action", "trace": trace}
+        result = allowed_actions.get(choice)(state)
+        trace.append({"step": step, "action": choice, "result": result})
+        state = {**state, "last_result": result}
+        if result.get("done") is True:
+            return {"ok": True, "state": state, "trace": trace}
+    return {"ok": False, "reason": "step_limit", "trace": trace}
+```
+
+In production, validate schemas at the boundary, set per-operation timeouts, redact sensitive trace fields, and make the step limit configurable by task risk. Keep deterministic checks outside the model call so malformed choices and unsafe actions fail closed.
+
+## Failure Modes
+
+- **Unclear task boundary:** the system performs extra work or returns an untestable result. Diagnose by comparing traces with the task contract; mitigate with explicit completion criteria and a deterministic stop check.
+- **Invalid or stale state:** later decisions rely on missing, malformed, or outdated evidence. Diagnose with schema and freshness checks; mitigate by validating state at each boundary and refreshing authoritative data.
+- **Unbounded retries or work:** cost and latency grow without improving completion. Diagnose by step-count and timeout distributions; mitigate with budgets, backoff for transient errors, and a terminal failure state.
+- **Misleading evaluation:** aggregate success hides harmful edge cases. Diagnose by slicing results by task type and impact; mitigate with held-out adversarial cases and human review for high-impact outcomes.
+
+## Interview Quick Reference
+
+| Question | Strong answer | Follow-up probe |
+|---|---|---|
+| What problem does cooperative agents solve? | It addresses a stated task limitation and should be justified by measured end-to-end improvement. | What baseline would you compare against? |
+| How would you keep it reliable? | Validate boundaries, bound resources, log useful traces, and define recovery behavior. | How would you debug a regression? |
+| When would you avoid it? | When a simpler method meets the quality target or added complexity exceeds the value. | Which metric changes that decision? |
+
+## Related Concepts
+
+This lesson connects to agentic-ai/hierarchical-agents. It also informs the downstream topics that consume its outputs: schema validation, observability, evaluation, and safe recovery. When designing a system, map these dependencies explicitly so a failure can be localized to the decision, execution, or verification stage.
+
+## References
+
+- [OpenAI API documentation](https://platform.openai.com/docs/guides/function-calling)
+- [NIST AI Risk Management Framework](https://www.nist.gov/itl/ai-risk-management-framework)
+
 ## Detailed Explanation
 
 Cooperative agents are peer entities that work together as equals to achieve shared goals through negotiation and bidirectional communication. Unlike hierarchical systems where a manager directs workers, cooperative agents autonomously decide when to collaborate, what to ask for, and how to share results. Key mechanisms: (1) shared state (blackboard pattern)—all agents see and update central state, (2) peer communication—agents ask each other for help, negotiate requirements, (3) negotiation protocols—establish agreements before execution, (4) coordination points—synchronization when agents need each other's results. Cooperative systems excel at problems with naturally decomposable subgoals where different agents have different expertise and can make independent decisions. Challenges: (1) deadlock—agent A waits for B, B waits for A; solutions include timeouts and negotiation protocols, (2) communication overhead—O(N²) possible messages between N agents; mitigated by limiting agent count (3-5 agents ideal), (3) inconsistency—agents may have conflicting local states; solved by shared blackboard. Cooperative agents are more flexible than hierarchy (no single point of failure) but require careful coordination to avoid deadlocks and communication chaos. Best for problems where agents are roughly equal in capability and need to negotiate rather than follow orders.

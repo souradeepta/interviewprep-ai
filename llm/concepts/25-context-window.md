@@ -1,16 +1,19 @@
 # Context Window
 
-## Understanding Context Window
+Transformers use all-to-all attention: every token attends to every other token, creating a T×T attention matrix.
 
-Context Window is a foundational concept in large language model development that addresses critical challenges in model architecture, training efficiency, or inference performance. Understanding this concept is essential for anyone working with modern language models, whether in research, fine-tuning, or production deployment.
+## Prerequisites
 
-The core innovation underlying Context Window lies in rethinking standard approaches to achieve better efficiency or effectiveness. Rather than accepting conventional trade-offs, this technique exploits mathematical or architectural insights to push the frontier of what's possible with given computational constraints.
+Familiarity with attention optimization. This note focuses on the LLM-specific mechanism and its engineering selection boundary.
 
-In practical applications, Context Window enables capabilities that would otherwise be infeasible: reducing computational requirements, improving model quality, enabling faster iteration, or supporting new use cases. The real-world impact has made Context Window widely adopted across industry applications, from consumer products to enterprise systems.
+## Learning Outcomes
 
-Implementing Context Window requires understanding both its theoretical foundations and practical considerations. The following sections provide detailed explanations of how Context Window works, when to use it, common implementation patterns, and lessons learned from production deployments. By mastering these concepts, practitioners can make informed decisions about when and how to apply Context Window to their specific challenges.
+- Explain the mechanism and assumptions behind context window.
+- Compare its main alternative using task quality and one operational cost.
+- Diagnose a failure using a metric or example tied to context window.
 
 ## Core Intuition
+
 Transformers use all-to-all attention: every token attends to every other token, creating a T×T attention matrix. This is O(T²) memory and compute. Larger context windows mean bigger matrices, slower inference, higher cost. But they also enable handling whole documents in one pass, avoiding context chunking.
 
 ## How It Works
@@ -84,7 +87,7 @@ graph LR
     style E fill:#e8f5e9
 ```
 
-## Key Properties / Trade-offs
+## Trade-offs
 
 | Property | 4K | 32K | 128K | 200K |
 |----------|-----|--------|--------|---------|
@@ -117,23 +120,7 @@ Approach 3: 200K context
 - Benefit: best context, cheapest overall
 ```
 
-## Common Mistakes / Gotchas
-
-- **Linear cost assumption:** context token cost isn't linear. Price per token increases with window size because of compute. 2x window = ~3-4x total cost, not 2x.
-
-- **Ignoring truncation:** context longer than window? Model only sees last N tokens (truncates start). Important information lost. Mitigate: summarize beginning or use hierarchical chunking.
-
-- **Position encoding not validated:** train on 4K, deploy on 32K → slight accuracy drop (1-5%). Measure on your task.
-
-- **Thinking "bigger is always better":** 128K context doesn't always help. If document is 10K tokens and you use 128K window, you're wasting cost. Match window to actual need.
-
-- **Not measuring latency impact:** theoretical 20x slower doesn't mean user-facing latency is 20x (depends on orchestration). Measure end-to-end.
-
-- **Mixing position encoding methods:** switching from absolute to RoPE → retraining needed. Pick one method early.
-
-- **Assuming no quality loss:** Long-range dependencies degrade slightly. Queries about page 100 of 100 are harder. Don't rely on perfect recall at extremes.
-
-## Code Example
+## Implementation
 
 ```python
 from transformers import AutoTokenizer, AutoModelForCausalLM
@@ -205,7 +192,23 @@ response = client.messages.create(
 print(response.content[0].text)
 ```
 
-## Interview Quick-Reference
+## Failure Modes
+
+- **Linear cost assumption:** context token cost isn't linear. Price per token increases with window size because of compute. 2x window = ~3-4x total cost, not 2x.
+
+- **Ignoring truncation:** context longer than window? Model only sees last N tokens (truncates start). Important information lost. Mitigate: summarize beginning or use hierarchical chunking.
+
+- **Position encoding not validated:** train on 4K, deploy on 32K → slight accuracy drop (1-5%). Measure on your task.
+
+- **Thinking "bigger is always better":** 128K context doesn't always help. If document is 10K tokens and you use 128K window, you're wasting cost. Match window to actual need.
+
+- **Not measuring latency impact:** theoretical 20x slower doesn't mean user-facing latency is 20x (depends on orchestration). Measure end-to-end.
+
+- **Mixing position encoding methods:** switching from absolute to RoPE → retraining needed. Pick one method early.
+
+- **Assuming no quality loss:** Long-range dependencies degrade slightly. Queries about page 100 of 100 are harder. Don't rely on perfect recall at extremes.
+
+## Interview Quick Reference
 
 | Question | What to say |
 |---|---|
@@ -214,6 +217,16 @@ print(response.content[0].text)
 | "Position encoding?" | Models trained on specific windows (e.g., 4K). Extrapolating to 32K loses ~1-5% accuracy. Use RoPE or fine-tuning. |
 | "When use long context?" | Document fits in one pass (avoid chunking overhead). Otherwise, standard context + chunking cheaper. |
 | "Truncation?" | Context longer than window → start lost. Summarize or hierarchical chunk. Don't rely on oldest context. |
+
+
+
+**Design follow-up:** How would you monitor this choice in production and decide when to use an alternative?
+## Related Concepts
+
+- [[attention-optimization]] — techniques to reduce O(T²) overhead
+- [[kv-cache]] — KV cache grows with context length
+- [[context-window-management]] — managing agent context allocation
+- [[inference-optimization]] — optimizing long-context inference
 
 ## Real-World Examples
 
@@ -226,7 +239,7 @@ Codebase: 100K tokens across multiple files. 4K model: analyzes one function at 
 ### Legal Document Analysis
 Contract: 200 pages = 100K tokens. 4K model: useless (can't fit full contract). Standard approach: expensive human review. With 128K model: upload full contract, extract terms, identify risks. Cost: $0.50 (tokens) vs $500 (human). Trade-off: still needs human verification.
 
-## Interview Q&A
+## Topic-specific notes
 
 **Q: Why does performance degrade for information in the middle of long contexts?**
 A: The "lost in the middle" effect occurs because: (1) recency bias—attention naturally weights recent tokens more; (2) positional encoding effects—for absolute position encodings, very high position indices are rare in training; (3) long-range attention dilution—with many tokens to attend to, individual relevant tokens get lower attention weights. Mitigate by placing critical information at the beginning or end of the context, using re-ranking to promote relevant information, or fine-tuning on long-context tasks.
@@ -246,14 +259,8 @@ A: Hierarchical summarization: chunk into context-sized pieces, summarize each, 
 **Q: When should you summarize context vs. retrieve context vs. extend the context window?**
 A: Summarize when: you need to maintain conversational context over many turns, the full history is too long, and rough fidelity is acceptable. Retrieve when: specific factual information from long documents is needed and precision matters. Extend context window when: the task requires holistic understanding of the entire document (contract review, code analysis) and you can afford the compute. For most RAG applications, retrieval is more cost-effective than maintaining very long contexts.
 
-
-## Related Topics
-- [[attention-optimization]] — techniques to reduce O(T²) overhead
-- [[kv-cache]] — KV cache grows with context length
-- [[context-window-management]] — managing agent context allocation
-- [[inference-optimization]] — optimizing long-context inference
-
 ## Resources
+
 - [Extending Context Window of Large Language Models](https://arxiv.org/abs/2309.16039)
 - [LLaMA 2: Open Foundation and Fine-Tuned Chat Models](https://arxiv.org/abs/2307.09288) — discusses context window design
 - [Rotary Position Embedding](https://arxiv.org/abs/2104.09864)

@@ -1,16 +1,19 @@
 # Zero-Shot Learning
 
-## Understanding Zero Shot Learning
+"Classify sentiment" tells LLM what to do without examples.
 
-Zero Shot Learning is a foundational concept in large language model development that addresses critical challenges in model architecture, training efficiency, or inference performance. Understanding this concept is essential for anyone working with modern language models, whether in research, fine-tuning, or production deployment.
+## Prerequisites
 
-The core innovation underlying Zero Shot Learning lies in rethinking standard approaches to achieve better efficiency or effectiveness. Rather than accepting conventional trade-offs, this technique exploits mathematical or architectural insights to push the frontier of what's possible with given computational constraints.
+Familiarity with few shot learning. This note focuses on the LLM-specific mechanism and its engineering selection boundary.
 
-In practical applications, Zero Shot Learning enables capabilities that would otherwise be infeasible: reducing computational requirements, improving model quality, enabling faster iteration, or supporting new use cases. The real-world impact has made Zero Shot Learning widely adopted across industry applications, from consumer products to enterprise systems.
+## Learning Outcomes
 
-Implementing Zero Shot Learning requires understanding both its theoretical foundations and practical considerations. The following sections provide detailed explanations of how Zero Shot Learning works, when to use it, common implementation patterns, and lessons learned from production deployments. By mastering these concepts, practitioners can make informed decisions about when and how to apply Zero Shot Learning to their specific challenges.
+- Explain the mechanism and assumptions behind zero-shot learning.
+- Compare its main alternative using task quality and one operational cost.
+- Diagnose a failure using a metric or example tied to zero-shot learning.
 
 ## Core Intuition
+
 "Classify sentiment" tells LLM what to do without examples. Model knows "sentiment" is positive/negative/neutral from training. Works for intuitive tasks; fails on domain-specific or complex ones.
 
 ## How It Works
@@ -53,7 +56,7 @@ graph LR
     style D fill:#e8f5e9
 ```
 
-## Key Properties / Trade-offs
+## Trade-offs
 
 | Aspect | Zero-Shot | Few-Shot |
 |--------|-----------|----------|
@@ -62,14 +65,7 @@ graph LR
 | Data needed | None | 3-10 examples |
 | Flexibility | Good (new tasks fast) | Better (task-specific) |
 
-## Common Mistakes / Gotchas
-
-- **Assuming coverage:** Model may not know task from description alone. Test first.
-- **Vague instructions:** "Analyze this" is too vague. Be specific: "Classify as A, B, or C."
-- **Rare categories:** If category is niche (e.g., "Klingon sentiment"), zero-shot fails. Use few-shot.
-- **Complex tasks:** Multi-step reasoning needs few-shot or fine-tuning.
-
-## Code Example
+## Implementation
 
 ```python
 from anthropic import Anthropic
@@ -104,7 +100,14 @@ response = client.messages.create(
 print("Few-shot:", response.content[0].text)  # Also "German" but more confident
 ```
 
-## Interview Quick-Reference
+## Failure Modes
+
+- **Assuming coverage:** Model may not know task from description alone. Test first.
+- **Vague instructions:** "Analyze this" is too vague. Be specific: "Classify as A, B, or C."
+- **Rare categories:** If category is niche (e.g., "Klingon sentiment"), zero-shot fails. Use few-shot.
+- **Complex tasks:** Multi-step reasoning needs few-shot or fine-tuning.
+
+## Interview Quick Reference
 
 | Question | What to say |
 |---|---|
@@ -113,16 +116,14 @@ print("Few-shot:", response.content[0].text)  # Also "German" but more confident
 | "When use zero-shot?" | Simple tasks, fast iteration, or when examples hard to get. Otherwise use few-shot. |
 | "Failure modes?" | Domain-specific tasks, rare categories, complex reasoning. Add examples if failing. |
 
-## Real-World Examples
 
-### Zero-Shot Language Detection
-Model: multilingual. Task: detect language from text. No examples provided. Accuracy: 95% (works because language is distinct). vs few-shot: 98% (marginal gain, examples not needed).
 
-### Zero-Shot Domain Transfer
-Task: medical text classification. Model trained on general domain. Zero-shot: 45% accuracy (struggles with medical jargon). Few-shot (3 medical examples): 70%. Full fine-tune: 90%.
+**Design follow-up:** How would you monitor this choice in production and decide when to use an alternative?
+## Related Concepts
 
-### Zero-Shot Generalization Test
-Test model on completely unseen task (no fine-tuning, no examples). Success indicates good instruction following. Failure suggests task too specialized or model too narrow.
+- [In-Context Learning](15-in-context-learning.md) — ICL includes both zero and few-shot
+- [Few-Shot Learning](13-few-shot-learning.md) — adding examples to zero-shot
+- [Prompting](12-prompting.md) — instruction quality matters for zero-shot
 
 ## Real-World Examples
 
@@ -157,7 +158,18 @@ Task: medical text classification. Model trained on general domain. Zero-shot: 4
 ### Zero-Shot Generalization Test
 Test model on completely unseen task (no fine-tuning, no examples). Success indicates good instruction following. Failure suggests task too specialized or model too narrow.
 
-## Interview Q&A
+## Real-World Examples
+
+### Zero-Shot Language Detection
+Model: multilingual. Task: detect language from text. No examples provided. Accuracy: 95% (works because language is distinct). vs few-shot: 98% (marginal gain, examples not needed).
+
+### Zero-Shot Domain Transfer
+Task: medical text classification. Model trained on general domain. Zero-shot: 45% accuracy (struggles with medical jargon). Few-shot (3 medical examples): 70%. Full fine-tune: 90%.
+
+### Zero-Shot Generalization Test
+Test model on completely unseen task (no fine-tuning, no examples). Success indicates good instruction following. Failure suggests task too specialized or model too narrow.
+
+## Topic-specific notes
 
 **Q: Why do larger models perform dramatically better at zero-shot tasks?**
 A: Larger models trained on more data develop better world models and more generalizable representations. At sufficient scale, models can understand task descriptions and apply their general knowledge without examples. The key capability is understanding the intent of natural language instructions—this emerges with scale and instruction diversity during pretraining. GPT-3 175B showed zero-shot capabilities that didn't exist in 13B, suggesting threshold effects.
@@ -177,13 +189,8 @@ A: Use benchmark datasets with diverse task types (MMLU, BIG-Bench, SuperGLUE) t
 **Q: When should you add a chain-of-thought instruction to zero-shot prompts?**
 A: Add CoT ("let's think step by step" or similar) when: the task requires multi-step reasoning (math, logic, planning), when the model makes confident but wrong direct answers, or when you need interpretable reasoning to debug failures. CoT typically adds 3-5x more output tokens but improves accuracy 20-40% on reasoning tasks. For simple classification or extraction tasks where the answer is direct, CoT adds overhead without benefit.
 
-
-## Related Topics
-- [In-Context Learning](15-in-context-learning.md) — ICL includes both zero and few-shot
-- [Few-Shot Learning](13-few-shot-learning.md) — adding examples to zero-shot
-- [Prompting](12-prompting.md) — instruction quality matters for zero-shot
-
 ## Resources
+
 - [Prompt Engineering Guide](https://www.promptingguide.ai/)
 
 ## Concept Relationships
@@ -213,3 +220,5 @@ graph TD
 
 **Q: How do you prompt for effective zero-shot?**
 *A: Be specific: 'Classify as positive/negative/neutral' (not just 'analyze'). Set format: 'Output: [label]'. Add context if helpful: 'Customer reviews: classify'. Still less effective than examples.*
+
+References: [CLIP paper](https://arxiv.org/abs/2103.00020) and [Transformers zero-shot classification guide](https://huggingface.co/docs/transformers/tasks/zero_shot_classification).

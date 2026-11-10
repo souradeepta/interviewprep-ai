@@ -1,16 +1,19 @@
 # Speculative Decoding
 
-## Understanding Speculative Decoding
+Standard generation is sequential: generate token 1, then token 2, then token 3...
 
-Speculative Decoding is a foundational concept in large language model development that addresses critical challenges in model architecture, training efficiency, or inference performance. Understanding this concept is essential for anyone working with modern language models, whether in research, fine-tuning, or production deployment.
+## Prerequisites
 
-The core innovation underlying Speculative Decoding lies in rethinking standard approaches to achieve better efficiency or effectiveness. Rather than accepting conventional trade-offs, this technique exploits mathematical or architectural insights to push the frontier of what's possible with given computational constraints.
+Familiarity with continuous batching. This note focuses on the LLM-specific mechanism and its engineering selection boundary.
 
-In practical applications, Speculative Decoding enables capabilities that would otherwise be infeasible: reducing computational requirements, improving model quality, enabling faster iteration, or supporting new use cases. The real-world impact has made Speculative Decoding widely adopted across industry applications, from consumer products to enterprise systems.
+## Learning Outcomes
 
-Implementing Speculative Decoding requires understanding both its theoretical foundations and practical considerations. The following sections provide detailed explanations of how Speculative Decoding works, when to use it, common implementation patterns, and lessons learned from production deployments. By mastering these concepts, practitioners can make informed decisions about when and how to apply Speculative Decoding to their specific challenges.
+- Explain the mechanism and assumptions behind speculative decoding.
+- Compare its main alternative using task quality and one operational cost.
+- Diagnose a failure using a metric or example tied to speculative decoding.
 
 ## Core Intuition
+
 Standard generation is sequential: generate token 1, then token 2, then token 3... Each takes 10ms. Speculative decoding "speculates" with a fast draft model: generate tokens 1-4 in 2-5ms, then verify all 4 simultaneously with large model in 10ms. If all 4 match, accept them all. If divergence at token 3, accept 1-2, reject 3-4, continue. Result: generate ~4 tokens in ~10ms vs ~40ms (4x faster).
 
 ## How It Works
@@ -125,7 +128,7 @@ graph LR
     style G fill:#e8f5e9
 ```
 
-## Key Properties / Trade-offs
+## Trade-offs
 
 | Metric | Standard | Speculative (k=5) | Notes |
 |--------|----------|------------------|-------|
@@ -176,23 +179,7 @@ Scenario 3 (50% agreement, k=5):
   Speedup: 100T / 40T = 2.5x
 ```
 
-## Common Mistakes / Gotchas
-
-- **Poor draft model:** draft model far from large model → high divergence → low speedup. Draft should agree >70% of the time. Test agreement rate first.
-
-- **Wrong k value:** k too small (k=1) → minimal benefit. k too large (k=20) → high rejection overhead. Optimal: k = 4-8.
-
-- **Tokenizer mismatch:** draft and large model use different tokenizers → token positions misaligned. Fatal error. Use same tokenizer always.
-
-- **Not batching verification:** verifying tokens one-by-one defeats purpose. Must use vectorized forward pass on all k tokens simultaneously.
-
-- **Sampling vs greedy:** if draft uses greedy and large uses sampling, or vice versa → different distributions → issues. Use consistent sampling throughout.
-
-- **Incorrectly handling corrected distribution:** When divergence found, must resample from corrected distribution (not just sample from large). Complex detail, easy to get wrong.
-
-- **Not measuring end-to-end:** overhead of implementation can negate speedup if not careful. Profile actual wall-clock time, not theoretical.
-
-## Code Example
+## Implementation
 
 ```python
 import torch
@@ -302,7 +289,23 @@ outputs = llm.generate(
 )
 ```
 
-## Interview Quick-Reference
+## Failure Modes
+
+- **Poor draft model:** draft model far from large model → high divergence → low speedup. Draft should agree >70% of the time. Test agreement rate first.
+
+- **Wrong k value:** k too small (k=1) → minimal benefit. k too large (k=20) → high rejection overhead. Optimal: k = 4-8.
+
+- **Tokenizer mismatch:** draft and large model use different tokenizers → token positions misaligned. Fatal error. Use same tokenizer always.
+
+- **Not batching verification:** verifying tokens one-by-one defeats purpose. Must use vectorized forward pass on all k tokens simultaneously.
+
+- **Sampling vs greedy:** if draft uses greedy and large uses sampling, or vice versa → different distributions → issues. Use consistent sampling throughout.
+
+- **Incorrectly handling corrected distribution:** When divergence found, must resample from corrected distribution (not just sample from large). Complex detail, easy to get wrong.
+
+- **Not measuring end-to-end:** overhead of implementation can negate speedup if not careful. Profile actual wall-clock time, not theoretical.
+
+## Interview Quick Reference
 
 | Question | What to say |
 |---|---|
@@ -313,6 +316,24 @@ outputs = llm.generate(
 | "Cost?" | +10-20% compute (draft + verify). Not faster if compute is bottleneck. Best for latency-sensitive. |
 | "When useful?" | Long generations (100+ tokens), high-quality draft, latency critical. Not for short outputs or compute-bound scenarios. |
 
+
+
+**Design follow-up:** How would you monitor this choice in production and decide when to use an alternative?
+## Related Concepts
+
+- [[inference-optimization]] — speculative decoding as optimization technique
+- [[continuous-batching]] — compatible with continuous batching for serving
+- [[kv-cache]] — KV cache management with speculative decoding
+- [[token-optimization]] — other token-level optimizations
+
+## Real-World Examples
+
+### llama.cpp Speculative Decoding
+Model: Llama 2 70B. Draft: Llama 2 7B. Speedup: 2.5x. Acceptance rate: 78%. Deployed in local inference (limited GPU).
+
+### Interactive Chat Speedup
+Chat: need <500ms latency. Without spec decoding: 1s. With: 400ms. Acceptance: 75%. User-facing improvement: noticeable.
+
 ## Real-World Examples
 
 ### llama.cpp Speculative Decoding
@@ -329,15 +350,7 @@ Model: Llama 2 70B. Draft: Llama 2 7B. Speedup: 2.5x. Acceptance rate: 78%. Depl
 ### Interactive Chat Speedup
 Chat: need <500ms latency. Without spec decoding: 1s. With: 400ms. Acceptance: 75%. User-facing improvement: noticeable.
 
-## Real-World Examples
-
-### llama.cpp Speculative Decoding
-Model: Llama 2 70B. Draft: Llama 2 7B. Speedup: 2.5x. Acceptance rate: 78%. Deployed in local inference (limited GPU).
-
-### Interactive Chat Speedup
-Chat: need <500ms latency. Without spec decoding: 1s. With: 400ms. Acceptance: 75%. User-facing improvement: noticeable.
-
-## Interview Q&A
+## Topic-specific notes
 
 **Q: Why does speculative decoding reduce latency when it requires more computation?**
 A: Standard decoding generates one token per forward pass—the large model is underutilized because decode batch size is 1. Speculative decoding generates multiple draft tokens with a small fast model, then verifies all of them with the large model in one forward pass (batch size = n draft tokens). The verification is cheap because it's a single forward pass over n tokens in parallel. Net result: 2-3x speedup because the large model's parallelism is better utilized.
@@ -357,14 +370,8 @@ A: Low acceptance rate (bad draft quality): benchmark acceptance rate on your wo
 **Q: When should you deploy speculative decoding vs. other latency reduction techniques?**
 A: Use speculative decoding when: you have a memory budget for two models, latency is critical and GPU utilization is low (small batch sizes), and text is often predictable (chat responses, code completion with common patterns). Consider alternatives when: memory is constrained (quantization 2x latency gain with no memory overhead), or you're serving large batches (continuous batching + PagedAttention is more impactful). Speculative decoding is most effective for interactive chat; quantization is better for batch inference.
 
-
-## Related Topics
-- [[inference-optimization]] — speculative decoding as optimization technique
-- [[continuous-batching]] — compatible with continuous batching for serving
-- [[kv-cache]] — KV cache management with speculative decoding
-- [[token-optimization]] — other token-level optimizations
-
 ## Resources
+
 - [Accelerating Large Language Model Decoding with Speculative Sampling](https://arxiv.org/abs/2302.01318)
 - [SpecInfer: Accelerating Generative Large Language Model Serving](https://arxiv.org/abs/2305.09781)
 - [Blockwise Parallel Decoding for Fast LLM Inference](https://arxiv.org/abs/2305.04966)

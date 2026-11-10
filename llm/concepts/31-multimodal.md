@@ -1,16 +1,19 @@
 # Multimodal
 
-## Understanding Multimodal
+Humans understand images and text together.
 
-Multimodal is a foundational concept in large language model development that addresses critical challenges in model architecture, training efficiency, or inference performance. Understanding this concept is essential for anyone working with modern language models, whether in research, fine-tuning, or production deployment.
+## Prerequisites
 
-The core innovation underlying Multimodal lies in rethinking standard approaches to achieve better efficiency or effectiveness. Rather than accepting conventional trade-offs, this technique exploits mathematical or architectural insights to push the frontier of what's possible with given computational constraints.
+Familiarity with quantization. This note focuses on the LLM-specific mechanism and its engineering selection boundary.
 
-In practical applications, Multimodal enables capabilities that would otherwise be infeasible: reducing computational requirements, improving model quality, enabling faster iteration, or supporting new use cases. The real-world impact has made Multimodal widely adopted across industry applications, from consumer products to enterprise systems.
+## Learning Outcomes
 
-Implementing Multimodal requires understanding both its theoretical foundations and practical considerations. The following sections provide detailed explanations of how Multimodal works, when to use it, common implementation patterns, and lessons learned from production deployments. By mastering these concepts, practitioners can make informed decisions about when and how to apply Multimodal to their specific challenges.
+- Explain the mechanism and assumptions behind multimodal.
+- Compare its main alternative using task quality and one operational cost.
+- Diagnose a failure using a metric or example tied to multimodal.
 
 ## Core Intuition
+
 Humans understand images and text together. Multimodal LLMs bridge this: convert images to embeddings (vectors), concatenate with text tokens, feed to LLM. Key insight: vision encoders (ViT, CLIP) compress images to ~100-500 embedding tokens—same token format as text. This lets standard LLMs process both.
 
 ## How It Works
@@ -165,7 +168,7 @@ graph LR
     style F fill:#e8f5e9
 ```
 
-## Key Properties / Trade-offs
+## Trade-offs
 
 | Aspect | Text-Only | Text+Image | Text+Image+Audio | Full Multimodal |
 |--------|-----------|-----------|------------------|-----------------|
@@ -185,23 +188,7 @@ Dense grid  | 196-576          |  ~15ms (too many)
 Compressed  | 32-64 (aggressive) |  ~3ms (quality risk)
 ```
 
-## Common Mistakes / Gotchas
-
-- **Frozen vision encoder is weak:** if vision encoder frozen to original CLIP, can't adapt to LLM distribution. Should fine-tune encoder + LLM together for best results. Or: use lightweight projector but train it well.
-
-- **Image token explosion:** dense ViT features (196 patches) → 196 tokens per image. With long documents + multiple images → context exhaustion. Mitigate: adaptive pooling (compress to 50-100 tokens), or aggressive pruning (worse quality).
-
-- **Modality misalignment:** image of a cat + text "explain neural networks" → model confused (image irrelevant). Curate training data with aligned image-text pairs. Test with off-topic pairs to ensure robustness.
-
-- **Asymmetric training:** text loss dominates because text sequences longer. Use weighted losses: weight_image = 0.5, weight_text = 0.5 to balance. Or oversample image-heavy samples.
-
-- **Position encoding for heterogeneous sequences:** mixing image embeddings and text tokens → position encodings don't align well. Use modality-specific position encodings or relative position biases.
-
-- **Generalization to unseen modalities:** trained on high-quality images → fails on screenshots, diagrams, low-quality photos. Augment training data with diverse image qualities.
-
-- **Hallucination in multimodal setting:** model generates detailed captions that don't match image. Add text-image contrastive loss or use beam search with image-grounding verification.
-
-## Code Example
+## Implementation
 
 ```python
 from transformers import CLIPVisionModel, CLIPProcessor, AutoTokenizer, AutoModelForCausalLM
@@ -311,7 +298,23 @@ for images, captions in dataloader:
     optimizer.step()
 ```
 
-## Interview Quick-Reference
+## Failure Modes
+
+- **Frozen vision encoder is weak:** if vision encoder frozen to original CLIP, can't adapt to LLM distribution. Should fine-tune encoder + LLM together for best results. Or: use lightweight projector but train it well.
+
+- **Image token explosion:** dense ViT features (196 patches) → 196 tokens per image. With long documents + multiple images → context exhaustion. Mitigate: adaptive pooling (compress to 50-100 tokens), or aggressive pruning (worse quality).
+
+- **Modality misalignment:** image of a cat + text "explain neural networks" → model confused (image irrelevant). Curate training data with aligned image-text pairs. Test with off-topic pairs to ensure robustness.
+
+- **Asymmetric training:** text loss dominates because text sequences longer. Use weighted losses: weight_image = 0.5, weight_text = 0.5 to balance. Or oversample image-heavy samples.
+
+- **Position encoding for heterogeneous sequences:** mixing image embeddings and text tokens → position encodings don't align well. Use modality-specific position encodings or relative position biases.
+
+- **Generalization to unseen modalities:** trained on high-quality images → fails on screenshots, diagrams, low-quality photos. Augment training data with diverse image qualities.
+
+- **Hallucination in multimodal setting:** model generates detailed captions that don't match image. Add text-image contrastive loss or use beam search with image-grounding verification.
+
+## Interview Quick Reference
 
 | Question | What to say |
 |---|---|
@@ -322,6 +325,24 @@ for images, captions in dataloader:
 | "Alignment problem?" | Images and text must be paired in training. Off-topic pairs confuse model. Curate data carefully. |
 | "Quality vs speed?" | Dense features (196 tokens): best quality. Pooled (100 tokens): balanced. Aggressive (32 tokens): fast, lower quality. |
 
+
+
+**Design follow-up:** How would you monitor this choice in production and decide when to use an alternative?
+## Related Concepts
+
+- [[embeddings]] — vision embeddings and projection
+- [[transfer-learning]] — using pre-trained vision encoders
+- [[vision-transformers]] — ViT architecture details
+- [[clip]] — vision-language contrastive learning
+
+## Real-World Examples
+
+### GPT-4V Image Understanding
+Input: image of a recipe. Task: extract ingredients, instructions. Accuracy: 95%. vs OCR+NLP: 70% (misses context). Multimodal: understands layout, context.
+
+### Accessibility: Image Descriptions
+Generate captions for web images automatically. Model: vision encoder + language model. Coverage: 90% of web images can be described (manual: 10% due to cost).
+
 ## Real-World Examples
 
 ### GPT-4V Image Understanding
@@ -338,15 +359,7 @@ Input: image of a recipe. Task: extract ingredients, instructions. Accuracy: 95%
 ### Accessibility: Image Descriptions
 Generate captions for web images automatically. Model: vision encoder + language model. Coverage: 90% of web images can be described (manual: 10% due to cost).
 
-## Real-World Examples
-
-### GPT-4V Image Understanding
-Input: image of a recipe. Task: extract ingredients, instructions. Accuracy: 95%. vs OCR+NLP: 70% (misses context). Multimodal: understands layout, context.
-
-### Accessibility: Image Descriptions
-Generate captions for web images automatically. Model: vision encoder + language model. Coverage: 90% of web images can be described (manual: 10% due to cost).
-
-## Interview Q&A
+## Topic-specific notes
 
 **Q: How do vision-language models (VLMs) align visual and textual representations?**
 A: Most VLMs use a visual encoder (ViT or CLIP) to extract patch embeddings, then a projection layer to map visual embeddings into the LLM's token embedding space. The projection layer bridges the visual and language representation spaces. Training involves: first training the projection layer while freezing both encoder and LLM, then jointly fine-tuning with vision-language data. Newer approaches (LLaVA-1.5) use a simple MLP projection and find that instruction-following data quality matters more than architecture complexity.
@@ -366,14 +379,8 @@ A: General benchmarks: VQAv2 (visual question answering), TextVQA (text in image
 **Q: What are the key considerations for deploying VLMs in production vs. text-only LLMs?**
 A: Image preprocessing: standardize image size, handle JPEG/PNG/PDF inputs, implement malicious image detection. Latency: image encoding adds 100-500ms; use caching for repeated images. Cost: VLM inference is 2-5x more expensive per request than text-only due to image tokens. Context limits: images consume significant context (256-1024 tokens per image); limit simultaneous images. Rate limiting: separate rate limits for visual vs. text-only requests. Monitoring: track image token usage separately from text token usage.
 
-
-## Related Topics
-- [[embeddings]] — vision embeddings and projection
-- [[transfer-learning]] — using pre-trained vision encoders
-- [[vision-transformers]] — ViT architecture details
-- [[clip]] — vision-language contrastive learning
-
 ## Resources
+
 - [An Image is Worth 16x16 Words: Transformers for Image Recognition at Scale (ViT)](https://arxiv.org/abs/2010.11929)
 - [Learning Transferable Visual Models From Natural Language Supervision (CLIP)](https://arxiv.org/abs/2103.14030)
 - [Flamingo: a Visual Language Model for Few-Shot Learning](https://arxiv.org/abs/2204.14198)

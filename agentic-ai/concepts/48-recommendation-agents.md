@@ -1,8 +1,82 @@
 # Recommendation Agents
+**TL;DR:** A recommendation agent selects and ranks candidate items under user, catalog, privacy, and diversity constraints.
+
+## Prerequisites
+Ranking metrics, retrieval, and basic experimentation.
+
+## Learning Outcomes
+- Separate candidate retrieval from personalized ranking.
+- Evaluate ranking quality alongside coverage, novelty, and user control.
+- Design safe cold-start and privacy-aware fallback behavior.
+
+## Core Intuition
+A librarian does not choose ten copies of the same book because each scored slightly higher than the next. A useful recommendation list balances individual relevance with coverage and the user’s ability to steer it. The agent therefore solves a constrained ranking problem, not just “pick the largest scores.”
+
+## How It Works
+A practical pipeline retrieves a candidate set, filters ineligible items, computes relevance scores, then reranks under constraints such as category diversity, freshness, inventory, and policy. Personalization can use explicit preferences or behavior signals, but the system should record feature provenance and allow deletion or opt-out where required. Cold-start users receive transparent onboarding choices or broad popularity within a requested category; new items use content metadata until interaction evidence arrives. The final list includes reason codes and controls such as hide, reset, or “show less.”
+A ranking objective can combine relevance with penalties for redundant items, for example selecting the next item that maximizes relevance minus a similarity penalty against items already selected. This greedy approach is simple and interpretable, but its result depends on candidate quality and the penalty scale. Hard constraints such as availability or age suitability must be applied before soft diversity scoring. Do not use a diversity penalty to silently override a user’s explicit request. Log only the signals needed for evaluation and provide retention and deletion controls.
+The candidate set bounds everything a ranker can recommend: a relevant item excluded upstream cannot be recovered by better scoring. Maintain exposure logs that record eligible candidates, scores, constraints, and final ranks so an experiment can be reconstructed. Feedback is selective—users only click what they saw—so logged interaction alone is not an unbiased preference label. Use controlled exploration or carefully designed experiments when learning preferences, and make the exploration policy transparent to the product team.
+Offline metrics such as NDCG@k or recall@k help diagnose ranking changes but cannot establish user benefit by themselves. Online experiments should define a primary user outcome and guardrails for hides, complaints, session abandonment, and catalog exposure. Test new and infrequent users separately; average click-through can improve while discovery narrows or a small group receives poor recommendations. Use randomized assignment, stable exposure logging, and enough duration to distinguish novelty effects from durable value.
+
+## Trade-offs
+| Choice | Benefit | Cost or boundary |
+|---|---|---|
+| Pure relevance ranking | Strong immediate match | Repetition and popularity feedback |
+| Diversity reranking | Broader lists | May reduce top-item relevance |
+| Popularity fallback | Works without profile data | Can amplify incumbents |
+| User-controlled personalization | Improves agency and privacy | Requires product controls and state |
+
+## Implementation
+This dependency-light example models a bounded policy decision. It is an executable illustration of the control boundary; it does not call an LLM or establish production quality.
+
+```python
+def diverse_rank(items, limit):
+    chosen, seen = [], set()
+    for item in sorted(items, key=lambda x: x['score'], reverse=True):
+        if item['category'] not in seen:
+            chosen.append(item); seen.add(item['category'])
+        if len(chosen) == limit: break
+    return chosen
+
+assert len(diverse_rank([{'score': 2, 'category': 'a'}, {'score': 1, 'category': 'b'}], 2)) == 2
+```
+
+## Failure Modes
+- Candidate retrieval omits useful items: measure candidate recall before blaming the ranker.
+- Feedback loop overexposes popular items: monitor catalog and creator exposure concentration and test exploration limits.
+- Sensitive inference leaks through recommendations: audit features and outputs, restrict sensitive signals, and honor deletion/opt-out.
+
+## Interview Quick Reference
+| Question | Expected answer and follow-up |
+|---|---|
+| How would you debug a list of irrelevant items? | Check eligibility, candidate recall, feature freshness, and ranking scores in that order. Debug follow-up: how do you isolate retrieval from ranking? |
+| How do you balance relevance and diversity? | Use a reranking constraint or marginal relevance penalty and validate against both quality and coverage measures. Design follow-up: which user control can override it? |
+| Which online metric would you optimize? | A task-specific user outcome with guardrails for hides, complaints, and exposure concentration; clicks alone are insufficient. |
+
+## Related Concepts
+See [Agent routing](20-agent-routing.md), [agent evaluation metrics](59-agent-evaluation-metrics.md), [agent cost analysis](62-agent-cost-analysis.md).
+
+## References
+- [dl.acm.org](https://dl.acm.org/doi/10.1145/3298689.3347012)
+- [doi.org](https://doi.org/10.1145/3240323.3240373)
+
+## Further Topic Detail
+## Core Intuition
+A librarian does not choose ten copies of the same book because each scored slightly higher than the next. A useful recommendation list balances individual relevance with coverage and the user’s ability to steer it. The agent therefore solves a constrained ranking problem, not just “pick the largest scores.”
+
+
+## How It Works
+A practical pipeline retrieves a candidate set, filters ineligible items, computes relevance scores, then reranks under constraints such as category diversity, freshness, inventory, and policy. Personalization can use explicit preferences or behavior signals, but the system should record feature provenance and allow deletion or opt-out where required. Cold-start users receive transparent onboarding choices or broad popularity within a requested category; new items use content metadata until interaction evidence arrives. The final list includes reason codes and controls such as hide, reset, or “show less.”
+A ranking objective can combine relevance with penalties for redundant items, for example selecting the next item that maximizes relevance minus a similarity penalty against items already selected. This greedy approach is simple and interpretable, but its result depends on candidate quality and the penalty scale. Hard constraints such as availability or age suitability must be applied before soft diversity scoring. Do not use a diversity penalty to silently override a user’s explicit request. Log only the signals needed for evaluation and provide retention and deletion controls.
+The candidate set bounds everything a ranker can recommend: a relevant item excluded upstream cannot be recovered by better scoring. Maintain exposure logs that record eligible candidates, scores, constraints, and final ranks so an experiment can be reconstructed. Feedback is selective—users only click what they saw—so logged interaction alone is not an unbiased preference label. Use controlled exploration or carefully designed experiments when learning preferences, and make the exploration policy transparent to the product team.
+Offline metrics such as NDCG@k or recall@k help diagnose ranking changes but cannot establish user benefit by themselves. Online experiments should define a primary user outcome and guardrails for hides, complaints, session abandonment, and catalog exposure. Test new and infrequent users separately; average click-through can improve while discovery narrows or a small group receives poor recommendations. Use randomized assignment, stable exposure logging, and enough duration to distinguish novelty effects from durable value.
+
 
 ## Detailed Explanation
 
 Recommendation agents suggest items: personalized ranking, filtering, diversity. Mechanisms: (1) user profile, (2) item features, (3) ranking model, (4) diversity constraint. Advantages: increased engagement, user satisfaction, discovery. Challenges: filter bubbles (only similar content), cold-start (new users, new items), data privacy. Best for: e-commerce, content platforms, music streaming, advertising.
+
+
 
 ## Interview Q&A
 
@@ -23,38 +97,3 @@ A: Systematically test: run the agent on users with known preferences and verify
 
 **Q: What is the difference between collaborative filtering and content-based filtering and when does each fail?**
 A: Collaborative filtering (CF): recommends what similar users liked—fails for cold-start users/items, can create popularity bias (popular items over-recommended), and fails for users with niche tastes (few similar users). Content-based filtering (CBF): recommends items similar in features to what a user liked—fails if item features don't capture what users actually care about, leads to repetitive recommendations ("more of the same"), and doesn't benefit from community knowledge. Hybrid systems combine both: use CBF for cold start, CF for established users, and contextual signals throughout.
-
-
-## Best Practices
-
-1. Diversity over similarity
-2. Freshness (new items)
-3. Privacy preservation
-4. A/B testing
-5. Bias detection
-6. Explainability
-7. User feedback loops
-8. Periodic retraining
-
-## Code Examples
-
-```python
-class RecommendationAgent:
-    def rank(self, user_id, candidate_items):
-        user_profile = self._get_profile(user_id)
-        scores = self._score_items(user_profile, candidate_items)
-        # Add diversity constraint
-        ranked = self._rank_with_diversity(scores)
-        return ranked[:10]  # Top-10
-    
-    def explain(self, user_id, item_id):
-        reasons = []
-        profile = self._get_profile(user_id)
-        if item_id in profile['similar_to_liked']:
-            reasons.append('Similar to items you liked')
-        return reasons
-```
-
-## Related Concepts
-
-- Autonomous Agents, Monitoring, User Feedback

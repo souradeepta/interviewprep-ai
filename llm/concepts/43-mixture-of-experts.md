@@ -1,16 +1,22 @@
 # Mixture of Experts (MoE)
 
-## Detailed Explanation
+Sparse MoE routing activates only selected experts per token but can bottleneck on overloaded experts and cross-device communication.
 
-Mixture of Experts (MoE) is an architectural pattern where a single input is routed to multiple specialized sub-networks ('experts') with a learned gating mechanism selecting which experts to use. This enables building larger, more capable models without proportionally increasing computation per input. A model with 100B parameters can have lower inference cost than a 50B dense model if only 10% of parameters activate per input.
+## Prerequisites
 
-The key insight is conditional computation: not all inputs require all parameters. Some inputs might need experts specialized for mathematics, others for language understanding, others for commonsense reasoning. A gating network learns to route inputs appropriately. Benefits include parameter efficiency (more parameters without more computation), specialization (experts develop specialized knowledge), and implicit ensemble effects (combining multiple expert predictions). Challenges include balancing load (ensuring all experts get used equally), training instability (gating mechanisms need careful optimization), and inference complexity (routing decisions add latency).
+Understand transformer inputs, tensor shapes, and how to evaluate a model on held-out data. This lesson narrows that background to the mechanism and decisions specific to mixture of experts (moe).
 
-MoE powers some of the most capable language models (Switch Transformers, GLaM, Mixtral). Understanding MoE is crucial for scaling language models efficiently and for appreciating how modern large models achieve high capability without proportional compute. It bridges sparse neural networks and practical language model deployment.
+## Learning Outcomes
+
+- Explain the central mechanism and identify its key inputs and outputs.
+- Compare at least two design choices using a quality measure and an operational cost.
+- Diagnose a failure by selecting a workload slice and testing the assumption it violates.
 
 ## Core Intuition
 
 A hospital has many specialists: cardiologists, neurologists, surgeons. When a patient arrives, a triage nurse routes them to the appropriate specialist. You don't need every specialist to examine every patient—just the relevant expert. Mixture of Experts works similarly: input data gets routed to specialized network 'experts' that are most relevant, saving computation.
+
+Sparse MoE routing activates only selected experts per token but can bottleneck on overloaded experts and cross-device communication. A reliable design begins with a simple baseline and makes the specialized method earn its added complexity through measured improvement. Keep the evaluation split and serving constraints fixed so the comparison isolates the design decision.
 
 ## How It Works
 
@@ -28,34 +34,53 @@ graph TD
     B -->|Output| C[Result]
 ```
 
-## Architecture / Trade-offs
+Track top-k assignments, expert utilization, capacity overflow, and quality together under a fixed token batch. Compare alternatives at a fixed input distribution and record both quality and system cost. For image models, vary resolution and patch size; for fusion, vary which modalities are available; for security, exercise allowed and denied actions; for retrieval, separate candidate generation from ranking. These controls make it possible to tell whether a change fixes the intended bottleneck or only moves it.
 
-### MoE Routing Mechanisms
+A useful experiment includes a baseline, a changed condition, and a deliberately difficult case. Use deterministic synthetic examples first to validate logic, then a held-out realistic slice to estimate task impact. Report uncertainty or repeat runs when training randomness can change the result.
 
-```mermaid
-graph TD
-    A["Input x"] -->|Forward through| B["Gating Network<br/>G(x) → [0.7, 0.2, 0.1]"]
-    B -->|Route to top-k| C["Expert 1: 70%<br/>Expert 2: 20%<br/>Expert 3: skip"]
-    C -->|Parallel compute| D["Expert outputs"]
-    D -->|Combine| E["Weighted sum<br/>0.7×E1 + 0.2×E2"]
-    E -->|Output| F["y"]
+## Trade-offs
 
-    style B fill:#f3e5f5
-    style C fill:#e1f5ff
-    style E fill:#fff3e0
+| Design | Benefit | Cost or risk | Decision signal |
+|---|---|---|---|
+| Unconstrained baseline | Keeps the largest set of interactions or evidence | Highest memory, compute, or input burden | Use while the workload fits and quality is the priority |
+| Structured method | Bounds a specific resource or failure path | May exclude useful cases | Use when workload structure justifies the constraint |
+| Learned or approximate method | Can adapt behavior to the task | Adds estimation error and tuning sensitivity | Require slice-level quality checks |
+| Modular fallback | Limits blast radius and supports missing inputs | Adds routing or orchestration work | Use when inputs or permissions vary by request |
+
+## Implementation
+
+The following dependency-light check captures one invariant for the topic. It is a logic check, not a claim of end-to-end model performance.
+
+```python
+scores = [0.1, 0.8, 0.4]
+assert sorted(range(3), key=lambda i: scores[i], reverse=True)[:2] == [1,2]
 ```
 
-### Load Balancing Strategies
+For a full experiment, keep a control implementation and record input shape, data split, model version, batch policy, hardware, and measurement method. Measure warm and steady-state latency separately where compilation or caching is involved. A measured result should state the exact workload and include quality; a microbenchmark cannot establish user-facing benefit by itself.
 
-| Strategy | Balancing | Training Cost | Quality | Sparsity |
-|----------|-----------|---------------|---------|----------|
-| **Load loss** | High (forces equal) | Medium | Lower | Fixed |
-| **Auxiliary loss** | Medium | Low | Medium | Variable |
-| **Token choice** | Low (learned routing) | Low | Higher | Variable |
-| **Expert dropout** | Dynamic | Medium | Variable | Variable |
-| **Expert scaling** | Per-expert | High | Higher | Adaptive |
-## Interview Q&A
+## Failure Modes
 
+- Routing concentrates tokens on a few experts; inspect the utilization histogram. Diagnose by logging the topic-specific signal and comparing it with the expected input contract.
+- Capacity overflow drops tokens; measure dropped-token rate at peak load. Build a targeted edge case and check whether the failure is systematic across a meaningful slice.
+- All-to-all communication erases compute savings; profile across realistic device topology. Compare against the baseline and monitor the affected quality or tail-cost metric after rollout.
+
+## Interview Quick Reference
+
+| Question | Expected answer |
+|---|---|
+| What is the design’s central mechanism? | Sparse MoE routing activates only selected experts per token but can bottleneck on overloaded experts and cross-device communication. Name its assumptions and the resource or behavior it changes. |
+| What alternative would you evaluate? | Compare the unconstrained baseline with a structured or modular approach on the same task and budget. |
+| How would you investigate a regression? | Slice the affected workload, test the violated assumption, and compare with a control path. |
+
+**Debugging follow-up:** Routing concentrates tokens on a few experts; inspect the utilization histogram. What would you log, what held-out case would you add, and which metric would trigger rollback?
+
+## Related Concepts
+
+Read [attention optimization](24-attention-optimization.md), [evaluation](32-evaluation.md), and the [associated notebook](../notebooks/43-mixture-of-experts.ipynb). Drill: [practice question](../interview-prep/curriculum-practice.md#mixture-of-experts-moe).
+
+References: [primary source](https://arxiv.org/abs/1701.06538); [technical reference](https://arxiv.org/abs/2101.03961).
+
+### Existing interview notes
 
 **Q: How does MoE reduce inference cost?**
 A: Selective activation: if 128 experts but use 2, only compute for 2 experts. O(param_count / num_experts) speedup. Example: 1T model with 8 experts, use 2 → 14x speedup vs full model. Tradeoff: need specialized routing.
@@ -71,28 +96,3 @@ A: Sparse: each input uses small subset of experts (k=2 of 128). Dense: each inp
 
 **Q: How do you handle MoE in distributed training?**
 A: Challenge: experts might be unbalanced across devices (some devices compute more). Solution: (1) expert parallelism (distribute experts across devices), (2) dynamic load balancing (move computation to balance load), (3) auxiliary loss to encourage balanced expert usage.
-
-
-## Best Practices
-
-- Apply best practices specific to this concept
-- Consider edge cases and failure modes
-- Test on representative data
-- Evaluate comprehensively
-
-## Common Pitfalls
-
-- Avoid over-simplification
-- Watch for incorrect assumptions
-- Test edge cases thoroughly
-- Monitor for degradation
-
-## Code Examples
-
-See the associated notebook for implementation and real-world examples.
-
-## Related Concepts
-
-- Understand prerequisites first
-- Connect related topics
-- Build integrated knowledge

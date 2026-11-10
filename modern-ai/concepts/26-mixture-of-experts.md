@@ -1,100 +1,86 @@
 # Mixture of Experts Routing
 
-## Detailed Explanation
+**TL;DR:** A router activates a small selected set of expert feed-forward networks for each token; capacity and balancing determine whether sparse compute remains useful.
 
-Mixture of Experts (MoE) and long context are critical techniques for modern LLMs:
+## Prerequisites
 
-**MoE** enables scaling to trillion-parameter models with sparse activation. Instead of using all parameters, a gating network routes each token to only k expert subnetworks. This achieves 3-4x speedup while maintaining or improving quality. Mixtral 8x7B (2x parameters of 7B single model, <50% extra compute) demonstrates the efficiency gains. DeepSeek-V2 uses 64 experts with auxiliary-loss-free load balancing.
+[Transformer architecture](11-flash-attention.md) and softmax classification.
 
-**Long Context** extends models from 4K tokens (BERT era) to 128K-1M tokens (2026). Techniques like RoPE, position interpolation, and sparse attention enable efficient long-range reasoning. Critical for RAG systems, code analysis, and document understanding where context is key.
+## Learning Outcomes
+
+- Describe top-k routing and weighted expert aggregation.
+- Calculate per-expert capacity from token count, expert count, top-k and capacity factor.
+- Interpret a load-balance proxy alongside per-expert counts.
+- Diagnose overflow from measured routing counts.
 
 ## Core Intuition
-Imagine a company with 100 expert employees where each task only needs 2 specialists. Instead of activating everyone (100% compute), you route each task to the right 2 people. The router learns who handles what. By year-end, you've done the same work with only 2% of total activation cost.
+
+Think of a help desk with specialists. Each request is sent to its most relevant specialists, which saves work compared with asking every specialist to answer. But if every request goes to the same popular specialist, the queue erases the compute savings. An MoE layer has the same tension: sparse activation reduces expert computation while routing imbalance and all-to-all communication can dominate.
 
 ## How It Works
 
-1. **Compute gating logits**: Pass input through linear gate: h(x) = x·W_g ∈ ℝ^{num_experts}
-2. **Select top-k experts**: Apply TopK(softmax(h(x)), k=2) to get sparse selection
-3. **Normalize scores**: Re-normalize selected expert weights to sum to 1
-4. **Capacity check**: Each expert has capacity = ceil(capacity_factor × tokens / num_experts). Tokens exceeding capacity are dropped (passed through residual)
-5. **Weighted aggregation**: Output = Σ(g_i × E_i(x)) for selected experts only
+For token representation \(x_t\), a learned gate computes logits \(z_t=W_gx_t\) and probabilities \(p_{t,i}=softmax(z_t)_i\). Top-k selects experts \(S_t\); selected weights are commonly normalized to sum to one, and the output is \(y_t=\sum_{i\in S_t}w_{t,i}E_i(x_t)\). The number of stored parameters can be large while only k expert networks are active per token. This is not a guarantee of lower end-to-end latency: dispatch, communication, padding and small batches matter.
 
-```mermaid
-graph TD
-    A[Input Tokens] --> B[Gate Network]
-    B --> C{TopK Selection}
-    C --> D[Expert 1]
-    C --> E[Expert 2]
-    D --> F[Weighted Sum]
-    E --> F
-    F --> G[Output]
+With T tokens, E experts and top-k, a common token capacity is \(C=\lceil cTk/E\rceil\), where c is the capacity factor. Once an expert reaches C, additional assignments may be dropped, rerouted, or handled by a fallback. The notebook uses a deterministic greedy cap and counts each rejected assignment; production implementations differ in overflow policy. One auxiliary balance proxy is \(E\sum_i f_iP_i\), where f is the observed assignment fraction and P is mean router probability. It is useful as a training signal, not a standalone quality metric.
+
+Routing statistics should be read as a distribution, not one scalar. The assignment histogram reveals which experts execute; the probability histogram reveals what the gate preferred before capacity enforcement. These can disagree: a popular expert can be clipped by capacity, making accepted counts look balanced while many tokens were actually diverted. Record both pre-cap choices and final execution counts, along with dropped or fallback assignments. Report the metrics by layer and by batch because averaging layers can conceal one collapsed router.
+
+The load-balance proxy is derived from the relationship between hard assignments and soft gate probabilities. f_i summarizes discrete traffic while P_i summarizes router preference. When both concentrate on the same expert, their product contributes more loss. This auxiliary objective is added to the main task objective with a weight; increasing that weight can distribute tokens but may also oppose useful specialization. Tune against validation quality and routing health rather than assuming uniform traffic is always optimal. Different domains can legitimately favor different experts.
+
+Capacity is a batch-level constraint. If tokens are unevenly distributed, the expected average T·k/E is not a safe per-expert maximum. A capacity factor provides slack, but slack may increase padding, memory reservation and communication. Small batches have especially noisy routing: one extra token can materially alter an expert's load. At inference, request composition changes over time, so capacity policy should be exercised on bursty, skewed batches instead of only a balanced synthetic batch.
+
+Top-k routing also changes the gradient path. A hard top-k decision is discrete, while selected gate weights remain differentiable. Training therefore relies on the selected-expert path plus auxiliary signals and may have weak feedback for experts that never get selected. Router initialization, noise, warm-up and expert-specific learning dynamics can affect whether specialization emerges. When training is unstable, inspect router-logit scale and entropy as well as loss curves; clipping gradients alone will not repair a gate that routes nearly every token identically.
+
+Finally, sparse arithmetic does not imply sparse system work. Tokens must be grouped by destination, transported to expert devices when model parallelism is used, evaluated, then returned to their original order. This dispatch path can dominate for short sequences or modest batches. Measure token counts and bytes per expert, padding fraction, all-to-all time and expert kernel utilization on the intended accelerator configuration. A dense baseline with fewer parameters can win on latency even while doing more nominal multiply-adds.
+
+## Trade-offs
+
+| Choice | Benefit | Cost or boundary |
+|---|---|---|
+| Top-1 | Fewer expert evaluations | Less routing redundancy; sensitive to a bad top expert |
+| Top-2 | More chance to combine useful specialists | More compute and dispatch traffic |
+| Larger capacity factor | Fewer overflow assignments | More padding or reserved memory |
+| Auxiliary balance loss | Encourages utilization | Can conflict with specialization if over-weighted |
+
+Use MoE when sparse expert computation justifies its memory and communication complexity. A dense layer may be preferable for small models, low batch sizes, or hardware without efficient expert dispatch.
+
+## Implementation with Python
+
+Run `python3 modern-ai/implementations/26-mixture-of-experts.py`. The fixed gate logits route six tokens over three experts; the program prints capacity, accepted counts, overflow rate and a load-balance proxy for several capacity factors. This is accounting, not a learned router or benchmark.
+
+```python
+from pathlib import Path
+import runpy
+route = runpy.run_path("modern-ai/implementations/26-mixture-of-experts.py")["route"]
+result = route([[4, 1, 0], [3, 2, 0], [0, 2, 4]], k=2, capacity_factor=1)
+assert result["dropped_token_rate"] >= 0
+print(result["counts"], result["load_balance_loss"])
 ```
 
-## Architecture / Trade-offs
+## Failure Modes
 
-| Aspect | MoE | Single Dense |
-|--------|-----|-------------|
-| Active Parameters | k/n% | 100% |
-| Compute | Low | High |
-| Quality | Higher | Baseline |
-| Implementation | Complex | Simple |
-| Load Balancing | Required | N/A |
+| Failure | Signal | Response |
+|---|---|---|
+| Router collapse | One expert receives most assignments | Inspect per-expert counts and gate entropy; adjust balancing or initialization |
+| Silent overflow | Nonzero dropped-assignment rate | Measure drops by layer and test a larger capacity or alternate overflow policy |
+| Communication dominates | High expert-parallel transfer time despite low FLOPs | Profile dispatch and compare against dense execution at actual batch sizes |
 
-**Key Trade-offs**:
-- More experts (n): better quality, harder to balance
-- Higher k: more compute, better quality
-- Larger capacity_factor: more memory, fewer drops
+- Router collapse: per-expert counts concentrate on one destination; inspect logits and entropy by layer, then test balancing and initialization changes.
+- Silent overflow: accepted token counts hide rejected assignments; log pre-cap routes and dropped rate, then tune capacity or fallback policy.
+- Communication dominates: low arithmetic does not translate to lower latency; profile dispatch bytes, all-to-all time and expert utilization at target batch sizes.
 
-## Design Challenges
+## Interview Quick Reference
 
-1. **Load Imbalance**: Some experts overloaded, others empty. Fix: auxiliary loss L_aux = α·Σ f_i·P_i with α=0.01-0.001
-2. **Token Dropping**: Capacity exceeded, tokens dropped. Fix: increase capacity_factor to 1.25-2.0
-3. **Communication Overhead**: In distributed setting, all-gather of expert outputs. Fix: expert parallelism via careful sharding
+| Question | Expected answer / follow-up |
+|---|---|
+| Why can MoE increase parameter count without proportional active compute? | Only top-k experts run per token; ask how router and dispatch costs change latency. |
+| What does a capacity factor control? | The per-expert assignment ceiling; follow up with the quality impact of dropping tokens. |
+| How would you detect routing collapse? | Per-expert assignment/probability histograms and overflow by layer; do not infer balance from aggregate throughput. |
 
-## Interview Q&A
+## Related Concepts
 
-**Q1: How do you prevent load imbalance where some experts get overloaded?**
-A: Use auxiliary loss L_aux that penalizes imbalanced routing. Set α=0.01 and monitor f_i distribution. Also increase capacity_factor to 1.25 to provide buffer.
-**Q2: What's the trade-off between Top-1 and Top-2 routing?**
-A: Top-1: 1x compute per token, max efficiency, higher drop rate. Top-2: 2x compute, 2% quality gain, lower drops. Mixtral uses Top-2 as sweet spot.
-**Q3: How do you handle token dropout during inference?**
-A: Increase capacity_factor from 1.0 (training) to 2.0 (inference). Reserve extra buffer so no tokens are dropped. Monitor expert utilization.
-**Q4: Can you use learned routing instead of softmax TopK?**
-A: Yes, use learned gates with sigmoid or gumbel-softmax. More flexible but harder to train. DeepSeek uses biased gating for auxiliary-loss-free routing.
+Next: [Router learning](39-router-learning.md), [conditional computation](53-conditional-computation.md). The matching exercise is [notebook 26](../notebooks/26-mixture-of-experts.ipynb) and [inference interview practice](../interview-prep/inference-systems.md#mixture-of-experts).
 
-## Best Practices
+## References
 
-- **Auxiliary Loss**: Always use L_aux in training. Monitor f_i (expert routing fraction). If any expert < 5%, increase α or improve initialization
-- **Capacity Factor**: Use 1.0 during training (tight), 2.0 during inference (loose). Prevents drops under batch variation
-- **Expert Initialization**: Initialize gate W_g small (~0.1 std) so experts start equally likely. Large init causes early collapse
-- **Load Balancing**: Monitor expert utilization per batch. Ideal: uniform distribution. Use load_balance_loss_weight based on deviation
-- **Top-K Selection**: Start with Top-2 (safe), move to Top-1 if compute budget tight. Never use Top-1 without strong loss monitoring
-- **Inference Optimization**: Batch requests to fill expert capacity. Use dynamic batching to group by predicted expert
-- **Distributed Training**: Use expert parallelism (experts on different GPUs) for large models. Minimize all-gather communication
-
-## Common Pitfalls
-
-- **Token dropping silently degrades quality if capacity_factor too low. Always monitor drop rate.**: Token dropping silently degrades quality if capacity_factor too low. Always monitor drop rate.
-- **Load imbalance between experts causes GPU underutilization. Increase α or improve load balancing.**: Load imbalance between experts causes GPU underutilization. Increase α or improve load balancing.
-- **Training instability from sparse gradients. Use gradient clipping and careful learning rate scheduling.**: Training instability from sparse gradients. Use gradient clipping and careful learning rate scheduling.
-
-## Key Formula
-
-L_aux = α·N_E·Σ(f_i·P_i), where f_i = fraction routed to expert i, P_i = mean probability allocated, α = 0.01
-
-## Production Considerations
-
-- **Monitoring**: Track expert utilization, token drop rate, auxiliary loss weight, gate entropy
-- **Scaling**: MoE scales to 1T+ parameters. Distribution across devices critical
-- **Cost Tradeoff**: More experts = more memory (expert weights). 8 experts is sweet spot for 7B-70B range
-- **Inference Batching**: Important to batch to amortize expert activations. Single-sample inference underutilizes experts
-
----
-
-**Related Concepts**: 
-- Token Pruning (36): Remove unimportant tokens before MoE
-- Router Learning (39): Learn routing policies adaptively
-- Conditional Computation (53): Gate subnetworks dynamically
-
-**Notebook**: `modern-ai/notebooks/mixture-of-experts.ipynb`
-**Implementation**: `modern-ai/implementations/mixture-of-experts.py`
+[GShard](https://arxiv.org/abs/2006.16668) and [Switch Transformers](https://arxiv.org/abs/2101.03961).
