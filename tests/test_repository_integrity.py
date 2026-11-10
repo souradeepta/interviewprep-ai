@@ -1,6 +1,7 @@
 """Repository-level checks for links and representative notebook execution."""
 
 import importlib.util
+import json
 import sys
 from pathlib import Path
 
@@ -9,31 +10,15 @@ import pytest
 
 
 ROOT = Path(__file__).resolve().parents[1]
-SMOKE_NOTEBOOKS = (
-    ROOT / "stats/notebooks/08-ab-testing-statistics.ipynb",
-    ROOT / "cv/notebooks/05-contrastive-learning-vision.ipynb",
-    # Most generated LLM notebooks load remote model weights; these five are
-    # dependency-light deterministic curriculum pilots and execute locally.
-    ROOT / "llm/notebooks/00-concept-map.ipynb",
-    ROOT / "llm/notebooks/09-adapters.ipynb",
-    ROOT / "llm/notebooks/13-few-shot-learning.ipynb",
-    ROOT / "llm/notebooks/15-in-context-learning.ipynb",
-    ROOT / "llm/notebooks/16-chain-of-thought.ipynb",
-    ROOT / "llm/notebooks/18-rag.ipynb",
-    ROOT / "llm/notebooks/23-kv-cache.ipynb",
-    ROOT / "llm/notebooks/24-attention-optimization.ipynb",
-    ROOT / "llm/notebooks/26-continuous-batching.ipynb",
-    ROOT / "llm/notebooks/30-quantization.ipynb",
-    ROOT / "llm/notebooks/32-evaluation.ipynb",
-    ROOT / "nlp/notebooks/01-text-preprocessing.ipynb",
-    ROOT / "rl/notebooks/01-markov-decision-processes.ipynb",
-    ROOT / "ai/notebooks/01-gradient-descent.ipynb",
-    # Dependency-light representatives from previously uncovered tracks.
-    ROOT / "agentic-ai/notebooks/11-memory-types.ipynb",
-    ROOT / "modern-ai/notebooks/26-mixture-of-experts.ipynb",
-    ROOT / "mlops/notebooks/16-deployment-strategies.ipynb",
-    ROOT / "papers/agents/notebooks/01-chain-of-thought.ipynb",
+TIER_LEDGER = json.loads((ROOT / "data/notebook_execution_tiers.json").read_text())
+TIER_ROWS = {row["path"]: row for row in TIER_LEDGER["notebooks"]}
+SMOKE_NOTEBOOKS = tuple(ROOT / path for path, row in TIER_ROWS.items() if row["tier"] == 2)
+CLASSIFIER_SPEC = importlib.util.spec_from_file_location(
+    "classify_notebook_tiers", ROOT / "scripts/classify_notebook_tiers.py"
 )
+assert CLASSIFIER_SPEC and CLASSIFIER_SPEC.loader
+CLASSIFIER = importlib.util.module_from_spec(CLASSIFIER_SPEC)
+CLASSIFIER_SPEC.loader.exec_module(CLASSIFIER)
 
 ML_INTERVIEW_TOPICS = (
     "rejection sampling",
@@ -55,6 +40,29 @@ def load_link_auditor():
 def test_active_markdown_links_are_valid():
     auditor = load_link_auditor()
     assert auditor.audit(ROOT) == []
+
+
+def test_execution_tier_ledger_covers_every_tracked_notebook():
+    # Git files are authoritative; ignored/generated notebooks do not belong in the matrix.
+    import subprocess
+    tracked = set(subprocess.check_output(["git", "ls-files", "*.ipynb"], cwd=ROOT, text=True).splitlines())
+    assert set(TIER_ROWS) == tracked
+    assert all(row["tier"] in {1, 2, 3} for row in TIER_ROWS.values())
+    assert all(row.get("reason") for row in TIER_ROWS.values())
+    assert all(row.get("alternative_check") for row in TIER_ROWS.values() if row["tier"] == 3)
+    assert all(CLASSIFIER.classify(path) == row for path, row in TIER_ROWS.items())
+    assert len(TIER_LEDGER["tier3_representatives"]) == 4
+    for representative in TIER_LEDGER["tier3_representatives"]:
+        row = TIER_ROWS[representative["path"]]
+        assert row["tier"] == 3
+        assert representative["check"]
+        if "evidence_import" in representative:
+            assert representative["evidence_import"] in row["detected_imports"]
+        if "evidence_call" in representative:
+            assert representative["evidence_call"] in row["detected_resource_calls"]
+    for relative in tracked:
+        notebook = json.loads((ROOT / relative).read_text(encoding="utf-8"))
+        nbformat.validate(notebook)
 
 
 def test_ml_interview_material_covers_recently_recurring_topics():

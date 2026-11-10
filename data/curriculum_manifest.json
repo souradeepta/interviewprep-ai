@@ -3,10 +3,86 @@
   "title": "InterviewPrep AI curriculum audit manifest",
   "description": "Audited inventory of instructional tracks governed by the curriculum content contract.",
   "entry_lessons": [
-    "ml/supervised-learning",
+    "ai/activation-functions",
+    "ai/actor-critic-methods",
+    "ai/anomaly-detection",
+    "ai/backpropagation",
+    "ai/batch-normalization",
+    "ai/bayesian-inference",
+    "ai/bias-variance-tradeoff",
+    "ai/causal-inference",
+    "ai/classification-metrics",
+    "ai/cross-validation",
+    "ai/decision-trees",
+    "ai/dimensionality-reduction",
+    "ai/ensemble-methods",
+    "ai/feature-engineering",
+    "ai/gaussian-mixture-models",
+    "ai/generative-adversarial-networks",
+    "ai/gradient-boosting",
+    "ai/gradient-descent",
+    "ai/graph-neural-networks",
+    "ai/hyperparameter-tuning",
+    "ai/k-means-clustering",
+    "ai/k-nearest-neighbors",
+    "ai/learning-rate-scheduling",
+    "ai/linear-regression",
+    "ai/logistic-regression",
+    "ai/loss-functions",
+    "ai/markov-decision-processes",
+    "ai/neural-networks",
+    "ai/optimization-algorithms",
+    "ai/policy-gradients",
+    "ai/probabilistic-graphical-models",
+    "ai/q-learning",
+    "ai/random-forests",
+    "ai/regression-metrics",
+    "ai/regularization",
+    "ai/reinforcement-learning-basics",
+    "ai/support-vector-machines",
+    "ai/time-series-forecasting",
+    "ai/variational-autoencoders",
+    "ai/weight-initialization",
+    "cv/contrastive-learning-vision",
+    "cv/diffusion-models",
+    "cv/image-classification",
+    "cv/image-segmentation",
+    "cv/multimodal-vision-llm",
+    "cv/object-detection",
+    "cv/video-understanding",
+    "cv/vision-transformers",
+    "llm/tokenization",
     "ml/probability-statistics",
+    "ml/supervised-learning",
     "mlops/monitoring-alert-design",
-    "llm/tokenization"
+    "nlp/bert-and-pretraining",
+    "nlp/information-retrieval",
+    "nlp/named-entity-recognition",
+    "nlp/recurrent-neural-networks",
+    "nlp/seq2seq-attention",
+    "nlp/text-classification",
+    "nlp/text-preprocessing",
+    "nlp/word-embeddings",
+    "rl/actor-critic",
+    "rl/bellman-equations",
+    "rl/deep-q-networks",
+    "rl/dynamic-programming-rl",
+    "rl/exploration-exploitation",
+    "rl/inverse-rl",
+    "rl/markov-decision-processes",
+    "rl/model-based-rl",
+    "rl/monte-carlo-methods",
+    "rl/multi-agent-rl",
+    "rl/multi-armed-bandit",
+    "rl/offline-rl",
+    "rl/policy-gradient",
+    "rl/proximal-policy-optimization",
+    "rl/q-learning",
+    "rl/reward-shaping",
+    "rl/rlhf",
+    "rl/sarsa",
+    "rl/soft-actor-critic",
+    "rl/temporal-difference-learning"
   ],
   "lessons": [
     {
@@ -3452,9 +3528,1298 @@
       ],
       "estimated_minutes": 60,
       "quality_status": "required"
+    },
+    {
+      "id": "ai/gradient-descent",
+      "track": "ai",
+      "level": "foundation",
+      "concept": "ai/concepts/01-gradient-descent.md",
+      "notebook": "ai/notebooks/01-gradient-descent.ipynb",
+      "implementation": "ai/implementations/01-gradient-descent.py",
+      "prerequisites": [],
+      "outcomes": [
+        "Explain the core idea of Gradient Descent.",
+        "Apply Gradient Descent to a stated example or constraint."
+      ],
+      "practice": [],
+      "estimated_minutes": 45,
+      "quality_status": "baseline"
+    },
+    {
+      "id": "ai/backpropagation",
+      "track": "ai",
+      "level": "foundation",
+      "concept": "ai/concepts/02-backpropagation.md",
+      "notebook": "ai/notebooks/02-backpropagation.ipynb",
+      "implementation": "ai/implementations/02-backpropagation.py",
+      "prerequisites": [],
+      "outcomes": [
+        "Explain the core idea of Backpropagation.",
+        "Apply Backpropagation to a stated example or constraint."
+      ],
+      "practice": [],
+      "estimated_minutes": 45,
+      "quality_status": "baseline"
+    },
+    {
+      "id": "ai/loss-functions",
+      "track": "ai",
+      "level": "intermediate",
+      "concept": "ai/concepts/03-loss-functions.md",
+      "notebook": "ai/notebooks/03-loss-functions.ipynb",
+      "implementation": "ai/implementations/03-loss-functions.py",
+      "prerequisites": [],
+      "outcomes": [
+        "Explain the core idea of Loss Functions.",
+        "Apply Loss Functions to a stated example or constraint."
+      ],
+      "practice": [],
+      "estimated_minutes": 45,
+      "quality_status": "baseline"
+    },
+    {
+      "id": "ai/optimization-algorithms",
+      "track": "ai",
+      "level": "intermediate",
+      "concept": "ai/concepts/04-optimization-algorithms.md",
+      "notebook": "ai/notebooks/04-optimization-algorithms.ipynb",
+      "implementation": "ai/implementations/04-optimization-algorithms.py",
+      "prerequisites": [],
+      "outcomes": [
+        "Explain the core idea of Optimization Algorithms.",
+        "Apply Optimization Algorithms to a stated example or constraint."
+      ],
+      "practice": [],
+      "estimated_minutes": 45,
+      "quality_status": "baseline"
+    },
+    {
+      "id": "ai/learning-rate-scheduling",
+      "track": "ai",
+      "level": "intermediate",
+      "concept": "ai/concepts/05-learning-rate-scheduling.md",
+      "notebook": "ai/notebooks/05-learning-rate-scheduling.ipynb",
+      "implementation": "ai/implementations/05-learning-rate-scheduling.py",
+      "prerequisites": [],
+      "outcomes": [
+        "Explain the core idea of Learning Rate Scheduling.",
+        "Apply Learning Rate Scheduling to a stated example or constraint."
+      ],
+      "practice": [],
+      "estimated_minutes": 45,
+      "quality_status": "baseline"
+    },
+    {
+      "id": "ai/linear-regression",
+      "track": "ai",
+      "level": "intermediate",
+      "concept": "ai/concepts/06-linear-regression.md",
+      "notebook": "ai/notebooks/06-linear-regression.ipynb",
+      "implementation": "ai/implementations/06-linear-regression.py",
+      "prerequisites": [],
+      "outcomes": [
+        "Explain the core idea of Linear Regression.",
+        "Apply Linear Regression to a stated example or constraint."
+      ],
+      "practice": [],
+      "estimated_minutes": 45,
+      "quality_status": "baseline"
+    },
+    {
+      "id": "ai/logistic-regression",
+      "track": "ai",
+      "level": "intermediate",
+      "concept": "ai/concepts/07-logistic-regression.md",
+      "notebook": "ai/notebooks/07-logistic-regression.ipynb",
+      "implementation": "ai/implementations/07-logistic-regression.py",
+      "prerequisites": [],
+      "outcomes": [
+        "Explain the core idea of Logistic Regression.",
+        "Apply Logistic Regression to a stated example or constraint."
+      ],
+      "practice": [],
+      "estimated_minutes": 45,
+      "quality_status": "baseline"
+    },
+    {
+      "id": "ai/decision-trees",
+      "track": "ai",
+      "level": "intermediate",
+      "concept": "ai/concepts/08-decision-trees.md",
+      "notebook": "ai/notebooks/08-decision-trees.ipynb",
+      "implementation": "ai/implementations/08-decision-trees.py",
+      "prerequisites": [],
+      "outcomes": [
+        "Explain the core idea of Decision Trees.",
+        "Apply Decision Trees to a stated example or constraint."
+      ],
+      "practice": [],
+      "estimated_minutes": 45,
+      "quality_status": "baseline"
+    },
+    {
+      "id": "ai/random-forests",
+      "track": "ai",
+      "level": "intermediate",
+      "concept": "ai/concepts/09-random-forests.md",
+      "notebook": "ai/notebooks/09-random-forests.ipynb",
+      "implementation": "ai/implementations/09-random-forests.py",
+      "prerequisites": [],
+      "outcomes": [
+        "Explain the core idea of Random Forests.",
+        "Apply Random Forests to a stated example or constraint."
+      ],
+      "practice": [],
+      "estimated_minutes": 45,
+      "quality_status": "baseline"
+    },
+    {
+      "id": "ai/gradient-boosting",
+      "track": "ai",
+      "level": "intermediate",
+      "concept": "ai/concepts/10-gradient-boosting.md",
+      "notebook": "ai/notebooks/10-gradient-boosting.ipynb",
+      "implementation": "ai/implementations/10-gradient-boosting.py",
+      "prerequisites": [],
+      "outcomes": [
+        "Explain the core idea of Gradient Boosting.",
+        "Apply Gradient Boosting to a stated example or constraint."
+      ],
+      "practice": [],
+      "estimated_minutes": 45,
+      "quality_status": "baseline"
+    },
+    {
+      "id": "ai/support-vector-machines",
+      "track": "ai",
+      "level": "intermediate",
+      "concept": "ai/concepts/11-support-vector-machines.md",
+      "notebook": "ai/notebooks/11-support-vector-machines.ipynb",
+      "implementation": "ai/implementations/11-support-vector-machines.py",
+      "prerequisites": [],
+      "outcomes": [
+        "Explain the core idea of Support Vector Machines.",
+        "Apply Support Vector Machines to a stated example or constraint."
+      ],
+      "practice": [],
+      "estimated_minutes": 45,
+      "quality_status": "baseline"
+    },
+    {
+      "id": "ai/k-nearest-neighbors",
+      "track": "ai",
+      "level": "intermediate",
+      "concept": "ai/concepts/12-k-nearest-neighbors.md",
+      "notebook": "ai/notebooks/12-k-nearest-neighbors.ipynb",
+      "implementation": "ai/implementations/12-k-nearest-neighbors.py",
+      "prerequisites": [],
+      "outcomes": [
+        "Explain the core idea of K-Nearest Neighbors.",
+        "Apply K-Nearest Neighbors to a stated example or constraint."
+      ],
+      "practice": [],
+      "estimated_minutes": 45,
+      "quality_status": "baseline"
+    },
+    {
+      "id": "ai/neural-networks",
+      "track": "ai",
+      "level": "intermediate",
+      "concept": "ai/concepts/13-neural-networks.md",
+      "notebook": "ai/notebooks/13-neural-networks.ipynb",
+      "implementation": "ai/implementations/13-neural-networks.py",
+      "prerequisites": [],
+      "outcomes": [
+        "Explain the core idea of Neural Networks.",
+        "Apply Neural Networks to a stated example or constraint."
+      ],
+      "practice": [],
+      "estimated_minutes": 45,
+      "quality_status": "baseline"
+    },
+    {
+      "id": "ai/activation-functions",
+      "track": "ai",
+      "level": "intermediate",
+      "concept": "ai/concepts/14-activation-functions.md",
+      "notebook": "ai/notebooks/14-activation-functions.ipynb",
+      "implementation": "ai/implementations/14-activation-functions.py",
+      "prerequisites": [],
+      "outcomes": [
+        "Explain the core idea of Activation Functions.",
+        "Apply Activation Functions to a stated example or constraint."
+      ],
+      "practice": [],
+      "estimated_minutes": 45,
+      "quality_status": "baseline"
+    },
+    {
+      "id": "ai/weight-initialization",
+      "track": "ai",
+      "level": "intermediate",
+      "concept": "ai/concepts/15-weight-initialization.md",
+      "notebook": "ai/notebooks/15-weight-initialization.ipynb",
+      "implementation": "ai/implementations/15-weight-initialization.py",
+      "prerequisites": [],
+      "outcomes": [
+        "Explain the core idea of Weight Initialization.",
+        "Apply Weight Initialization to a stated example or constraint."
+      ],
+      "practice": [],
+      "estimated_minutes": 45,
+      "quality_status": "baseline"
+    },
+    {
+      "id": "ai/regularization",
+      "track": "ai",
+      "level": "intermediate",
+      "concept": "ai/concepts/16-regularization.md",
+      "notebook": "ai/notebooks/16-regularization.ipynb",
+      "implementation": "ai/implementations/16-regularization.py",
+      "prerequisites": [],
+      "outcomes": [
+        "Explain the core idea of Regularization.",
+        "Apply Regularization to a stated example or constraint."
+      ],
+      "practice": [],
+      "estimated_minutes": 45,
+      "quality_status": "baseline"
+    },
+    {
+      "id": "ai/batch-normalization",
+      "track": "ai",
+      "level": "intermediate",
+      "concept": "ai/concepts/17-batch-normalization.md",
+      "notebook": "ai/notebooks/17-batch-normalization.ipynb",
+      "implementation": "ai/implementations/17-batch-normalization.py",
+      "prerequisites": [],
+      "outcomes": [
+        "Explain the core idea of Batch Normalization.",
+        "Apply Batch Normalization to a stated example or constraint."
+      ],
+      "practice": [],
+      "estimated_minutes": 45,
+      "quality_status": "baseline"
+    },
+    {
+      "id": "ai/k-means-clustering",
+      "track": "ai",
+      "level": "intermediate",
+      "concept": "ai/concepts/18-k-means-clustering.md",
+      "notebook": "ai/notebooks/18-k-means-clustering.ipynb",
+      "implementation": "ai/implementations/18-k-means-clustering.py",
+      "prerequisites": [],
+      "outcomes": [
+        "Explain the core idea of K-Means Clustering.",
+        "Apply K-Means Clustering to a stated example or constraint."
+      ],
+      "practice": [],
+      "estimated_minutes": 45,
+      "quality_status": "baseline"
+    },
+    {
+      "id": "ai/dimensionality-reduction",
+      "track": "ai",
+      "level": "intermediate",
+      "concept": "ai/concepts/19-dimensionality-reduction.md",
+      "notebook": "ai/notebooks/19-dimensionality-reduction.ipynb",
+      "implementation": "ai/implementations/19-dimensionality-reduction.py",
+      "prerequisites": [],
+      "outcomes": [
+        "Explain the core idea of Dimensionality Reduction.",
+        "Apply Dimensionality Reduction to a stated example or constraint."
+      ],
+      "practice": [],
+      "estimated_minutes": 45,
+      "quality_status": "baseline"
+    },
+    {
+      "id": "ai/gaussian-mixture-models",
+      "track": "ai",
+      "level": "intermediate",
+      "concept": "ai/concepts/20-gaussian-mixture-models.md",
+      "notebook": "ai/notebooks/20-gaussian-mixture-models.ipynb",
+      "implementation": "ai/implementations/20-gaussian-mixture-models.py",
+      "prerequisites": [],
+      "outcomes": [
+        "Explain the core idea of Gaussian Mixture Models.",
+        "Apply Gaussian Mixture Models to a stated example or constraint."
+      ],
+      "practice": [],
+      "estimated_minutes": 45,
+      "quality_status": "baseline"
+    },
+    {
+      "id": "ai/bias-variance-tradeoff",
+      "track": "ai",
+      "level": "intermediate",
+      "concept": "ai/concepts/21-bias-variance-tradeoff.md",
+      "notebook": "ai/notebooks/21-bias-variance-tradeoff.ipynb",
+      "implementation": "ai/implementations/21-bias-variance-tradeoff.py",
+      "prerequisites": [],
+      "outcomes": [
+        "Explain the core idea of Bias-Variance Tradeoff.",
+        "Apply Bias-Variance Tradeoff to a stated example or constraint."
+      ],
+      "practice": [],
+      "estimated_minutes": 45,
+      "quality_status": "baseline"
+    },
+    {
+      "id": "ai/cross-validation",
+      "track": "ai",
+      "level": "intermediate",
+      "concept": "ai/concepts/22-cross-validation.md",
+      "notebook": "ai/notebooks/22-cross-validation.ipynb",
+      "implementation": "ai/implementations/22-cross-validation.py",
+      "prerequisites": [],
+      "outcomes": [
+        "Explain the core idea of Cross-Validation.",
+        "Apply Cross-Validation to a stated example or constraint."
+      ],
+      "practice": [],
+      "estimated_minutes": 45,
+      "quality_status": "baseline"
+    },
+    {
+      "id": "ai/classification-metrics",
+      "track": "ai",
+      "level": "intermediate",
+      "concept": "ai/concepts/23-classification-metrics.md",
+      "notebook": "ai/notebooks/23-classification-metrics.ipynb",
+      "implementation": "ai/implementations/23-classification-metrics.py",
+      "prerequisites": [],
+      "outcomes": [
+        "Explain the core idea of Classification Metrics.",
+        "Apply Classification Metrics to a stated example or constraint."
+      ],
+      "practice": [],
+      "estimated_minutes": 45,
+      "quality_status": "baseline"
+    },
+    {
+      "id": "ai/regression-metrics",
+      "track": "ai",
+      "level": "intermediate",
+      "concept": "ai/concepts/24-regression-metrics.md",
+      "notebook": "ai/notebooks/24-regression-metrics.ipynb",
+      "implementation": "ai/implementations/24-regression-metrics.py",
+      "prerequisites": [],
+      "outcomes": [
+        "Explain the core idea of Regression Metrics.",
+        "Apply Regression Metrics to a stated example or constraint."
+      ],
+      "practice": [],
+      "estimated_minutes": 45,
+      "quality_status": "baseline"
+    },
+    {
+      "id": "ai/feature-engineering",
+      "track": "ai",
+      "level": "intermediate",
+      "concept": "ai/concepts/25-feature-engineering.md",
+      "notebook": "ai/notebooks/25-feature-engineering.ipynb",
+      "implementation": "ai/implementations/25-feature-engineering.py",
+      "prerequisites": [],
+      "outcomes": [
+        "Explain the core idea of Feature Engineering.",
+        "Apply Feature Engineering to a stated example or constraint."
+      ],
+      "practice": [],
+      "estimated_minutes": 45,
+      "quality_status": "baseline"
+    },
+    {
+      "id": "ai/hyperparameter-tuning",
+      "track": "ai",
+      "level": "intermediate",
+      "concept": "ai/concepts/26-hyperparameter-tuning.md",
+      "notebook": "ai/notebooks/26-hyperparameter-tuning.ipynb",
+      "implementation": "ai/implementations/26-hyperparameter-tuning.py",
+      "prerequisites": [],
+      "outcomes": [
+        "Explain the core idea of Hyperparameter Tuning.",
+        "Apply Hyperparameter Tuning to a stated example or constraint."
+      ],
+      "practice": [],
+      "estimated_minutes": 45,
+      "quality_status": "baseline"
+    },
+    {
+      "id": "ai/ensemble-methods",
+      "track": "ai",
+      "level": "intermediate",
+      "concept": "ai/concepts/27-ensemble-methods.md",
+      "notebook": "ai/notebooks/27-ensemble-methods.ipynb",
+      "implementation": "ai/implementations/27-ensemble-methods.py",
+      "prerequisites": [],
+      "outcomes": [
+        "Explain the core idea of Ensemble Methods.",
+        "Apply Ensemble Methods to a stated example or constraint."
+      ],
+      "practice": [],
+      "estimated_minutes": 45,
+      "quality_status": "baseline"
+    },
+    {
+      "id": "ai/bayesian-inference",
+      "track": "ai",
+      "level": "intermediate",
+      "concept": "ai/concepts/28-bayesian-inference.md",
+      "notebook": "ai/notebooks/28-bayesian-inference.ipynb",
+      "implementation": "ai/implementations/28-bayesian-inference.py",
+      "prerequisites": [],
+      "outcomes": [
+        "Explain the core idea of Bayesian Inference.",
+        "Apply Bayesian Inference to a stated example or constraint."
+      ],
+      "practice": [],
+      "estimated_minutes": 45,
+      "quality_status": "baseline"
+    },
+    {
+      "id": "ai/reinforcement-learning-basics",
+      "track": "ai",
+      "level": "intermediate",
+      "concept": "ai/concepts/29-reinforcement-learning-basics.md",
+      "notebook": "ai/notebooks/29-reinforcement-learning-basics.ipynb",
+      "implementation": "ai/implementations/29-reinforcement-learning-basics.py",
+      "prerequisites": [],
+      "outcomes": [
+        "Explain the core idea of Reinforcement Learning Basics.",
+        "Apply Reinforcement Learning Basics to a stated example or constraint."
+      ],
+      "practice": [],
+      "estimated_minutes": 45,
+      "quality_status": "baseline"
+    },
+    {
+      "id": "ai/markov-decision-processes",
+      "track": "ai",
+      "level": "intermediate",
+      "concept": "ai/concepts/30-markov-decision-processes.md",
+      "notebook": "ai/notebooks/30-markov-decision-processes.ipynb",
+      "implementation": "ai/implementations/30-markov-decision-processes.py",
+      "prerequisites": [],
+      "outcomes": [
+        "Explain the core idea of Markov Decision Processes (MDPs).",
+        "Apply Markov Decision Processes (MDPs) to a stated example or constraint."
+      ],
+      "practice": [],
+      "estimated_minutes": 45,
+      "quality_status": "baseline"
+    },
+    {
+      "id": "ai/q-learning",
+      "track": "ai",
+      "level": "intermediate",
+      "concept": "ai/concepts/31-q-learning.md",
+      "notebook": "ai/notebooks/31-q-learning.ipynb",
+      "implementation": "ai/implementations/31-q-learning.py",
+      "prerequisites": [],
+      "outcomes": [
+        "Explain the core idea of Q-Learning.",
+        "Apply Q-Learning to a stated example or constraint."
+      ],
+      "practice": [],
+      "estimated_minutes": 45,
+      "quality_status": "baseline"
+    },
+    {
+      "id": "ai/policy-gradients",
+      "track": "ai",
+      "level": "intermediate",
+      "concept": "ai/concepts/32-policy-gradients.md",
+      "notebook": "ai/notebooks/32-policy-gradients.ipynb",
+      "implementation": "ai/implementations/32-policy-gradients.py",
+      "prerequisites": [],
+      "outcomes": [
+        "Explain the core idea of Policy Gradients.",
+        "Apply Policy Gradients to a stated example or constraint."
+      ],
+      "practice": [],
+      "estimated_minutes": 45,
+      "quality_status": "baseline"
+    },
+    {
+      "id": "ai/actor-critic-methods",
+      "track": "ai",
+      "level": "intermediate",
+      "concept": "ai/concepts/33-actor-critic-methods.md",
+      "notebook": "ai/notebooks/33-actor-critic-methods.ipynb",
+      "implementation": "ai/implementations/33-actor-critic-methods.py",
+      "prerequisites": [],
+      "outcomes": [
+        "Explain the core idea of Actor-Critic Methods.",
+        "Apply Actor-Critic Methods to a stated example or constraint."
+      ],
+      "practice": [],
+      "estimated_minutes": 45,
+      "quality_status": "baseline"
+    },
+    {
+      "id": "ai/graph-neural-networks",
+      "track": "ai",
+      "level": "intermediate",
+      "concept": "ai/concepts/34-graph-neural-networks.md",
+      "notebook": "ai/notebooks/34-graph-neural-networks.ipynb",
+      "implementation": "ai/implementations/34-graph-neural-networks.py",
+      "prerequisites": [],
+      "outcomes": [
+        "Explain the core idea of Graph Neural Networks.",
+        "Apply Graph Neural Networks to a stated example or constraint."
+      ],
+      "practice": [],
+      "estimated_minutes": 45,
+      "quality_status": "baseline"
+    },
+    {
+      "id": "ai/causal-inference",
+      "track": "ai",
+      "level": "intermediate",
+      "concept": "ai/concepts/35-causal-inference.md",
+      "notebook": "ai/notebooks/35-causal-inference.ipynb",
+      "implementation": "ai/implementations/35-causal-inference.py",
+      "prerequisites": [],
+      "outcomes": [
+        "Explain the core idea of Causal Inference.",
+        "Apply Causal Inference to a stated example or constraint."
+      ],
+      "practice": [],
+      "estimated_minutes": 45,
+      "quality_status": "baseline"
+    },
+    {
+      "id": "ai/probabilistic-graphical-models",
+      "track": "ai",
+      "level": "intermediate",
+      "concept": "ai/concepts/36-probabilistic-graphical-models.md",
+      "notebook": "ai/notebooks/36-probabilistic-graphical-models.ipynb",
+      "implementation": "ai/implementations/36-probabilistic-graphical-models.py",
+      "prerequisites": [],
+      "outcomes": [
+        "Explain the core idea of Probabilistic Graphical Models.",
+        "Apply Probabilistic Graphical Models to a stated example or constraint."
+      ],
+      "practice": [],
+      "estimated_minutes": 45,
+      "quality_status": "baseline"
+    },
+    {
+      "id": "ai/variational-autoencoders",
+      "track": "ai",
+      "level": "intermediate",
+      "concept": "ai/concepts/37-variational-autoencoders.md",
+      "notebook": "ai/notebooks/37-variational-autoencoders.ipynb",
+      "implementation": "ai/implementations/37-variational-autoencoders.py",
+      "prerequisites": [],
+      "outcomes": [
+        "Explain the core idea of Variational Autoencoders (VAE).",
+        "Apply Variational Autoencoders (VAE) to a stated example or constraint."
+      ],
+      "practice": [],
+      "estimated_minutes": 45,
+      "quality_status": "baseline"
+    },
+    {
+      "id": "ai/generative-adversarial-networks",
+      "track": "ai",
+      "level": "intermediate",
+      "concept": "ai/concepts/38-generative-adversarial-networks.md",
+      "notebook": "ai/notebooks/38-generative-adversarial-networks.ipynb",
+      "implementation": "ai/implementations/38-generative-adversarial-networks.py",
+      "prerequisites": [],
+      "outcomes": [
+        "Explain the core idea of Generative Adversarial Networks (GANs).",
+        "Apply Generative Adversarial Networks (GANs) to a stated example or constraint."
+      ],
+      "practice": [],
+      "estimated_minutes": 45,
+      "quality_status": "baseline"
+    },
+    {
+      "id": "ai/time-series-forecasting",
+      "track": "ai",
+      "level": "intermediate",
+      "concept": "ai/concepts/39-time-series-forecasting.md",
+      "notebook": "ai/notebooks/39-time-series-forecasting.ipynb",
+      "implementation": "ai/implementations/39-time-series-forecasting.py",
+      "prerequisites": [],
+      "outcomes": [
+        "Explain the core idea of Time Series Forecasting.",
+        "Apply Time Series Forecasting to a stated example or constraint."
+      ],
+      "practice": [],
+      "estimated_minutes": 45,
+      "quality_status": "baseline"
+    },
+    {
+      "id": "ai/anomaly-detection",
+      "track": "ai",
+      "level": "intermediate",
+      "concept": "ai/concepts/40-anomaly-detection.md",
+      "notebook": "ai/notebooks/40-anomaly-detection.ipynb",
+      "implementation": "ai/implementations/40-anomaly-detection.py",
+      "prerequisites": [],
+      "outcomes": [
+        "Explain the core idea of Anomaly Detection.",
+        "Apply Anomaly Detection to a stated example or constraint."
+      ],
+      "practice": [],
+      "estimated_minutes": 45,
+      "quality_status": "baseline"
+    },
+    {
+      "id": "rl/markov-decision-processes",
+      "track": "rl",
+      "level": "foundation",
+      "concept": "rl/concepts/01-markov-decision-processes.md",
+      "notebook": "rl/notebooks/01-markov-decision-processes.ipynb",
+      "implementation": "rl/implementations/01-markov-decision-processes.py",
+      "prerequisites": [],
+      "outcomes": [
+        "Explain the core idea of Markov Decision Processes (MDPs).",
+        "Apply Markov Decision Processes (MDPs) to a stated example or constraint."
+      ],
+      "practice": [
+        "rl/interview-prep/rl-interview-questions.md"
+      ],
+      "estimated_minutes": 45,
+      "quality_status": "baseline"
+    },
+    {
+      "id": "rl/bellman-equations",
+      "track": "rl",
+      "level": "foundation",
+      "concept": "rl/concepts/02-bellman-equations.md",
+      "notebook": "rl/notebooks/02-bellman-equations.ipynb",
+      "implementation": "rl/implementations/02-bellman-equations.py",
+      "prerequisites": [],
+      "outcomes": [
+        "Explain the core idea of Bellman Equations.",
+        "Apply Bellman Equations to a stated example or constraint."
+      ],
+      "practice": [
+        "rl/interview-prep/rl-interview-questions.md"
+      ],
+      "estimated_minutes": 45,
+      "quality_status": "baseline"
+    },
+    {
+      "id": "rl/dynamic-programming-rl",
+      "track": "rl",
+      "level": "intermediate",
+      "concept": "rl/concepts/03-dynamic-programming-rl.md",
+      "notebook": "rl/notebooks/03-dynamic-programming-rl.ipynb",
+      "implementation": "rl/implementations/03-dynamic-programming-rl.py",
+      "prerequisites": [],
+      "outcomes": [
+        "Explain the core idea of Dynamic Programming for Reinforcement Learning.",
+        "Apply Dynamic Programming for Reinforcement Learning to a stated example or constraint."
+      ],
+      "practice": [
+        "rl/interview-prep/rl-interview-questions.md"
+      ],
+      "estimated_minutes": 45,
+      "quality_status": "baseline"
+    },
+    {
+      "id": "rl/monte-carlo-methods",
+      "track": "rl",
+      "level": "intermediate",
+      "concept": "rl/concepts/04-monte-carlo-methods.md",
+      "notebook": "rl/notebooks/04-monte-carlo-methods.ipynb",
+      "implementation": "rl/implementations/04-monte-carlo-methods.py",
+      "prerequisites": [],
+      "outcomes": [
+        "Explain the core idea of Monte Carlo Methods.",
+        "Apply Monte Carlo Methods to a stated example or constraint."
+      ],
+      "practice": [
+        "rl/interview-prep/rl-interview-questions.md"
+      ],
+      "estimated_minutes": 45,
+      "quality_status": "baseline"
+    },
+    {
+      "id": "rl/temporal-difference-learning",
+      "track": "rl",
+      "level": "intermediate",
+      "concept": "rl/concepts/05-temporal-difference-learning.md",
+      "notebook": "rl/notebooks/05-temporal-difference-learning.ipynb",
+      "implementation": "rl/implementations/05-temporal-difference-learning.py",
+      "prerequisites": [],
+      "outcomes": [
+        "Explain the core idea of Temporal Difference Learning.",
+        "Apply Temporal Difference Learning to a stated example or constraint."
+      ],
+      "practice": [
+        "rl/interview-prep/rl-interview-questions.md"
+      ],
+      "estimated_minutes": 45,
+      "quality_status": "baseline"
+    },
+    {
+      "id": "rl/q-learning",
+      "track": "rl",
+      "level": "intermediate",
+      "concept": "rl/concepts/06-q-learning.md",
+      "notebook": "rl/notebooks/06-q-learning.ipynb",
+      "implementation": "rl/implementations/06-q-learning.py",
+      "prerequisites": [],
+      "outcomes": [
+        "Explain the core idea of Q-Learning.",
+        "Apply Q-Learning to a stated example or constraint."
+      ],
+      "practice": [
+        "rl/interview-prep/rl-interview-questions.md"
+      ],
+      "estimated_minutes": 45,
+      "quality_status": "baseline"
+    },
+    {
+      "id": "rl/sarsa",
+      "track": "rl",
+      "level": "intermediate",
+      "concept": "rl/concepts/07-sarsa.md",
+      "notebook": "rl/notebooks/07-sarsa.ipynb",
+      "implementation": "rl/implementations/07-sarsa.py",
+      "prerequisites": [],
+      "outcomes": [
+        "Explain the core idea of SARSA (State-Action-Reward-State-Action).",
+        "Apply SARSA (State-Action-Reward-State-Action) to a stated example or constraint."
+      ],
+      "practice": [
+        "rl/interview-prep/rl-interview-questions.md"
+      ],
+      "estimated_minutes": 45,
+      "quality_status": "baseline"
+    },
+    {
+      "id": "rl/deep-q-networks",
+      "track": "rl",
+      "level": "intermediate",
+      "concept": "rl/concepts/08-deep-q-networks.md",
+      "notebook": "rl/notebooks/08-deep-q-networks.ipynb",
+      "implementation": "rl/implementations/08-deep-q-networks.py",
+      "prerequisites": [],
+      "outcomes": [
+        "Explain the core idea of Deep Q-Networks (DQN).",
+        "Apply Deep Q-Networks (DQN) to a stated example or constraint."
+      ],
+      "practice": [
+        "rl/interview-prep/rl-interview-questions.md"
+      ],
+      "estimated_minutes": 45,
+      "quality_status": "baseline"
+    },
+    {
+      "id": "rl/policy-gradient",
+      "track": "rl",
+      "level": "intermediate",
+      "concept": "rl/concepts/09-policy-gradient.md",
+      "notebook": "rl/notebooks/09-policy-gradient.ipynb",
+      "implementation": "rl/implementations/09-policy-gradient.py",
+      "prerequisites": [],
+      "outcomes": [
+        "Explain the core idea of Policy Gradient Methods.",
+        "Apply Policy Gradient Methods to a stated example or constraint."
+      ],
+      "practice": [
+        "rl/interview-prep/rl-interview-questions.md"
+      ],
+      "estimated_minutes": 45,
+      "quality_status": "baseline"
+    },
+    {
+      "id": "rl/actor-critic",
+      "track": "rl",
+      "level": "intermediate",
+      "concept": "rl/concepts/10-actor-critic.md",
+      "notebook": "rl/notebooks/10-actor-critic.ipynb",
+      "implementation": "rl/implementations/10-actor-critic.py",
+      "prerequisites": [],
+      "outcomes": [
+        "Explain the core idea of Actor-Critic Methods.",
+        "Apply Actor-Critic Methods to a stated example or constraint."
+      ],
+      "practice": [
+        "rl/interview-prep/rl-interview-questions.md"
+      ],
+      "estimated_minutes": 45,
+      "quality_status": "baseline"
+    },
+    {
+      "id": "rl/proximal-policy-optimization",
+      "track": "rl",
+      "level": "intermediate",
+      "concept": "rl/concepts/11-proximal-policy-optimization.md",
+      "notebook": "rl/notebooks/11-proximal-policy-optimization.ipynb",
+      "implementation": "rl/implementations/11-proximal-policy-optimization.py",
+      "prerequisites": [],
+      "outcomes": [
+        "Explain the core idea of 11 \u2014 Proximal Policy Optimization (PPO).",
+        "Apply 11 \u2014 Proximal Policy Optimization (PPO) to a stated example or constraint."
+      ],
+      "practice": [
+        "rl/interview-prep/rl-interview-questions.md"
+      ],
+      "estimated_minutes": 45,
+      "quality_status": "baseline"
+    },
+    {
+      "id": "rl/soft-actor-critic",
+      "track": "rl",
+      "level": "intermediate",
+      "concept": "rl/concepts/12-soft-actor-critic.md",
+      "notebook": "rl/notebooks/12-soft-actor-critic.ipynb",
+      "implementation": "rl/implementations/12-soft-actor-critic.py",
+      "prerequisites": [],
+      "outcomes": [
+        "Explain the core idea of 12 \u2014 Soft Actor-Critic (SAC).",
+        "Apply 12 \u2014 Soft Actor-Critic (SAC) to a stated example or constraint."
+      ],
+      "practice": [
+        "rl/interview-prep/rl-interview-questions.md"
+      ],
+      "estimated_minutes": 45,
+      "quality_status": "baseline"
+    },
+    {
+      "id": "rl/multi-armed-bandit",
+      "track": "rl",
+      "level": "intermediate",
+      "concept": "rl/concepts/13-multi-armed-bandit.md",
+      "notebook": "rl/notebooks/13-multi-armed-bandit.ipynb",
+      "implementation": "rl/implementations/13-multi-armed-bandit.py",
+      "prerequisites": [],
+      "outcomes": [
+        "Explain the core idea of 13 \u2014 Multi-Armed Bandit.",
+        "Apply 13 \u2014 Multi-Armed Bandit to a stated example or constraint."
+      ],
+      "practice": [
+        "rl/interview-prep/rl-interview-questions.md"
+      ],
+      "estimated_minutes": 45,
+      "quality_status": "baseline"
+    },
+    {
+      "id": "rl/exploration-exploitation",
+      "track": "rl",
+      "level": "intermediate",
+      "concept": "rl/concepts/14-exploration-exploitation.md",
+      "notebook": "rl/notebooks/14-exploration-exploitation.ipynb",
+      "implementation": "rl/implementations/14-exploration-exploitation.py",
+      "prerequisites": [],
+      "outcomes": [
+        "Explain the core idea of 14 \u2014 Exploration-Exploitation Tradeoff.",
+        "Apply 14 \u2014 Exploration-Exploitation Tradeoff to a stated example or constraint."
+      ],
+      "practice": [
+        "rl/interview-prep/rl-interview-questions.md"
+      ],
+      "estimated_minutes": 45,
+      "quality_status": "baseline"
+    },
+    {
+      "id": "rl/reward-shaping",
+      "track": "rl",
+      "level": "intermediate",
+      "concept": "rl/concepts/15-reward-shaping.md",
+      "notebook": "rl/notebooks/15-reward-shaping.ipynb",
+      "implementation": "rl/implementations/15-reward-shaping.py",
+      "prerequisites": [],
+      "outcomes": [
+        "Explain the core idea of 15 \u2014 Reward Shaping.",
+        "Apply 15 \u2014 Reward Shaping to a stated example or constraint."
+      ],
+      "practice": [
+        "rl/interview-prep/rl-interview-questions.md"
+      ],
+      "estimated_minutes": 45,
+      "quality_status": "baseline"
+    },
+    {
+      "id": "rl/model-based-rl",
+      "track": "rl",
+      "level": "intermediate",
+      "concept": "rl/concepts/16-model-based-rl.md",
+      "notebook": "rl/notebooks/16-model-based-rl.ipynb",
+      "implementation": "rl/implementations/16-model-based-rl.py",
+      "prerequisites": [],
+      "outcomes": [
+        "Explain the core idea of 16 \u2014 Model-Based Reinforcement Learning.",
+        "Apply 16 \u2014 Model-Based Reinforcement Learning to a stated example or constraint."
+      ],
+      "practice": [
+        "rl/interview-prep/rl-interview-questions.md"
+      ],
+      "estimated_minutes": 45,
+      "quality_status": "baseline"
+    },
+    {
+      "id": "rl/rlhf",
+      "track": "rl",
+      "level": "intermediate",
+      "concept": "rl/concepts/17-rlhf.md",
+      "notebook": "rl/notebooks/17-rlhf.ipynb",
+      "implementation": "rl/implementations/17-rlhf.py",
+      "prerequisites": [],
+      "outcomes": [
+        "Explain the core idea of 17 \u2014 Reinforcement Learning from Human Feedback (RLHF).",
+        "Apply 17 \u2014 Reinforcement Learning from Human Feedback (RLHF) to a stated example or constraint."
+      ],
+      "practice": [
+        "rl/interview-prep/rl-interview-questions.md"
+      ],
+      "estimated_minutes": 45,
+      "quality_status": "baseline"
+    },
+    {
+      "id": "rl/inverse-rl",
+      "track": "rl",
+      "level": "intermediate",
+      "concept": "rl/concepts/18-inverse-rl.md",
+      "notebook": "rl/notebooks/18-inverse-rl.ipynb",
+      "implementation": "rl/implementations/18-inverse-rl.py",
+      "prerequisites": [],
+      "outcomes": [
+        "Explain the core idea of 18 \u2014 Inverse Reinforcement Learning.",
+        "Apply 18 \u2014 Inverse Reinforcement Learning to a stated example or constraint."
+      ],
+      "practice": [
+        "rl/interview-prep/rl-interview-questions.md"
+      ],
+      "estimated_minutes": 45,
+      "quality_status": "baseline"
+    },
+    {
+      "id": "rl/multi-agent-rl",
+      "track": "rl",
+      "level": "intermediate",
+      "concept": "rl/concepts/19-multi-agent-rl.md",
+      "notebook": "rl/notebooks/19-multi-agent-rl.ipynb",
+      "implementation": "rl/implementations/19-multi-agent-rl.py",
+      "prerequisites": [],
+      "outcomes": [
+        "Explain the core idea of 19 \u2014 Multi-Agent Reinforcement Learning.",
+        "Apply 19 \u2014 Multi-Agent Reinforcement Learning to a stated example or constraint."
+      ],
+      "practice": [
+        "rl/interview-prep/rl-interview-questions.md"
+      ],
+      "estimated_minutes": 45,
+      "quality_status": "baseline"
+    },
+    {
+      "id": "rl/offline-rl",
+      "track": "rl",
+      "level": "intermediate",
+      "concept": "rl/concepts/20-offline-rl.md",
+      "notebook": "rl/notebooks/20-offline-rl.ipynb",
+      "implementation": "rl/implementations/20-offline-rl.py",
+      "prerequisites": [],
+      "outcomes": [
+        "Explain the core idea of 20 \u2014 Offline Reinforcement Learning.",
+        "Apply 20 \u2014 Offline Reinforcement Learning to a stated example or constraint."
+      ],
+      "practice": [
+        "rl/interview-prep/rl-interview-questions.md"
+      ],
+      "estimated_minutes": 45,
+      "quality_status": "baseline"
+    },
+    {
+      "id": "cv/image-classification",
+      "track": "cv",
+      "level": "foundation",
+      "concept": "cv/concepts/01-image-classification.md",
+      "notebook": "cv/notebooks/01-image-classification.ipynb",
+      "implementation": null,
+      "prerequisites": [],
+      "outcomes": [
+        "Explain the core idea of Image Classification.",
+        "Apply Image Classification to a stated example or constraint."
+      ],
+      "practice": [
+        "cv/interview-prep/cv-interview-questions.md"
+      ],
+      "estimated_minutes": 45,
+      "quality_status": "baseline"
+    },
+    {
+      "id": "cv/object-detection",
+      "track": "cv",
+      "level": "foundation",
+      "concept": "cv/concepts/02-object-detection.md",
+      "notebook": "cv/notebooks/02-object-detection.ipynb",
+      "implementation": null,
+      "prerequisites": [],
+      "outcomes": [
+        "Explain the core idea of Object Detection.",
+        "Apply Object Detection to a stated example or constraint."
+      ],
+      "practice": [
+        "cv/interview-prep/cv-interview-questions.md"
+      ],
+      "estimated_minutes": 45,
+      "quality_status": "baseline"
+    },
+    {
+      "id": "cv/image-segmentation",
+      "track": "cv",
+      "level": "intermediate",
+      "concept": "cv/concepts/03-image-segmentation.md",
+      "notebook": "cv/notebooks/03-image-segmentation.ipynb",
+      "implementation": null,
+      "prerequisites": [],
+      "outcomes": [
+        "Explain the core idea of Image Segmentation.",
+        "Apply Image Segmentation to a stated example or constraint."
+      ],
+      "practice": [
+        "cv/interview-prep/cv-interview-questions.md"
+      ],
+      "estimated_minutes": 45,
+      "quality_status": "baseline"
+    },
+    {
+      "id": "cv/vision-transformers",
+      "track": "cv",
+      "level": "intermediate",
+      "concept": "cv/concepts/04-vision-transformers.md",
+      "notebook": "cv/notebooks/04-vision-transformers.ipynb",
+      "implementation": null,
+      "prerequisites": [],
+      "outcomes": [
+        "Explain the core idea of Vision Transformers.",
+        "Apply Vision Transformers to a stated example or constraint."
+      ],
+      "practice": [
+        "cv/interview-prep/cv-interview-questions.md"
+      ],
+      "estimated_minutes": 45,
+      "quality_status": "baseline"
+    },
+    {
+      "id": "cv/contrastive-learning-vision",
+      "track": "cv",
+      "level": "intermediate",
+      "concept": "cv/concepts/05-contrastive-learning-vision.md",
+      "notebook": "cv/notebooks/05-contrastive-learning-vision.ipynb",
+      "implementation": null,
+      "prerequisites": [],
+      "outcomes": [
+        "Explain the core idea of Contrastive Learning in Vision.",
+        "Apply Contrastive Learning in Vision to a stated example or constraint."
+      ],
+      "practice": [
+        "cv/interview-prep/cv-interview-questions.md"
+      ],
+      "estimated_minutes": 45,
+      "quality_status": "baseline"
+    },
+    {
+      "id": "cv/diffusion-models",
+      "track": "cv",
+      "level": "intermediate",
+      "concept": "cv/concepts/06-diffusion-models.md",
+      "notebook": "cv/notebooks/06-diffusion-models.ipynb",
+      "implementation": null,
+      "prerequisites": [],
+      "outcomes": [
+        "Explain the core idea of Diffusion Models.",
+        "Apply Diffusion Models to a stated example or constraint."
+      ],
+      "practice": [
+        "cv/interview-prep/cv-interview-questions.md"
+      ],
+      "estimated_minutes": 45,
+      "quality_status": "baseline"
+    },
+    {
+      "id": "cv/video-understanding",
+      "track": "cv",
+      "level": "intermediate",
+      "concept": "cv/concepts/07-video-understanding.md",
+      "notebook": "cv/notebooks/07-video-understanding.ipynb",
+      "implementation": null,
+      "prerequisites": [],
+      "outcomes": [
+        "Explain the core idea of Video Understanding.",
+        "Apply Video Understanding to a stated example or constraint."
+      ],
+      "practice": [
+        "cv/interview-prep/cv-interview-questions.md"
+      ],
+      "estimated_minutes": 45,
+      "quality_status": "baseline"
+    },
+    {
+      "id": "cv/multimodal-vision-llm",
+      "track": "cv",
+      "level": "intermediate",
+      "concept": "cv/concepts/08-multimodal-vision-llm.md",
+      "notebook": "cv/notebooks/08-multimodal-vision-llm.ipynb",
+      "implementation": null,
+      "prerequisites": [],
+      "outcomes": [
+        "Explain the core idea of Multimodal Vision-Language Models.",
+        "Apply Multimodal Vision-Language Models to a stated example or constraint."
+      ],
+      "practice": [
+        "cv/interview-prep/cv-interview-questions.md"
+      ],
+      "estimated_minutes": 45,
+      "quality_status": "baseline"
+    },
+    {
+      "id": "nlp/text-preprocessing",
+      "track": "nlp",
+      "level": "foundation",
+      "concept": "nlp/concepts/01-text-preprocessing.md",
+      "notebook": "nlp/notebooks/01-text-preprocessing.ipynb",
+      "implementation": null,
+      "prerequisites": [],
+      "outcomes": [
+        "Explain the core idea of Text Preprocessing.",
+        "Apply Text Preprocessing to a stated example or constraint."
+      ],
+      "practice": [
+        "nlp/interview-prep/nlp-interview-questions.md"
+      ],
+      "estimated_minutes": 45,
+      "quality_status": "baseline"
+    },
+    {
+      "id": "nlp/word-embeddings",
+      "track": "nlp",
+      "level": "foundation",
+      "concept": "nlp/concepts/02-word-embeddings.md",
+      "notebook": "nlp/notebooks/02-word-embeddings.ipynb",
+      "implementation": null,
+      "prerequisites": [],
+      "outcomes": [
+        "Explain the core idea of Word Embeddings.",
+        "Apply Word Embeddings to a stated example or constraint."
+      ],
+      "practice": [
+        "nlp/interview-prep/nlp-interview-questions.md"
+      ],
+      "estimated_minutes": 45,
+      "quality_status": "baseline"
+    },
+    {
+      "id": "nlp/recurrent-neural-networks",
+      "track": "nlp",
+      "level": "intermediate",
+      "concept": "nlp/concepts/03-recurrent-neural-networks.md",
+      "notebook": "nlp/notebooks/03-recurrent-neural-networks.ipynb",
+      "implementation": null,
+      "prerequisites": [],
+      "outcomes": [
+        "Explain the core idea of Recurrent Neural Networks and LSTMs.",
+        "Apply Recurrent Neural Networks and LSTMs to a stated example or constraint."
+      ],
+      "practice": [
+        "nlp/interview-prep/nlp-interview-questions.md"
+      ],
+      "estimated_minutes": 45,
+      "quality_status": "baseline"
+    },
+    {
+      "id": "nlp/seq2seq-attention",
+      "track": "nlp",
+      "level": "intermediate",
+      "concept": "nlp/concepts/04-seq2seq-attention.md",
+      "notebook": "nlp/notebooks/04-seq2seq-attention.ipynb",
+      "implementation": null,
+      "prerequisites": [],
+      "outcomes": [
+        "Explain the core idea of Seq2Seq and Attention.",
+        "Apply Seq2Seq and Attention to a stated example or constraint."
+      ],
+      "practice": [
+        "nlp/interview-prep/nlp-interview-questions.md"
+      ],
+      "estimated_minutes": 45,
+      "quality_status": "baseline"
+    },
+    {
+      "id": "nlp/bert-and-pretraining",
+      "track": "nlp",
+      "level": "intermediate",
+      "concept": "nlp/concepts/05-bert-and-pretraining.md",
+      "notebook": "nlp/notebooks/05-bert-and-pretraining.ipynb",
+      "implementation": null,
+      "prerequisites": [],
+      "outcomes": [
+        "Explain the core idea of BERT and Pretraining.",
+        "Apply BERT and Pretraining to a stated example or constraint."
+      ],
+      "practice": [
+        "nlp/interview-prep/nlp-interview-questions.md"
+      ],
+      "estimated_minutes": 45,
+      "quality_status": "baseline"
+    },
+    {
+      "id": "nlp/text-classification",
+      "track": "nlp",
+      "level": "intermediate",
+      "concept": "nlp/concepts/06-text-classification.md",
+      "notebook": "nlp/notebooks/06-text-classification.ipynb",
+      "implementation": null,
+      "prerequisites": [],
+      "outcomes": [
+        "Explain the core idea of Text Classification.",
+        "Apply Text Classification to a stated example or constraint."
+      ],
+      "practice": [
+        "nlp/interview-prep/nlp-interview-questions.md"
+      ],
+      "estimated_minutes": 45,
+      "quality_status": "baseline"
+    },
+    {
+      "id": "nlp/named-entity-recognition",
+      "track": "nlp",
+      "level": "intermediate",
+      "concept": "nlp/concepts/07-named-entity-recognition.md",
+      "notebook": "nlp/notebooks/07-named-entity-recognition.ipynb",
+      "implementation": null,
+      "prerequisites": [],
+      "outcomes": [
+        "Explain the core idea of Named Entity Recognition.",
+        "Apply Named Entity Recognition to a stated example or constraint."
+      ],
+      "practice": [
+        "nlp/interview-prep/nlp-interview-questions.md"
+      ],
+      "estimated_minutes": 45,
+      "quality_status": "baseline"
+    },
+    {
+      "id": "nlp/information-retrieval",
+      "track": "nlp",
+      "level": "intermediate",
+      "concept": "nlp/concepts/08-information-retrieval.md",
+      "notebook": "nlp/notebooks/08-information-retrieval.ipynb",
+      "implementation": null,
+      "prerequisites": [],
+      "outcomes": [
+        "Explain the core idea of Information Retrieval.",
+        "Apply Information Retrieval to a stated example or constraint."
+      ],
+      "practice": [
+        "nlp/interview-prep/nlp-interview-questions.md"
+      ],
+      "estimated_minutes": 45,
+      "quality_status": "baseline"
     }
   ],
   "audit_policy": {
+    "baseline_entry_lessons_note": "For baseline lessons in ai, rl, cv, and nlp, an empty prerequisite list means the relationship is not yet reviewed; these provisional roots do not assert that the topic has no prerequisites. Resolve them against learner paths before promotion to required.",
     "quality_status_values": [
       "baseline",
       "required"

@@ -1,5 +1,55 @@
 # Terra/Luna Implementation Handoff
 
+> Continuation update — 2026-11-10: This update supersedes the point-in-time
+> clean-tree and next-step statements below. Current work is an active,
+> uncommitted continuation of the repository improvement plan. Do not assume
+> the original `8dfaf25` worktree snapshot still describes repository state.
+
+## Current continuation state
+
+- The prior reviewed LLM batch is committed and pushed as `6a2f1cc`.
+- Manifest coverage now includes 248 lessons across ten tracks: 172 required
+  and 76 baseline. Baseline AI, RL, CV, and NLP prerequisites are explicitly
+  provisional until reviewed; other README-advertised artifact families are
+  counted separately.
+- `scripts/report_repository_inventory.py` reports recursive instructional
+  file counts and excludes folder README files. `audit_curriculum.py` reports
+  unindexed concepts, notebooks, and implementations per track.
+- All 361 tracked notebooks pass strict raw-JSON nbformat v4.5 validation.
+  Nineteen malformed notebook schemas were normalized, and two AI code cells
+  had missing line separators repaired.
+- The generated execution ledger currently classifies 2 Tier 1, 275 Tier 2,
+  and 84 Tier 3 notebooks. The Tier 2 matrix is wired into CI; local execution
+  skips if the Python kernel is unavailable. The Tier 3 list is still a
+  candidate inventory: resource patterns in IPython cells need further
+  review, and four documented representative alternative checks are not yet
+  implemented as executable tests. Do not claim the execution-tier phase is
+  complete.
+- The current `pytest` result before this continuation's latest changes was
+  `484 passed, 61 skipped`; after expanding Tier 2, the focused repository
+  integrity suite reported `14 passed, 275 skipped` locally because no Python
+  kernel is registered. CI installs a kernel and is the required execution
+  evidence for the Tier 2 set.
+
+## Immediate next steps
+
+1. Finish executable Tier 3 representative checks and improve classification
+   of IPython cells; have Terra review the final ledger.
+2. Complete Phase 1 manifest/map agreement, including true prerequisites and
+   explicit recommended sequences rather than implying all study order is a
+   hard prerequisite.
+3. Complete the statistics/core-ML learner journey, then content review in
+   bounded MLOps, statistics, Agentic AI, Modern AI, LLM, and practice/project
+   batches.
+4. Reconcile README and section navigation counts to the inventory report;
+   audit all practice and capstone contracts and add scored capstones where
+   needed.
+5. Run CI with the pinned notebook kernel, the full suite, all track audits,
+   and active link checks. Record remaining exclusions and residual risks.
+
+The broad repository improvement program remains active; this handoff records
+progress and known gaps, not completion.
+
 **Date:** 2026-11-09  
 **Repository:** `/home/sbisw/github/interviewprep-ai`  
 **Branch:** `master`  

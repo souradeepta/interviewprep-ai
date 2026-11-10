@@ -369,6 +369,38 @@ def _slug(heading: str) -> str:
     return re.sub(r"\s+", "-", heading.strip())
 
 
+def _unindexed_artifacts(root: Path, lessons: list[Any], selected_track: str | None = None) -> dict[str, dict[str, list[str]]]:
+    """Return concept, notebook, and implementation files not named by the manifest."""
+    indexed: dict[str, set[str]] = {}
+    for lesson in lessons:
+        if not isinstance(lesson, dict):
+            continue
+        track = lesson.get("track")
+        if not isinstance(track, str) or not re.fullmatch(r"[a-z0-9-]+", track) or (selected_track is not None and track != selected_track):
+            continue
+        refs = indexed.setdefault(track, set())
+        for field, path in _lesson_artifact_paths(lesson):
+            if field in {"concept", "notebook", "implementation"}:
+                refs.add((root / path).resolve().as_posix())
+    result: dict[str, dict[str, list[str]]] = {}
+    patterns = {"concepts": "concepts/**/*.md", "notebooks": "notebooks/**/*.ipynb", "implementations": "implementations/**/*.py"}
+    tracks = [selected_track] if selected_track is not None else list(indexed)
+    for track in tracks:
+        refs = indexed.get(track, set())
+        result[track] = {}
+        folder = (root / track).resolve()
+        try:
+            folder.relative_to(root.resolve())
+        except ValueError:
+            result[track] = {kind: [] for kind in patterns}
+            continue
+        for kind, pattern in patterns.items():
+            files = sorted(path for path in folder.glob(pattern) if path.is_file() and path.name.lower() != "readme.md") if folder.exists() else []
+            missing = [path.relative_to(root).as_posix() for path in files if path.resolve().as_posix() not in refs]
+            result[track][kind] = missing
+    return result
+
+
 def audit(root: Path = ROOT, manifest_path: Path = DEFAULT_MANIFEST, track: str | None = None) -> dict[str, Any]:
     data, errors = _manifest_data(manifest_path)
     if data is not None:
@@ -417,12 +449,13 @@ def audit(root: Path = ROOT, manifest_path: Path = DEFAULT_MANIFEST, track: str 
             "required_count": sum(1 for lesson in selected if lesson.get("quality_status") == "required"),
             "baseline_count": sum(1 for lesson in selected if lesson.get("quality_status") == "baseline"),
             "inventory_by_track": inventory,
+            "unindexed_artifacts_by_track": _unindexed_artifacts(root, data["lessons"], track),
             "inventory_definition": "Counts cover manifest lessons only; excluded means outside the selected track, and missing counts selected lessons with absent declared artifacts (overlaps status counts). Unindexed lessons are not counted.",
             "human_review": "Structural checks and warnings do not verify technical accuracy, topic-specific teaching, references, or executable behavior; independent human review is required.",
             "warnings": warnings,
             "errors": errors,
         }
-    return {"ok": False, "track": track, "lesson_count": 0, "required_count": 0, "baseline_count": 0, "inventory_by_track": {}, "warnings": [], "errors": errors}
+    return {"ok": False, "track": track, "lesson_count": 0, "required_count": 0, "baseline_count": 0, "inventory_by_track": {}, "unindexed_artifacts_by_track": {}, "warnings": [], "errors": errors}
 
 
 def main(argv: list[str] | None = None) -> int:
@@ -438,6 +471,10 @@ def main(argv: list[str] | None = None) -> int:
         print(f"Curriculum audit {'passed' if result['ok'] else 'failed'}: {result['lesson_count']} selected manifest lessons")
         for track, counts in sorted(result["inventory_by_track"].items()):
             print(f"  {track}: " + ", ".join(f"{key}={value}" for key, value in counts.items()))
+        for track, groups in sorted(result.get("unindexed_artifacts_by_track", {}).items()):
+            unindexed = {kind: len(paths) for kind, paths in groups.items() if paths}
+            if unindexed:
+                print(f"  {track} unindexed files: " + ", ".join(f"{kind}={count}" for kind, count in unindexed.items()))
         if "inventory_definition" in result:
             print(result["inventory_definition"])
             print(result["human_review"])

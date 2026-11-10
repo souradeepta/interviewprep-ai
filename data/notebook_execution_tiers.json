@@ -1,0 +1,4930 @@
+{
+  "schema_version": 1,
+  "source": "git ls-files *.ipynb",
+  "tier_definitions": {
+    "1": "Structure and policy validation only; notebook has no executable code cells.",
+    "2": "Clean-kernel execution in the pinned notebook-smoke environment.",
+    "3": "Excluded from default execution due to recorded extra dependency, external resource, model, API, or accelerator requirement; an alternative check is recorded."
+  },
+  "static_classification_note": "Tier assignments are generated from imports and source patterns; resource and dependency findings require human confirmation before Tier 3 exclusions are accepted.",
+  "tier3_representatives": [
+    {
+      "path": "agentic-ai/notebooks/01-what-is-an-agent.ipynb",
+      "category": "provider API or credentials",
+      "evidence_import": "anthropic",
+      "check": "Test provider configuration parsing with a stub; never make a live call in default CI."
+    },
+    {
+      "path": "papers/retrieval/notebooks/01-rag.ipynb",
+      "category": "extra dependency and model download",
+      "evidence_import": "sentence_transformers",
+      "check": "Run the deterministic retrieval helper using a local toy corpus; validate ranking and empty-result behavior without fetching an embedding model."
+    },
+    {
+      "path": "papers/code-systems/notebooks/01-codet5.ipynb",
+      "category": "model download",
+      "evidence_call": "model download or loading",
+      "check": "Validate config and tensor-shape logic with an in-memory tiny model fixture; do not fetch weights."
+    },
+    {
+      "path": "agentic-ai/notebooks/51-web-agents.ipynb",
+      "category": "external HTTP",
+      "evidence_call": "external HTTP request",
+      "check": "Mock the request transport and verify payload, timeout, and failure handling."
+    }
+  ],
+  "notebooks": [
+    {
+      "path": "agentic-ai/notebooks/01-what-is-an-agent.ipynb",
+      "tier": 3,
+      "reason": "unavailable or unpinned imports: anthropic, dotenv; provider API or credential",
+      "alternative_check": "Validate nbformat and source policy; use a deterministic provider stub and test parsing, retries, and error paths.",
+      "detected_imports": [
+        "anthropic",
+        "collections",
+        "dotenv",
+        "json",
+        "os",
+        "time"
+      ],
+      "detected_resource_calls": [
+        "provider API or credential"
+      ]
+    },
+    {
+      "path": "agentic-ai/notebooks/02-agent-loops.ipynb",
+      "tier": 3,
+      "reason": "unavailable or unpinned imports: anthropic, dotenv, langchain; provider API or credential",
+      "alternative_check": "Validate nbformat and source policy; use a deterministic provider stub and test parsing, retries, and error paths.",
+      "detected_imports": [
+        "anthropic",
+        "collections",
+        "dotenv",
+        "json",
+        "langchain",
+        "os",
+        "time",
+        "typing"
+      ],
+      "detected_resource_calls": [
+        "provider API or credential"
+      ]
+    },
+    {
+      "path": "agentic-ai/notebooks/03-tool-use.ipynb",
+      "tier": 2,
+      "reason": "Uses only Python standard library and pinned notebook-smoke modules; execute in a clean kernel.",
+      "alternative_check": null,
+      "detected_imports": [
+        "asyncio",
+        "dataclasses",
+        "datetime",
+        "json",
+        "typing"
+      ],
+      "detected_resource_calls": []
+    },
+    {
+      "path": "agentic-ai/notebooks/04-tool-calling.ipynb",
+      "tier": 2,
+      "reason": "Uses only Python standard library and pinned notebook-smoke modules; execute in a clean kernel.",
+      "alternative_check": null,
+      "detected_imports": [
+        "json",
+        "re",
+        "typing"
+      ],
+      "detected_resource_calls": []
+    },
+    {
+      "path": "agentic-ai/notebooks/05-function-calling.ipynb",
+      "tier": 3,
+      "reason": "unavailable or unpinned imports: jsonschema",
+      "alternative_check": "Validate nbformat and source policy; test deterministic helpers with a small fixture under the dependency-specific CI job.",
+      "detected_imports": [
+        "json",
+        "jsonschema",
+        "typing"
+      ],
+      "detected_resource_calls": []
+    },
+    {
+      "path": "agentic-ai/notebooks/06-structured-output.ipynb",
+      "tier": 3,
+      "reason": "unavailable or unpinned imports: jsonschema, pydantic",
+      "alternative_check": "Validate nbformat and source policy; test deterministic helpers with a small fixture under the dependency-specific CI job.",
+      "detected_imports": [
+        "dataclasses",
+        "json",
+        "jsonschema",
+        "pydantic",
+        "typing"
+      ],
+      "detected_resource_calls": []
+    },
+    {
+      "path": "agentic-ai/notebooks/07-planning-reasoning.ipynb",
+      "tier": 2,
+      "reason": "Uses only Python standard library and pinned notebook-smoke modules; execute in a clean kernel.",
+      "alternative_check": null,
+      "detected_imports": [
+        "collections",
+        "random"
+      ],
+      "detected_resource_calls": []
+    },
+    {
+      "path": "agentic-ai/notebooks/08-react-reasoning-acting.ipynb",
+      "tier": 2,
+      "reason": "Uses only Python standard library and pinned notebook-smoke modules; execute in a clean kernel.",
+      "alternative_check": null,
+      "detected_imports": [
+        "random"
+      ],
+      "detected_resource_calls": []
+    },
+    {
+      "path": "agentic-ai/notebooks/09-tree-of-thought.ipynb",
+      "tier": 3,
+      "reason": "unavailable or unpinned imports: anthropic; provider API or credential",
+      "alternative_check": "Validate nbformat and source policy; use a deterministic provider stub and test parsing, retries, and error paths.",
+      "detected_imports": [
+        "anthropic",
+        "json",
+        "typing"
+      ],
+      "detected_resource_calls": [
+        "provider API or credential"
+      ]
+    },
+    {
+      "path": "agentic-ai/notebooks/10-mcts-for-agents.ipynb",
+      "tier": 2,
+      "reason": "Uses only Python standard library and pinned notebook-smoke modules; execute in a clean kernel.",
+      "alternative_check": null,
+      "detected_imports": [
+        "math",
+        "random",
+        "threading",
+        "time",
+        "typing"
+      ],
+      "detected_resource_calls": []
+    },
+    {
+      "path": "agentic-ai/notebooks/11-memory-types.ipynb",
+      "tier": 2,
+      "reason": "Uses only Python standard library and pinned notebook-smoke modules; execute in a clean kernel.",
+      "alternative_check": null,
+      "detected_imports": [
+        "collections",
+        "datetime",
+        "typing"
+      ],
+      "detected_resource_calls": []
+    },
+    {
+      "path": "agentic-ai/notebooks/12-agent-memory-management.ipynb",
+      "tier": 3,
+      "reason": "unavailable or unpinned imports: anthropic, dotenv; provider API or credential",
+      "alternative_check": "Validate nbformat and source policy; use a deterministic provider stub and test parsing, retries, and error paths.",
+      "detected_imports": [
+        "anthropic",
+        "collections",
+        "dotenv",
+        "json",
+        "os"
+      ],
+      "detected_resource_calls": [
+        "provider API or credential"
+      ]
+    },
+    {
+      "path": "agentic-ai/notebooks/13-agent-communication.ipynb",
+      "tier": 3,
+      "reason": "unavailable or unpinned imports: anthropic, dotenv; provider API or credential",
+      "alternative_check": "Validate nbformat and source policy; use a deterministic provider stub and test parsing, retries, and error paths.",
+      "detected_imports": [
+        "anthropic",
+        "collections",
+        "dotenv",
+        "json",
+        "os",
+        "queue",
+        "time",
+        "typing"
+      ],
+      "detected_resource_calls": [
+        "provider API or credential"
+      ]
+    },
+    {
+      "path": "agentic-ai/notebooks/14-multi-agent-systems.ipynb",
+      "tier": 3,
+      "reason": "unavailable or unpinned imports: anthropic, dotenv; provider API or credential",
+      "alternative_check": "Validate nbformat and source policy; use a deterministic provider stub and test parsing, retries, and error paths.",
+      "detected_imports": [
+        "anthropic",
+        "asyncio",
+        "dotenv",
+        "json",
+        "os",
+        "time",
+        "typing"
+      ],
+      "detected_resource_calls": [
+        "provider API or credential"
+      ]
+    },
+    {
+      "path": "agentic-ai/notebooks/15-hierarchical-agents.ipynb",
+      "tier": 2,
+      "reason": "Uses only Python standard library and pinned notebook-smoke modules; execute in a clean kernel.",
+      "alternative_check": null,
+      "detected_imports": [
+        "asyncio",
+        "random",
+        "time",
+        "typing"
+      ],
+      "detected_resource_calls": []
+    },
+    {
+      "path": "agentic-ai/notebooks/16-cooperative-agents.ipynb",
+      "tier": 2,
+      "reason": "Uses only Python standard library and pinned notebook-smoke modules; execute in a clean kernel.",
+      "alternative_check": null,
+      "detected_imports": [
+        "asyncio",
+        "enum",
+        "time",
+        "typing"
+      ],
+      "detected_resource_calls": []
+    },
+    {
+      "path": "agentic-ai/notebooks/17-competitive-agents.ipynb",
+      "tier": 2,
+      "reason": "Uses only Python standard library and pinned notebook-smoke modules; execute in a clean kernel.",
+      "alternative_check": null,
+      "detected_imports": [
+        "collections",
+        "math",
+        "random",
+        "typing"
+      ],
+      "detected_resource_calls": []
+    },
+    {
+      "path": "agentic-ai/notebooks/18-autonomous-agents.ipynb",
+      "tier": 2,
+      "reason": "Uses only Python standard library and pinned notebook-smoke modules; execute in a clean kernel.",
+      "alternative_check": null,
+      "detected_imports": [],
+      "detected_resource_calls": []
+    },
+    {
+      "path": "agentic-ai/notebooks/19-context-window-management.ipynb",
+      "tier": 3,
+      "reason": "unavailable or unpinned imports: anthropic; provider API or credential",
+      "alternative_check": "Validate nbformat and source policy; use a deterministic provider stub and test parsing, retries, and error paths.",
+      "detected_imports": [
+        "anthropic",
+        "collections",
+        "dataclasses",
+        "datetime",
+        "json",
+        "os",
+        "typing"
+      ],
+      "detected_resource_calls": [
+        "provider API or credential"
+      ]
+    },
+    {
+      "path": "agentic-ai/notebooks/20-agent-routing.ipynb",
+      "tier": 3,
+      "reason": "unavailable or unpinned imports: anthropic, dotenv; provider API or credential",
+      "alternative_check": "Validate nbformat and source policy; use a deterministic provider stub and test parsing, retries, and error paths.",
+      "detected_imports": [
+        "anthropic",
+        "dotenv",
+        "json",
+        "os",
+        "typing"
+      ],
+      "detected_resource_calls": [
+        "provider API or credential"
+      ]
+    },
+    {
+      "path": "agentic-ai/notebooks/21-agent-persistence.ipynb",
+      "tier": 2,
+      "reason": "Uses only Python standard library and pinned notebook-smoke modules; execute in a clean kernel.",
+      "alternative_check": null,
+      "detected_imports": [
+        "datetime",
+        "json",
+        "os",
+        "shutil",
+        "sys"
+      ],
+      "detected_resource_calls": []
+    },
+    {
+      "path": "agentic-ai/notebooks/22-skill-composition.ipynb",
+      "tier": 2,
+      "reason": "Uses only Python standard library and pinned notebook-smoke modules; execute in a clean kernel.",
+      "alternative_check": null,
+      "detected_imports": [
+        "asyncio",
+        "dataclasses",
+        "enum",
+        "typing"
+      ],
+      "detected_resource_calls": []
+    },
+    {
+      "path": "agentic-ai/notebooks/23-knowledge-graphs.ipynb",
+      "tier": 2,
+      "reason": "Uses only Python standard library and pinned notebook-smoke modules; execute in a clean kernel.",
+      "alternative_check": null,
+      "detected_imports": [
+        "dataclasses",
+        "typing"
+      ],
+      "detected_resource_calls": []
+    },
+    {
+      "path": "agentic-ai/notebooks/24-reflection-and-self-improvement.ipynb",
+      "tier": 2,
+      "reason": "Uses only Python standard library and pinned notebook-smoke modules; execute in a clean kernel.",
+      "alternative_check": null,
+      "detected_imports": [
+        "datetime"
+      ],
+      "detected_resource_calls": []
+    },
+    {
+      "path": "agentic-ai/notebooks/25-retrieval-augmented-generation.ipynb",
+      "tier": 2,
+      "reason": "Uses only Python standard library and pinned notebook-smoke modules; execute in a clean kernel.",
+      "alternative_check": null,
+      "detected_imports": [
+        "dataclasses",
+        "datetime",
+        "numpy",
+        "typing"
+      ],
+      "detected_resource_calls": []
+    },
+    {
+      "path": "agentic-ai/notebooks/26-error-recovery.ipynb",
+      "tier": 3,
+      "reason": "unavailable or unpinned imports: anthropic; provider API or credential",
+      "alternative_check": "Validate nbformat and source policy; use a deterministic provider stub and test parsing, retries, and error paths.",
+      "detected_imports": [
+        "anthropic",
+        "datetime",
+        "enum",
+        "json",
+        "random",
+        "time",
+        "typing"
+      ],
+      "detected_resource_calls": [
+        "provider API or credential"
+      ]
+    },
+    {
+      "path": "agentic-ai/notebooks/27-agent-debugging.ipynb",
+      "tier": 3,
+      "reason": "unavailable or unpinned imports: anthropic, dotenv; provider API or credential",
+      "alternative_check": "Validate nbformat and source policy; use a deterministic provider stub and test parsing, retries, and error paths.",
+      "detected_imports": [
+        "anthropic",
+        "collections",
+        "datetime",
+        "dotenv",
+        "json",
+        "os",
+        "uuid"
+      ],
+      "detected_resource_calls": [
+        "provider API or credential"
+      ]
+    },
+    {
+      "path": "agentic-ai/notebooks/28-agent-testing.ipynb",
+      "tier": 3,
+      "reason": "unavailable or unpinned imports: anthropic, dotenv; provider API or credential",
+      "alternative_check": "Validate nbformat and source policy; use a deterministic provider stub and test parsing, retries, and error paths.",
+      "detected_imports": [
+        "anthropic",
+        "dotenv",
+        "json",
+        "os",
+        "typing",
+        "unittest"
+      ],
+      "detected_resource_calls": [
+        "provider API or credential"
+      ]
+    },
+    {
+      "path": "agentic-ai/notebooks/29-agent-evals.ipynb",
+      "tier": 3,
+      "reason": "unavailable or unpinned imports: anthropic, dotenv; provider API or credential",
+      "alternative_check": "Validate nbformat and source policy; use a deterministic provider stub and test parsing, retries, and error paths.",
+      "detected_imports": [
+        "anthropic",
+        "collections",
+        "dotenv",
+        "json",
+        "os",
+        "time"
+      ],
+      "detected_resource_calls": [
+        "provider API or credential"
+      ]
+    },
+    {
+      "path": "agentic-ai/notebooks/30-agent-monitoring.ipynb",
+      "tier": 3,
+      "reason": "unavailable or unpinned imports: anthropic, dotenv; provider API or credential",
+      "alternative_check": "Validate nbformat and source policy; use a deterministic provider stub and test parsing, retries, and error paths.",
+      "detected_imports": [
+        "anthropic",
+        "collections",
+        "datetime",
+        "dotenv",
+        "json",
+        "os",
+        "statistics",
+        "time"
+      ],
+      "detected_resource_calls": [
+        "provider API or credential"
+      ]
+    },
+    {
+      "path": "agentic-ai/notebooks/31-observability-for-agents.ipynb",
+      "tier": 2,
+      "reason": "Uses only Python standard library and pinned notebook-smoke modules; execute in a clean kernel.",
+      "alternative_check": null,
+      "detected_imports": [
+        "collections",
+        "dataclasses",
+        "datetime",
+        "json",
+        "logging",
+        "random",
+        "statistics",
+        "time",
+        "typing",
+        "uuid"
+      ],
+      "detected_resource_calls": []
+    },
+    {
+      "path": "agentic-ai/notebooks/32-tracing-agents.ipynb",
+      "tier": 2,
+      "reason": "Uses only Python standard library and pinned notebook-smoke modules; execute in a clean kernel.",
+      "alternative_check": null,
+      "detected_imports": [
+        "dataclasses",
+        "datetime",
+        "json",
+        "random",
+        "time",
+        "typing",
+        "uuid"
+      ],
+      "detected_resource_calls": []
+    },
+    {
+      "path": "agentic-ai/notebooks/33-latency-optimization-agents.ipynb",
+      "tier": 3,
+      "reason": "unavailable or unpinned imports: anthropic; provider API or credential",
+      "alternative_check": "Validate nbformat and source policy; use a deterministic provider stub and test parsing, retries, and error paths.",
+      "detected_imports": [
+        "anthropic",
+        "asyncio",
+        "collections",
+        "dataclasses",
+        "datetime",
+        "hashlib",
+        "os",
+        "time",
+        "typing"
+      ],
+      "detected_resource_calls": [
+        "provider API or credential"
+      ]
+    },
+    {
+      "path": "agentic-ai/notebooks/34-agent-cost-optimization.ipynb",
+      "tier": 3,
+      "reason": "unavailable or unpinned imports: anthropic, dotenv; provider API or credential",
+      "alternative_check": "Validate nbformat and source policy; use a deterministic provider stub and test parsing, retries, and error paths.",
+      "detected_imports": [
+        "anthropic",
+        "dotenv",
+        "hashlib",
+        "json",
+        "os"
+      ],
+      "detected_resource_calls": [
+        "provider API or credential"
+      ]
+    },
+    {
+      "path": "agentic-ai/notebooks/35-agent-prompt-engineering.ipynb",
+      "tier": 2,
+      "reason": "Uses only Python standard library and pinned notebook-smoke modules; execute in a clean kernel.",
+      "alternative_check": null,
+      "detected_imports": [
+        "json"
+      ],
+      "detected_resource_calls": []
+    },
+    {
+      "path": "agentic-ai/notebooks/36-safety-alignment.ipynb",
+      "tier": 2,
+      "reason": "Uses only Python standard library and pinned notebook-smoke modules; execute in a clean kernel.",
+      "alternative_check": null,
+      "detected_imports": [
+        "collections",
+        "re",
+        "time",
+        "typing"
+      ],
+      "detected_resource_calls": []
+    },
+    {
+      "path": "agentic-ai/notebooks/37-human-agent-collaboration.ipynb",
+      "tier": 2,
+      "reason": "Uses only Python standard library and pinned notebook-smoke modules; execute in a clean kernel.",
+      "alternative_check": null,
+      "detected_imports": [],
+      "detected_resource_calls": []
+    },
+    {
+      "path": "agentic-ai/notebooks/38-coding-agents.ipynb",
+      "tier": 2,
+      "reason": "Uses only Python standard library and pinned notebook-smoke modules; execute in a clean kernel.",
+      "alternative_check": null,
+      "detected_imports": [
+        "subprocess"
+      ],
+      "detected_resource_calls": []
+    },
+    {
+      "path": "agentic-ai/notebooks/39-code-analysis-agents.ipynb",
+      "tier": 2,
+      "reason": "Uses only Python standard library and pinned notebook-smoke modules; execute in a clean kernel.",
+      "alternative_check": null,
+      "detected_imports": [
+        "random"
+      ],
+      "detected_resource_calls": []
+    },
+    {
+      "path": "agentic-ai/notebooks/40-customer-service-agents.ipynb",
+      "tier": 2,
+      "reason": "Uses only Python standard library and pinned notebook-smoke modules; execute in a clean kernel.",
+      "alternative_check": null,
+      "detected_imports": [
+        "random"
+      ],
+      "detected_resource_calls": []
+    },
+    {
+      "path": "agentic-ai/notebooks/41-medical-agents.ipynb",
+      "tier": 2,
+      "reason": "Uses only Python standard library and pinned notebook-smoke modules; execute in a clean kernel.",
+      "alternative_check": null,
+      "detected_imports": [
+        "random"
+      ],
+      "detected_resource_calls": []
+    },
+    {
+      "path": "agentic-ai/notebooks/42-legal-document-agents.ipynb",
+      "tier": 2,
+      "reason": "Uses only Python standard library and pinned notebook-smoke modules; execute in a clean kernel.",
+      "alternative_check": null,
+      "detected_imports": [
+        "random"
+      ],
+      "detected_resource_calls": []
+    },
+    {
+      "path": "agentic-ai/notebooks/43-finance-agents.ipynb",
+      "tier": 2,
+      "reason": "Uses only Python standard library and pinned notebook-smoke modules; execute in a clean kernel.",
+      "alternative_check": null,
+      "detected_imports": [
+        "random"
+      ],
+      "detected_resource_calls": []
+    },
+    {
+      "path": "agentic-ai/notebooks/44-logistics-agents.ipynb",
+      "tier": 2,
+      "reason": "Uses only Python standard library and pinned notebook-smoke modules; execute in a clean kernel.",
+      "alternative_check": null,
+      "detected_imports": [
+        "random"
+      ],
+      "detected_resource_calls": []
+    },
+    {
+      "path": "agentic-ai/notebooks/45-data-analysis-agents.ipynb",
+      "tier": 2,
+      "reason": "Uses only Python standard library and pinned notebook-smoke modules; execute in a clean kernel.",
+      "alternative_check": null,
+      "detected_imports": [
+        "random"
+      ],
+      "detected_resource_calls": []
+    },
+    {
+      "path": "agentic-ai/notebooks/46-research-agents.ipynb",
+      "tier": 2,
+      "reason": "Uses only Python standard library and pinned notebook-smoke modules; execute in a clean kernel.",
+      "alternative_check": null,
+      "detected_imports": [
+        "random"
+      ],
+      "detected_resource_calls": []
+    },
+    {
+      "path": "agentic-ai/notebooks/47-content-moderation-agents.ipynb",
+      "tier": 2,
+      "reason": "Uses only Python standard library and pinned notebook-smoke modules; execute in a clean kernel.",
+      "alternative_check": null,
+      "detected_imports": [
+        "random"
+      ],
+      "detected_resource_calls": []
+    },
+    {
+      "path": "agentic-ai/notebooks/48-recommendation-agents.ipynb",
+      "tier": 2,
+      "reason": "Uses only Python standard library and pinned notebook-smoke modules; execute in a clean kernel.",
+      "alternative_check": null,
+      "detected_imports": [
+        "random"
+      ],
+      "detected_resource_calls": []
+    },
+    {
+      "path": "agentic-ai/notebooks/49-multimodal-agents.ipynb",
+      "tier": 2,
+      "reason": "Uses only Python standard library and pinned notebook-smoke modules; execute in a clean kernel.",
+      "alternative_check": null,
+      "detected_imports": [
+        "dataclasses",
+        "enum",
+        "json",
+        "numpy",
+        "typing"
+      ],
+      "detected_resource_calls": []
+    },
+    {
+      "path": "agentic-ai/notebooks/50-real-time-agents.ipynb",
+      "tier": 2,
+      "reason": "Uses only Python standard library and pinned notebook-smoke modules; execute in a clean kernel.",
+      "alternative_check": null,
+      "detected_imports": [
+        "asyncio",
+        "functools",
+        "time"
+      ],
+      "detected_resource_calls": []
+    },
+    {
+      "path": "agentic-ai/notebooks/51-web-agents.ipynb",
+      "tier": 3,
+      "reason": "unavailable or unpinned imports: bs4, requests; external HTTP request",
+      "alternative_check": "Validate nbformat and source policy; mock the transport and test request construction, timeout, and failure handling.",
+      "detected_imports": [
+        "bs4",
+        "requests",
+        "time"
+      ],
+      "detected_resource_calls": [
+        "external HTTP request"
+      ]
+    },
+    {
+      "path": "agentic-ai/notebooks/52-simulation-for-agents.ipynb",
+      "tier": 2,
+      "reason": "Uses only Python standard library and pinned notebook-smoke modules; execute in a clean kernel.",
+      "alternative_check": null,
+      "detected_imports": [
+        "numpy",
+        "typing"
+      ],
+      "detected_resource_calls": []
+    },
+    {
+      "path": "agentic-ai/notebooks/53-langchain-frameworks.ipynb",
+      "tier": 3,
+      "reason": "unavailable or unpinned imports: langchain",
+      "alternative_check": "Validate nbformat and source policy; test deterministic helpers with a small fixture under the dependency-specific CI job.",
+      "detected_imports": [
+        "langchain"
+      ],
+      "detected_resource_calls": []
+    },
+    {
+      "path": "agentic-ai/notebooks/54-autogen-orchestration.ipynb",
+      "tier": 2,
+      "reason": "Uses only Python standard library and pinned notebook-smoke modules; execute in a clean kernel.",
+      "alternative_check": null,
+      "detected_imports": [
+        "numpy",
+        "sklearn"
+      ],
+      "detected_resource_calls": []
+    },
+    {
+      "path": "agentic-ai/notebooks/55-openai-assistants-api.ipynb",
+      "tier": 2,
+      "reason": "Uses only Python standard library and pinned notebook-smoke modules; execute in a clean kernel.",
+      "alternative_check": null,
+      "detected_imports": [
+        "matplotlib",
+        "numpy",
+        "sklearn",
+        "sys",
+        "time"
+      ],
+      "detected_resource_calls": []
+    },
+    {
+      "path": "agentic-ai/notebooks/56-agent-deployment-patterns.ipynb",
+      "tier": 2,
+      "reason": "Uses only Python standard library and pinned notebook-smoke modules; execute in a clean kernel.",
+      "alternative_check": null,
+      "detected_imports": [
+        "matplotlib",
+        "numpy",
+        "sklearn",
+        "sys",
+        "time"
+      ],
+      "detected_resource_calls": []
+    },
+    {
+      "path": "agentic-ai/notebooks/57-agent-state-management.ipynb",
+      "tier": 2,
+      "reason": "Uses only Python standard library and pinned notebook-smoke modules; execute in a clean kernel.",
+      "alternative_check": null,
+      "detected_imports": [
+        "matplotlib",
+        "numpy",
+        "sklearn",
+        "sys",
+        "time"
+      ],
+      "detected_resource_calls": []
+    },
+    {
+      "path": "agentic-ai/notebooks/58-advanced-reasoning-variants.ipynb",
+      "tier": 2,
+      "reason": "Uses only Python standard library and pinned notebook-smoke modules; execute in a clean kernel.",
+      "alternative_check": null,
+      "detected_imports": [
+        "matplotlib",
+        "numpy",
+        "sklearn",
+        "sys",
+        "time"
+      ],
+      "detected_resource_calls": []
+    },
+    {
+      "path": "agentic-ai/notebooks/59-agent-evaluation-metrics.ipynb",
+      "tier": 2,
+      "reason": "Uses only Python standard library and pinned notebook-smoke modules; execute in a clean kernel.",
+      "alternative_check": null,
+      "detected_imports": [
+        "matplotlib",
+        "numpy",
+        "sklearn",
+        "sys",
+        "time"
+      ],
+      "detected_resource_calls": []
+    },
+    {
+      "path": "agentic-ai/notebooks/60-agent-security-sandboxing.ipynb",
+      "tier": 2,
+      "reason": "Uses only Python standard library and pinned notebook-smoke modules; execute in a clean kernel.",
+      "alternative_check": null,
+      "detected_imports": [
+        "matplotlib",
+        "numpy",
+        "sklearn",
+        "sys",
+        "time"
+      ],
+      "detected_resource_calls": []
+    },
+    {
+      "path": "agentic-ai/notebooks/61-multi-turn-conversation.ipynb",
+      "tier": 2,
+      "reason": "Uses only Python standard library and pinned notebook-smoke modules; execute in a clean kernel.",
+      "alternative_check": null,
+      "detected_imports": [
+        "matplotlib",
+        "numpy",
+        "sklearn",
+        "sys",
+        "time"
+      ],
+      "detected_resource_calls": []
+    },
+    {
+      "path": "agentic-ai/notebooks/62-agent-cost-analysis.ipynb",
+      "tier": 2,
+      "reason": "Uses only Python standard library and pinned notebook-smoke modules; execute in a clean kernel.",
+      "alternative_check": null,
+      "detected_imports": [
+        "matplotlib",
+        "numpy",
+        "sklearn",
+        "sys",
+        "time"
+      ],
+      "detected_resource_calls": []
+    },
+    {
+      "path": "agentic-ai/notebooks/63-agent-frameworks-comparison.ipynb",
+      "tier": 2,
+      "reason": "Uses only Python standard library and pinned notebook-smoke modules; execute in a clean kernel.",
+      "alternative_check": null,
+      "detected_imports": [
+        "matplotlib",
+        "numpy",
+        "sklearn",
+        "sys",
+        "time"
+      ],
+      "detected_resource_calls": []
+    },
+    {
+      "path": "agentic-ai/notebooks/64-real-time-agent-systems.ipynb",
+      "tier": 2,
+      "reason": "Uses only Python standard library and pinned notebook-smoke modules; execute in a clean kernel.",
+      "alternative_check": null,
+      "detected_imports": [
+        "matplotlib",
+        "numpy",
+        "sklearn",
+        "sys",
+        "time"
+      ],
+      "detected_resource_calls": []
+    },
+    {
+      "path": "ai/notebooks/01-gradient-descent.ipynb",
+      "tier": 2,
+      "reason": "Uses only Python standard library and pinned notebook-smoke modules; execute in a clean kernel.",
+      "alternative_check": null,
+      "detected_imports": [
+        "matplotlib",
+        "numpy"
+      ],
+      "detected_resource_calls": []
+    },
+    {
+      "path": "ai/notebooks/02-backpropagation.ipynb",
+      "tier": 2,
+      "reason": "Uses only Python standard library and pinned notebook-smoke modules; execute in a clean kernel.",
+      "alternative_check": null,
+      "detected_imports": [
+        "matplotlib",
+        "numpy",
+        "sklearn"
+      ],
+      "detected_resource_calls": []
+    },
+    {
+      "path": "ai/notebooks/03-loss-functions.ipynb",
+      "tier": 2,
+      "reason": "Uses only Python standard library and pinned notebook-smoke modules; execute in a clean kernel.",
+      "alternative_check": null,
+      "detected_imports": [
+        "matplotlib",
+        "numpy",
+        "sklearn"
+      ],
+      "detected_resource_calls": []
+    },
+    {
+      "path": "ai/notebooks/04-optimization-algorithms.ipynb",
+      "tier": 2,
+      "reason": "Uses only Python standard library and pinned notebook-smoke modules; execute in a clean kernel.",
+      "alternative_check": null,
+      "detected_imports": [
+        "matplotlib",
+        "numpy",
+        "sklearn"
+      ],
+      "detected_resource_calls": []
+    },
+    {
+      "path": "ai/notebooks/05-learning-rate-scheduling.ipynb",
+      "tier": 2,
+      "reason": "Uses only Python standard library and pinned notebook-smoke modules; execute in a clean kernel.",
+      "alternative_check": null,
+      "detected_imports": [
+        "matplotlib",
+        "numpy",
+        "sklearn"
+      ],
+      "detected_resource_calls": []
+    },
+    {
+      "path": "ai/notebooks/06-linear-regression.ipynb",
+      "tier": 2,
+      "reason": "Uses only Python standard library and pinned notebook-smoke modules; execute in a clean kernel.",
+      "alternative_check": null,
+      "detected_imports": [
+        "matplotlib",
+        "numpy",
+        "sklearn"
+      ],
+      "detected_resource_calls": []
+    },
+    {
+      "path": "ai/notebooks/07-logistic-regression.ipynb",
+      "tier": 2,
+      "reason": "Uses only Python standard library and pinned notebook-smoke modules; execute in a clean kernel.",
+      "alternative_check": null,
+      "detected_imports": [
+        "matplotlib",
+        "numpy",
+        "sklearn"
+      ],
+      "detected_resource_calls": []
+    },
+    {
+      "path": "ai/notebooks/08-decision-trees.ipynb",
+      "tier": 3,
+      "reason": "unavailable or unpinned imports: pandas",
+      "alternative_check": "Validate nbformat and source policy; test deterministic helpers with a small fixture under the dependency-specific CI job.",
+      "detected_imports": [
+        "matplotlib",
+        "numpy",
+        "pandas",
+        "sklearn"
+      ],
+      "detected_resource_calls": []
+    },
+    {
+      "path": "ai/notebooks/09-random-forests.ipynb",
+      "tier": 3,
+      "reason": "unavailable or unpinned imports: pandas",
+      "alternative_check": "Validate nbformat and source policy; test deterministic helpers with a small fixture under the dependency-specific CI job.",
+      "detected_imports": [
+        "matplotlib",
+        "numpy",
+        "pandas",
+        "sklearn"
+      ],
+      "detected_resource_calls": []
+    },
+    {
+      "path": "ai/notebooks/10-gradient-boosting.ipynb",
+      "tier": 3,
+      "reason": "unavailable or unpinned imports: xgboost",
+      "alternative_check": "Validate nbformat and source policy; test deterministic helpers with a small fixture under the dependency-specific CI job.",
+      "detected_imports": [
+        "matplotlib",
+        "numpy",
+        "sklearn",
+        "xgboost"
+      ],
+      "detected_resource_calls": []
+    },
+    {
+      "path": "ai/notebooks/11-support-vector-machines.ipynb",
+      "tier": 2,
+      "reason": "Uses only Python standard library and pinned notebook-smoke modules; execute in a clean kernel.",
+      "alternative_check": null,
+      "detected_imports": [
+        "sklearn"
+      ],
+      "detected_resource_calls": []
+    },
+    {
+      "path": "ai/notebooks/12-k-nearest-neighbors.ipynb",
+      "tier": 2,
+      "reason": "Uses only Python standard library and pinned notebook-smoke modules; execute in a clean kernel.",
+      "alternative_check": null,
+      "detected_imports": [
+        "matplotlib",
+        "numpy",
+        "sklearn"
+      ],
+      "detected_resource_calls": []
+    },
+    {
+      "path": "ai/notebooks/13-neural-networks.ipynb",
+      "tier": 2,
+      "reason": "Uses only Python standard library and pinned notebook-smoke modules; execute in a clean kernel.",
+      "alternative_check": null,
+      "detected_imports": [
+        "matplotlib",
+        "numpy",
+        "sklearn",
+        "torch"
+      ],
+      "detected_resource_calls": []
+    },
+    {
+      "path": "ai/notebooks/14-activation-functions.ipynb",
+      "tier": 2,
+      "reason": "Uses only Python standard library and pinned notebook-smoke modules; execute in a clean kernel.",
+      "alternative_check": null,
+      "detected_imports": [
+        "matplotlib",
+        "numpy",
+        "sklearn",
+        "torch"
+      ],
+      "detected_resource_calls": []
+    },
+    {
+      "path": "ai/notebooks/15-weight-initialization.ipynb",
+      "tier": 2,
+      "reason": "Uses only Python standard library and pinned notebook-smoke modules; execute in a clean kernel.",
+      "alternative_check": null,
+      "detected_imports": [
+        "matplotlib",
+        "numpy",
+        "sklearn",
+        "torch"
+      ],
+      "detected_resource_calls": []
+    },
+    {
+      "path": "ai/notebooks/16-regularization.ipynb",
+      "tier": 2,
+      "reason": "Uses only Python standard library and pinned notebook-smoke modules; execute in a clean kernel.",
+      "alternative_check": null,
+      "detected_imports": [
+        "matplotlib",
+        "numpy",
+        "sklearn",
+        "torch"
+      ],
+      "detected_resource_calls": []
+    },
+    {
+      "path": "ai/notebooks/17-batch-normalization.ipynb",
+      "tier": 2,
+      "reason": "Uses only Python standard library and pinned notebook-smoke modules; execute in a clean kernel.",
+      "alternative_check": null,
+      "detected_imports": [
+        "matplotlib",
+        "sklearn",
+        "torch"
+      ],
+      "detected_resource_calls": []
+    },
+    {
+      "path": "ai/notebooks/18-k-means-clustering.ipynb",
+      "tier": 2,
+      "reason": "Uses only Python standard library and pinned notebook-smoke modules; execute in a clean kernel.",
+      "alternative_check": null,
+      "detected_imports": [
+        "matplotlib",
+        "numpy",
+        "sklearn"
+      ],
+      "detected_resource_calls": []
+    },
+    {
+      "path": "ai/notebooks/19-dimensionality-reduction.ipynb",
+      "tier": 2,
+      "reason": "Uses only Python standard library and pinned notebook-smoke modules; execute in a clean kernel.",
+      "alternative_check": null,
+      "detected_imports": [
+        "matplotlib",
+        "numpy",
+        "sklearn",
+        "time"
+      ],
+      "detected_resource_calls": []
+    },
+    {
+      "path": "ai/notebooks/20-gaussian-mixture-models.ipynb",
+      "tier": 2,
+      "reason": "Uses only Python standard library and pinned notebook-smoke modules; execute in a clean kernel.",
+      "alternative_check": null,
+      "detected_imports": [
+        "matplotlib",
+        "numpy",
+        "sklearn"
+      ],
+      "detected_resource_calls": []
+    },
+    {
+      "path": "ai/notebooks/21-bias-variance-tradeoff.ipynb",
+      "tier": 2,
+      "reason": "Uses only Python standard library and pinned notebook-smoke modules; execute in a clean kernel.",
+      "alternative_check": null,
+      "detected_imports": [
+        "matplotlib",
+        "numpy",
+        "sklearn"
+      ],
+      "detected_resource_calls": []
+    },
+    {
+      "path": "ai/notebooks/22-cross-validation.ipynb",
+      "tier": 2,
+      "reason": "Uses only Python standard library and pinned notebook-smoke modules; execute in a clean kernel.",
+      "alternative_check": null,
+      "detected_imports": [
+        "numpy",
+        "sklearn"
+      ],
+      "detected_resource_calls": []
+    },
+    {
+      "path": "ai/notebooks/23-classification-metrics.ipynb",
+      "tier": 3,
+      "reason": "unavailable or unpinned imports: pandas",
+      "alternative_check": "Validate nbformat and source policy; test deterministic helpers with a small fixture under the dependency-specific CI job.",
+      "detected_imports": [
+        "matplotlib",
+        "numpy",
+        "pandas",
+        "sklearn"
+      ],
+      "detected_resource_calls": []
+    },
+    {
+      "path": "ai/notebooks/24-regression-metrics.ipynb",
+      "tier": 2,
+      "reason": "Uses only Python standard library and pinned notebook-smoke modules; execute in a clean kernel.",
+      "alternative_check": null,
+      "detected_imports": [
+        "matplotlib",
+        "numpy",
+        "scipy",
+        "sklearn"
+      ],
+      "detected_resource_calls": []
+    },
+    {
+      "path": "ai/notebooks/25-feature-engineering.ipynb",
+      "tier": 3,
+      "reason": "unavailable or unpinned imports: pandas",
+      "alternative_check": "Validate nbformat and source policy; test deterministic helpers with a small fixture under the dependency-specific CI job.",
+      "detected_imports": [
+        "numpy",
+        "pandas",
+        "sklearn"
+      ],
+      "detected_resource_calls": []
+    },
+    {
+      "path": "ai/notebooks/26-hyperparameter-tuning.ipynb",
+      "tier": 3,
+      "reason": "unavailable or unpinned imports: skopt",
+      "alternative_check": "Validate nbformat and source policy; test deterministic helpers with a small fixture under the dependency-specific CI job.",
+      "detected_imports": [
+        "numpy",
+        "scipy",
+        "sklearn",
+        "skopt"
+      ],
+      "detected_resource_calls": []
+    },
+    {
+      "path": "ai/notebooks/27-ensemble-methods.ipynb",
+      "tier": 2,
+      "reason": "Uses only Python standard library and pinned notebook-smoke modules; execute in a clean kernel.",
+      "alternative_check": null,
+      "detected_imports": [
+        "numpy",
+        "sklearn"
+      ],
+      "detected_resource_calls": []
+    },
+    {
+      "path": "ai/notebooks/28-bayesian-inference.ipynb",
+      "tier": 2,
+      "reason": "Uses only Python standard library and pinned notebook-smoke modules; execute in a clean kernel.",
+      "alternative_check": null,
+      "detected_imports": [
+        "matplotlib",
+        "numpy",
+        "scipy",
+        "sklearn"
+      ],
+      "detected_resource_calls": []
+    },
+    {
+      "path": "ai/notebooks/29-reinforcement-learning-basics.ipynb",
+      "tier": 2,
+      "reason": "Uses only Python standard library and pinned notebook-smoke modules; execute in a clean kernel.",
+      "alternative_check": null,
+      "detected_imports": [
+        "collections",
+        "matplotlib",
+        "numpy",
+        "torch"
+      ],
+      "detected_resource_calls": []
+    },
+    {
+      "path": "ai/notebooks/30-markov-decision-processes.ipynb",
+      "tier": 2,
+      "reason": "Uses only Python standard library and pinned notebook-smoke modules; execute in a clean kernel.",
+      "alternative_check": null,
+      "detected_imports": [
+        "numpy",
+        "sklearn"
+      ],
+      "detected_resource_calls": []
+    },
+    {
+      "path": "ai/notebooks/31-q-learning.ipynb",
+      "tier": 2,
+      "reason": "Uses only Python standard library and pinned notebook-smoke modules; execute in a clean kernel.",
+      "alternative_check": null,
+      "detected_imports": [
+        "matplotlib",
+        "numpy",
+        "sklearn",
+        "sys",
+        "time"
+      ],
+      "detected_resource_calls": []
+    },
+    {
+      "path": "ai/notebooks/32-policy-gradients.ipynb",
+      "tier": 2,
+      "reason": "Uses only Python standard library and pinned notebook-smoke modules; execute in a clean kernel.",
+      "alternative_check": null,
+      "detected_imports": [
+        "matplotlib",
+        "numpy",
+        "sklearn",
+        "sys",
+        "time"
+      ],
+      "detected_resource_calls": []
+    },
+    {
+      "path": "ai/notebooks/33-actor-critic-methods.ipynb",
+      "tier": 2,
+      "reason": "Uses only Python standard library and pinned notebook-smoke modules; execute in a clean kernel.",
+      "alternative_check": null,
+      "detected_imports": [
+        "matplotlib",
+        "numpy",
+        "sklearn",
+        "sys",
+        "time"
+      ],
+      "detected_resource_calls": []
+    },
+    {
+      "path": "ai/notebooks/34-graph-neural-networks.ipynb",
+      "tier": 2,
+      "reason": "Uses only Python standard library and pinned notebook-smoke modules; execute in a clean kernel.",
+      "alternative_check": null,
+      "detected_imports": [
+        "matplotlib",
+        "numpy",
+        "sklearn",
+        "sys",
+        "time"
+      ],
+      "detected_resource_calls": []
+    },
+    {
+      "path": "ai/notebooks/35-causal-inference.ipynb",
+      "tier": 2,
+      "reason": "Uses only Python standard library and pinned notebook-smoke modules; execute in a clean kernel.",
+      "alternative_check": null,
+      "detected_imports": [
+        "matplotlib",
+        "numpy",
+        "sklearn",
+        "sys",
+        "time"
+      ],
+      "detected_resource_calls": []
+    },
+    {
+      "path": "ai/notebooks/36-probabilistic-graphical-models.ipynb",
+      "tier": 2,
+      "reason": "Uses only Python standard library and pinned notebook-smoke modules; execute in a clean kernel.",
+      "alternative_check": null,
+      "detected_imports": [
+        "matplotlib",
+        "numpy",
+        "sklearn",
+        "sys",
+        "time"
+      ],
+      "detected_resource_calls": []
+    },
+    {
+      "path": "ai/notebooks/37-variational-autoencoders.ipynb",
+      "tier": 2,
+      "reason": "Uses only Python standard library and pinned notebook-smoke modules; execute in a clean kernel.",
+      "alternative_check": null,
+      "detected_imports": [
+        "matplotlib",
+        "numpy",
+        "sklearn",
+        "sys",
+        "time"
+      ],
+      "detected_resource_calls": []
+    },
+    {
+      "path": "ai/notebooks/38-generative-adversarial-networks.ipynb",
+      "tier": 2,
+      "reason": "Uses only Python standard library and pinned notebook-smoke modules; execute in a clean kernel.",
+      "alternative_check": null,
+      "detected_imports": [
+        "matplotlib",
+        "numpy",
+        "sklearn",
+        "sys",
+        "time"
+      ],
+      "detected_resource_calls": []
+    },
+    {
+      "path": "ai/notebooks/39-time-series-forecasting.ipynb",
+      "tier": 2,
+      "reason": "Uses only Python standard library and pinned notebook-smoke modules; execute in a clean kernel.",
+      "alternative_check": null,
+      "detected_imports": [
+        "matplotlib",
+        "numpy",
+        "sklearn",
+        "sys",
+        "time"
+      ],
+      "detected_resource_calls": []
+    },
+    {
+      "path": "ai/notebooks/40-anomaly-detection.ipynb",
+      "tier": 2,
+      "reason": "Uses only Python standard library and pinned notebook-smoke modules; execute in a clean kernel.",
+      "alternative_check": null,
+      "detected_imports": [
+        "matplotlib",
+        "numpy",
+        "sklearn",
+        "sys",
+        "time"
+      ],
+      "detected_resource_calls": []
+    },
+    {
+      "path": "cv/notebooks/01-image-classification.ipynb",
+      "tier": 2,
+      "reason": "Uses only Python standard library and pinned notebook-smoke modules; execute in a clean kernel.",
+      "alternative_check": null,
+      "detected_imports": [
+        "matplotlib",
+        "numpy",
+        "sklearn",
+        "torch"
+      ],
+      "detected_resource_calls": []
+    },
+    {
+      "path": "cv/notebooks/02-object-detection.ipynb",
+      "tier": 2,
+      "reason": "Uses only Python standard library and pinned notebook-smoke modules; execute in a clean kernel.",
+      "alternative_check": null,
+      "detected_imports": [
+        "matplotlib",
+        "numpy",
+        "torch"
+      ],
+      "detected_resource_calls": []
+    },
+    {
+      "path": "cv/notebooks/03-image-segmentation.ipynb",
+      "tier": 2,
+      "reason": "Uses only Python standard library and pinned notebook-smoke modules; execute in a clean kernel.",
+      "alternative_check": null,
+      "detected_imports": [
+        "collections",
+        "matplotlib",
+        "numpy",
+        "sklearn",
+        "torch"
+      ],
+      "detected_resource_calls": []
+    },
+    {
+      "path": "cv/notebooks/04-vision-transformers.ipynb",
+      "tier": 2,
+      "reason": "Uses only Python standard library and pinned notebook-smoke modules; execute in a clean kernel.",
+      "alternative_check": null,
+      "detected_imports": [
+        "matplotlib",
+        "numpy",
+        "sklearn",
+        "torch"
+      ],
+      "detected_resource_calls": []
+    },
+    {
+      "path": "cv/notebooks/05-contrastive-learning-vision.ipynb",
+      "tier": 2,
+      "reason": "Uses only Python standard library and pinned notebook-smoke modules; execute in a clean kernel.",
+      "alternative_check": null,
+      "detected_imports": [
+        "matplotlib",
+        "numpy",
+        "sklearn",
+        "torch"
+      ],
+      "detected_resource_calls": []
+    },
+    {
+      "path": "cv/notebooks/06-diffusion-models.ipynb",
+      "tier": 2,
+      "reason": "Uses only Python standard library and pinned notebook-smoke modules; execute in a clean kernel.",
+      "alternative_check": null,
+      "detected_imports": [
+        "matplotlib",
+        "numpy",
+        "time",
+        "torch"
+      ],
+      "detected_resource_calls": []
+    },
+    {
+      "path": "cv/notebooks/07-video-understanding.ipynb",
+      "tier": 2,
+      "reason": "Uses only Python standard library and pinned notebook-smoke modules; execute in a clean kernel.",
+      "alternative_check": null,
+      "detected_imports": [
+        "matplotlib",
+        "numpy",
+        "torch"
+      ],
+      "detected_resource_calls": []
+    },
+    {
+      "path": "cv/notebooks/08-multimodal-vision-llm.ipynb",
+      "tier": 2,
+      "reason": "Uses only Python standard library and pinned notebook-smoke modules; execute in a clean kernel.",
+      "alternative_check": null,
+      "detected_imports": [
+        "matplotlib",
+        "numpy",
+        "torch"
+      ],
+      "detected_resource_calls": []
+    },
+    {
+      "path": "llm/notebooks/00-concept-map.ipynb",
+      "tier": 1,
+      "reason": "No executable code cells; validate nbformat, links, policy, and content structure.",
+      "alternative_check": "Validate nbformat and source policy; test deterministic helpers with a small fixture under the dependency-specific CI job.",
+      "detected_imports": [],
+      "detected_resource_calls": []
+    },
+    {
+      "path": "llm/notebooks/01-tokenization.ipynb",
+      "tier": 3,
+      "reason": "unavailable or unpinned imports: transformers; model download or loading",
+      "alternative_check": "Validate nbformat and source policy; test configuration and tensor shapes with a synthetic in-memory fixture.",
+      "detected_imports": [
+        "numpy",
+        "torch",
+        "transformers"
+      ],
+      "detected_resource_calls": [
+        "model download or loading"
+      ]
+    },
+    {
+      "path": "llm/notebooks/02-embeddings.ipynb",
+      "tier": 3,
+      "reason": "unavailable or unpinned imports: sentence_transformers",
+      "alternative_check": "Validate nbformat and source policy; test deterministic helpers with a small fixture under the dependency-specific CI job.",
+      "detected_imports": [
+        "numpy",
+        "pickle",
+        "sentence_transformers",
+        "sklearn",
+        "torch",
+        "warnings"
+      ],
+      "detected_resource_calls": []
+    },
+    {
+      "path": "llm/notebooks/03-pretraining.ipynb",
+      "tier": 3,
+      "reason": "unavailable or unpinned imports: transformers; model download or loading",
+      "alternative_check": "Validate nbformat and source policy; test configuration and tensor shapes with a synthetic in-memory fixture.",
+      "detected_imports": [
+        "torch",
+        "transformers"
+      ],
+      "detected_resource_calls": [
+        "model download or loading"
+      ]
+    },
+    {
+      "path": "llm/notebooks/04-finetuning.ipynb",
+      "tier": 3,
+      "reason": "unavailable or unpinned imports: transformers; model download or loading",
+      "alternative_check": "Validate nbformat and source policy; test configuration and tensor shapes with a synthetic in-memory fixture.",
+      "detected_imports": [
+        "torch",
+        "transformers",
+        "typing"
+      ],
+      "detected_resource_calls": [
+        "model download or loading"
+      ]
+    },
+    {
+      "path": "llm/notebooks/05-instruction-tuning.ipynb",
+      "tier": 3,
+      "reason": "unavailable or unpinned imports: transformers; model download or loading",
+      "alternative_check": "Validate nbformat and source policy; test configuration and tensor shapes with a synthetic in-memory fixture.",
+      "detected_imports": [
+        "torch",
+        "transformers",
+        "typing"
+      ],
+      "detected_resource_calls": [
+        "model download or loading"
+      ]
+    },
+    {
+      "path": "llm/notebooks/06-rlhf.ipynb",
+      "tier": 3,
+      "reason": "unavailable or unpinned imports: transformers; model download or loading",
+      "alternative_check": "Validate nbformat and source policy; test configuration and tensor shapes with a synthetic in-memory fixture.",
+      "detected_imports": [
+        "torch",
+        "transformers",
+        "typing"
+      ],
+      "detected_resource_calls": [
+        "model download or loading"
+      ]
+    },
+    {
+      "path": "llm/notebooks/07-dpo.ipynb",
+      "tier": 3,
+      "reason": "unavailable or unpinned imports: transformers; model download or loading",
+      "alternative_check": "Validate nbformat and source policy; test configuration and tensor shapes with a synthetic in-memory fixture.",
+      "detected_imports": [
+        "math",
+        "torch",
+        "transformers",
+        "typing"
+      ],
+      "detected_resource_calls": [
+        "model download or loading"
+      ]
+    },
+    {
+      "path": "llm/notebooks/08-lora.ipynb",
+      "tier": 3,
+      "reason": "unavailable or unpinned imports: datasets, peft, transformers; model download or loading",
+      "alternative_check": "Validate nbformat and source policy; test configuration and tensor shapes with a synthetic in-memory fixture.",
+      "detected_imports": [
+        "datasets",
+        "peft",
+        "torch",
+        "transformers",
+        "typing",
+        "warnings"
+      ],
+      "detected_resource_calls": [
+        "model download or loading"
+      ]
+    },
+    {
+      "path": "llm/notebooks/09-adapters.ipynb",
+      "tier": 2,
+      "reason": "Uses only Python standard library and pinned notebook-smoke modules; execute in a clean kernel.",
+      "alternative_check": null,
+      "detected_imports": [],
+      "detected_resource_calls": []
+    },
+    {
+      "path": "llm/notebooks/10-prefix-tuning.ipynb",
+      "tier": 3,
+      "reason": "unavailable or unpinned imports: transformers; model download or loading",
+      "alternative_check": "Validate nbformat and source policy; test configuration and tensor shapes with a synthetic in-memory fixture.",
+      "detected_imports": [
+        "torch",
+        "transformers",
+        "typing"
+      ],
+      "detected_resource_calls": [
+        "model download or loading"
+      ]
+    },
+    {
+      "path": "llm/notebooks/11-parameter-efficient-finetuning.ipynb",
+      "tier": 3,
+      "reason": "unavailable or unpinned imports: transformers; model download or loading",
+      "alternative_check": "Validate nbformat and source policy; test configuration and tensor shapes with a synthetic in-memory fixture.",
+      "detected_imports": [
+        "torch",
+        "transformers",
+        "typing"
+      ],
+      "detected_resource_calls": [
+        "model download or loading"
+      ]
+    },
+    {
+      "path": "llm/notebooks/12-prompting.ipynb",
+      "tier": 3,
+      "reason": "unavailable or unpinned imports: transformers; model download or loading",
+      "alternative_check": "Validate nbformat and source policy; test configuration and tensor shapes with a synthetic in-memory fixture.",
+      "detected_imports": [
+        "torch",
+        "transformers",
+        "typing"
+      ],
+      "detected_resource_calls": [
+        "model download or loading"
+      ]
+    },
+    {
+      "path": "llm/notebooks/13-few-shot-learning.ipynb",
+      "tier": 2,
+      "reason": "Uses only Python standard library and pinned notebook-smoke modules; execute in a clean kernel.",
+      "alternative_check": null,
+      "detected_imports": [],
+      "detected_resource_calls": []
+    },
+    {
+      "path": "llm/notebooks/14-zero-shot-learning.ipynb",
+      "tier": 3,
+      "reason": "unavailable or unpinned imports: transformers; model download or loading",
+      "alternative_check": "Validate nbformat and source policy; test configuration and tensor shapes with a synthetic in-memory fixture.",
+      "detected_imports": [
+        "torch",
+        "transformers",
+        "typing"
+      ],
+      "detected_resource_calls": [
+        "model download or loading"
+      ]
+    },
+    {
+      "path": "llm/notebooks/15-in-context-learning.ipynb",
+      "tier": 2,
+      "reason": "Uses only Python standard library and pinned notebook-smoke modules; execute in a clean kernel.",
+      "alternative_check": null,
+      "detected_imports": [],
+      "detected_resource_calls": []
+    },
+    {
+      "path": "llm/notebooks/16-chain-of-thought.ipynb",
+      "tier": 2,
+      "reason": "Uses only Python standard library and pinned notebook-smoke modules; execute in a clean kernel.",
+      "alternative_check": null,
+      "detected_imports": [],
+      "detected_resource_calls": []
+    },
+    {
+      "path": "llm/notebooks/17-prompt-optimization.ipynb",
+      "tier": 3,
+      "reason": "unavailable or unpinned imports: transformers; model download or loading",
+      "alternative_check": "Validate nbformat and source policy; test configuration and tensor shapes with a synthetic in-memory fixture.",
+      "detected_imports": [
+        "torch",
+        "transformers",
+        "typing"
+      ],
+      "detected_resource_calls": [
+        "model download or loading"
+      ]
+    },
+    {
+      "path": "llm/notebooks/18-rag.ipynb",
+      "tier": 2,
+      "reason": "Uses only Python standard library and pinned notebook-smoke modules; execute in a clean kernel.",
+      "alternative_check": null,
+      "detected_imports": [],
+      "detected_resource_calls": []
+    },
+    {
+      "path": "llm/notebooks/19-retrieval-augmented-generation.ipynb",
+      "tier": 3,
+      "reason": "unavailable or unpinned imports: transformers; model download or loading",
+      "alternative_check": "Validate nbformat and source policy; test configuration and tensor shapes with a synthetic in-memory fixture.",
+      "detected_imports": [
+        "torch",
+        "transformers",
+        "typing"
+      ],
+      "detected_resource_calls": [
+        "model download or loading"
+      ]
+    },
+    {
+      "path": "llm/notebooks/20-vector-databases.ipynb",
+      "tier": 3,
+      "reason": "unavailable or unpinned imports: transformers; model download or loading",
+      "alternative_check": "Validate nbformat and source policy; test configuration and tensor shapes with a synthetic in-memory fixture.",
+      "detected_imports": [
+        "numpy",
+        "torch",
+        "transformers",
+        "typing"
+      ],
+      "detected_resource_calls": [
+        "model download or loading"
+      ]
+    },
+    {
+      "path": "llm/notebooks/21-semantic-search.ipynb",
+      "tier": 3,
+      "reason": "unavailable or unpinned imports: transformers; model download or loading",
+      "alternative_check": "Validate nbformat and source policy; test configuration and tensor shapes with a synthetic in-memory fixture.",
+      "detected_imports": [
+        "torch",
+        "transformers",
+        "typing"
+      ],
+      "detected_resource_calls": [
+        "model download or loading"
+      ]
+    },
+    {
+      "path": "llm/notebooks/22-semantic-caching.ipynb",
+      "tier": 3,
+      "reason": "unavailable or unpinned imports: transformers; model download or loading",
+      "alternative_check": "Validate nbformat and source policy; test configuration and tensor shapes with a synthetic in-memory fixture.",
+      "detected_imports": [
+        "torch",
+        "transformers",
+        "typing"
+      ],
+      "detected_resource_calls": [
+        "model download or loading"
+      ]
+    },
+    {
+      "path": "llm/notebooks/23-kv-cache.ipynb",
+      "tier": 2,
+      "reason": "Uses only Python standard library and pinned notebook-smoke modules; execute in a clean kernel.",
+      "alternative_check": null,
+      "detected_imports": [],
+      "detected_resource_calls": []
+    },
+    {
+      "path": "llm/notebooks/24-attention-optimization.ipynb",
+      "tier": 2,
+      "reason": "Uses only Python standard library and pinned notebook-smoke modules; execute in a clean kernel.",
+      "alternative_check": null,
+      "detected_imports": [
+        "math"
+      ],
+      "detected_resource_calls": []
+    },
+    {
+      "path": "llm/notebooks/25-context-window.ipynb",
+      "tier": 3,
+      "reason": "unavailable or unpinned imports: transformers; model download or loading",
+      "alternative_check": "Validate nbformat and source policy; test configuration and tensor shapes with a synthetic in-memory fixture.",
+      "detected_imports": [
+        "torch",
+        "transformers",
+        "typing"
+      ],
+      "detected_resource_calls": [
+        "model download or loading"
+      ]
+    },
+    {
+      "path": "llm/notebooks/26-continuous-batching.ipynb",
+      "tier": 2,
+      "reason": "Uses only Python standard library and pinned notebook-smoke modules; execute in a clean kernel.",
+      "alternative_check": null,
+      "detected_imports": [],
+      "detected_resource_calls": []
+    },
+    {
+      "path": "llm/notebooks/27-speculative-decoding.ipynb",
+      "tier": 3,
+      "reason": "unavailable or unpinned imports: transformers; model download or loading",
+      "alternative_check": "Validate nbformat and source policy; test configuration and tensor shapes with a synthetic in-memory fixture.",
+      "detected_imports": [
+        "torch",
+        "transformers",
+        "typing"
+      ],
+      "detected_resource_calls": [
+        "model download or loading"
+      ]
+    },
+    {
+      "path": "llm/notebooks/28-inference-optimization.ipynb",
+      "tier": 3,
+      "reason": "unavailable or unpinned imports: transformers; model download or loading",
+      "alternative_check": "Validate nbformat and source policy; test configuration and tensor shapes with a synthetic in-memory fixture.",
+      "detected_imports": [
+        "torch",
+        "transformers",
+        "typing"
+      ],
+      "detected_resource_calls": [
+        "model download or loading"
+      ]
+    },
+    {
+      "path": "llm/notebooks/29-token-optimization.ipynb",
+      "tier": 3,
+      "reason": "unavailable or unpinned imports: transformers; model download or loading",
+      "alternative_check": "Validate nbformat and source policy; test configuration and tensor shapes with a synthetic in-memory fixture.",
+      "detected_imports": [
+        "torch",
+        "transformers",
+        "typing"
+      ],
+      "detected_resource_calls": [
+        "model download or loading"
+      ]
+    },
+    {
+      "path": "llm/notebooks/30-quantization.ipynb",
+      "tier": 2,
+      "reason": "Uses only Python standard library and pinned notebook-smoke modules; execute in a clean kernel.",
+      "alternative_check": null,
+      "detected_imports": [],
+      "detected_resource_calls": []
+    },
+    {
+      "path": "llm/notebooks/31-multimodal.ipynb",
+      "tier": 3,
+      "reason": "unavailable or unpinned imports: transformers; model download or loading",
+      "alternative_check": "Validate nbformat and source policy; test configuration and tensor shapes with a synthetic in-memory fixture.",
+      "detected_imports": [
+        "torch",
+        "transformers",
+        "typing"
+      ],
+      "detected_resource_calls": [
+        "model download or loading"
+      ]
+    },
+    {
+      "path": "llm/notebooks/32-evaluation.ipynb",
+      "tier": 2,
+      "reason": "Uses only Python standard library and pinned notebook-smoke modules; execute in a clean kernel.",
+      "alternative_check": null,
+      "detected_imports": [],
+      "detected_resource_calls": []
+    },
+    {
+      "path": "llm/notebooks/33-vision-transformers.ipynb",
+      "tier": 3,
+      "reason": "unavailable or unpinned imports: PIL, requests, torchvision, transformers; model download or loading; external HTTP request",
+      "alternative_check": "Validate nbformat and source policy; test configuration and tensor shapes with a synthetic in-memory fixture; mock the transport and test request construction, timeout, and failure handling.",
+      "detected_imports": [
+        "PIL",
+        "matplotlib",
+        "requests",
+        "torch",
+        "torchvision",
+        "transformers"
+      ],
+      "detected_resource_calls": [
+        "model download or loading",
+        "external HTTP request"
+      ]
+    },
+    {
+      "path": "llm/notebooks/34-multimodal-fusion.ipynb",
+      "tier": 3,
+      "reason": "unavailable or unpinned imports: transformers",
+      "alternative_check": "Validate nbformat and source policy; test deterministic helpers with a small fixture under the dependency-specific CI job.",
+      "detected_imports": [
+        "logging",
+        "numpy",
+        "torch",
+        "transformers",
+        "typing"
+      ],
+      "detected_resource_calls": []
+    },
+    {
+      "path": "llm/notebooks/35-model-interpretability.ipynb",
+      "tier": 3,
+      "reason": "unavailable or unpinned imports: transformers",
+      "alternative_check": "Validate nbformat and source policy; test deterministic helpers with a small fixture under the dependency-specific CI job.",
+      "detected_imports": [
+        "logging",
+        "numpy",
+        "torch",
+        "transformers",
+        "typing"
+      ],
+      "detected_resource_calls": []
+    },
+    {
+      "path": "llm/notebooks/36-adversarial-robustness.ipynb",
+      "tier": 2,
+      "reason": "Uses only Python standard library and pinned notebook-smoke modules; execute in a clean kernel.",
+      "alternative_check": null,
+      "detected_imports": [
+        "matplotlib",
+        "numpy",
+        "sklearn",
+        "sys",
+        "time"
+      ],
+      "detected_resource_calls": []
+    },
+    {
+      "path": "llm/notebooks/37-knowledge-distillation.ipynb",
+      "tier": 2,
+      "reason": "Uses only Python standard library and pinned notebook-smoke modules; execute in a clean kernel.",
+      "alternative_check": null,
+      "detected_imports": [
+        "matplotlib",
+        "numpy",
+        "sklearn",
+        "sys",
+        "time"
+      ],
+      "detected_resource_calls": []
+    },
+    {
+      "path": "llm/notebooks/38-neural-architecture-search.ipynb",
+      "tier": 2,
+      "reason": "Uses only Python standard library and pinned notebook-smoke modules; execute in a clean kernel.",
+      "alternative_check": null,
+      "detected_imports": [
+        "matplotlib",
+        "numpy",
+        "sklearn",
+        "sys",
+        "time"
+      ],
+      "detected_resource_calls": []
+    },
+    {
+      "path": "llm/notebooks/39-long-context-handling.ipynb",
+      "tier": 2,
+      "reason": "Uses only Python standard library and pinned notebook-smoke modules; execute in a clean kernel.",
+      "alternative_check": null,
+      "detected_imports": [
+        "matplotlib",
+        "numpy",
+        "sklearn",
+        "sys",
+        "time"
+      ],
+      "detected_resource_calls": []
+    },
+    {
+      "path": "llm/notebooks/40-retrieval-systems.ipynb",
+      "tier": 2,
+      "reason": "Uses only Python standard library and pinned notebook-smoke modules; execute in a clean kernel.",
+      "alternative_check": null,
+      "detected_imports": [
+        "matplotlib",
+        "numpy",
+        "sklearn",
+        "sys",
+        "time"
+      ],
+      "detected_resource_calls": []
+    },
+    {
+      "path": "llm/notebooks/41-prompt-injection-security.ipynb",
+      "tier": 2,
+      "reason": "Uses only Python standard library and pinned notebook-smoke modules; execute in a clean kernel.",
+      "alternative_check": null,
+      "detected_imports": [
+        "matplotlib",
+        "numpy",
+        "sklearn",
+        "sys",
+        "time"
+      ],
+      "detected_resource_calls": []
+    },
+    {
+      "path": "llm/notebooks/42-model-editing.ipynb",
+      "tier": 2,
+      "reason": "Uses only Python standard library and pinned notebook-smoke modules; execute in a clean kernel.",
+      "alternative_check": null,
+      "detected_imports": [
+        "matplotlib",
+        "numpy",
+        "sklearn",
+        "sys",
+        "time"
+      ],
+      "detected_resource_calls": []
+    },
+    {
+      "path": "llm/notebooks/43-mixture-of-experts.ipynb",
+      "tier": 2,
+      "reason": "Uses only Python standard library and pinned notebook-smoke modules; execute in a clean kernel.",
+      "alternative_check": null,
+      "detected_imports": [
+        "matplotlib",
+        "numpy",
+        "sklearn",
+        "sys",
+        "time"
+      ],
+      "detected_resource_calls": []
+    },
+    {
+      "path": "llm/notebooks/44-efficient-attention.ipynb",
+      "tier": 2,
+      "reason": "Uses only Python standard library and pinned notebook-smoke modules; execute in a clean kernel.",
+      "alternative_check": null,
+      "detected_imports": [
+        "matplotlib",
+        "numpy",
+        "sklearn",
+        "sys",
+        "time"
+      ],
+      "detected_resource_calls": []
+    },
+    {
+      "path": "ml/implementations/backpropagation.ipynb",
+      "tier": 2,
+      "reason": "Uses only Python standard library and pinned notebook-smoke modules; execute in a clean kernel.",
+      "alternative_check": null,
+      "detected_imports": [
+        "matplotlib",
+        "numpy",
+        "sklearn"
+      ],
+      "detected_resource_calls": []
+    },
+    {
+      "path": "ml/implementations/cnn-image-classifier.ipynb",
+      "tier": 3,
+      "reason": "unavailable or unpinned imports: torchvision",
+      "alternative_check": "Validate nbformat and source policy; test deterministic helpers with a small fixture under the dependency-specific CI job.",
+      "detected_imports": [
+        "matplotlib",
+        "numpy",
+        "torch",
+        "torchvision"
+      ],
+      "detected_resource_calls": []
+    },
+    {
+      "path": "ml/implementations/decision-tree.ipynb",
+      "tier": 2,
+      "reason": "Uses only Python standard library and pinned notebook-smoke modules; execute in a clean kernel.",
+      "alternative_check": null,
+      "detected_imports": [
+        "matplotlib",
+        "numpy",
+        "sklearn"
+      ],
+      "detected_resource_calls": []
+    },
+    {
+      "path": "ml/implementations/kmeans-from-scratch.ipynb",
+      "tier": 2,
+      "reason": "Uses only Python standard library and pinned notebook-smoke modules; execute in a clean kernel.",
+      "alternative_check": null,
+      "detected_imports": [
+        "matplotlib",
+        "numpy",
+        "sklearn"
+      ],
+      "detected_resource_calls": []
+    },
+    {
+      "path": "ml/implementations/linear-regression.ipynb",
+      "tier": 2,
+      "reason": "Uses only Python standard library and pinned notebook-smoke modules; execute in a clean kernel.",
+      "alternative_check": null,
+      "detected_imports": [
+        "matplotlib",
+        "numpy",
+        "sklearn"
+      ],
+      "detected_resource_calls": []
+    },
+    {
+      "path": "ml/implementations/logistic-regression.ipynb",
+      "tier": 2,
+      "reason": "Uses only Python standard library and pinned notebook-smoke modules; execute in a clean kernel.",
+      "alternative_check": null,
+      "detected_imports": [
+        "matplotlib",
+        "numpy",
+        "sklearn"
+      ],
+      "detected_resource_calls": []
+    },
+    {
+      "path": "ml/implementations/neural-net-from-scratch.ipynb",
+      "tier": 2,
+      "reason": "Uses only Python standard library and pinned notebook-smoke modules; execute in a clean kernel.",
+      "alternative_check": null,
+      "detected_imports": [
+        "matplotlib",
+        "numpy",
+        "sklearn"
+      ],
+      "detected_resource_calls": []
+    },
+    {
+      "path": "ml/implementations/random-forest.ipynb",
+      "tier": 2,
+      "reason": "Uses only Python standard library and pinned notebook-smoke modules; execute in a clean kernel.",
+      "alternative_check": null,
+      "detected_imports": [
+        "matplotlib",
+        "numpy",
+        "sklearn"
+      ],
+      "detected_resource_calls": []
+    },
+    {
+      "path": "ml/notebooks/01-activation-functions.ipynb",
+      "tier": 2,
+      "reason": "Uses only Python standard library and pinned notebook-smoke modules; execute in a clean kernel.",
+      "alternative_check": null,
+      "detected_imports": [
+        "matplotlib",
+        "numpy",
+        "random",
+        "time",
+        "torch"
+      ],
+      "detected_resource_calls": []
+    },
+    {
+      "path": "ml/notebooks/02-attention-mechanism.ipynb",
+      "tier": 2,
+      "reason": "Uses only Python standard library and pinned notebook-smoke modules; execute in a clean kernel.",
+      "alternative_check": null,
+      "detected_imports": [
+        "matplotlib",
+        "numpy",
+        "random",
+        "torch"
+      ],
+      "detected_resource_calls": []
+    },
+    {
+      "path": "ml/notebooks/03-batch-normalization.ipynb",
+      "tier": 2,
+      "reason": "Uses only Python standard library and pinned notebook-smoke modules; execute in a clean kernel.",
+      "alternative_check": null,
+      "detected_imports": [
+        "matplotlib",
+        "numpy",
+        "random",
+        "torch"
+      ],
+      "detected_resource_calls": []
+    },
+    {
+      "path": "ml/notebooks/04-class-imbalance.ipynb",
+      "tier": 2,
+      "reason": "Uses only Python standard library and pinned notebook-smoke modules; execute in a clean kernel.",
+      "alternative_check": null,
+      "detected_imports": [
+        "matplotlib",
+        "numpy",
+        "random",
+        "sklearn",
+        "torch"
+      ],
+      "detected_resource_calls": []
+    },
+    {
+      "path": "ml/notebooks/05-cnns.ipynb",
+      "tier": 2,
+      "reason": "Uses only Python standard library and pinned notebook-smoke modules; execute in a clean kernel.",
+      "alternative_check": null,
+      "detected_imports": [
+        "matplotlib",
+        "numpy",
+        "random",
+        "torch"
+      ],
+      "detected_resource_calls": []
+    },
+    {
+      "path": "ml/notebooks/06-cross-validation.ipynb",
+      "tier": 2,
+      "reason": "Uses only Python standard library and pinned notebook-smoke modules; execute in a clean kernel.",
+      "alternative_check": null,
+      "detected_imports": [
+        "matplotlib",
+        "numpy",
+        "random",
+        "sklearn",
+        "torch"
+      ],
+      "detected_resource_calls": []
+    },
+    {
+      "path": "ml/notebooks/07-data-leakage.ipynb",
+      "tier": 2,
+      "reason": "Uses only Python standard library and pinned notebook-smoke modules; execute in a clean kernel.",
+      "alternative_check": null,
+      "detected_imports": [
+        "matplotlib",
+        "numpy",
+        "random",
+        "scipy",
+        "sklearn",
+        "torch"
+      ],
+      "detected_resource_calls": []
+    },
+    {
+      "path": "ml/notebooks/08-distributed-training.ipynb",
+      "tier": 2,
+      "reason": "Uses only Python standard library and pinned notebook-smoke modules; execute in a clean kernel.",
+      "alternative_check": null,
+      "detected_imports": [
+        "copy",
+        "matplotlib",
+        "numpy",
+        "random",
+        "time",
+        "torch"
+      ],
+      "detected_resource_calls": []
+    },
+    {
+      "path": "ml/notebooks/09-domain-adaptation.ipynb",
+      "tier": 2,
+      "reason": "Uses only Python standard library and pinned notebook-smoke modules; execute in a clean kernel.",
+      "alternative_check": null,
+      "detected_imports": [
+        "matplotlib",
+        "numpy",
+        "random",
+        "sklearn",
+        "torch"
+      ],
+      "detected_resource_calls": []
+    },
+    {
+      "path": "ml/notebooks/10-dropout.ipynb",
+      "tier": 2,
+      "reason": "Uses only Python standard library and pinned notebook-smoke modules; execute in a clean kernel.",
+      "alternative_check": null,
+      "detected_imports": [
+        "matplotlib",
+        "numpy",
+        "random",
+        "torch"
+      ],
+      "detected_resource_calls": []
+    },
+    {
+      "path": "ml/notebooks/11-early-stopping.ipynb",
+      "tier": 2,
+      "reason": "Uses only Python standard library and pinned notebook-smoke modules; execute in a clean kernel.",
+      "alternative_check": null,
+      "detected_imports": [
+        "copy",
+        "matplotlib",
+        "numpy",
+        "os",
+        "random",
+        "tempfile",
+        "torch"
+      ],
+      "detected_resource_calls": []
+    },
+    {
+      "path": "ml/notebooks/12-ensemble-methods.ipynb",
+      "tier": 3,
+      "reason": "unavailable or unpinned imports: xgboost",
+      "alternative_check": "Validate nbformat and source policy; test deterministic helpers with a small fixture under the dependency-specific CI job.",
+      "detected_imports": [
+        "matplotlib",
+        "numpy",
+        "random",
+        "sklearn",
+        "torch",
+        "warnings",
+        "xgboost"
+      ],
+      "detected_resource_calls": []
+    },
+    {
+      "path": "ml/notebooks/13-evaluation-metrics.ipynb",
+      "tier": 2,
+      "reason": "Uses only Python standard library and pinned notebook-smoke modules; execute in a clean kernel.",
+      "alternative_check": null,
+      "detected_imports": [
+        "matplotlib",
+        "numpy",
+        "random",
+        "sklearn",
+        "torch"
+      ],
+      "detected_resource_calls": []
+    },
+    {
+      "path": "ml/notebooks/14-feature-engineering.ipynb",
+      "tier": 3,
+      "reason": "unavailable or unpinned imports: pandas",
+      "alternative_check": "Validate nbformat and source policy; test deterministic helpers with a small fixture under the dependency-specific CI job.",
+      "detected_imports": [
+        "matplotlib",
+        "numpy",
+        "pandas",
+        "random",
+        "sklearn",
+        "torch",
+        "warnings"
+      ],
+      "detected_resource_calls": []
+    },
+    {
+      "path": "ml/notebooks/15-gradient-accumulation.ipynb",
+      "tier": 2,
+      "reason": "Uses only Python standard library and pinned notebook-smoke modules; execute in a clean kernel.",
+      "alternative_check": null,
+      "detected_imports": [
+        "matplotlib",
+        "numpy",
+        "random",
+        "torch"
+      ],
+      "detected_resource_calls": []
+    },
+    {
+      "path": "ml/notebooks/16-hyperparameter-tuning.ipynb",
+      "tier": 3,
+      "reason": "unavailable or unpinned imports: optuna",
+      "alternative_check": "Validate nbformat and source policy; test deterministic helpers with a small fixture under the dependency-specific CI job.",
+      "detected_imports": [
+        "itertools",
+        "matplotlib",
+        "numpy",
+        "optuna",
+        "random",
+        "scipy",
+        "sklearn",
+        "time",
+        "torch",
+        "warnings"
+      ],
+      "detected_resource_calls": []
+    },
+    {
+      "path": "ml/notebooks/17-knowledge-distillation.ipynb",
+      "tier": 3,
+      "reason": "unavailable or unpinned imports: transformers",
+      "alternative_check": "Validate nbformat and source policy; test deterministic helpers with a small fixture under the dependency-specific CI job.",
+      "detected_imports": [
+        "matplotlib",
+        "numpy",
+        "random",
+        "torch",
+        "transformers"
+      ],
+      "detected_resource_calls": []
+    },
+    {
+      "path": "ml/notebooks/18-layer-normalization.ipynb",
+      "tier": 2,
+      "reason": "Uses only Python standard library and pinned notebook-smoke modules; execute in a clean kernel.",
+      "alternative_check": null,
+      "detected_imports": [
+        "matplotlib",
+        "numpy",
+        "random",
+        "time",
+        "torch"
+      ],
+      "detected_resource_calls": []
+    },
+    {
+      "path": "ml/notebooks/19-learning-rate-schedules.ipynb",
+      "tier": 2,
+      "reason": "Uses only Python standard library and pinned notebook-smoke modules; execute in a clean kernel.",
+      "alternative_check": null,
+      "detected_imports": [
+        "matplotlib",
+        "numpy",
+        "random",
+        "time",
+        "torch"
+      ],
+      "detected_resource_calls": []
+    },
+    {
+      "path": "ml/notebooks/20-loss-functions.ipynb",
+      "tier": 2,
+      "reason": "Uses only Python standard library and pinned notebook-smoke modules; execute in a clean kernel.",
+      "alternative_check": null,
+      "detected_imports": [
+        "matplotlib",
+        "numpy",
+        "random",
+        "torch"
+      ],
+      "detected_resource_calls": []
+    },
+    {
+      "path": "ml/notebooks/21-meta-learning.ipynb",
+      "tier": 2,
+      "reason": "Uses only Python standard library and pinned notebook-smoke modules; execute in a clean kernel.",
+      "alternative_check": null,
+      "detected_imports": [
+        "collections",
+        "copy",
+        "matplotlib",
+        "numpy",
+        "random",
+        "torch"
+      ],
+      "detected_resource_calls": []
+    },
+    {
+      "path": "ml/notebooks/22-mixed-precision.ipynb",
+      "tier": 2,
+      "reason": "Uses only Python standard library and pinned notebook-smoke modules; execute in a clean kernel.",
+      "alternative_check": null,
+      "detected_imports": [
+        "matplotlib",
+        "numpy",
+        "random",
+        "time",
+        "torch"
+      ],
+      "detected_resource_calls": []
+    },
+    {
+      "path": "ml/notebooks/23-model-compression.ipynb",
+      "tier": 2,
+      "reason": "Uses only Python standard library and pinned notebook-smoke modules; execute in a clean kernel.",
+      "alternative_check": null,
+      "detected_imports": [
+        "matplotlib",
+        "numpy",
+        "random",
+        "time",
+        "torch"
+      ],
+      "detected_resource_calls": []
+    },
+    {
+      "path": "ml/notebooks/24-model-selection.ipynb",
+      "tier": 2,
+      "reason": "Uses only Python standard library and pinned notebook-smoke modules; execute in a clean kernel.",
+      "alternative_check": null,
+      "detected_imports": [
+        "matplotlib",
+        "numpy",
+        "random",
+        "sklearn",
+        "torch"
+      ],
+      "detected_resource_calls": []
+    },
+    {
+      "path": "ml/notebooks/25-momentum.ipynb",
+      "tier": 2,
+      "reason": "Uses only Python standard library and pinned notebook-smoke modules; execute in a clean kernel.",
+      "alternative_check": null,
+      "detected_imports": [
+        "matplotlib",
+        "numpy",
+        "random",
+        "torch"
+      ],
+      "detected_resource_calls": []
+    },
+    {
+      "path": "ml/notebooks/26-naive-bayes.ipynb",
+      "tier": 2,
+      "reason": "Uses only Python standard library and pinned notebook-smoke modules; execute in a clean kernel.",
+      "alternative_check": null,
+      "detected_imports": [
+        "matplotlib",
+        "numpy",
+        "random",
+        "sklearn",
+        "torch"
+      ],
+      "detected_resource_calls": []
+    },
+    {
+      "path": "ml/notebooks/27-neural-networks.ipynb",
+      "tier": 2,
+      "reason": "Uses only Python standard library and pinned notebook-smoke modules; execute in a clean kernel.",
+      "alternative_check": null,
+      "detected_imports": [
+        "matplotlib",
+        "numpy",
+        "random",
+        "sklearn",
+        "torch"
+      ],
+      "detected_resource_calls": []
+    },
+    {
+      "path": "ml/notebooks/28-optimization.ipynb",
+      "tier": 2,
+      "reason": "Uses only Python standard library and pinned notebook-smoke modules; execute in a clean kernel.",
+      "alternative_check": null,
+      "detected_imports": [
+        "matplotlib",
+        "numpy",
+        "random",
+        "torch"
+      ],
+      "detected_resource_calls": []
+    },
+    {
+      "path": "ml/notebooks/29-overfitting.ipynb",
+      "tier": 2,
+      "reason": "Uses only Python standard library and pinned notebook-smoke modules; execute in a clean kernel.",
+      "alternative_check": null,
+      "detected_imports": [
+        "matplotlib",
+        "numpy",
+        "random",
+        "sklearn",
+        "torch"
+      ],
+      "detected_resource_calls": []
+    },
+    {
+      "path": "ml/notebooks/30-probability-statistics.ipynb",
+      "tier": 2,
+      "reason": "Uses only Python standard library and pinned notebook-smoke modules; execute in a clean kernel.",
+      "alternative_check": null,
+      "detected_imports": [
+        "matplotlib",
+        "numpy",
+        "random",
+        "scipy",
+        "sklearn",
+        "torch"
+      ],
+      "detected_resource_calls": []
+    },
+    {
+      "path": "ml/notebooks/31-pruning.ipynb",
+      "tier": 2,
+      "reason": "Uses only Python standard library and pinned notebook-smoke modules; execute in a clean kernel.",
+      "alternative_check": null,
+      "detected_imports": [
+        "copy",
+        "matplotlib",
+        "numpy",
+        "random",
+        "time",
+        "torch"
+      ],
+      "detected_resource_calls": []
+    },
+    {
+      "path": "ml/notebooks/32-quantization.ipynb",
+      "tier": 2,
+      "reason": "Uses only Python standard library and pinned notebook-smoke modules; execute in a clean kernel.",
+      "alternative_check": null,
+      "detected_imports": [
+        "copy",
+        "numpy",
+        "random",
+        "time",
+        "torch"
+      ],
+      "detected_resource_calls": []
+    },
+    {
+      "path": "ml/notebooks/33-regularization.ipynb",
+      "tier": 2,
+      "reason": "Uses only Python standard library and pinned notebook-smoke modules; execute in a clean kernel.",
+      "alternative_check": null,
+      "detected_imports": [
+        "copy",
+        "matplotlib",
+        "numpy",
+        "random",
+        "sklearn",
+        "torch"
+      ],
+      "detected_resource_calls": []
+    },
+    {
+      "path": "ml/notebooks/34-rnns-lstms.ipynb",
+      "tier": 2,
+      "reason": "Uses only Python standard library and pinned notebook-smoke modules; execute in a clean kernel.",
+      "alternative_check": null,
+      "detected_imports": [
+        "numpy",
+        "random",
+        "time",
+        "torch"
+      ],
+      "detected_resource_calls": []
+    },
+    {
+      "path": "ml/notebooks/35-supervised-learning.ipynb",
+      "tier": 2,
+      "reason": "Uses only Python standard library and pinned notebook-smoke modules; execute in a clean kernel.",
+      "alternative_check": null,
+      "detected_imports": [
+        "numpy",
+        "random",
+        "sklearn",
+        "time",
+        "torch"
+      ],
+      "detected_resource_calls": []
+    },
+    {
+      "path": "ml/notebooks/36-support-vector-machines.ipynb",
+      "tier": 2,
+      "reason": "Uses only Python standard library and pinned notebook-smoke modules; execute in a clean kernel.",
+      "alternative_check": null,
+      "detected_imports": [
+        "numpy",
+        "random",
+        "sklearn",
+        "time",
+        "torch"
+      ],
+      "detected_resource_calls": []
+    },
+    {
+      "path": "ml/notebooks/37-transfer-learning.ipynb",
+      "tier": 3,
+      "reason": "unavailable or unpinned imports: torchvision",
+      "alternative_check": "Validate nbformat and source policy; test deterministic helpers with a small fixture under the dependency-specific CI job.",
+      "detected_imports": [
+        "copy",
+        "numpy",
+        "random",
+        "time",
+        "torch",
+        "torchvision"
+      ],
+      "detected_resource_calls": []
+    },
+    {
+      "path": "ml/notebooks/38-transformers.ipynb",
+      "tier": 2,
+      "reason": "Uses only Python standard library and pinned notebook-smoke modules; execute in a clean kernel.",
+      "alternative_check": null,
+      "detected_imports": [
+        "copy",
+        "math",
+        "numpy",
+        "random",
+        "time",
+        "torch"
+      ],
+      "detected_resource_calls": []
+    },
+    {
+      "path": "ml/notebooks/39-unsupervised-learning.ipynb",
+      "tier": 3,
+      "reason": "unavailable or unpinned imports: umap",
+      "alternative_check": "Validate nbformat and source policy; test deterministic helpers with a small fixture under the dependency-specific CI job.",
+      "detected_imports": [
+        "numpy",
+        "random",
+        "sklearn",
+        "time",
+        "torch",
+        "umap"
+      ],
+      "detected_resource_calls": []
+    },
+    {
+      "path": "ml/notebooks/40-weight-initialization.ipynb",
+      "tier": 2,
+      "reason": "Uses only Python standard library and pinned notebook-smoke modules; execute in a clean kernel.",
+      "alternative_check": null,
+      "detected_imports": [
+        "copy",
+        "math",
+        "numpy",
+        "random",
+        "torch"
+      ],
+      "detected_resource_calls": []
+    },
+    {
+      "path": "mlops/notebooks/00-concept-map.ipynb",
+      "tier": 1,
+      "reason": "No executable code cells; validate nbformat, links, policy, and content structure.",
+      "alternative_check": "Validate nbformat and source policy; test deterministic helpers with a small fixture under the dependency-specific CI job.",
+      "detected_imports": [],
+      "detected_resource_calls": []
+    },
+    {
+      "path": "mlops/notebooks/01-data-pipelines.ipynb",
+      "tier": 3,
+      "reason": "unavailable or unpinned imports: airflow, pandas",
+      "alternative_check": "Validate nbformat and source policy; test deterministic helpers with a small fixture under the dependency-specific CI job.",
+      "detected_imports": [
+        "airflow",
+        "datetime",
+        "logging",
+        "numpy",
+        "pandas",
+        "time"
+      ],
+      "detected_resource_calls": []
+    },
+    {
+      "path": "mlops/notebooks/02-feature-stores.ipynb",
+      "tier": 3,
+      "reason": "unavailable or unpinned imports: pandas",
+      "alternative_check": "Validate nbformat and source policy; test deterministic helpers with a small fixture under the dependency-specific CI job.",
+      "detected_imports": [
+        "dataclasses",
+        "datetime",
+        "enum",
+        "json",
+        "numpy",
+        "pandas",
+        "time",
+        "typing"
+      ],
+      "detected_resource_calls": []
+    },
+    {
+      "path": "mlops/notebooks/03-data-validation.ipynb",
+      "tier": 3,
+      "reason": "unavailable or unpinned imports: pandas",
+      "alternative_check": "Validate nbformat and source policy; test deterministic helpers with a small fixture under the dependency-specific CI job.",
+      "detected_imports": [
+        "dataclasses",
+        "datetime",
+        "numpy",
+        "pandas",
+        "typing"
+      ],
+      "detected_resource_calls": []
+    },
+    {
+      "path": "mlops/notebooks/04-data-versioning.ipynb",
+      "tier": 3,
+      "reason": "unavailable or unpinned imports: pandas",
+      "alternative_check": "Validate nbformat and source policy; test deterministic helpers with a small fixture under the dependency-specific CI job.",
+      "detected_imports": [
+        "dataclasses",
+        "datetime",
+        "hashlib",
+        "json",
+        "pandas",
+        "typing"
+      ],
+      "detected_resource_calls": []
+    },
+    {
+      "path": "mlops/notebooks/05-experiment-tracking.ipynb",
+      "tier": 3,
+      "reason": "unavailable or unpinned imports: pandas",
+      "alternative_check": "Validate nbformat and source policy; test deterministic helpers with a small fixture under the dependency-specific CI job.",
+      "detected_imports": [
+        "datetime",
+        "json",
+        "numpy",
+        "pandas",
+        "pathlib",
+        "typing"
+      ],
+      "detected_resource_calls": []
+    },
+    {
+      "path": "mlops/notebooks/06-model-versioning.ipynb",
+      "tier": 3,
+      "reason": "unavailable or unpinned imports: pandas",
+      "alternative_check": "Validate nbformat and source policy; test deterministic helpers with a small fixture under the dependency-specific CI job.",
+      "detected_imports": [
+        "dataclasses",
+        "datetime",
+        "enum",
+        "json",
+        "pandas",
+        "typing"
+      ],
+      "detected_resource_calls": []
+    },
+    {
+      "path": "mlops/notebooks/07-reproducibility.ipynb",
+      "tier": 2,
+      "reason": "Uses only Python standard library and pinned notebook-smoke modules; execute in a clean kernel.",
+      "alternative_check": null,
+      "detected_imports": [
+        "hashlib",
+        "json",
+        "numpy",
+        "pathlib",
+        "random",
+        "sys",
+        "typing"
+      ],
+      "detected_resource_calls": []
+    },
+    {
+      "path": "mlops/notebooks/08-hyperparameter-optimization.ipynb",
+      "tier": 3,
+      "reason": "unavailable or unpinned imports: pandas",
+      "alternative_check": "Validate nbformat and source policy; test deterministic helpers with a small fixture under the dependency-specific CI job.",
+      "detected_imports": [
+        "itertools",
+        "numpy",
+        "pandas",
+        "random",
+        "typing"
+      ],
+      "detected_resource_calls": []
+    },
+    {
+      "path": "mlops/notebooks/09-model-testing.ipynb",
+      "tier": 3,
+      "reason": "unavailable or unpinned imports: pandas",
+      "alternative_check": "Validate nbformat and source policy; test deterministic helpers with a small fixture under the dependency-specific CI job.",
+      "detected_imports": [
+        "collections",
+        "json",
+        "numpy",
+        "pandas",
+        "scipy",
+        "time",
+        "typing"
+      ],
+      "detected_resource_calls": []
+    },
+    {
+      "path": "mlops/notebooks/10-data-testing.ipynb",
+      "tier": 3,
+      "reason": "unavailable or unpinned imports: pandas",
+      "alternative_check": "Validate nbformat and source policy; test deterministic helpers with a small fixture under the dependency-specific CI job.",
+      "detected_imports": [
+        "dataclasses",
+        "json",
+        "numpy",
+        "pandas",
+        "scipy",
+        "typing"
+      ],
+      "detected_resource_calls": []
+    },
+    {
+      "path": "mlops/notebooks/11-ab-testing.ipynb",
+      "tier": 3,
+      "reason": "unavailable or unpinned imports: pandas",
+      "alternative_check": "Validate nbformat and source policy; test deterministic helpers with a small fixture under the dependency-specific CI job.",
+      "detected_imports": [
+        "math",
+        "numpy",
+        "pandas",
+        "scipy",
+        "typing"
+      ],
+      "detected_resource_calls": []
+    },
+    {
+      "path": "mlops/notebooks/12-evaluation-metrics.ipynb",
+      "tier": 3,
+      "reason": "unavailable or unpinned imports: pandas",
+      "alternative_check": "Validate nbformat and source policy; test deterministic helpers with a small fixture under the dependency-specific CI job.",
+      "detected_imports": [
+        "numpy",
+        "pandas",
+        "scipy",
+        "typing"
+      ],
+      "detected_resource_calls": []
+    },
+    {
+      "path": "mlops/notebooks/13-containerization.ipynb",
+      "tier": 2,
+      "reason": "Uses only Python standard library and pinned notebook-smoke modules; execute in a clean kernel.",
+      "alternative_check": null,
+      "detected_imports": [],
+      "detected_resource_calls": []
+    },
+    {
+      "path": "mlops/notebooks/14-model-serving.ipynb",
+      "tier": 2,
+      "reason": "Uses only Python standard library and pinned notebook-smoke modules; execute in a clean kernel.",
+      "alternative_check": null,
+      "detected_imports": [],
+      "detected_resource_calls": []
+    },
+    {
+      "path": "mlops/notebooks/15-model-registry.ipynb",
+      "tier": 2,
+      "reason": "Uses only Python standard library and pinned notebook-smoke modules; execute in a clean kernel.",
+      "alternative_check": null,
+      "detected_imports": [],
+      "detected_resource_calls": []
+    },
+    {
+      "path": "mlops/notebooks/16-deployment-strategies.ipynb",
+      "tier": 2,
+      "reason": "Uses only Python standard library and pinned notebook-smoke modules; execute in a clean kernel.",
+      "alternative_check": null,
+      "detected_imports": [
+        "logging"
+      ],
+      "detected_resource_calls": []
+    },
+    {
+      "path": "mlops/notebooks/17-monitoring-alert-design.ipynb",
+      "tier": 2,
+      "reason": "Uses only Python standard library and pinned notebook-smoke modules; execute in a clean kernel.",
+      "alternative_check": null,
+      "detected_imports": [
+        "runpy"
+      ],
+      "detected_resource_calls": []
+    },
+    {
+      "path": "mlops/notebooks/18-drift-detection.ipynb",
+      "tier": 2,
+      "reason": "Uses only Python standard library and pinned notebook-smoke modules; execute in a clean kernel.",
+      "alternative_check": null,
+      "detected_imports": [
+        "runpy"
+      ],
+      "detected_resource_calls": []
+    },
+    {
+      "path": "mlops/notebooks/19-pipeline-orchestration-backfills.ipynb",
+      "tier": 2,
+      "reason": "Uses only Python standard library and pinned notebook-smoke modules; execute in a clean kernel.",
+      "alternative_check": null,
+      "detected_imports": [
+        "runpy"
+      ],
+      "detected_resource_calls": []
+    },
+    {
+      "path": "mlops/notebooks/20-feature-parity.ipynb",
+      "tier": 2,
+      "reason": "Uses only Python standard library and pinned notebook-smoke modules; execute in a clean kernel.",
+      "alternative_check": null,
+      "detected_imports": [
+        "runpy"
+      ],
+      "detected_resource_calls": []
+    },
+    {
+      "path": "mlops/notebooks/21-incident-response-rollback.ipynb",
+      "tier": 2,
+      "reason": "Uses only Python standard library and pinned notebook-smoke modules; execute in a clean kernel.",
+      "alternative_check": null,
+      "detected_imports": [
+        "runpy"
+      ],
+      "detected_resource_calls": []
+    },
+    {
+      "path": "mlops/notebooks/22-governance-lineage-auditability.ipynb",
+      "tier": 2,
+      "reason": "Uses only Python standard library and pinned notebook-smoke modules; execute in a clean kernel.",
+      "alternative_check": null,
+      "detected_imports": [
+        "runpy"
+      ],
+      "detected_resource_calls": []
+    },
+    {
+      "path": "mlops/notebooks/23-security-privacy-controls.ipynb",
+      "tier": 2,
+      "reason": "Uses only Python standard library and pinned notebook-smoke modules; execute in a clean kernel.",
+      "alternative_check": null,
+      "detected_imports": [
+        "runpy"
+      ],
+      "detected_resource_calls": []
+    },
+    {
+      "path": "mlops/notebooks/24-cost-capacity-reliability.ipynb",
+      "tier": 2,
+      "reason": "Uses only Python standard library and pinned notebook-smoke modules; execute in a clean kernel.",
+      "alternative_check": null,
+      "detected_imports": [
+        "runpy"
+      ],
+      "detected_resource_calls": []
+    },
+    {
+      "path": "modern-ai/notebooks/01-llm-evaluation-harness.ipynb",
+      "tier": 2,
+      "reason": "Uses only Python standard library and pinned notebook-smoke modules; execute in a clean kernel.",
+      "alternative_check": null,
+      "detected_imports": [
+        "collections",
+        "json",
+        "matplotlib",
+        "numpy",
+        "pathlib",
+        "time",
+        "torch",
+        "typing"
+      ],
+      "detected_resource_calls": []
+    },
+    {
+      "path": "modern-ai/notebooks/02-ai-red-teaming.ipynb",
+      "tier": 2,
+      "reason": "Uses only Python standard library and pinned notebook-smoke modules; execute in a clean kernel.",
+      "alternative_check": null,
+      "detected_imports": [
+        "collections",
+        "dataclasses",
+        "json",
+        "matplotlib",
+        "numpy",
+        "time",
+        "torch",
+        "typing"
+      ],
+      "detected_resource_calls": []
+    },
+    {
+      "path": "modern-ai/notebooks/03-agentic-testing-harness.ipynb",
+      "tier": 2,
+      "reason": "Uses only Python standard library and pinned notebook-smoke modules; execute in a clean kernel.",
+      "alternative_check": null,
+      "detected_imports": [
+        "asyncio",
+        "dataclasses",
+        "enum",
+        "json",
+        "matplotlib",
+        "numpy",
+        "time",
+        "torch",
+        "typing"
+      ],
+      "detected_resource_calls": []
+    },
+    {
+      "path": "modern-ai/notebooks/04-persistent-ai-memory.ipynb",
+      "tier": 2,
+      "reason": "Uses only Python standard library and pinned notebook-smoke modules; execute in a clean kernel.",
+      "alternative_check": null,
+      "detected_imports": [
+        "dataclasses",
+        "datetime",
+        "json",
+        "matplotlib",
+        "numpy",
+        "time",
+        "torch",
+        "typing"
+      ],
+      "detected_resource_calls": []
+    },
+    {
+      "path": "modern-ai/notebooks/05-advanced-rag-patterns.ipynb",
+      "tier": 2,
+      "reason": "Uses only Python standard library and pinned notebook-smoke modules; execute in a clean kernel.",
+      "alternative_check": null,
+      "detected_imports": [
+        "collections",
+        "dataclasses",
+        "json",
+        "matplotlib",
+        "numpy",
+        "time",
+        "torch",
+        "typing"
+      ],
+      "detected_resource_calls": []
+    },
+    {
+      "path": "modern-ai/notebooks/06-context-distillation.ipynb",
+      "tier": 2,
+      "reason": "Uses only Python standard library and pinned notebook-smoke modules; execute in a clean kernel.",
+      "alternative_check": null,
+      "detected_imports": [
+        "json",
+        "matplotlib",
+        "numpy",
+        "time",
+        "torch",
+        "typing"
+      ],
+      "detected_resource_calls": []
+    },
+    {
+      "path": "modern-ai/notebooks/07-synthetic-data-generation.ipynb",
+      "tier": 2,
+      "reason": "Uses only Python standard library and pinned notebook-smoke modules; execute in a clean kernel.",
+      "alternative_check": null,
+      "detected_imports": [
+        "collections",
+        "json",
+        "matplotlib",
+        "numpy",
+        "time",
+        "torch",
+        "typing"
+      ],
+      "detected_resource_calls": []
+    },
+    {
+      "path": "modern-ai/notebooks/08-constitutional-ai-rlaif.ipynb",
+      "tier": 2,
+      "reason": "Uses only Python standard library and pinned notebook-smoke modules; execute in a clean kernel.",
+      "alternative_check": null,
+      "detected_imports": [
+        "collections",
+        "json",
+        "matplotlib",
+        "numpy",
+        "time",
+        "torch",
+        "typing"
+      ],
+      "detected_resource_calls": []
+    },
+    {
+      "path": "modern-ai/notebooks/09-raft-retrieval-augmented-finetuning.ipynb",
+      "tier": 2,
+      "reason": "Uses only Python standard library and pinned notebook-smoke modules; execute in a clean kernel.",
+      "alternative_check": null,
+      "detected_imports": [
+        "json",
+        "matplotlib",
+        "numpy",
+        "time",
+        "torch",
+        "typing"
+      ],
+      "detected_resource_calls": []
+    },
+    {
+      "path": "modern-ai/notebooks/10-model-merging.ipynb",
+      "tier": 2,
+      "reason": "Uses only Python standard library and pinned notebook-smoke modules; execute in a clean kernel.",
+      "alternative_check": null,
+      "detected_imports": [
+        "matplotlib",
+        "numpy",
+        "time",
+        "torch",
+        "typing"
+      ],
+      "detected_resource_calls": []
+    },
+    {
+      "path": "modern-ai/notebooks/11-flash-attention.ipynb",
+      "tier": 2,
+      "reason": "Uses only Python standard library and pinned notebook-smoke modules; execute in a clean kernel.",
+      "alternative_check": null,
+      "detected_imports": [
+        "matplotlib",
+        "numpy",
+        "time",
+        "torch",
+        "typing",
+        "warnings"
+      ],
+      "detected_resource_calls": []
+    },
+    {
+      "path": "modern-ai/notebooks/12-test-time-compute-scaling.ipynb",
+      "tier": 3,
+      "reason": "unavailable or unpinned imports: transformers; model download or loading",
+      "alternative_check": "Validate nbformat and source policy; test configuration and tensor shapes with a synthetic in-memory fixture.",
+      "detected_imports": [
+        "collections",
+        "dataclasses",
+        "matplotlib",
+        "numpy",
+        "time",
+        "torch",
+        "transformers",
+        "typing",
+        "warnings"
+      ],
+      "detected_resource_calls": [
+        "model download or loading"
+      ]
+    },
+    {
+      "path": "modern-ai/notebooks/13-llm-serving-frameworks.ipynb",
+      "tier": 3,
+      "reason": "unavailable or unpinned imports: transformers; model download or loading",
+      "alternative_check": "Validate nbformat and source policy; test configuration and tensor shapes with a synthetic in-memory fixture.",
+      "detected_imports": [
+        "dataclasses",
+        "matplotlib",
+        "numpy",
+        "queue",
+        "time",
+        "torch",
+        "transformers",
+        "typing",
+        "warnings"
+      ],
+      "detected_resource_calls": [
+        "model download or loading"
+      ]
+    },
+    {
+      "path": "modern-ai/notebooks/14-structured-generation.ipynb",
+      "tier": 2,
+      "reason": "Uses only Python standard library and pinned notebook-smoke modules; execute in a clean kernel.",
+      "alternative_check": null,
+      "detected_imports": [
+        "json",
+        "matplotlib",
+        "numpy",
+        "re",
+        "torch",
+        "typing",
+        "warnings"
+      ],
+      "detected_resource_calls": []
+    },
+    {
+      "path": "modern-ai/notebooks/15-reflexion-self-critique.ipynb",
+      "tier": 2,
+      "reason": "Uses only Python standard library and pinned notebook-smoke modules; execute in a clean kernel.",
+      "alternative_check": null,
+      "detected_imports": [
+        "json",
+        "matplotlib",
+        "numpy",
+        "time",
+        "torch",
+        "typing",
+        "warnings"
+      ],
+      "detected_resource_calls": []
+    },
+    {
+      "path": "modern-ai/notebooks/16-chain-of-draft.ipynb",
+      "tier": 3,
+      "reason": "unavailable or unpinned imports: transformers",
+      "alternative_check": "Validate nbformat and source policy; test deterministic helpers with a small fixture under the dependency-specific CI job.",
+      "detected_imports": [
+        "collections",
+        "json",
+        "matplotlib",
+        "numpy",
+        "re",
+        "time",
+        "torch",
+        "transformers",
+        "typing"
+      ],
+      "detected_resource_calls": []
+    },
+    {
+      "path": "modern-ai/notebooks/17-continual-learning-llms.ipynb",
+      "tier": 3,
+      "reason": "unavailable or unpinned imports: transformers",
+      "alternative_check": "Validate nbformat and source policy; test deterministic helpers with a small fixture under the dependency-specific CI job.",
+      "detected_imports": [
+        "collections",
+        "copy",
+        "matplotlib",
+        "numpy",
+        "time",
+        "torch",
+        "transformers",
+        "typing"
+      ],
+      "detected_resource_calls": []
+    },
+    {
+      "path": "modern-ai/notebooks/18-llmops.ipynb",
+      "tier": 2,
+      "reason": "Uses only Python standard library and pinned notebook-smoke modules; execute in a clean kernel.",
+      "alternative_check": null,
+      "detected_imports": [
+        "collections",
+        "copy",
+        "datetime",
+        "hashlib",
+        "json",
+        "matplotlib",
+        "numpy",
+        "time",
+        "typing"
+      ],
+      "detected_resource_calls": []
+    },
+    {
+      "path": "modern-ai/notebooks/19-ai-gateway-routing.ipynb",
+      "tier": 2,
+      "reason": "Uses only Python standard library and pinned notebook-smoke modules; execute in a clean kernel.",
+      "alternative_check": null,
+      "detected_imports": [
+        "collections",
+        "enum",
+        "matplotlib",
+        "numpy",
+        "time",
+        "typing"
+      ],
+      "detected_resource_calls": []
+    },
+    {
+      "path": "modern-ai/notebooks/20-multimodal-finetuning.ipynb",
+      "tier": 3,
+      "reason": "unavailable or unpinned imports: transformers",
+      "alternative_check": "Validate nbformat and source policy; test deterministic helpers with a small fixture under the dependency-specific CI job.",
+      "detected_imports": [
+        "collections",
+        "matplotlib",
+        "numpy",
+        "time",
+        "torch",
+        "transformers",
+        "typing"
+      ],
+      "detected_resource_calls": []
+    },
+    {
+      "path": "modern-ai/notebooks/21-mcp-model-context-protocol.ipynb",
+      "tier": 2,
+      "reason": "Uses only Python standard library and pinned notebook-smoke modules; execute in a clean kernel.",
+      "alternative_check": null,
+      "detected_imports": [
+        "abc",
+        "asyncio",
+        "dataclasses",
+        "enum",
+        "json",
+        "matplotlib",
+        "numpy",
+        "time",
+        "typing",
+        "uuid"
+      ],
+      "detected_resource_calls": []
+    },
+    {
+      "path": "modern-ai/notebooks/22-mcp-memory.ipynb",
+      "tier": 2,
+      "reason": "Uses only Python standard library and pinned notebook-smoke modules; execute in a clean kernel.",
+      "alternative_check": null,
+      "detected_imports": [
+        "asyncio",
+        "collections",
+        "dataclasses",
+        "datetime",
+        "heapq",
+        "json",
+        "matplotlib",
+        "time",
+        "typing"
+      ],
+      "detected_resource_calls": []
+    },
+    {
+      "path": "modern-ai/notebooks/23-rag-memory-store.ipynb",
+      "tier": 2,
+      "reason": "Uses only Python standard library and pinned notebook-smoke modules; execute in a clean kernel.",
+      "alternative_check": null,
+      "detected_imports": [
+        "collections",
+        "dataclasses",
+        "json",
+        "matplotlib",
+        "numpy",
+        "time",
+        "typing"
+      ],
+      "detected_resource_calls": []
+    },
+    {
+      "path": "modern-ai/notebooks/24-mcp-tunnel.ipynb",
+      "tier": 2,
+      "reason": "Uses only Python standard library and pinned notebook-smoke modules; execute in a clean kernel.",
+      "alternative_check": null,
+      "detected_imports": [
+        "asyncio",
+        "dataclasses",
+        "datetime",
+        "enum",
+        "hashlib",
+        "json",
+        "matplotlib",
+        "numpy",
+        "random",
+        "statistics",
+        "time",
+        "typing"
+      ],
+      "detected_resource_calls": []
+    },
+    {
+      "path": "modern-ai/notebooks/25-agentic-sdk.ipynb",
+      "tier": 2,
+      "reason": "Uses only Python standard library and pinned notebook-smoke modules; execute in a clean kernel.",
+      "alternative_check": null,
+      "detected_imports": [
+        "asyncio",
+        "collections",
+        "dataclasses",
+        "enum",
+        "json",
+        "matplotlib",
+        "numpy",
+        "time",
+        "typing"
+      ],
+      "detected_resource_calls": []
+    },
+    {
+      "path": "modern-ai/notebooks/26-mixture-of-experts.ipynb",
+      "tier": 2,
+      "reason": "Uses only Python standard library and pinned notebook-smoke modules; execute in a clean kernel.",
+      "alternative_check": null,
+      "detected_imports": [
+        "runpy"
+      ],
+      "detected_resource_calls": []
+    },
+    {
+      "path": "modern-ai/notebooks/27-long-context-management.ipynb",
+      "tier": 2,
+      "reason": "Uses only Python standard library and pinned notebook-smoke modules; execute in a clean kernel.",
+      "alternative_check": null,
+      "detected_imports": [
+        "runpy"
+      ],
+      "detected_resource_calls": []
+    },
+    {
+      "path": "modern-ai/notebooks/28-speculative-decoding.ipynb",
+      "tier": 2,
+      "reason": "Uses only Python standard library and pinned notebook-smoke modules; execute in a clean kernel.",
+      "alternative_check": null,
+      "detected_imports": [
+        "runpy"
+      ],
+      "detected_resource_calls": []
+    },
+    {
+      "path": "modern-ai/notebooks/29-kv-cache-optimization.ipynb",
+      "tier": 2,
+      "reason": "Uses only Python standard library and pinned notebook-smoke modules; execute in a clean kernel.",
+      "alternative_check": null,
+      "detected_imports": [
+        "runpy"
+      ],
+      "detected_resource_calls": []
+    },
+    {
+      "path": "modern-ai/notebooks/30-sparse-attention.ipynb",
+      "tier": 2,
+      "reason": "Uses only Python standard library and pinned notebook-smoke modules; execute in a clean kernel.",
+      "alternative_check": null,
+      "detected_imports": [
+        "runpy"
+      ],
+      "detected_resource_calls": []
+    },
+    {
+      "path": "modern-ai/notebooks/31-quantization-aware-distillation.ipynb",
+      "tier": 2,
+      "reason": "Uses only Python standard library and pinned notebook-smoke modules; execute in a clean kernel.",
+      "alternative_check": null,
+      "detected_imports": [
+        "runpy"
+      ],
+      "detected_resource_calls": []
+    },
+    {
+      "path": "modern-ai/notebooks/32-multimodal-reasoning.ipynb",
+      "tier": 2,
+      "reason": "Uses only Python standard library and pinned notebook-smoke modules; execute in a clean kernel.",
+      "alternative_check": null,
+      "detected_imports": [
+        "runpy"
+      ],
+      "detected_resource_calls": []
+    },
+    {
+      "path": "modern-ai/notebooks/33-prefill-decode-disaggregation.ipynb",
+      "tier": 2,
+      "reason": "Uses only Python standard library and pinned notebook-smoke modules; execute in a clean kernel.",
+      "alternative_check": null,
+      "detected_imports": [
+        "runpy"
+      ],
+      "detected_resource_calls": []
+    },
+    {
+      "path": "modern-ai/notebooks/34-post-training-specialization.ipynb",
+      "tier": 2,
+      "reason": "Uses only Python standard library and pinned notebook-smoke modules; execute in a clean kernel.",
+      "alternative_check": null,
+      "detected_imports": [
+        "runpy"
+      ],
+      "detected_resource_calls": []
+    },
+    {
+      "path": "modern-ai/notebooks/35-decode-length-prediction.ipynb",
+      "tier": 2,
+      "reason": "Uses only Python standard library and pinned notebook-smoke modules; execute in a clean kernel.",
+      "alternative_check": null,
+      "detected_imports": [
+        "runpy"
+      ],
+      "detected_resource_calls": []
+    },
+    {
+      "path": "modern-ai/notebooks/36-token-pruning-merging.ipynb",
+      "tier": 2,
+      "reason": "Uses only Python standard library and pinned notebook-smoke modules; execute in a clean kernel.",
+      "alternative_check": null,
+      "detected_imports": [
+        "collections",
+        "math",
+        "matplotlib",
+        "numpy",
+        "scipy",
+        "sys",
+        "time",
+        "torch",
+        "typing"
+      ],
+      "detected_resource_calls": []
+    },
+    {
+      "path": "modern-ai/notebooks/37-adaptive-layer-selection.ipynb",
+      "tier": 2,
+      "reason": "Uses only Python standard library and pinned notebook-smoke modules; execute in a clean kernel.",
+      "alternative_check": null,
+      "detected_imports": [
+        "math",
+        "matplotlib",
+        "numpy",
+        "sys",
+        "time",
+        "torch",
+        "typing"
+      ],
+      "detected_resource_calls": []
+    },
+    {
+      "path": "modern-ai/notebooks/38-layer-skipping.ipynb",
+      "tier": 2,
+      "reason": "Uses only Python standard library and pinned notebook-smoke modules; execute in a clean kernel.",
+      "alternative_check": null,
+      "detected_imports": [
+        "math",
+        "matplotlib",
+        "numpy",
+        "sys",
+        "time",
+        "torch",
+        "typing"
+      ],
+      "detected_resource_calls": []
+    },
+    {
+      "path": "modern-ai/notebooks/39-router-learning.ipynb",
+      "tier": 2,
+      "reason": "Uses only Python standard library and pinned notebook-smoke modules; execute in a clean kernel.",
+      "alternative_check": null,
+      "detected_imports": [
+        "math",
+        "matplotlib",
+        "numpy",
+        "sys",
+        "time",
+        "torch",
+        "typing"
+      ],
+      "detected_resource_calls": []
+    },
+    {
+      "path": "modern-ai/notebooks/40-beam-search-optimization.ipynb",
+      "tier": 2,
+      "reason": "Uses only Python standard library and pinned notebook-smoke modules; execute in a clean kernel.",
+      "alternative_check": null,
+      "detected_imports": [
+        "itertools",
+        "math",
+        "matplotlib",
+        "numpy",
+        "sys",
+        "time",
+        "torch",
+        "typing"
+      ],
+      "detected_resource_calls": []
+    },
+    {
+      "path": "modern-ai/notebooks/41-grammar-constrained-generation.ipynb",
+      "tier": 2,
+      "reason": "Uses only Python standard library and pinned notebook-smoke modules; execute in a clean kernel.",
+      "alternative_check": null,
+      "detected_imports": [
+        "collections",
+        "math",
+        "matplotlib",
+        "numpy",
+        "re",
+        "sys",
+        "time",
+        "torch",
+        "typing"
+      ],
+      "detected_resource_calls": []
+    },
+    {
+      "path": "modern-ai/notebooks/42-mixed-bit-quantization.ipynb",
+      "tier": 2,
+      "reason": "Uses only Python standard library and pinned notebook-smoke modules; execute in a clean kernel.",
+      "alternative_check": null,
+      "detected_imports": [
+        "math",
+        "matplotlib",
+        "numpy",
+        "sys",
+        "time",
+        "torch",
+        "typing"
+      ],
+      "detected_resource_calls": []
+    },
+    {
+      "path": "modern-ai/notebooks/43-embedding-quantization.ipynb",
+      "tier": 2,
+      "reason": "Uses only Python standard library and pinned notebook-smoke modules; execute in a clean kernel.",
+      "alternative_check": null,
+      "detected_imports": [
+        "math",
+        "matplotlib",
+        "numpy",
+        "sys",
+        "time",
+        "torch",
+        "typing"
+      ],
+      "detected_resource_calls": []
+    },
+    {
+      "path": "modern-ai/notebooks/44-token-decompression.ipynb",
+      "tier": 2,
+      "reason": "Uses only Python standard library and pinned notebook-smoke modules; execute in a clean kernel.",
+      "alternative_check": null,
+      "detected_imports": [
+        "collections",
+        "itertools",
+        "math",
+        "matplotlib",
+        "numpy",
+        "sys",
+        "time",
+        "torch",
+        "typing"
+      ],
+      "detected_resource_calls": []
+    },
+    {
+      "path": "modern-ai/notebooks/45-attention-pattern-learning.ipynb",
+      "tier": 2,
+      "reason": "Uses only Python standard library and pinned notebook-smoke modules; execute in a clean kernel.",
+      "alternative_check": null,
+      "detected_imports": [
+        "collections",
+        "math",
+        "matplotlib",
+        "numpy",
+        "sys",
+        "time",
+        "torch",
+        "typing"
+      ],
+      "detected_resource_calls": []
+    },
+    {
+      "path": "modern-ai/notebooks/46-neuron-importance-scoring.ipynb",
+      "tier": 2,
+      "reason": "Uses only Python standard library and pinned notebook-smoke modules; execute in a clean kernel.",
+      "alternative_check": null,
+      "detected_imports": [
+        "itertools",
+        "matplotlib",
+        "numpy",
+        "time",
+        "torch",
+        "typing",
+        "warnings"
+      ],
+      "detected_resource_calls": []
+    },
+    {
+      "path": "modern-ai/notebooks/47-dynamic-batching.ipynb",
+      "tier": 2,
+      "reason": "Uses only Python standard library and pinned notebook-smoke modules; execute in a clean kernel.",
+      "alternative_check": null,
+      "detected_imports": [
+        "collections",
+        "dataclasses",
+        "datetime",
+        "heapq",
+        "matplotlib",
+        "numpy",
+        "threading",
+        "time",
+        "torch",
+        "typing"
+      ],
+      "detected_resource_calls": []
+    },
+    {
+      "path": "modern-ai/notebooks/48-model-cascading.ipynb",
+      "tier": 2,
+      "reason": "Uses only Python standard library and pinned notebook-smoke modules; execute in a clean kernel.",
+      "alternative_check": null,
+      "detected_imports": [
+        "matplotlib",
+        "numpy",
+        "time",
+        "torch",
+        "typing"
+      ],
+      "detected_resource_calls": []
+    },
+    {
+      "path": "modern-ai/notebooks/49-latency-sla-prediction.ipynb",
+      "tier": 2,
+      "reason": "Uses only Python standard library and pinned notebook-smoke modules; execute in a clean kernel.",
+      "alternative_check": null,
+      "detected_imports": [
+        "matplotlib",
+        "numpy",
+        "sklearn",
+        "time",
+        "torch",
+        "typing",
+        "warnings"
+      ],
+      "detected_resource_calls": []
+    },
+    {
+      "path": "modern-ai/notebooks/50-cache-aware-scheduling.ipynb",
+      "tier": 2,
+      "reason": "Uses only Python standard library and pinned notebook-smoke modules; execute in a clean kernel.",
+      "alternative_check": null,
+      "detected_imports": [
+        "collections",
+        "hashlib",
+        "matplotlib",
+        "numpy",
+        "time",
+        "torch",
+        "typing",
+        "warnings"
+      ],
+      "detected_resource_calls": []
+    },
+    {
+      "path": "modern-ai/notebooks/51-distributed-inference.ipynb",
+      "tier": 2,
+      "reason": "Uses only Python standard library and pinned notebook-smoke modules; execute in a clean kernel.",
+      "alternative_check": null,
+      "detected_imports": [
+        "collections",
+        "dataclasses",
+        "matplotlib",
+        "numpy",
+        "queue",
+        "threading",
+        "time",
+        "torch",
+        "typing",
+        "warnings"
+      ],
+      "detected_resource_calls": []
+    },
+    {
+      "path": "modern-ai/notebooks/52-heterogeneous-ensemble.ipynb",
+      "tier": 2,
+      "reason": "Uses only Python standard library and pinned notebook-smoke modules; execute in a clean kernel.",
+      "alternative_check": null,
+      "detected_imports": [
+        "matplotlib",
+        "numpy",
+        "time",
+        "torch",
+        "typing",
+        "warnings"
+      ],
+      "detected_resource_calls": []
+    },
+    {
+      "path": "modern-ai/notebooks/53-conditional-computation.ipynb",
+      "tier": 2,
+      "reason": "Uses only Python standard library and pinned notebook-smoke modules; execute in a clean kernel.",
+      "alternative_check": null,
+      "detected_imports": [
+        "matplotlib",
+        "numpy",
+        "time",
+        "torch",
+        "typing",
+        "warnings"
+      ],
+      "detected_resource_calls": []
+    },
+    {
+      "path": "modern-ai/notebooks/54-context-compression.ipynb",
+      "tier": 2,
+      "reason": "Uses only Python standard library and pinned notebook-smoke modules; execute in a clean kernel.",
+      "alternative_check": null,
+      "detected_imports": [
+        "collections",
+        "matplotlib",
+        "numpy",
+        "re",
+        "time",
+        "torch",
+        "typing",
+        "warnings"
+      ],
+      "detected_resource_calls": []
+    },
+    {
+      "path": "modern-ai/notebooks/55-online-knowledge-distillation.ipynb",
+      "tier": 2,
+      "reason": "Uses only Python standard library and pinned notebook-smoke modules; execute in a clean kernel.",
+      "alternative_check": null,
+      "detected_imports": [
+        "matplotlib",
+        "numpy",
+        "torch",
+        "typing"
+      ],
+      "detected_resource_calls": []
+    },
+    {
+      "path": "nlp/notebooks/01-text-preprocessing.ipynb",
+      "tier": 2,
+      "reason": "Uses only Python standard library and pinned notebook-smoke modules; execute in a clean kernel.",
+      "alternative_check": null,
+      "detected_imports": [
+        "collections",
+        "math",
+        "matplotlib",
+        "numpy",
+        "re",
+        "sklearn",
+        "torch"
+      ],
+      "detected_resource_calls": []
+    },
+    {
+      "path": "nlp/notebooks/02-word-embeddings.ipynb",
+      "tier": 2,
+      "reason": "Uses only Python standard library and pinned notebook-smoke modules; execute in a clean kernel.",
+      "alternative_check": null,
+      "detected_imports": [
+        "collections",
+        "matplotlib",
+        "numpy",
+        "sklearn",
+        "torch"
+      ],
+      "detected_resource_calls": []
+    },
+    {
+      "path": "nlp/notebooks/03-recurrent-neural-networks.ipynb",
+      "tier": 2,
+      "reason": "Uses only Python standard library and pinned notebook-smoke modules; execute in a clean kernel.",
+      "alternative_check": null,
+      "detected_imports": [
+        "matplotlib",
+        "numpy",
+        "sklearn",
+        "torch"
+      ],
+      "detected_resource_calls": []
+    },
+    {
+      "path": "nlp/notebooks/04-seq2seq-attention.ipynb",
+      "tier": 2,
+      "reason": "Uses only Python standard library and pinned notebook-smoke modules; execute in a clean kernel.",
+      "alternative_check": null,
+      "detected_imports": [
+        "matplotlib",
+        "numpy",
+        "sklearn",
+        "torch"
+      ],
+      "detected_resource_calls": []
+    },
+    {
+      "path": "nlp/notebooks/05-bert-and-pretraining.ipynb",
+      "tier": 2,
+      "reason": "Uses only Python standard library and pinned notebook-smoke modules; execute in a clean kernel.",
+      "alternative_check": null,
+      "detected_imports": [
+        "collections",
+        "copy",
+        "matplotlib",
+        "numpy",
+        "sklearn",
+        "torch",
+        "warnings"
+      ],
+      "detected_resource_calls": []
+    },
+    {
+      "path": "nlp/notebooks/06-text-classification.ipynb",
+      "tier": 2,
+      "reason": "Uses only Python standard library and pinned notebook-smoke modules; execute in a clean kernel.",
+      "alternative_check": null,
+      "detected_imports": [
+        "collections",
+        "matplotlib",
+        "numpy",
+        "sklearn",
+        "torch",
+        "warnings"
+      ],
+      "detected_resource_calls": []
+    },
+    {
+      "path": "nlp/notebooks/07-named-entity-recognition.ipynb",
+      "tier": 2,
+      "reason": "Uses only Python standard library and pinned notebook-smoke modules; execute in a clean kernel.",
+      "alternative_check": null,
+      "detected_imports": [
+        "collections",
+        "matplotlib",
+        "numpy",
+        "torch",
+        "warnings"
+      ],
+      "detected_resource_calls": []
+    },
+    {
+      "path": "nlp/notebooks/08-information-retrieval.ipynb",
+      "tier": 2,
+      "reason": "Uses only Python standard library and pinned notebook-smoke modules; execute in a clean kernel.",
+      "alternative_check": null,
+      "detected_imports": [
+        "collections",
+        "math",
+        "matplotlib",
+        "numpy",
+        "torch",
+        "warnings"
+      ],
+      "detected_resource_calls": []
+    },
+    {
+      "path": "papers/agents/notebooks/01-chain-of-thought.ipynb",
+      "tier": 2,
+      "reason": "Uses only Python standard library and pinned notebook-smoke modules; execute in a clean kernel.",
+      "alternative_check": null,
+      "detected_imports": [
+        "collections",
+        "matplotlib",
+        "numpy",
+        "re",
+        "time"
+      ],
+      "detected_resource_calls": []
+    },
+    {
+      "path": "papers/agents/notebooks/02-react.ipynb",
+      "tier": 2,
+      "reason": "Uses only Python standard library and pinned notebook-smoke modules; execute in a clean kernel.",
+      "alternative_check": null,
+      "detected_imports": [
+        "collections",
+        "matplotlib",
+        "numpy",
+        "re",
+        "typing"
+      ],
+      "detected_resource_calls": []
+    },
+    {
+      "path": "papers/agents/notebooks/03-tree-of-thoughts.ipynb",
+      "tier": 2,
+      "reason": "Uses only Python standard library and pinned notebook-smoke modules; execute in a clean kernel.",
+      "alternative_check": null,
+      "detected_imports": [
+        "collections",
+        "heapq",
+        "matplotlib",
+        "numpy",
+        "typing"
+      ],
+      "detected_resource_calls": []
+    },
+    {
+      "path": "papers/code-systems/notebooks/01-codet5.ipynb",
+      "tier": 3,
+      "reason": "unavailable or unpinned imports: transformers; model download or loading",
+      "alternative_check": "Validate nbformat and source policy; test configuration and tensor shapes with a synthetic in-memory fixture.",
+      "detected_imports": [
+        "matplotlib",
+        "numpy",
+        "sklearn",
+        "time",
+        "torch",
+        "transformers",
+        "typing",
+        "warnings"
+      ],
+      "detected_resource_calls": [
+        "model download or loading"
+      ]
+    },
+    {
+      "path": "papers/code-systems/notebooks/02-codex.ipynb",
+      "tier": 2,
+      "reason": "Uses only Python standard library and pinned notebook-smoke modules; execute in a clean kernel.",
+      "alternative_check": null,
+      "detected_imports": [
+        "numpy",
+        "signal",
+        "subprocess",
+        "time",
+        "torch",
+        "typing",
+        "warnings"
+      ],
+      "detected_resource_calls": []
+    },
+    {
+      "path": "papers/code-systems/notebooks/03-code-evaluation.ipynb",
+      "tier": 2,
+      "reason": "Uses only Python standard library and pinned notebook-smoke modules; execute in a clean kernel.",
+      "alternative_check": null,
+      "detected_imports": [
+        "collections",
+        "numpy"
+      ],
+      "detected_resource_calls": []
+    },
+    {
+      "path": "papers/efficiency-scaling/notebooks/01-mixture-of-experts.ipynb",
+      "tier": 2,
+      "reason": "Uses only Python standard library and pinned notebook-smoke modules; execute in a clean kernel.",
+      "alternative_check": null,
+      "detected_imports": [
+        "collections",
+        "matplotlib",
+        "numpy",
+        "time",
+        "torch"
+      ],
+      "detected_resource_calls": []
+    },
+    {
+      "path": "papers/efficiency-scaling/notebooks/02-flash-attention.ipynb",
+      "tier": 2,
+      "reason": "Uses only Python standard library and pinned notebook-smoke modules; execute in a clean kernel.",
+      "alternative_check": null,
+      "detected_imports": [
+        "matplotlib",
+        "numpy",
+        "time",
+        "torch",
+        "typing"
+      ],
+      "detected_resource_calls": []
+    },
+    {
+      "path": "papers/efficiency-scaling/notebooks/03-llm-int8.ipynb",
+      "tier": 2,
+      "reason": "Uses only Python standard library and pinned notebook-smoke modules; execute in a clean kernel.",
+      "alternative_check": null,
+      "detected_imports": [
+        "matplotlib",
+        "numpy",
+        "time",
+        "torch",
+        "typing"
+      ],
+      "detected_resource_calls": []
+    },
+    {
+      "path": "papers/efficiency-scaling/notebooks/04-knowledge-distillation.ipynb",
+      "tier": 2,
+      "reason": "Uses only Python standard library and pinned notebook-smoke modules; execute in a clean kernel.",
+      "alternative_check": null,
+      "detected_imports": [
+        "matplotlib",
+        "numpy",
+        "time",
+        "torch",
+        "typing"
+      ],
+      "detected_resource_calls": []
+    },
+    {
+      "path": "papers/foundation-models/notebooks/01-in-context-learning.ipynb",
+      "tier": 2,
+      "reason": "Uses only Python standard library and pinned notebook-smoke modules; execute in a clean kernel.",
+      "alternative_check": null,
+      "detected_imports": [
+        "collections",
+        "json",
+        "matplotlib",
+        "numpy",
+        "torch",
+        "warnings"
+      ],
+      "detected_resource_calls": []
+    },
+    {
+      "path": "papers/multimodal/notebooks/01-flamingo.ipynb",
+      "tier": 3,
+      "reason": "unavailable or unpinned imports: PIL, pandas",
+      "alternative_check": "Validate nbformat and source policy; test deterministic helpers with a small fixture under the dependency-specific CI job.",
+      "detected_imports": [
+        "PIL",
+        "matplotlib",
+        "numpy",
+        "pandas",
+        "torch",
+        "typing"
+      ],
+      "detected_resource_calls": []
+    },
+    {
+      "path": "papers/nlp/notebooks/01-attention-is-all-you-need.ipynb",
+      "tier": 3,
+      "reason": "unavailable or unpinned imports: tqdm",
+      "alternative_check": "Validate nbformat and source policy; test deterministic helpers with a small fixture under the dependency-specific CI job.",
+      "detected_imports": [
+        "math",
+        "matplotlib",
+        "numpy",
+        "torch",
+        "tqdm"
+      ],
+      "detected_resource_calls": []
+    },
+    {
+      "path": "papers/nlp/notebooks/02-bert.ipynb",
+      "tier": 3,
+      "reason": "unavailable or unpinned imports: tqdm, transformers; model download or loading",
+      "alternative_check": "Validate nbformat and source policy; test configuration and tensor shapes with a synthetic in-memory fixture.",
+      "detected_imports": [
+        "matplotlib",
+        "numpy",
+        "torch",
+        "tqdm",
+        "transformers"
+      ],
+      "detected_resource_calls": [
+        "model download or loading"
+      ]
+    },
+    {
+      "path": "papers/nlp/notebooks/03-gpt3.ipynb",
+      "tier": 3,
+      "reason": "unavailable or unpinned imports: transformers; model download or loading",
+      "alternative_check": "Validate nbformat and source policy; test configuration and tensor shapes with a synthetic in-memory fixture.",
+      "detected_imports": [
+        "matplotlib",
+        "numpy",
+        "torch",
+        "transformers"
+      ],
+      "detected_resource_calls": [
+        "model download or loading"
+      ]
+    },
+    {
+      "path": "papers/nlp/notebooks/04-scaling-laws.ipynb",
+      "tier": 2,
+      "reason": "Uses only Python standard library and pinned notebook-smoke modules; execute in a clean kernel.",
+      "alternative_check": null,
+      "detected_imports": [
+        "matplotlib",
+        "numpy",
+        "scipy",
+        "warnings"
+      ],
+      "detected_resource_calls": []
+    },
+    {
+      "path": "papers/nlp/notebooks/05-lora.ipynb",
+      "tier": 3,
+      "reason": "unavailable or unpinned imports: peft, tqdm, transformers; model download or loading",
+      "alternative_check": "Validate nbformat and source policy; test configuration and tensor shapes with a synthetic in-memory fixture.",
+      "detected_imports": [
+        "matplotlib",
+        "numpy",
+        "peft",
+        "torch",
+        "tqdm",
+        "transformers"
+      ],
+      "detected_resource_calls": [
+        "model download or loading"
+      ]
+    },
+    {
+      "path": "papers/reasoning-search/notebooks/01-pal.ipynb",
+      "tier": 2,
+      "reason": "Uses only Python standard library and pinned notebook-smoke modules; execute in a clean kernel.",
+      "alternative_check": null,
+      "detected_imports": [
+        "ast",
+        "collections",
+        "json",
+        "matplotlib",
+        "numpy",
+        "re",
+        "subprocess",
+        "time",
+        "typing"
+      ],
+      "detected_resource_calls": []
+    },
+    {
+      "path": "papers/reasoning-search/notebooks/02-least-to-most.ipynb",
+      "tier": 2,
+      "reason": "Uses only Python standard library and pinned notebook-smoke modules; execute in a clean kernel.",
+      "alternative_check": null,
+      "detected_imports": [
+        "collections",
+        "matplotlib",
+        "numpy",
+        "re",
+        "time",
+        "typing"
+      ],
+      "detected_resource_calls": []
+    },
+    {
+      "path": "papers/reasoning-search/notebooks/03-neural-search.ipynb",
+      "tier": 2,
+      "reason": "Uses only Python standard library and pinned notebook-smoke modules; execute in a clean kernel.",
+      "alternative_check": null,
+      "detected_imports": [
+        "matplotlib",
+        "numpy",
+        "time",
+        "torch",
+        "typing"
+      ],
+      "detected_resource_calls": []
+    },
+    {
+      "path": "papers/retrieval/notebooks/01-rag.ipynb",
+      "tier": 3,
+      "reason": "unavailable or unpinned imports: sentence_transformers, transformers; model download or loading",
+      "alternative_check": "Validate nbformat and source policy; test configuration and tensor shapes with a synthetic in-memory fixture.",
+      "detected_imports": [
+        "matplotlib",
+        "numpy",
+        "sentence_transformers",
+        "sklearn",
+        "subprocess",
+        "time",
+        "torch",
+        "transformers"
+      ],
+      "detected_resource_calls": [
+        "model download or loading"
+      ]
+    },
+    {
+      "path": "papers/retrieval/notebooks/02-clip.ipynb",
+      "tier": 3,
+      "reason": "unavailable or unpinned imports: transformers; model download or loading",
+      "alternative_check": "Validate nbformat and source policy; test configuration and tensor shapes with a synthetic in-memory fixture.",
+      "detected_imports": [
+        "matplotlib",
+        "numpy",
+        "sklearn",
+        "subprocess",
+        "torch",
+        "transformers",
+        "warnings"
+      ],
+      "detected_resource_calls": [
+        "model download or loading"
+      ]
+    },
+    {
+      "path": "papers/safety-alignment/notebooks/01-constitutional-ai.ipynb",
+      "tier": 2,
+      "reason": "Uses only Python standard library and pinned notebook-smoke modules; execute in a clean kernel.",
+      "alternative_check": null,
+      "detected_imports": [
+        "json",
+        "numpy",
+        "torch",
+        "typing"
+      ],
+      "detected_resource_calls": []
+    },
+    {
+      "path": "papers/safety-alignment/notebooks/02-dpo.ipynb",
+      "tier": 2,
+      "reason": "Uses only Python standard library and pinned notebook-smoke modules; execute in a clean kernel.",
+      "alternative_check": null,
+      "detected_imports": [
+        "matplotlib",
+        "numpy",
+        "torch",
+        "typing"
+      ],
+      "detected_resource_calls": []
+    },
+    {
+      "path": "papers/safety-alignment/notebooks/03-rlhf-instructgpt.ipynb",
+      "tier": 2,
+      "reason": "Uses only Python standard library and pinned notebook-smoke modules; execute in a clean kernel.",
+      "alternative_check": null,
+      "detected_imports": [
+        "matplotlib",
+        "numpy",
+        "torch",
+        "typing"
+      ],
+      "detected_resource_calls": []
+    },
+    {
+      "path": "papers/vision/notebooks/01-resnet.ipynb",
+      "tier": 3,
+      "reason": "unavailable or unpinned imports: tqdm",
+      "alternative_check": "Validate nbformat and source policy; test deterministic helpers with a small fixture under the dependency-specific CI job.",
+      "detected_imports": [
+        "matplotlib",
+        "numpy",
+        "torch",
+        "tqdm"
+      ],
+      "detected_resource_calls": []
+    },
+    {
+      "path": "papers/vision/notebooks/02-vision-transformer.ipynb",
+      "tier": 3,
+      "reason": "unavailable or unpinned imports: tqdm",
+      "alternative_check": "Validate nbformat and source policy; test deterministic helpers with a small fixture under the dependency-specific CI job.",
+      "detected_imports": [
+        "math",
+        "matplotlib",
+        "numpy",
+        "torch",
+        "tqdm"
+      ],
+      "detected_resource_calls": []
+    },
+    {
+      "path": "rl/notebooks/01-markov-decision-processes.ipynb",
+      "tier": 2,
+      "reason": "Uses only Python standard library and pinned notebook-smoke modules; execute in a clean kernel.",
+      "alternative_check": null,
+      "detected_imports": [
+        "math",
+        "matplotlib",
+        "numpy",
+        "torch"
+      ],
+      "detected_resource_calls": []
+    },
+    {
+      "path": "rl/notebooks/02-bellman-equations.ipynb",
+      "tier": 2,
+      "reason": "Uses only Python standard library and pinned notebook-smoke modules; execute in a clean kernel.",
+      "alternative_check": null,
+      "detected_imports": [
+        "collections",
+        "matplotlib",
+        "numpy",
+        "torch"
+      ],
+      "detected_resource_calls": []
+    },
+    {
+      "path": "rl/notebooks/03-dynamic-programming-rl.ipynb",
+      "tier": 2,
+      "reason": "Uses only Python standard library and pinned notebook-smoke modules; execute in a clean kernel.",
+      "alternative_check": null,
+      "detected_imports": [
+        "matplotlib",
+        "numpy",
+        "torch",
+        "typing"
+      ],
+      "detected_resource_calls": []
+    },
+    {
+      "path": "rl/notebooks/04-monte-carlo-methods.ipynb",
+      "tier": 2,
+      "reason": "Uses only Python standard library and pinned notebook-smoke modules; execute in a clean kernel.",
+      "alternative_check": null,
+      "detected_imports": [
+        "collections",
+        "matplotlib",
+        "numpy",
+        "torch",
+        "typing"
+      ],
+      "detected_resource_calls": []
+    },
+    {
+      "path": "rl/notebooks/05-temporal-difference-learning.ipynb",
+      "tier": 2,
+      "reason": "Uses only Python standard library and pinned notebook-smoke modules; execute in a clean kernel.",
+      "alternative_check": null,
+      "detected_imports": [
+        "matplotlib",
+        "numpy",
+        "torch",
+        "typing"
+      ],
+      "detected_resource_calls": []
+    },
+    {
+      "path": "rl/notebooks/06-q-learning.ipynb",
+      "tier": 2,
+      "reason": "Uses only Python standard library and pinned notebook-smoke modules; execute in a clean kernel.",
+      "alternative_check": null,
+      "detected_imports": [
+        "collections",
+        "matplotlib",
+        "numpy",
+        "warnings"
+      ],
+      "detected_resource_calls": []
+    },
+    {
+      "path": "rl/notebooks/07-sarsa.ipynb",
+      "tier": 2,
+      "reason": "Uses only Python standard library and pinned notebook-smoke modules; execute in a clean kernel.",
+      "alternative_check": null,
+      "detected_imports": [
+        "matplotlib",
+        "numpy",
+        "warnings"
+      ],
+      "detected_resource_calls": []
+    },
+    {
+      "path": "rl/notebooks/08-deep-q-networks.ipynb",
+      "tier": 2,
+      "reason": "Uses only Python standard library and pinned notebook-smoke modules; execute in a clean kernel.",
+      "alternative_check": null,
+      "detected_imports": [
+        "collections",
+        "matplotlib",
+        "numpy",
+        "random",
+        "torch",
+        "warnings"
+      ],
+      "detected_resource_calls": []
+    },
+    {
+      "path": "rl/notebooks/09-policy-gradient.ipynb",
+      "tier": 2,
+      "reason": "Uses only Python standard library and pinned notebook-smoke modules; execute in a clean kernel.",
+      "alternative_check": null,
+      "detected_imports": [
+        "matplotlib",
+        "numpy",
+        "torch",
+        "warnings"
+      ],
+      "detected_resource_calls": []
+    },
+    {
+      "path": "rl/notebooks/10-actor-critic.ipynb",
+      "tier": 2,
+      "reason": "Uses only Python standard library and pinned notebook-smoke modules; execute in a clean kernel.",
+      "alternative_check": null,
+      "detected_imports": [
+        "matplotlib",
+        "numpy",
+        "torch",
+        "warnings"
+      ],
+      "detected_resource_calls": []
+    },
+    {
+      "path": "rl/notebooks/11-proximal-policy-optimization.ipynb",
+      "tier": 2,
+      "reason": "Uses only Python standard library and pinned notebook-smoke modules; execute in a clean kernel.",
+      "alternative_check": null,
+      "detected_imports": [
+        "matplotlib",
+        "numpy",
+        "time",
+        "typing"
+      ],
+      "detected_resource_calls": []
+    },
+    {
+      "path": "rl/notebooks/12-soft-actor-critic.ipynb",
+      "tier": 2,
+      "reason": "Uses only Python standard library and pinned notebook-smoke modules; execute in a clean kernel.",
+      "alternative_check": null,
+      "detected_imports": [
+        "collections",
+        "matplotlib",
+        "numpy",
+        "time",
+        "typing"
+      ],
+      "detected_resource_calls": []
+    },
+    {
+      "path": "rl/notebooks/13-multi-armed-bandit.ipynb",
+      "tier": 2,
+      "reason": "Uses only Python standard library and pinned notebook-smoke modules; execute in a clean kernel.",
+      "alternative_check": null,
+      "detected_imports": [
+        "matplotlib",
+        "numpy",
+        "time"
+      ],
+      "detected_resource_calls": []
+    },
+    {
+      "path": "rl/notebooks/14-exploration-exploitation.ipynb",
+      "tier": 2,
+      "reason": "Uses only Python standard library and pinned notebook-smoke modules; execute in a clean kernel.",
+      "alternative_check": null,
+      "detected_imports": [
+        "matplotlib",
+        "numpy",
+        "time"
+      ],
+      "detected_resource_calls": []
+    },
+    {
+      "path": "rl/notebooks/15-reward-shaping.ipynb",
+      "tier": 2,
+      "reason": "Uses only Python standard library and pinned notebook-smoke modules; execute in a clean kernel.",
+      "alternative_check": null,
+      "detected_imports": [
+        "matplotlib",
+        "numpy",
+        "time"
+      ],
+      "detected_resource_calls": []
+    },
+    {
+      "path": "rl/notebooks/16-model-based-rl.ipynb",
+      "tier": 2,
+      "reason": "Uses only Python standard library and pinned notebook-smoke modules; execute in a clean kernel.",
+      "alternative_check": null,
+      "detected_imports": [
+        "collections",
+        "matplotlib",
+        "numpy",
+        "sklearn",
+        "warnings"
+      ],
+      "detected_resource_calls": []
+    },
+    {
+      "path": "rl/notebooks/17-rlhf.ipynb",
+      "tier": 2,
+      "reason": "Uses only Python standard library and pinned notebook-smoke modules; execute in a clean kernel.",
+      "alternative_check": null,
+      "detected_imports": [
+        "matplotlib",
+        "numpy",
+        "torch",
+        "warnings"
+      ],
+      "detected_resource_calls": []
+    },
+    {
+      "path": "rl/notebooks/18-inverse-rl.ipynb",
+      "tier": 2,
+      "reason": "Uses only Python standard library and pinned notebook-smoke modules; execute in a clean kernel.",
+      "alternative_check": null,
+      "detected_imports": [
+        "matplotlib",
+        "numpy",
+        "sklearn",
+        "warnings"
+      ],
+      "detected_resource_calls": []
+    },
+    {
+      "path": "rl/notebooks/19-multi-agent-rl.ipynb",
+      "tier": 2,
+      "reason": "Uses only Python standard library and pinned notebook-smoke modules; execute in a clean kernel.",
+      "alternative_check": null,
+      "detected_imports": [
+        "matplotlib",
+        "numpy",
+        "warnings"
+      ],
+      "detected_resource_calls": []
+    },
+    {
+      "path": "rl/notebooks/20-offline-rl.ipynb",
+      "tier": 2,
+      "reason": "Uses only Python standard library and pinned notebook-smoke modules; execute in a clean kernel.",
+      "alternative_check": null,
+      "detected_imports": [
+        "matplotlib",
+        "numpy",
+        "warnings"
+      ],
+      "detected_resource_calls": []
+    },
+    {
+      "path": "stats/notebooks/01-probability-fundamentals.ipynb",
+      "tier": 2,
+      "reason": "Uses only Python standard library and pinned notebook-smoke modules; execute in a clean kernel.",
+      "alternative_check": null,
+      "detected_imports": [
+        "collections",
+        "matplotlib",
+        "numpy",
+        "scipy"
+      ],
+      "detected_resource_calls": []
+    },
+    {
+      "path": "stats/notebooks/02-distributions-reference.ipynb",
+      "tier": 2,
+      "reason": "Uses only Python standard library and pinned notebook-smoke modules; execute in a clean kernel.",
+      "alternative_check": null,
+      "detected_imports": [
+        "matplotlib",
+        "numpy",
+        "scipy"
+      ],
+      "detected_resource_calls": []
+    },
+    {
+      "path": "stats/notebooks/03-bayesian-inference.ipynb",
+      "tier": 2,
+      "reason": "Uses only Python standard library and pinned notebook-smoke modules; execute in a clean kernel.",
+      "alternative_check": null,
+      "detected_imports": [
+        "matplotlib",
+        "numpy",
+        "scipy"
+      ],
+      "detected_resource_calls": []
+    },
+    {
+      "path": "stats/notebooks/04-maximum-likelihood-estimation.ipynb",
+      "tier": 2,
+      "reason": "Uses only Python standard library and pinned notebook-smoke modules; execute in a clean kernel.",
+      "alternative_check": null,
+      "detected_imports": [
+        "matplotlib",
+        "numpy",
+        "scipy",
+        "sklearn"
+      ],
+      "detected_resource_calls": []
+    },
+    {
+      "path": "stats/notebooks/05-hypothesis-testing.ipynb",
+      "tier": 3,
+      "reason": "unavailable or unpinned imports: statsmodels",
+      "alternative_check": "Validate nbformat and source policy; test deterministic helpers with a small fixture under the dependency-specific CI job.",
+      "detected_imports": [
+        "itertools",
+        "matplotlib",
+        "numpy",
+        "scipy",
+        "statsmodels"
+      ],
+      "detected_resource_calls": []
+    },
+    {
+      "path": "stats/notebooks/06-confidence-intervals.ipynb",
+      "tier": 2,
+      "reason": "Uses only Python standard library and pinned notebook-smoke modules; execute in a clean kernel.",
+      "alternative_check": null,
+      "detected_imports": [
+        "matplotlib",
+        "numpy",
+        "scipy",
+        "typing"
+      ],
+      "detected_resource_calls": []
+    },
+    {
+      "path": "stats/notebooks/07-statistical-power-sample-size.ipynb",
+      "tier": 2,
+      "reason": "Uses only Python standard library and pinned notebook-smoke modules; execute in a clean kernel.",
+      "alternative_check": null,
+      "detected_imports": [
+        "math",
+        "matplotlib",
+        "numpy",
+        "scipy",
+        "typing"
+      ],
+      "detected_resource_calls": []
+    },
+    {
+      "path": "stats/notebooks/08-ab-testing-statistics.ipynb",
+      "tier": 2,
+      "reason": "Uses only Python standard library and pinned notebook-smoke modules; execute in a clean kernel.",
+      "alternative_check": null,
+      "detected_imports": [
+        "matplotlib",
+        "numpy",
+        "scipy",
+        "typing"
+      ],
+      "detected_resource_calls": []
+    },
+    {
+      "path": "stats/notebooks/09-causal-inference.ipynb",
+      "tier": 2,
+      "reason": "Uses only Python standard library and pinned notebook-smoke modules; execute in a clean kernel.",
+      "alternative_check": null,
+      "detected_imports": [
+        "matplotlib",
+        "numpy",
+        "scipy",
+        "sklearn"
+      ],
+      "detected_resource_calls": []
+    },
+    {
+      "path": "stats/notebooks/10-information-theory.ipynb",
+      "tier": 2,
+      "reason": "Uses only Python standard library and pinned notebook-smoke modules; execute in a clean kernel.",
+      "alternative_check": null,
+      "detected_imports": [
+        "matplotlib",
+        "numpy",
+        "scipy",
+        "sklearn"
+      ],
+      "detected_resource_calls": []
+    },
+    {
+      "path": "stats/notebooks/11-monte-carlo-sampling.ipynb",
+      "tier": 2,
+      "reason": "Uses only Python standard library and pinned notebook-smoke modules; execute in a clean kernel.",
+      "alternative_check": null,
+      "detected_imports": [
+        "matplotlib",
+        "numpy",
+        "scipy"
+      ],
+      "detected_resource_calls": []
+    },
+    {
+      "path": "stats/notebooks/12-markov-chains-mcmc.ipynb",
+      "tier": 2,
+      "reason": "Uses only Python standard library and pinned notebook-smoke modules; execute in a clean kernel.",
+      "alternative_check": null,
+      "detected_imports": [
+        "matplotlib",
+        "numpy",
+        "scipy"
+      ],
+      "detected_resource_calls": []
+    },
+    {
+      "path": "stats/notebooks/13-multivariate-statistics.ipynb",
+      "tier": 2,
+      "reason": "Uses only Python standard library and pinned notebook-smoke modules; execute in a clean kernel.",
+      "alternative_check": null,
+      "detected_imports": [
+        "matplotlib",
+        "numpy",
+        "scipy",
+        "sklearn"
+      ],
+      "detected_resource_calls": []
+    },
+    {
+      "path": "stats/notebooks/14-time-series-statistics.ipynb",
+      "tier": 2,
+      "reason": "Uses only Python standard library and pinned notebook-smoke modules; execute in a clean kernel.",
+      "alternative_check": null,
+      "detected_imports": [
+        "matplotlib",
+        "numpy",
+        "scipy"
+      ],
+      "detected_resource_calls": []
+    },
+    {
+      "path": "stats/notebooks/15-statistical-ml-connections.ipynb",
+      "tier": 2,
+      "reason": "Uses only Python standard library and pinned notebook-smoke modules; execute in a clean kernel.",
+      "alternative_check": null,
+      "detected_imports": [
+        "matplotlib",
+        "numpy",
+        "scipy",
+        "sklearn"
+      ],
+      "detected_resource_calls": []
+    },
+    {
+      "path": "stats/notebooks/16-bootstrap-resampling.ipynb",
+      "tier": 2,
+      "reason": "Uses only Python standard library and pinned notebook-smoke modules; execute in a clean kernel.",
+      "alternative_check": null,
+      "detected_imports": [
+        "random"
+      ],
+      "detected_resource_calls": []
+    },
+    {
+      "path": "stats/notebooks/17-permutation-tests-randomization-inference.ipynb",
+      "tier": 2,
+      "reason": "Uses only Python standard library and pinned notebook-smoke modules; execute in a clean kernel.",
+      "alternative_check": null,
+      "detected_imports": [
+        "random"
+      ],
+      "detected_resource_calls": []
+    },
+    {
+      "path": "stats/notebooks/18-multiple-testing-fdr.ipynb",
+      "tier": 2,
+      "reason": "Uses only Python standard library and pinned notebook-smoke modules; execute in a clean kernel.",
+      "alternative_check": null,
+      "detected_imports": [
+        "random"
+      ],
+      "detected_resource_calls": []
+    },
+    {
+      "path": "stats/notebooks/19-missing-data-imputation-assumptions.ipynb",
+      "tier": 2,
+      "reason": "Uses only Python standard library and pinned notebook-smoke modules; execute in a clean kernel.",
+      "alternative_check": null,
+      "detected_imports": [
+        "random"
+      ],
+      "detected_resource_calls": []
+    },
+    {
+      "path": "stats/notebooks/20-regression-diagnostics-robust-standard-errors.ipynb",
+      "tier": 2,
+      "reason": "Uses only Python standard library and pinned notebook-smoke modules; execute in a clean kernel.",
+      "alternative_check": null,
+      "detected_imports": [
+        "math",
+        "random"
+      ],
+      "detected_resource_calls": []
+    },
+    {
+      "path": "stats/notebooks/21-sequential-experimentation-peeking-control.ipynb",
+      "tier": 2,
+      "reason": "Uses only Python standard library and pinned notebook-smoke modules; execute in a clean kernel.",
+      "alternative_check": null,
+      "detected_imports": [
+        "math",
+        "random"
+      ],
+      "detected_resource_calls": []
+    }
+  ]
+}

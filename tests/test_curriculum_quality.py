@@ -21,13 +21,13 @@ SPEC.loader.exec_module(AUDIT)
 def test_checked_in_manifest_records_all_audited_tracks():
     report = AUDIT.audit()
     assert report["ok"], report["errors"]
-    assert report["lesson_count"] == 172
-    assert report["baseline_count"] == 0
+    assert report["lesson_count"] == 248
+    assert report["baseline_count"] == 76
     assert report["required_count"] == 172
     data, errors = AUDIT._manifest_data(ROOT / "data/curriculum_manifest.json")
     assert not errors
     from collections import Counter
-    assert Counter(lesson["track"] for lesson in data["lessons"]) == {"ml": 40, "modern-ai": 10, "mlops": 8, "stats": 6, "llm": 44, "agentic-ai": 64}
+    assert Counter(lesson["track"] for lesson in data["lessons"]) == {"ml": 40, "modern-ai": 10, "mlops": 8, "stats": 6, "llm": 44, "agentic-ai": 64, "ai": 40, "rl": 20, "cv": 8, "nlp": 8}
 
 
 def test_checked_in_manifest_prerequisites_are_resolved_and_acyclic():
@@ -35,7 +35,8 @@ def test_checked_in_manifest_prerequisites_are_resolved_and_acyclic():
     assert not errors
     result, _ = AUDIT._validate_manifest(data, ROOT, "ml")
     assert not result
-    assert len(data["entry_lessons"]) == 4
+    assert len(data["entry_lessons"]) == 80
+    assert {"ai/gradient-descent", "rl/markov-decision-processes", "cv/image-classification", "cv/vision-transformers", "nlp/text-preprocessing", "llm/tokenization"} <= set(data["entry_lessons"])
     assert "llm/tokenization" in data["entry_lessons"]
 
 
@@ -188,6 +189,38 @@ def test_inventory_reports_scope_and_missing_without_claiming_unindexed_coverage
     assert result["inventory_by_track"]["test"] == {"required": 0, "baseline": 1, "excluded": 0, "missing": 1}
     assert result["inventory_by_track"]["other"] == {"required": 0, "baseline": 0, "excluded": 1, "missing": 0}
     assert "Unindexed lessons are not counted" in result["inventory_definition"]
+
+
+def test_audit_lists_unindexed_concepts_notebooks_and_implementations(tmp_path):
+    manifest = _fixture_manifest(tmp_path, required=False)
+    (tmp_path / "test/concepts").mkdir(parents=True)
+    (tmp_path / "test/notebooks").mkdir()
+    (tmp_path / "test/implementations").mkdir()
+    (tmp_path / "test/concepts/extra.md").write_text("extra", encoding="utf-8")
+    (tmp_path / "test/notebooks/extra.ipynb").write_text("{}", encoding="utf-8")
+    (tmp_path / "test/implementations/extra.py").write_text("pass\n", encoding="utf-8")
+    (tmp_path / "test/concepts/README.md").write_text("index", encoding="utf-8")
+    (tmp_path / "test/concepts/nested").mkdir()
+    (tmp_path / "test/concepts/nested/indexed.md").write_text("indexed", encoding="utf-8")
+
+    report = AUDIT.audit(tmp_path, manifest)
+
+    assert report["unindexed_artifacts_by_track"]["test"] == {
+        "concepts": ["test/concepts/extra.md", "test/concepts/nested/indexed.md"],
+        "notebooks": ["test/notebooks/extra.ipynb"],
+        "implementations": ["test/implementations/extra.py"],
+    }
+    lessons = [
+        {"track": "test", "concept": "test/concepts/nested/./indexed.md"},
+        {"track": "other", "concept": "test/concepts/extra.md"},
+        None,
+    ]
+    selected = AUDIT._unindexed_artifacts(tmp_path, lessons, "test")
+    assert selected == {"test": {"concepts": ["test/concepts/extra.md"], "notebooks": ["test/notebooks/extra.ipynb"], "implementations": ["test/implementations/extra.py"]}}
+    assert AUDIT._unindexed_artifacts(tmp_path, [{"track": "../outside"}]) == {}
+    assert AUDIT._unindexed_artifacts(tmp_path, [], "../outside") == {
+        "../outside": {"concepts": [], "notebooks": [], "implementations": []}
+    }
 
 
 def test_generic_repetition_is_reported_as_warning_not_proof_of_quality(tmp_path):
